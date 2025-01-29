@@ -40,6 +40,12 @@ set(WEBVIEW_SUBPROCESS_PROJECT_NAME "webview_flutter_subprocess")
 
 add_subdirectory(${CEF_ROOT})
 
+target_compile_definitions(plugin_webview_flutter_view PUBLIC
+        MESA_EGL_NO_X11_HEADERS
+        WL_EGL_PLATFORM
+        EGL_NO_X11
+)
+
 target_include_directories(plugin_webview_flutter_view PRIVATE
         include
 )
