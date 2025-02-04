@@ -13,7 +13,7 @@ jobs:
       contents: read
       pull-requests: write
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -64,6 +64,7 @@ jobs:
 
           sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
             clang \
+            clang-tidy \
             llvm \
             lldb \
             lld \
@@ -71,18 +72,12 @@ jobs:
             libc++abi-dev \
             libc++1 \
             libc++abi1 \
-            \
-            rpm clang-tidy libtinfo5
 
           pip3 install absl-py jinja2 ply meson --user
 
           cmake --version
           gcc --version
-
-          mkdir clang18 && cd clang18
-          curl -L -O https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-          tar -xJf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz --strip-components=1
-          bin/clang-format --version
+          llvm-config --version
 
       - name: Cache libcamera
         id: cache-libcamera
@@ -96,8 +91,8 @@ jobs:
         if: steps.cache-libcamera.outputs.cache-hit != 'true'
         working-directory: ${{github.workspace}}
         run: |
-          git clone https://git.libcamera.org/libcamera/libcamera.git
-          cd libcamera && git checkout v0.3.1
+          git clone -b master https://git.libcamera.org/libcamera/libcamera.git
+          cd libcamera && git checkout v0.4.0
           LIBCAMERA_STAGING=$PWD/buildDir/staging/release
           CC=/usr/bin/clang CXX=/usr/bin/clang++ \
           meson setup buildDir -Dqcam="disabled" -Dlc-compliance="disabled" -Dcam="disabled" -Dgstreamer="disabled" --prefix $LIBCAMERA_STAGING
@@ -108,24 +103,23 @@ jobs:
         id: cache-filament
         uses: actions/cache@v4
         with:
+          key: ${{ runner.os }}-filament
           path: |
             ${{github.workspace}}/filament/cmake-build-release/staging/release/*
-          key: ${{ runner.os }}-filament
 
       - name: Build Filament
         if: steps.cache-filament.outputs.cache-hit != 'true'
         working-directory: ${{github.workspace}}
         run: |
-          git clone https://github.com/google/filament.git
+          git clone -b release https://github.com/google/filament.git
           cd filament
-          git checkout v1.52.3
-          PATCHES=$(find ${{github.workspace}} -iname patches)
-          git apply $PATCHES/filament/0001-error-ignoring-return-value-of-function-declared-wit.patch
-          git apply $PATCHES/filament/0002-disable-backend-tests.patch
-          git apply $PATCHES/filament/0003-install-required-files.patch
-          git apply $PATCHES/filament/0004-move-include-contents-to-include-filament.patch
-          git apply $PATCHES/filament/0005-move-libraries-so-they-install.patch
-          git apply $PATCHES/filament/0006-return-shader-type-mobile-for-linux-vulkan.patch
+          git checkout v1.56.7
+          PATCHES=${{github.workspace}}/.github/workflows/patches
+          git apply $PATCHES/filament/0001-disable-backend-tests.patch
+          git apply $PATCHES/filament/0002-install-required-files.patch
+          git apply $PATCHES/filament/0003-move-include-contents-to-include-filament.patch
+          git apply $PATCHES/filament/0004-move-libraries-so-they-install.patch
+          git apply $PATCHES/filament/0005-return-shader-type-mobile-for-linux-vulkan.patch
 
           FILAMENT_BUILD_DIR=$PWD/cmake-build-release
           FILAMENT_STAGING_DIR=${FILAMENT_BUILD_DIR}/staging/release
@@ -152,25 +146,27 @@ jobs:
       - name: Configure CMake
         working-directory: ${{github.workspace}}
         run: |
-          mkdir -p ${{github.workspace}}/build/debug
+          mkdir -p ${{github.workspace}}/build
           PKG_CONFIG_PATH=${{github.workspace}}/libcamera/buildDir/staging/release/lib/x86_64-linux-gnu/pkgconfig \
           CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -GNinja \
-            ${{github.workspace}}/ivi-homescreen \
-            -B ${{github.workspace}}/build/debug \
-            -D CMAKE_BUILD_TYPE=Debug \
+            -S ${{github.workspace}}/ivi-homescreen \
+            -B ${{github.workspace}}/build \
+            -D LLVM_CONFIG=/usr/bin/llvm-config \
+            -D ENABLE_STATIC_LINK=ON \
+            -D ENABLE_LTO=ON \
+            -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_STAGING_PREFIX=${{github.workspace}}/build/staging/usr/local \
             -D BUILD_NUMBER=${GITHUB_RUN_ID} \
             -D CMAKE_VERBOSE_MAKEFILE=ON \
             -D ENABLE_DLT=OFF \
             -D BUILD_CRASH_HANDLER=OFF \
-            -D ENABLE_LTO=ON \
             \
             -D PLUGINS_DIR=${{github.workspace}}/plugins/plugins \
             \
             -D DEBUG_PLATFORM_MESSAGES=OFF \
             \
             -D BUILD_PLUGIN_AUDIOPLAYERS_LINUX=OFF \
-            -D BUILD_PLUGIN_CAMERA=ON \
+            -D BUILD_PLUGIN_CAMERA=OFF \
             -D BUILD_PLUGIN_CLOUD_FIRESTORE=OFF \
             -D BUILD_PLUGIN_COMP_REGION=OFF \
             -D BUILD_PLUGIN_COMP_SURF=OFF \
@@ -194,16 +190,15 @@ jobs:
             -D BUILD_PLUGIN_WEBVIEW_FLUTTER_VIEW=OFF \
             -D BUILD_PLUGIN_FLATPAK=ON \
             \
-            -D ENABLE_CLANG_STATIC_LINK=OFF \
             -D BUILD_WATCHDOG=OFF \
             -D BUILD_SYSTEMD_WATCHDOG=OFF \
             \
             -D CMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-          ln -s ${{github.workspace}}/build/debug/compile_commands.json .
+          ln -s ${{github.workspace}}/build/compile_commands.json .
 
       - name: Cache homescreen
-        id: cache-homescreen
+        id: cache-homescreen-clang-tidy
         uses: actions/cache@v4
         with:
           path: |
@@ -211,8 +206,8 @@ jobs:
           key: ${{ runner.os }}-homescreen
 
       - name: Build Homescreen
-        if: steps.cache-homescreen.outputs.cache-hit != 'true'
-        working-directory: ${{github.workspace}}/build/debug
+        if: steps.cache-homescreen-clang-tidy.outputs.cache-hit != 'true'
+        working-directory: ${{github.workspace}}/build
         run: |
           ninja homescreen
 
@@ -221,15 +216,14 @@ jobs:
         run: |
           export FILE_LIST=$(find plugins -type d -name third_party -prune -false -o -name '*.cc' -o -name '*.hpp' -o -name '*.h')
           echo $FILE_LIST
-          clang18/bin/run-clang-tidy \
+          run-clang-tidy \
             -warnings-as-errors='*,-bugprone-macro-parentheses' \
-            -quiet \
             -export-fixes=tidy-results-suggested-fixes.txt \
-            $FILE_LIST \
             -extra-arg='-I${{github.workspace}}/ivi-homescreen/build/third_party/waypp/waypp/protocols' \
             -extra-arg='-I${{github.workspace}}/filament/cmake-build-release/staging/release/include' \
             -extra-arg='-I${{github.workspace}}/filament/cmake-build-release/staging/release/include/filament' \
-            -extra-arg='-I${{github.workspace}}/filament/lib/utils/include' > tidy-results-log.txt
+            -extra-arg='-I${{github.workspace}}/filament/lib/utils/include' \
+            $FILE_LIST > tidy-results-log.txt
 
       - name: Show results
         if: always()
