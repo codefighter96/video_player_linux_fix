@@ -61,6 +61,10 @@ LibPdfiumExports* LibPdfium::loadExports() {
   static LibPdfiumExports exports = [&] {
     void* lib = dlopen("libpdfium.so", RTLD_NOW | RTLD_GLOBAL);
 
+    if (lib == nullptr) {
+      return LibPdfiumExports(nullptr);
+    }
+
     struct link_map* lmap;
     dlinfo(lib, RTLD_DI_LINKMAP, &lmap);
     const std::filesystem::path folder(lmap->l_name);
