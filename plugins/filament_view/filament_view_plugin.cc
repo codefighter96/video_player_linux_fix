@@ -749,10 +749,8 @@ void FilamentViewPlugin::on_touch(const int32_t action,
   }
 }
 
-void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* data) {
-  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
-    // Todo ? Note? Should we destroy all systems here?
-  }
+void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* /* data */) {
+  spdlog::warn("[FilamentViewPlugin] on_dispose not currently implemented");
 }
 
 const platform_view_listener FilamentViewPlugin::platform_view_listener_ = {
