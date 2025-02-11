@@ -66,7 +66,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
     const filament::Material* materialResult,
     const MaterialDefinitions* materialDefinitions) const {
   if (!materialResult) {
-    SPDLOG_ERROR("Unable to {}::{}", __FILE__, __FUNCTION__);
+    SPDLOG_ERROR("Unable to {}", __FUNCTION__);
     return Resource<filament::MaterialInstance*>::Error("argument is NULL");
   }
 
