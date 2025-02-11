@@ -183,7 +183,7 @@ void ShapeSystem::addShapesToScene(
     sharedPtr->vRegisterEntity();
   }
 
-  SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

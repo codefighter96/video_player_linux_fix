@@ -49,7 +49,7 @@ MaterialParameter::MaterialParameter(std::string name,
 std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
     const std::string& /* flutter_assets_path */,
     const flutter::EncodableMap& params) {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   std::optional<std::string> name;
   std::optional<MaterialType> type;
@@ -60,8 +60,8 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {} {}",
-                   key, __FILE__, __FUNCTION__);
+      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {}", key,
+                   __FUNCTION__);
       continue;
     }
 

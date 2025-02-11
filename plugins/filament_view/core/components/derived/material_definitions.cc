@@ -31,7 +31,7 @@ using MagFilter = filament::TextureSampler::MagFilter;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)) {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
   const auto flutterAssetPath =
       ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
@@ -67,7 +67,7 @@ MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,8 +197,7 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
     } break;
 
     default: {
-      SPDLOG_WARN("Type template not setup yet, see {} {}", __FILE__,
-                  __FUNCTION__);
+      SPDLOG_WARN("Type template not setup yet, see {}", __FUNCTION__);
     } break;
   }
 }
@@ -229,8 +228,8 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
       if (iter == parameters_.end() || iter->second == nullptr) {
         // This can get pretty spammy, but good if needing to debug further into
         // parameter values.
-        SPDLOG_INFO("No default parameter value available for {}::{} {}",
-                    __FILE__, __FUNCTION__, param.name);
+        SPDLOG_INFO("No default parameter value available for {} {}",
+                    __FUNCTION__, param.name);
         continue;
       }
       SPDLOG_TRACE("Setting material param {}", param.name);

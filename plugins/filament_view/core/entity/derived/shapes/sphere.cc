@@ -41,7 +41,7 @@ Sphere::Sphere() : stacks_(20), slices_(20) {}
 ////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere(const flutter::EncodableMap& params)
     : BaseShape(params), stacks_(20), slices_(20) {
-  SPDLOG_TRACE("+-{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("+-{}", __FUNCTION__);
 
   static constexpr char kStacks[] = "stacks";
   static constexpr char kSlices[] = "slices";

@@ -60,7 +60,7 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
       m_f3Normal(0, 0, 0),
       m_poMaterialInstance(
           Resource<filament::MaterialInstance*>::Error("Unset")) {
-  SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   DeserializeNameAndGlobalGuid(params);
 
@@ -98,7 +98,7 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
     vAddComponent(std::move(materialDefinitions));
   }
 
-  SPDLOG_TRACE("--{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -230,8 +230,8 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vRemoveEntityFromScene() const {
   if (m_poEntity == nullptr) {
-    SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}::{}",
-                __FILE__, __FUNCTION__);
+    SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}",
+                __FUNCTION__);
     return;
   }
 
@@ -246,8 +246,7 @@ void BaseShape::vRemoveEntityFromScene() const {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vAddEntityToScene() const {
   if (m_poEntity == nullptr) {
-    SPDLOG_WARN("Attempt to add uninitialized shape to scene {}::{}", __FILE__,
-                __FUNCTION__);
+    SPDLOG_WARN("Attempt to add uninitialized shape to scene {}", __FUNCTION__);
     return;
   }
 

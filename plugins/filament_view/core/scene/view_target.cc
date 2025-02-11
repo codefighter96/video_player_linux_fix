@@ -63,7 +63,7 @@ ViewTarget::~ViewTarget() {
   cameraManager_->destroyCamera();
   cameraManager_.reset();
 
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   if (callback_) {
     wl_callback_destroy(callback_);
@@ -87,7 +87,7 @@ ViewTarget::~ViewTarget() {
     wl_surface_destroy(surface_);
     surface_ = nullptr;
   }
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ void ViewTarget::setupWaylandSubsurface() {
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::InitializeFilamentInternals(const uint32_t width,
                                              const uint32_t height) {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   native_window_ = {.display = display_,
                     .surface = surface_,
@@ -162,12 +162,12 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width,
 
   setupView(width, height);
 
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::setupView(uint32_t width, uint32_t height) {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -220,7 +220,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 
   cameraManager_ = std::make_unique<CameraManager>(this);
 
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////

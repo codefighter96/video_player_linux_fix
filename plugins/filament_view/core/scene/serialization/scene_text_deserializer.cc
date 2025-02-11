@@ -56,8 +56,8 @@ void SceneTextDeserializer::vDeserializeRootLevel(
   for (const auto& [fst, snd] : *creationParams) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {} {}", key.c_str(),
-                   __FILE__, __FUNCTION__);
+      SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {}", key.c_str(),
+                   __FUNCTION__);
       continue;
     }
 
@@ -122,9 +122,8 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
       SPDLOG_WARN(
-          "vDeserializeSceneLevel Param ITER is null key:{} file:{} "
-          "function:{}",
-          key, __FILE__, __FUNCTION__);
+          "vDeserializeSceneLevel Param ITER is null key:{} function:{}", key,
+          __FUNCTION__);
       continue;
     }
 
@@ -205,7 +204,7 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpLoadingModels() {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   for (auto& iter : models_) {
     // Note: Instancing or prefab of models is not currently supported but might
@@ -215,7 +214,7 @@ void SceneTextDeserializer::setUpLoadingModels() {
     loadModel(iter);
   }
 
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -43,7 +43,7 @@ CameraManager::CameraManager(ViewTarget* poOwner)
 
 ////////////////////////////////////////////////////////////////////////////
 void CameraManager::setDefaultFilamentCamera() {
-  SPDLOG_TRACE("++{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -69,7 +69,7 @@ void CameraManager::setDefaultFilamentCamera() {
   cameraManipulator_->getLookAt(&eye, &center, &up);
   setCameraLookat(eye, center, up);
   fview->setCamera(camera_);
-  SPDLOG_TRACE("--{}::{}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -77,8 +77,8 @@ void CameraManager::setCameraLookat(filament::math::float3 eye,
                                     filament::math::float3 center,
                                     filament::math::float3 up) const {
   if (camera_ == nullptr) {
-    SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {} {}",
-                 __FILE__, __FUNCTION__, __LINE__);
+    SPDLOG_DEBUG("Unable to set Camera Lookat, camera is null {} {}",
+                 __FUNCTION__, __LINE__);
     return;
   }
 
