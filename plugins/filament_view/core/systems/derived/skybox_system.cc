@@ -400,7 +400,7 @@ void SkyboxSystem::vShutdownSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::DebugPrint() {
-  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}", __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

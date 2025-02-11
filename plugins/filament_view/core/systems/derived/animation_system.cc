@@ -188,8 +188,8 @@ void AnimationSystem::vUpdate(const float fElapsedTime) {
 void AnimationSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
   if (_entities.find(entity->GetGlobalGuid()) != _entities.end()) {
-    spdlog::error("{}::{}: Entity {} already registered", __FILE__,
-                  __FUNCTION__, entity->GetGlobalGuid());
+    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
+                  entity->GetGlobalGuid());
     return;
   }
 
@@ -207,7 +207,7 @@ void AnimationSystem::vShutdownSystem() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::DebugPrint() {
-  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}", __FUNCTION__);
 
   // todo list all animators
 }

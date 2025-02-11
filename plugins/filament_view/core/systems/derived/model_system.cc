@@ -752,7 +752,7 @@ void ModelSystem::vShutdownSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::DebugPrint() {
-  SPDLOG_DEBUG("{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_DEBUG("{}", __FUNCTION__);
 }
 
 }  // namespace plugin_filament_view

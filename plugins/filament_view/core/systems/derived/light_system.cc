@@ -212,7 +212,7 @@ void LightSystem::vShutdownSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::DebugPrint() {
-  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}", __FUNCTION__);
 
   // TODO Update print out list of lights
 }
@@ -222,8 +222,8 @@ void LightSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
   if (m_mapGuidToEntity.find(entity->GetGlobalGuid()) !=
       m_mapGuidToEntity.end()) {
-    spdlog::error("{}::{}: Entity {} already registered", __FILE__,
-                  __FUNCTION__, entity->GetGlobalGuid());
+    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
+                  entity->GetGlobalGuid());
     return;
   }
 

@@ -142,7 +142,7 @@ void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::addShapesToScene(
     std::vector<std::shared_ptr<BaseShape>>* shapes) {
-  SPDLOG_TRACE("++{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_TRACE("++{}", __FUNCTION__);
 
   // TODO remove this, just debug info print for now;
   /*for (auto& shape : *shapes) {
@@ -339,6 +339,6 @@ void ShapeSystem::vShutdownSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::DebugPrint() {
-  SPDLOG_DEBUG("{} {}", __FILE__, __FUNCTION__);
+  SPDLOG_DEBUG("{}", __FUNCTION__);
 }
 }  // namespace plugin_filament_view
