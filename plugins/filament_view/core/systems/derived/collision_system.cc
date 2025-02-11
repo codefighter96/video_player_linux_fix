@@ -197,7 +197,7 @@ void CollisionSystem::vTurnOffRenderingOfCollidables() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::DebugPrint() {
-  spdlog::debug("{}::{}", __FILE__, __FUNCTION__);
+  spdlog::debug("{}", __FUNCTION__);
 
   /*for (auto& collidable : collidables_) {
     collidable->DebugPrint();

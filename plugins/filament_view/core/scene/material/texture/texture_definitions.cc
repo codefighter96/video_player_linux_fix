@@ -121,7 +121,7 @@ TextureDefinitions::TextureType TextureDefinitions::getType(
     return DATA;
   }
 
-  spdlog::warn("{}::{}::{} - unknown type {}", __FILE__, __FUNCTION__, __LINE__,
+  spdlog::warn("{}::{} - unknown type {}", __FUNCTION__, __LINE__,
                type.c_str());
   return UNKNOWN;
 }

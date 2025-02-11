@@ -95,28 +95,28 @@ void ViewTarget::setupWaylandSubsurface() {
   // Ensure state_ is properly initialized
   if (!state_ || !state_->view_controller) {
     // Handle error: state_ or view_controller is not initialized
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     return;
   }
 
   const auto flutter_view = state_->view_controller->view;
   if (!flutter_view) {
     // Handle error: flutter_view is not initialized
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     return;
   }
 
   display_ = flutter_view->GetDisplay()->GetDisplay();
   if (!display_) {
     // Handle error: display is not initialized
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     return;
   }
 
   parent_surface_ = flutter_view->GetWindow()->GetBaseSurface();
   if (!parent_surface_) {
     // Handle error: parent_surface is not initialized
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     return;
   }
 
@@ -124,7 +124,7 @@ void ViewTarget::setupWaylandSubsurface() {
       wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
   if (!surface_) {
     // Handle error: failed to create surface
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     return;
   }
 
@@ -133,7 +133,7 @@ void ViewTarget::setupWaylandSubsurface() {
       parent_surface_);
   if (!subsurface_) {
     // Handle error: failed to create subsurface
-    spdlog::error("{}::{}::{}", __FILE__, __FUNCTION__, __LINE__);
+    spdlog::error("{}::{}", __FUNCTION__, __LINE__);
     wl_surface_destroy(surface_);  // Clean up the surface
     return;
   }
