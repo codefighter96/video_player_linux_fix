@@ -343,6 +343,41 @@ std::optional<FlutterError> FilamentViewPlugin::ToggleShapesInScene(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
+    const std::string& guid,
+    const double posx,
+    const double posy,
+    const double posz,
+    const double rotx,
+    const double roty,
+    const double rotz,
+    const double rotw,
+    const double sclx,
+    const double scly,
+    const double sclz) {
+  filament::math::float3 position(static_cast<float>(posx),
+                                  static_cast<float>(posy),
+                                  static_cast<float>(posz));
+  // quaternion
+  filament::math::quatf rotation(static_cast<float>(rotx),
+                                 static_cast<float>(roty),
+                                 static_cast<float>(rotz),
+                                 static_cast<float>(rotw));
+  filament::math::float3 scale(static_cast<float>(sclx),
+                               static_cast<float>(scly),
+                               static_cast<float>(sclz));
+
+  ECSMessage shapeData;
+  shapeData.addData(ECSMessageType::SetShapeTransform, guid);
+  shapeData.addData(ECSMessageType::Position, position);
+  shapeData.addData(ECSMessageType::Rotation, rotation);
+  shapeData.addData(ECSMessageType::Scale, scale);
+  ECSystemManager::GetInstance()->vRouteMessage(shapeData);
+
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError>
 FilamentViewPlugin::ToggleDebugCollidableViewsInScene(const bool value) {
   ECSMessage toggleMessage;

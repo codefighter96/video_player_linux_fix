@@ -201,6 +201,52 @@ void ShapeSystem::vInitSystem() {
       });
 
   vRegisterMessageHandler(
+      ECSMessageType::SetShapeTransform, [this](const ECSMessage& msg) {
+        SPDLOG_TRACE("SetShapeTransform");
+
+        const auto guid =
+            msg.getData<std::string>(ECSMessageType::SetShapeTransform);
+
+        const auto position =
+            msg.getData<filament::math::float3>(ECSMessageType::Position);
+        const auto rotation =
+            msg.getData<filament::math::quatf>(ECSMessageType::Rotation);
+        const auto scale =
+            msg.getData<filament::math::float3>(ECSMessageType::Scale);
+
+        // find the entity in our list:
+        if (const auto ourEntity = m_mapszoShapes.find(guid);
+            ourEntity != m_mapszoShapes.end()) {
+          const auto baseTransform = dynamic_cast<BaseTransform*>(
+              ourEntity->second
+                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
+                  .get());
+
+          const auto collidable = dynamic_cast<Collidable*>(
+              ourEntity->second
+                  ->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
+                  .get());
+
+          // this ideally checks for SetShouldMatchAttachedObject in the future
+          // - todo
+          baseTransform->SetCenterPosition(position);
+          baseTransform->SetRotation(rotation);
+          baseTransform->SetScale(scale);
+          collidable->SetCenterPoint(position);
+          collidable->SetExtentsSize(scale);
+
+          EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),
+                                            *baseTransform);
+
+          // and change the collision
+          vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
+                                                ourEntity->second);
+        }
+
+        SPDLOG_TRACE("SetShapeTransform Complete");
+      });
+
+  vRegisterMessageHandler(
       ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleVisualForEntity");
 

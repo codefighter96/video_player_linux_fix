@@ -75,6 +75,18 @@ class FilamentViewPlugin : public flutter::Plugin,
       const std::string& guid) override;
   // Toggle shapes visibility in the scene.
   std::optional<FlutterError> ToggleShapesInScene(bool value) override;
+  // Set shape transform
+  std::optional<FlutterError> SetShapeTransform(const std::string& guid,
+                                                double posx,
+                                                double posy,
+                                                double posz,
+                                                double rotx,
+                                                double roty,
+                                                double rotz,
+                                                double rotw,
+                                                double sclx,
+                                                double scly,
+                                                double sclz) override;
   // Toggle debug collidable visuals in the scene.
   std::optional<FlutterError> ToggleDebugCollidableViewsInScene(
       bool value) override;
