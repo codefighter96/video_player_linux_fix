@@ -359,10 +359,9 @@ std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
                                   static_cast<float>(posy),
                                   static_cast<float>(posz));
   // quaternion
-  filament::math::quatf rotation(static_cast<float>(rotx),
-                                 static_cast<float>(roty),
-                                 static_cast<float>(rotz),
-                                 static_cast<float>(rotw));
+  filament::math::quatf rotation(
+      static_cast<float>(rotx), static_cast<float>(roty),
+      static_cast<float>(rotz), static_cast<float>(rotw));
   filament::math::float3 scale(static_cast<float>(sclx),
                                static_cast<float>(scly),
                                static_cast<float>(sclz));
