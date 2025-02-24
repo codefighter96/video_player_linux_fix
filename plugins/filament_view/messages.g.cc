@@ -46,15 +46,15 @@ FlutterError CreateConnectionError(const std::string& channel_name) {
 PigeonInternalCodecSerializer::PigeonInternalCodecSerializer() = default;
 
 EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
-    const uint8_t type,
+    uint8_t type,
     flutter::ByteStreamReader* stream) const {
-  return StandardCodecSerializer::ReadValueOfType(type, stream);
+  return flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
 }
 
 void PigeonInternalCodecSerializer::WriteValue(
     const EncodableValue& value,
     flutter::ByteStreamWriter* stream) const {
-  StandardCodecSerializer::WriteValue(value, stream);
+  flutter::StandardCodecSerializer::WriteValue(value, stream);
 }
 
 /// The codec used by FilamentViewApi.
@@ -67,7 +67,7 @@ const flutter::StandardMessageCodec& FilamentViewApi::GetCodec() {
 // `binary_messenger`.
 void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                             FilamentViewApi* api) {
-  SetUp(binary_messenger, api, "");
+  FilamentViewApi::SetUp(binary_messenger, api, "");
 }
 
 void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
@@ -78,11 +78,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           ? std::string(".") + message_channel_suffix
           : "";
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeMaterialParameter" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeMaterialParameter" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -102,7 +102,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeMaterialParameter(params_arg, guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -120,11 +120,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeMaterialDefinition" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeMaterialDefinition" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -144,7 +144,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeMaterialDefinition(params_arg, guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -162,11 +162,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.toggleShapesInScene" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.toggleShapesInScene" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -179,7 +179,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& value_arg = std::get<bool>(encodable_value_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ToggleShapesInScene(value_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -197,7 +197,103 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.setShapeTransform" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_guid_arg = args.at(0);
+              if (encodable_guid_arg.IsNull()) {
+                reply(WrapError("guid_arg unexpectedly null."));
+                return;
+              }
+              const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
+              const auto& encodable_posx_arg = args.at(1);
+              if (encodable_posx_arg.IsNull()) {
+                reply(WrapError("posx_arg unexpectedly null."));
+                return;
+              }
+              const auto& posx_arg = std::get<double>(encodable_posx_arg);
+              const auto& encodable_posy_arg = args.at(2);
+              if (encodable_posy_arg.IsNull()) {
+                reply(WrapError("posy_arg unexpectedly null."));
+                return;
+              }
+              const auto& posy_arg = std::get<double>(encodable_posy_arg);
+              const auto& encodable_posz_arg = args.at(3);
+              if (encodable_posz_arg.IsNull()) {
+                reply(WrapError("posz_arg unexpectedly null."));
+                return;
+              }
+              const auto& posz_arg = std::get<double>(encodable_posz_arg);
+              const auto& encodable_rotx_arg = args.at(4);
+              if (encodable_rotx_arg.IsNull()) {
+                reply(WrapError("rotx_arg unexpectedly null."));
+                return;
+              }
+              const auto& rotx_arg = std::get<double>(encodable_rotx_arg);
+              const auto& encodable_roty_arg = args.at(5);
+              if (encodable_roty_arg.IsNull()) {
+                reply(WrapError("roty_arg unexpectedly null."));
+                return;
+              }
+              const auto& roty_arg = std::get<double>(encodable_roty_arg);
+              const auto& encodable_rotz_arg = args.at(6);
+              if (encodable_rotz_arg.IsNull()) {
+                reply(WrapError("rotz_arg unexpectedly null."));
+                return;
+              }
+              const auto& rotz_arg = std::get<double>(encodable_rotz_arg);
+              const auto& encodable_rotw_arg = args.at(7);
+              if (encodable_rotw_arg.IsNull()) {
+                reply(WrapError("rotw_arg unexpectedly null."));
+                return;
+              }
+              const auto& rotw_arg = std::get<double>(encodable_rotw_arg);
+              const auto& encodable_sclx_arg = args.at(8);
+              if (encodable_sclx_arg.IsNull()) {
+                reply(WrapError("sclx_arg unexpectedly null."));
+                return;
+              }
+              const auto& sclx_arg = std::get<double>(encodable_sclx_arg);
+              const auto& encodable_scly_arg = args.at(9);
+              if (encodable_scly_arg.IsNull()) {
+                reply(WrapError("scly_arg unexpectedly null."));
+                return;
+              }
+              const auto& scly_arg = std::get<double>(encodable_scly_arg);
+              const auto& encodable_sclz_arg = args.at(10);
+              if (encodable_sclz_arg.IsNull()) {
+                reply(WrapError("sclz_arg unexpectedly null."));
+                return;
+              }
+              const auto& sclz_arg = std::get<double>(encodable_sclz_arg);
+              std::optional<FlutterError> output = api->SetShapeTransform(
+                  guid_arg, posx_arg, posy_arg, posz_arg, rotx_arg, roty_arg,
+                  rotz_arg, rotw_arg, sclx_arg, scly_arg, sclz_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.emplace_back();
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "toggleDebugCollidableViewsInScene" +
@@ -215,7 +311,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& value_arg = std::get<bool>(encodable_value_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ToggleDebugCollidableViewsInScene(value_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -233,7 +329,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.changeCameraMode" +
             prepended_suffix,
@@ -250,7 +346,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& mode_arg = std::get<std::string>(encodable_mode_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeCameraMode(mode_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -268,7 +364,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "changeCameraOrbitHomePosition" +
@@ -298,7 +394,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& z_arg = std::get<double>(encodable_z_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeCameraOrbitHomePosition(x_arg, y_arg, z_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -316,11 +412,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeCameraTargetPosition" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeCameraTargetPosition" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -345,7 +441,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& z_arg = std::get<double>(encodable_z_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeCameraTargetPosition(x_arg, y_arg, z_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -363,7 +459,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "changeCameraFlightStartPosition" +
@@ -393,7 +489,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& z_arg = std::get<double>(encodable_z_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeCameraFlightStartPosition(x_arg, y_arg, z_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -411,7 +507,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "resetInertiaCameraToDefaultValues" +
@@ -419,10 +515,10 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& /*message*/,
+          [api](const EncodableValue& message,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ResetInertiaCameraToDefaultValues();
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -440,17 +536,17 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeViewQualitySettings" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeViewQualitySettings" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& /*message*/,
+          [api](const EncodableValue& message,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeViewQualitySettings();
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -468,7 +564,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.setCameraRotation" +
             prepended_suffix,
@@ -485,7 +581,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& value_arg = std::get<double>(encodable_value_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->SetCameraRotation(value_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -503,11 +599,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeLightTransformByGUID" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeLightTransformByGUID" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -556,7 +652,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& dirz_arg = std::get<double>(encodable_dirz_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeLightTransformByGUID(guid_arg, posx_arg, posy_arg,
                                                   posz_arg, dirx_arg, diry_arg,
                                                   dirz_arg);
@@ -576,11 +672,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeLightColorByGUID" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeLightColorByGUID" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -606,9 +702,8 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const int64_t intensity_arg = encodable_intensity_arg.LongValue();
-              const std::optional<FlutterError> output =
-                  api->ChangeLightColorByGUID(guid_arg, color_arg,
-                                              intensity_arg);
+              std::optional<FlutterError> output = api->ChangeLightColorByGUID(
+                  guid_arg, color_arg, intensity_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
@@ -625,7 +720,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.enqueueAnimation" +
             prepended_suffix,
@@ -649,7 +744,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const int64_t animation_index_arg =
                   encodable_animation_index_arg.LongValue();
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->EnqueueAnimation(guid_arg, animation_index_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -667,11 +762,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.clearAnimationQueue" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.clearAnimationQueue" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -684,7 +779,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ClearAnimationQueue(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -702,7 +797,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.playAnimation" +
             prepended_suffix,
@@ -726,7 +821,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const int64_t animation_index_arg =
                   encodable_animation_index_arg.LongValue();
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->PlayAnimation(guid_arg, animation_index_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -744,11 +839,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeAnimationSpeed" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeAnimationSpeed" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -767,7 +862,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& speed_arg = std::get<double>(encodable_speed_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeAnimationSpeed(guid_arg, speed_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -785,7 +880,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.pauseAnimation" +
             prepended_suffix,
@@ -802,7 +897,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->PauseAnimation(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -820,7 +915,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.resumeAnimation" +
             prepended_suffix,
@@ -837,7 +932,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ResumeAnimation(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -855,11 +950,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.setAnimationLooping" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.setAnimationLooping" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -878,7 +973,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& looping_arg = std::get<bool>(encodable_looping_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->SetAnimationLooping(guid_arg, looping_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -896,7 +991,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "requestCollisionCheckFromRay" +
@@ -963,7 +1058,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& length_arg = std::get<double>(encodable_length_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->RequestCollisionCheckFromRay(
                       query_i_d_arg, origin_x_arg, origin_y_arg, origin_z_arg,
                       direction_x_arg, direction_y_arg, direction_z_arg,
@@ -984,7 +1079,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi.changeScaleByGUID" +
             prepended_suffix,
@@ -1019,7 +1114,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& z_arg = std::get<double>(encodable_z_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeScaleByGUID(guid_arg, x_arg, y_arg, z_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1037,11 +1132,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeTranslationByGUID" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeTranslationByGUID" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -1072,7 +1167,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& z_arg = std::get<double>(encodable_z_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->ChangeTranslationByGUID(guid_arg, x_arg, y_arg, z_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1090,11 +1185,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.changeRotationByGUID" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.changeRotationByGUID" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -1131,9 +1226,8 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& w_arg = std::get<double>(encodable_w_arg);
-              const std::optional<FlutterError> output =
-                  api->ChangeRotationByGUID(guid_arg, x_arg, y_arg, z_arg,
-                                            w_arg);
+              std::optional<FlutterError> output = api->ChangeRotationByGUID(
+                  guid_arg, x_arg, y_arg, z_arg, w_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;
@@ -1150,11 +1244,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.turnOffVisualForEntity" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.turnOffVisualForEntity" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -1167,7 +1261,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->TurnOffVisualForEntity(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1185,11 +1279,11 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(binary_messenger,
-                                "dev.flutter.pigeon.my_fox_example."
-                                "FilamentViewApi.turnOnVisualForEntity" +
-                                    prepended_suffix,
-                                &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.my_fox_example."
+                                  "FilamentViewApi.turnOnVisualForEntity" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
           [api](const EncodableValue& message,
@@ -1202,7 +1296,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->TurnOnVisualForEntity(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1220,7 +1314,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "turnOffCollisionChecksForEntity" +
@@ -1238,7 +1332,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->TurnOffCollisionChecksForEntity(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1256,7 +1350,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
     }
   }
   {
-    BasicMessageChannel channel(
+    BasicMessageChannel<> channel(
         binary_messenger,
         "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
         "turnOnCollisionChecksForEntity" +
@@ -1274,7 +1368,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const auto& guid_arg = std::get<std::string>(encodable_guid_arg);
-              const std::optional<FlutterError> output =
+              std::optional<FlutterError> output =
                   api->TurnOnCollisionChecksForEntity(guid_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
@@ -1293,8 +1387,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-EncodableValue FilamentViewApi::WrapError(
-    const std::string_view error_message) {
+EncodableValue FilamentViewApi::WrapError(std::string_view error_message) {
   return EncodableValue(
       EncodableList{EncodableValue(std::string(error_message)),
                     EncodableValue("Error"), EncodableValue()});
