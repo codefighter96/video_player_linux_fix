@@ -182,41 +182,32 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   fview_->setBlendMode(filament::View::BlendMode::TRANSLUCENT);
 
   // on mobile, better use lower quality color buffer
-  filament::View::RenderQuality renderQuality{};
-  renderQuality.hdrColorBuffer = filament::View::QualityLevel::MEDIUM;
-  fview_->setRenderQuality(renderQuality);
+  // filament::View::RenderQuality renderQuality{};
+  // renderQuality.hdrColorBuffer = filament::View::QualityLevel::MEDIUM;
+  // fview_->setRenderQuality(renderQuality);
 
   // dynamic resolution often helps a lot
-  fview_->setDynamicResolutionOptions(
-      {.enabled = true, .quality = filament::View::QualityLevel::MEDIUM});
+  // fview_->setDynamicResolutionOptions(
+  //     {.enabled = true, .quality = filament::View::QualityLevel::MEDIUM});
 
   // MSAA is needed with dynamic resolution MEDIUM
-  fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
+  // fview_->setMultiSampleAntiAliasingOptions({.enabled = true});
   // fview_->setMultiSampleAntiAliasingOptions({.enabled = false});
 
   // FXAA is pretty economical and helps a lot
-  fview_->setAntiAliasing(filament::View::AntiAliasing::FXAA);
+  // fview_->setAntiAliasing(filament::View::AntiAliasing::FXAA);
   // fview_->setAntiAliasing(filament::View::AntiAliasing::NONE);
 
   // ambient occlusion is the cheapest effect that adds a lot of quality
   fview_->setAmbientOcclusionOptions({.enabled = true, .ssct = {}});
   // fview_->setAmbientOcclusion(filament::View::AmbientOcclusion::NONE);
 
-  // bloom is pretty expensive but adds a fair amount of realism
-  // fview_->setBloomOptions({
-  //     .enabled = false,
-  // });
-
-  fview_->setBloomOptions({
-      .enabled = true,
-  });
-
-  fview_->setPostProcessingEnabled(true);
-
   // fview_->setShadowingEnabled(false);
   // fview_->setScreenSpaceRefractionEnabled(false);
   // fview_->setStencilBufferEnabled(false);
   // fview_->setDynamicLightingOptions(0.01, 1000.0f);
+
+  vChangeQualitySettings(ViewTarget::ePredefinedQualitySettings::Ultra);
 
   cameraManager_ = std::make_unique<CameraManager>(this);
 
@@ -240,8 +231,7 @@ void ViewTarget::vChangeQualitySettings(
     case Lowest:
       settings.antiAliasing = filament::View::AntiAliasing::NONE;
       settings.msaa.enabled = false;
-      settings.dsr = {.enabled = false,
-                      .quality = filament::View::QualityLevel::LOW};
+      settings.dsr = {.enabled = false};
       settings.screenSpaceReflections.enabled = false;
       settings.bloom.enabled = false;
       settings.postProcessingEnabled = false;
@@ -254,6 +244,8 @@ void ViewTarget::vChangeQualitySettings(
                                    .highPrecision = false,
                                    .minVarianceScale = 0.5f,
                                    .lightBleedReduction = 0.15f};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::MEDIUM};
       fview_->setStencilBufferEnabled(false);
       fview_->setScreenSpaceRefractionEnabled(false);
       break;
@@ -261,85 +253,99 @@ void ViewTarget::vChangeQualitySettings(
     case Low:
       settings.antiAliasing = filament::View::AntiAliasing::FXAA;
       settings.msaa.enabled = false;
-      settings.dsr = {.enabled = true,
-                      .quality = filament::View::QualityLevel::LOW};
+      settings.dsr = {.enabled = false};
       settings.screenSpaceReflections.enabled = false;
       settings.bloom = {.strength = 0.1f, .enabled = true};
       settings.postProcessingEnabled = true;
       settings.dynamicLighting.zLightNear = 5.0f;
       settings.dynamicLighting.zLightFar = 100.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      fview_->setStencilBufferEnabled(true);
-      fview_->setScreenSpaceRefractionEnabled(false);
       settings.vsmShadowOptions = {.anisotropy = 0,
                                    .mipmapping = true,
                                    .msaaSamples = 2,
                                    .highPrecision = false,
                                    .minVarianceScale = 0.4f,
                                    .lightBleedReduction = 0.2f};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::MEDIUM};
+      fview_->setStencilBufferEnabled(true);
+      fview_->setScreenSpaceRefractionEnabled(false);
       break;
 
     case Medium:
       settings.antiAliasing = filament::View::AntiAliasing::FXAA;
-      settings.msaa.enabled = true;
-      settings.dsr = {.enabled = true,
-                      .quality = filament::View::QualityLevel::MEDIUM};
-      settings.screenSpaceReflections.enabled = true;
+      settings.msaa.enabled = false;
+      settings.dsr = {.enabled = false};
+      settings.screenSpaceReflections.enabled = false;
       settings.bloom = {.strength = 0.2f, .enabled = true};
       settings.postProcessingEnabled = true;
       settings.dynamicLighting.zLightNear = 5.0f;
       settings.dynamicLighting.zLightFar = 200.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
+      // settings.vsmShadowOptions = {.anisotropy = 1,
+      //                              .mipmapping = true,
+      //                              .msaaSamples = 4,
+      //                              .highPrecision = false,
+      //                              .minVarianceScale = 0.3f,
+      //                              .lightBleedReduction = 0.3f};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
-      settings.vsmShadowOptions = {.anisotropy = 1,
-                                   .mipmapping = true,
-                                   .msaaSamples = 4,
-                                   .highPrecision = false,
-                                   .minVarianceScale = 0.3f,
-                                   .lightBleedReduction = 0.3f};
       break;
 
     case High:
       settings.antiAliasing = filament::View::AntiAliasing::FXAA;
       settings.msaa.enabled = true;
-      settings.dsr = {.enabled = true,
-                      .quality = filament::View::QualityLevel::HIGH};
-      settings.screenSpaceReflections.enabled = true;
+      settings.msaa.sampleCount = 2;
+      settings.dsr = {.enabled = false};
+      settings.screenSpaceReflections = {.thickness = 0.05f,
+                                         .bias = 0.5f,
+                                         .maxDistance = 4.0f,
+                                         .stride = 2.0f,
+                                         .enabled = true};
       settings.bloom = {.strength = 0.3f, .enabled = true};
       settings.postProcessingEnabled = true;
       settings.dynamicLighting.zLightNear = 10.0f;
       settings.dynamicLighting.zLightFar = 500.0f;
       settings.shadowType = filament::View::ShadowType::DPCF;
+      // settings.vsmShadowOptions = {.anisotropy = 2,
+      //                              .mipmapping = true,
+      //                              .msaaSamples = 4,
+      //                              .highPrecision = true,
+      //                              .minVarianceScale = 0.2f,
+      //                              .lightBleedReduction = 0.4f};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
-      settings.vsmShadowOptions = {.anisotropy = 2,
-                                   .mipmapping = true,
-                                   .msaaSamples = 8,
-                                   .highPrecision = true,
-                                   .minVarianceScale = 0.2f,
-                                   .lightBleedReduction = 0.4f};
       break;
 
     case Ultra:
       settings.antiAliasing = filament::View::AntiAliasing::FXAA;
       settings.msaa.enabled = true;
-      settings.dsr = {.enabled = true,
-                      .quality = filament::View::QualityLevel::ULTRA};
-      settings.screenSpaceReflections.enabled = true;
+      settings.msaa.sampleCount = 4;
+      settings.dsr = {.enabled = false};
+      settings.screenSpaceReflections = {.thickness = 0.05f,
+                                         .bias = 0.5f,
+                                         .maxDistance = 4.0f,
+                                         .stride = 2.0f,
+                                         .enabled = true};
       settings.bloom = {.strength = 0.4f, .enabled = true};
       settings.postProcessingEnabled = true;
-      settings.dynamicLighting.zLightNear = 10.0f;
+      settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 1000.0f;
-      settings.shadowType = filament::View::ShadowType::PCSS;
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
+      settings.shadowType = filament::View::ShadowType::VSM;
+      settings.vsmShadowOptions = {.anisotropy = 0,
+                                   .mipmapping = false,
+                                   .msaaSamples = 1,
+                                   .highPrecision = false,
+                                   .minVarianceScale = 0.5f,
+                                   .lightBleedReduction = 0.15f};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
-      settings.vsmShadowOptions = {.anisotropy = 4,
-                                   .mipmapping = true,
-                                   .msaaSamples = 16,
-                                   .highPrecision = true,
-                                   .minVarianceScale = 0.1f,
-                                   .lightBleedReduction = 0.5f};
       break;
   }
 
