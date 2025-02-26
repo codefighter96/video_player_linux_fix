@@ -236,16 +236,10 @@ void ViewTarget::vChangeQualitySettings(
       settings.bloom.enabled = false;
       settings.postProcessingEnabled = false;
       settings.dynamicLighting.zLightNear = 0.01f;
-      settings.dynamicLighting.zLightFar = 1000.0f;
-      settings.shadowType = filament::View::ShadowType::VSM;
-      settings.vsmShadowOptions = {.anisotropy = 0,
-                                   .mipmapping = false,
-                                   .msaaSamples = 1,
-                                   .highPrecision = false,
-                                   .minVarianceScale = 0.5f,
-                                   .lightBleedReduction = 0.15f};
+      settings.dynamicLighting.zLightFar = 50.0f;
+      settings.shadowType = filament::View::ShadowType::PCF;
       settings.renderQuality = {.hdrColorBuffer =
-                                    filament::View::QualityLevel::MEDIUM};
+                                    filament::View::QualityLevel::LOW};
       fview_->setStencilBufferEnabled(false);
       fview_->setScreenSpaceRefractionEnabled(false);
       break;
@@ -255,19 +249,13 @@ void ViewTarget::vChangeQualitySettings(
       settings.msaa.enabled = false;
       settings.dsr = {.enabled = false};
       settings.screenSpaceReflections.enabled = false;
-      settings.bloom = {.strength = 0.1f, .enabled = true};
+      settings.bloom = {.enabled = false};
       settings.postProcessingEnabled = true;
-      settings.dynamicLighting.zLightNear = 5.0f;
+      settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 100.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      settings.vsmShadowOptions = {.anisotropy = 0,
-                                   .mipmapping = true,
-                                   .msaaSamples = 2,
-                                   .highPrecision = false,
-                                   .minVarianceScale = 0.4f,
-                                   .lightBleedReduction = 0.2f};
       settings.renderQuality = {.hdrColorBuffer =
-                                    filament::View::QualityLevel::MEDIUM};
+                                    filament::View::QualityLevel::LOW};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(false);
       break;
@@ -279,15 +267,9 @@ void ViewTarget::vChangeQualitySettings(
       settings.screenSpaceReflections.enabled = false;
       settings.bloom = {.strength = 0.2f, .enabled = true};
       settings.postProcessingEnabled = true;
-      settings.dynamicLighting.zLightNear = 5.0f;
-      settings.dynamicLighting.zLightFar = 200.0f;
+      settings.dynamicLighting.zLightNear = 0.01f;
+      settings.dynamicLighting.zLightFar = 250.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      // settings.vsmShadowOptions = {.anisotropy = 1,
-      //                              .mipmapping = true,
-      //                              .msaaSamples = 4,
-      //                              .highPrecision = false,
-      //                              .minVarianceScale = 0.3f,
-      //                              .lightBleedReduction = 0.3f};
       settings.renderQuality = {.hdrColorBuffer =
                                     filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
@@ -306,15 +288,9 @@ void ViewTarget::vChangeQualitySettings(
                                          .enabled = true};
       settings.bloom = {.strength = 0.3f, .enabled = true};
       settings.postProcessingEnabled = true;
-      settings.dynamicLighting.zLightNear = 10.0f;
+      settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 500.0f;
-      settings.shadowType = filament::View::ShadowType::DPCF;
-      // settings.vsmShadowOptions = {.anisotropy = 2,
-      //                              .mipmapping = true,
-      //                              .msaaSamples = 4,
-      //                              .highPrecision = true,
-      //                              .minVarianceScale = 0.2f,
-      //                              .lightBleedReduction = 0.4f};
+      settings.shadowType = filament::View::ShadowType::PCF;
       settings.renderQuality = {.hdrColorBuffer =
                                     filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
@@ -337,13 +313,7 @@ void ViewTarget::vChangeQualitySettings(
       settings.dynamicLighting.zLightFar = 1000.0f;
       settings.renderQuality = {.hdrColorBuffer =
                                     filament::View::QualityLevel::HIGH};
-      settings.shadowType = filament::View::ShadowType::VSM;
-      settings.vsmShadowOptions = {.anisotropy = 0,
-                                   .mipmapping = false,
-                                   .msaaSamples = 1,
-                                   .highPrecision = false,
-                                   .minVarianceScale = 0.5f,
-                                   .lightBleedReduction = 0.15f};
+      settings.shadowType = filament::View::ShadowType::PCF;
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
       break;
