@@ -105,6 +105,8 @@ class FilamentViewPlugin : public flutter::Plugin,
   std::optional<FlutterError> ResetInertiaCameraToDefaultValues() override;
   // Change view quality settings.
   std::optional<FlutterError> ChangeViewQualitySettings() override;
+  // Set fog options
+  std::optional<FlutterError> SetFogOptions(const bool enabled) override;
   // Set camera rotation by a float value.
   std::optional<FlutterError> SetCameraRotation(double value) override;
   std::optional<FlutterError> ChangeLightTransformByGUID(

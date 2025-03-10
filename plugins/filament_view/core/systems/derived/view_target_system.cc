@@ -17,6 +17,15 @@
 #include "view_target_system.h"
 #include <core/scene/view_target.h>
 
+#include <iomanip>
+#include <iostream>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <utility>
+
+#include <plugins/common/common.h>
+
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +158,40 @@ void ViewTargetSystem::vInitSystem() {
         spdlog::debug("ChangeViewQualitySettings Complete");
 
         vSetCameraFromSerializedData();
+      });
+
+  // set fog options
+  vRegisterMessageHandler(
+      ECSMessageType::SetFogOptions, [this](const ECSMessage& msg) {
+        spdlog::debug("SetFogOptions");
+
+        const bool enabled = msg.getData<bool>(ECSMessageType::SetFogOptions);
+
+        // default values
+        const filament::View::FogOptions enabledFogOptions = {
+            .distance = 20.0f,
+            // .cutOffDistance = 0.0f,
+            .maximumOpacity = 1.0f,
+            .height = 0.0f,
+            .heightFalloff = 1.0f,
+            .color = filament::math::float3(1.0f, 1.0f, 1.0f),
+            .density = 1.5f,
+            .inScatteringStart = 0.0f,
+            .inScatteringSize = -1.0f,
+            .enabled = true,
+        };
+
+        const filament::View::FogOptions disabledFogOptions = {
+            .enabled = false,
+        };
+
+        // Set the fog options
+        for (const auto& viewTarget : m_lstViewTargets) {
+          viewTarget->vSetFogOptions(enabled ? enabledFogOptions
+                                             : disabledFogOptions);
+        }
+
+        spdlog::debug("SetFogOptions Complete");
       });
 
   vRegisterMessageHandler(

@@ -83,6 +83,8 @@ class ViewTarget {
 
   void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
 
+  void vSetFogOptions(const filament::View::FogOptions& fogOptions) const;
+
  private:
   void setupWaylandSubsurface();
 

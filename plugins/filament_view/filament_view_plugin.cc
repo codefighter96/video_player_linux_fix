@@ -464,6 +464,16 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeViewQualitySettings() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(
+    const bool enabled) {
+  ECSMessage fogData;
+  fogData.addData(ECSMessageType::SetFogOptions, enabled);
+  ECSystemManager::GetInstance()->vRouteMessage(fogData);
+
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
     const double value) {
   const auto viewTargetSystem =

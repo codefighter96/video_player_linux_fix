@@ -117,9 +117,10 @@ class FilamentViewApi {
                                                         double sclx,
                                                         double scly,
                                                         double sclz) = 0;
-  // Toggle debug collidable visuals in the scene.
-  virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(
-      bool value) = 0;
+  // Cycle between view quality settings presets.
+  virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
+  // Set fog options
+  virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
   // Change the camera mode by name.
   virtual std::optional<FlutterError> ChangeCameraMode(
       const std::string& mode) = 0;
@@ -130,12 +131,16 @@ class FilamentViewApi {
                                                                  double z) = 0;
   virtual std::optional<FlutterError>
   ChangeCameraFlightStartPosition(double x, double y, double z) = 0;
-  // Reset inertia camera to default values.
+  // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
   virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
-  // Change view quality settings.
-  virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
   // Set camera rotation by a float value.
   virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
+  // Set a light's color and intensity by GUID.
+  virtual std::optional<FlutterError> ChangeLightColorByGUID(
+      const std::string& guid,
+      const std::string& color,
+      int64_t intensity) = 0;
+  // Set a light's transform by GUID. Deprecated.
   virtual std::optional<FlutterError> ChangeLightTransformByGUID(
       const std::string& guid,
       double posx,
@@ -144,10 +149,6 @@ class FilamentViewApi {
       double dirx,
       double diry,
       double dirz) = 0;
-  virtual std::optional<FlutterError> ChangeLightColorByGUID(
-      const std::string& guid,
-      const std::string& color,
-      int64_t intensity) = 0;
   virtual std::optional<FlutterError> EnqueueAnimation(
       const std::string& guid,
       int64_t animation_index) = 0;
@@ -166,6 +167,9 @@ class FilamentViewApi {
   virtual std::optional<FlutterError> SetAnimationLooping(
       const std::string& guid,
       bool looping) = 0;
+  // Perform a raycast query.
+  // The result will be sent back to the client via the collision_info event
+  // channel.
   virtual std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_i_d,
       double origin_x,
@@ -175,6 +179,17 @@ class FilamentViewApi {
       double direction_y,
       double direction_z,
       double length) = 0;
+  // Disable raycast checks for the given entity.
+  // NOTE: this will not hide the collider debug visual.
+  virtual std::optional<FlutterError> TurnOffCollisionChecksForEntity(
+      const std::string& guid) = 0;
+  // Enable raycast checks for the given entity.
+  // NOTE: this will not show the collider debug visual.
+  virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(
+      const std::string& guid) = 0;
+  // Enable/disable debug collidable visuals in the scene.
+  virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(
+      bool value) = 0;
   virtual std::optional<FlutterError> ChangeScaleByGUID(const std::string& guid,
                                                         double x,
                                                         double y,
@@ -193,10 +208,6 @@ class FilamentViewApi {
   virtual std::optional<FlutterError> TurnOffVisualForEntity(
       const std::string& guid) = 0;
   virtual std::optional<FlutterError> TurnOnVisualForEntity(
-      const std::string& guid) = 0;
-  virtual std::optional<FlutterError> TurnOffCollisionChecksForEntity(
-      const std::string& guid) = 0;
-  virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(
       const std::string& guid) = 0;
 
   // The codec used by FilamentViewApi.
