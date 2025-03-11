@@ -173,7 +173,7 @@ void PluginsAoiPlatformViewCreate(
   } else
 #endif
 #if ENABLE_PLUGIN_FILAMENT_VIEW
-      if (viewType == "io.sourcya.playx.3d.scene.channel_3d_scene") {
+      if (viewType == "com.toyotaconnected.filament_view.channel_3d_scene") {
     FilamentViewPluginCApiRegisterWithRegistrar(
         registrar, id, viewType, direction, top, left, width, height, params,
         flutter_asset_directory, engine, addListener, removeListener,
