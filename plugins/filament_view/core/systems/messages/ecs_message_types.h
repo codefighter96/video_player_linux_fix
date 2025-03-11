@@ -52,6 +52,8 @@ enum class ECSMessageType {
   ChangeViewQualitySettings,
   ChangeViewQualitySettingsWhichView,
 
+  SetFogOptions,
+
   ChangeMaterialParameter,
   EntityToTarget,
   ChangeMaterialDefinitions,

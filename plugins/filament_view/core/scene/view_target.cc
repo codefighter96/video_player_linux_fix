@@ -328,6 +328,12 @@ void ViewTarget::vChangeQualitySettings(
 }
 
 ////////////////////////////////////////////////////////////////////////////
+void ViewTarget::vSetFogOptions(
+    const filament::View::FogOptions& fogOptions) const {
+  fview_->setFogOptions(fogOptions);
+}
+
+////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
     const std::string& methodName,
     std::initializer_list<std::pair<const char*, EncodableValue>> args) {
