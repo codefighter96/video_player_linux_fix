@@ -79,7 +79,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
           : "";
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeMaterialParameter" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -121,7 +121,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeMaterialDefinition" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -163,7 +163,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.toggleShapesInScene" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -199,7 +199,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.setShapeTransform" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.setShapeTransform" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -294,7 +294,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeViewQualitySettings" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -323,7 +323,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.setFogOptions" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.setFogOptions" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -358,7 +358,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.changeCameraMode" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeCameraMode" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -393,7 +393,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "changeCameraOrbitHomePosition" +
             prepended_suffix,
         &GetCodec());
@@ -440,7 +440,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeCameraTargetPosition" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -488,7 +488,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "changeCameraFlightStartPosition" +
             prepended_suffix,
         &GetCodec());
@@ -536,7 +536,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "resetInertiaCameraToDefaultValues" +
             prepended_suffix,
         &GetCodec());
@@ -565,7 +565,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.setCameraRotation" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraRotation" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -599,7 +599,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeLightColorByGUID" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -647,7 +647,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeLightTransformByGUID" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -721,7 +721,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.enqueueAnimation" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.enqueueAnimation" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -762,7 +762,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.clearAnimationQueue" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -798,7 +798,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.playAnimation" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.playAnimation" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -839,7 +839,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeAnimationSpeed" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -881,7 +881,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.pauseAnimation" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.pauseAnimation" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -916,7 +916,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.resumeAnimation" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.resumeAnimation" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -950,7 +950,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.setAnimationLooping" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -992,7 +992,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "requestCollisionCheckFromRay" +
             prepended_suffix,
         &GetCodec());
@@ -1080,7 +1080,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "turnOffCollisionChecksForEntity" +
             prepended_suffix,
         &GetCodec());
@@ -1116,7 +1116,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "turnOnCollisionChecksForEntity" +
             prepended_suffix,
         &GetCodec());
@@ -1152,7 +1152,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi."
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi."
         "toggleDebugCollidableViewsInScene" +
             prepended_suffix,
         &GetCodec());
@@ -1188,7 +1188,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(
         binary_messenger,
-        "dev.flutter.pigeon.my_fox_example.FilamentViewApi.changeScaleByGUID" +
+        "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeScaleByGUID" +
             prepended_suffix,
         &GetCodec());
     if (api != nullptr) {
@@ -1240,7 +1240,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeTranslationByGUID" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -1293,7 +1293,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.changeRotationByGUID" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -1352,7 +1352,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.turnOffVisualForEntity" +
                                       prepended_suffix,
                                   &GetCodec());
@@ -1387,7 +1387,7 @@ void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     BasicMessageChannel<> channel(binary_messenger,
-                                  "dev.flutter.pigeon.my_fox_example."
+                                  "dev.flutter.pigeon.filament_scene."
                                   "FilamentViewApi.turnOnVisualForEntity" +
                                       prepended_suffix,
                                   &GetCodec());
