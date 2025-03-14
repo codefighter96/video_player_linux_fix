@@ -25,8 +25,19 @@
 namespace plugin_filament_view {
 class MaterialParameter;
 
-using EntityGUID = std::string;
+/// @brief EntityGUID is a type alias for the GUID of an entity (currently an int64_t).
+using EntityGUID = int64_t;
 
+/// @brief kNullGuid is a constant that represents a null GUID.
+constexpr EntityGUID kNullGuid = 0;
+
+/// @brief EntityDescriptor is a struct that holds the name and guid of an entity.
+struct EntityDescriptor {
+  std::string name = "";
+  EntityGUID guid = kNullGuid;
+};
+
+/// @brief EntityObject is the base class for all entities in the system.
 class EntityObject : public std::enable_shared_from_this<EntityObject> {
   friend class CollisionSystem;
   friend class MaterialSystem;
@@ -37,9 +48,9 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   friend class SceneTextDeserializer;
 
  public:
-  // Overloading the == operator to compare based on global_guid_
+  // Overloading the == operator to compare based on guid_
   bool operator==(const EntityObject& other) const {
-    return global_guid_ == other.global_guid_;
+    return guid_ == other.guid_;
   }
 
   // Pass in the <DerivedClass>::StaticGetTypeID()
@@ -51,8 +62,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
                        });
   }
 
-  [[nodiscard]] const std::string& GetGlobalGuid() const {
-    return global_guid_;
+  [[nodiscard]] EntityGUID GetGuid() const {
+    return guid_;
   }
 
   EntityObject(const EntityObject&) = delete;
@@ -69,10 +80,18 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   void vUnregisterEntity();
 
  protected:
+  /// @brief Constructor for EntityObject. Generates a GUID and has an empty name.
+  explicit EntityObject();
+  /// @brief Constructor for EntityObject with a name. Generates a unique GUID.
   explicit EntityObject(std::string name);
-  // Note, global_guid, needs to be unique here; this is mainly here for
-  // creating objects that are GUID created in non-native code.
-  EntityObject(std::string name, std::string global_guid);
+  /// @brief Constructor for EntityObject with GUID. Name is empty.
+  explicit EntityObject(EntityGUID guid);
+  /// @brief Constructor for EntityObject with a name and GUID.
+  EntityObject(std::string name, EntityGUID guid);
+  /// @brief Constructor for EntityObject based on an EntityDescriptor, containing a name and GUID.
+  explicit EntityObject(const EntityDescriptor& descriptor);
+  /// @brief Constructor for EntityObject based on an EncodableMap. Deserializes the name and GUID.
+  explicit EntityObject(const flutter::EncodableMap& params);
 
   virtual ~EntityObject() {
     vUnregisterEntity();
@@ -125,22 +144,20 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   void vShallowCopyComponentToOther(size_t staticTypeID,
                                     EntityObject& other) const;
 
-  void DeserializeNameAndGlobalGuid(const flutter::EncodableMap& params);
+  static EntityDescriptor DeserializeNameAndGuid(const flutter::EncodableMap& params);
 
  private:
-  EntityGUID global_guid_;
+  /// GUID of the entity.
+  /// This is used for identifying the entity, and must be unique.
+  /// Also used as a key in the entity object locator system.
+  EntityGUID guid_;
+
+  /// Name of the entity.
+  /// This is used only for debugging and logging purposes.
+  /// It is not used for identifying the entity, and does not need to be unique.
   std::string name_;
 
   bool m_bAlreadyRegistered{};
-
-  // Look, if you're calling this, its expected your name clashing checking
-  // yourself. This isn't done for you. Please dont have 100 'my_sphere'.
-  // You're gonna have a bad time.
-  // This is currently called on objection deserialization from non-native
-  // code where they are in control of the naming of objects for easier
-  // use.
-  void vOverrideName(const std::string& name);
-  void vOverrideGlobalGuid(const std::string& global_guid);
 
   // Vector for now, we shouldn't be adding and removing
   // components frequently during runtime.

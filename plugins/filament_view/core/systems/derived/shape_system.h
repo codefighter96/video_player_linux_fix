@@ -42,7 +42,7 @@ class ShapeSystem : public ECSystem {
 
   // will add/remove already made entities to/from the scene
   void vToggleAllShapesInScene(bool bValue) const;
-  void vToggleSingleShapeInScene(const std::string& szGUID, bool bValue) const;
+  void vToggleSingleShapeInScene(const EntityGUID guid, bool bValue) const;
 
   void vRemoveAllShapesInScene();
 
@@ -65,7 +65,7 @@ class ShapeSystem : public ECSystem {
 
  private:
   static void vRemoveAndReaddShapeToCollisionSystem(
-      const EntityGUID& guid,
+      const EntityGUID guid,
       const std::shared_ptr<shapes::BaseShape>& shape);
 
   std::map<EntityGUID, std::shared_ptr<shapes::BaseShape>>

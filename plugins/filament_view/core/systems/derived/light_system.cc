@@ -27,6 +27,7 @@
 #include <plugins/common/common.h>
 #include <utils/EntityManager.h>
 #include <asio/post.hpp>
+#include <core/utils/uuidGenerator.h>
 
 namespace plugin_filament_view {
 using filament::math::float3;
@@ -36,8 +37,9 @@ using filament::math::mat4f;
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vCreateDefaultLight() {
   SPDLOG_DEBUG("{}", __FUNCTION__);
+
   m_poDefaultLight =
-      std::make_shared<NonRenderableEntityObject>("DefaultLight");
+      std::make_shared<NonRenderableEntityObject>("DefaultLight", generateUUID());
   const auto oLightComp = std::make_shared<Light>();
   m_poDefaultLight->vAddComponent(oLightComp);
 
@@ -140,7 +142,7 @@ void LightSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeSceneLightProperties");
 
-        const auto guid = msg.getData<std::string>(
+        const auto guid = msg.getData<EntityGUID>(
             ECSMessageType::ChangeSceneLightProperties);
 
         const auto colorValue = msg.getData<std::string>(
@@ -171,7 +173,7 @@ void LightSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeSceneLightTransform");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeSceneLightTransform);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeSceneLightTransform);
 
         const auto position = msg.getData<float3>(ECSMessageType::Position);
 
@@ -220,21 +222,21 @@ void LightSystem::DebugPrint() {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  if (m_mapGuidToEntity.find(entity->GetGlobalGuid()) !=
+  if (m_mapGuidToEntity.find(entity->GetGuid()) !=
       m_mapGuidToEntity.end()) {
     spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
+                  entity->GetGuid());
     return;
   }
 
-  spdlog::debug("Adding entity with {}", entity->GetGlobalGuid());
+  spdlog::debug("Adding entity with {}", entity->GetGuid());
 
-  m_mapGuidToEntity.insert(std::pair(entity->GetGlobalGuid(), entity));
+  m_mapGuidToEntity.insert(std::pair(entity->GetGuid(), entity));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vUnregisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  m_mapGuidToEntity.erase(entity->GetGlobalGuid());
+  m_mapGuidToEntity.erase(entity->GetGuid());
 }
 }  // namespace plugin_filament_view

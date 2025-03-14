@@ -102,7 +102,7 @@ static constexpr char kChangeMaterialDefinitionEntityGuid[] =
 // Deserialization
 static constexpr char kId[] = "id";
 static constexpr char kName[] = "name";
-static constexpr char kGlobalGuid[] = "global_guid";
+static constexpr char kGuid[] = "guid";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";
 static constexpr char kCenterPosition[] = "centerPosition";

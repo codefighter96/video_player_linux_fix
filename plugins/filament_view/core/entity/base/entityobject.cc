@@ -28,54 +28,68 @@
 
 namespace plugin_filament_view {
 
-/////////////////////////////////////////////////////////////////////////////////////////
+EntityObject::EntityObject() : guid_(generateUUID()), name_(std::string()) {}
+
 EntityObject::EntityObject(std::string name)
-    : global_guid_(generateUUID()), name_(std::move(name)) {}
+    : guid_(generateUUID()), name_(std::move(name)) {}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-EntityObject::EntityObject(std::string name, std::string global_guid)
-    : global_guid_(std::move(global_guid)), name_(std::move(name)) {}
+EntityObject::EntityObject(EntityGUID guid)
+    : guid_(guid), name_(std::string()) {}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vOverrideName(const std::string& name) {
-  name_ = name;
+EntityObject::EntityObject(std::string name, EntityGUID guid)
+    : guid_(std::move(guid)), name_(std::move(name)) {}
+
+EntityObject::EntityObject(const EntityDescriptor& descriptor)
+    : guid_(descriptor.guid), name_(descriptor.name) {}
+
+EntityObject::EntityObject(const flutter::EncodableMap& params) {
+  const auto descriptor = DeserializeNameAndGuid(params);
+  guid_ = descriptor.guid;
+  name_ = descriptor.name;
+
+  assert(guid_ != kNullGuid);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vOverrideGlobalGuid(const std::string& global_guid) {
-  global_guid_ = global_guid;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::DeserializeNameAndGlobalGuid(
+EntityDescriptor EntityObject::DeserializeNameAndGuid(
     const flutter::EncodableMap& params) {
+  EntityDescriptor descriptor;
+
+  // Deserialize name
   if (const auto itName = params.find(flutter::EncodableValue(kName));
       itName != params.end() && !itName->second.IsNull()) {
     // they're requesting entity be named what they want.
 
     if (auto requestedName = std::get<std::string>(itName->second);
         !requestedName.empty()) {
-      vOverrideName(requestedName);
-      SPDLOG_INFO("OVERRIDING NAME: {}", requestedName);
+      descriptor.name = requestedName;
     }
   }
 
-  if (const auto itGUID = params.find(flutter::EncodableValue(kGlobalGuid));
+
+  // Deserialize guid
+  if (const auto itGUID = params.find(flutter::EncodableValue(kGuid));
       itGUID != params.end() && !itGUID->second.IsNull()) {
     // they're requesting entity have a guid they desire.
     // Note! There's no clash checking here.
-    if (auto requestedGlobalGUID = std::get<std::string>(itGUID->second);
-        !requestedGlobalGUID.empty()) {
-      vOverrideGlobalGuid(requestedGlobalGUID);
-      SPDLOG_INFO("OVERRIDING GLOBAL GUID: {}", requestedGlobalGUID);
+    if (auto requestedGUID = std::get<int64_t>(itGUID->second);
+        requestedGUID != kNullGuid) {
+      descriptor.guid = requestedGUID;
     }
   }
+
+  if(descriptor.guid == kNullGuid) {
+    SPDLOG_WARN("Failed to deserialize guid, generating new one");
+    descriptor.guid = generateUUID();
+  }
+
+  return descriptor;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
   spdlog::debug("EntityObject Name \'{}\' UUID {} ComponentCount {}", name_,
-                global_guid_, components_.size());
+                guid_, components_.size());
 
   for (const auto& component : components_) {
     spdlog::debug("\tComponent Type \'{}\' Name \'{}\'",

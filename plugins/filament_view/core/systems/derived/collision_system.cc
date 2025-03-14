@@ -47,7 +47,7 @@ flutter::EncodableValue HitResult::Encode() const {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CollisionSystem::bHasEntityObjectRepresentation(
-    const EntityGUID& guid) const {
+    const EntityGUID guid) const {
   return collidablesDebugDrawingRepresentation_.find(guid) !=
          collidablesDebugDrawingRepresentation_.end();
 }
@@ -165,7 +165,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   // now store in map.
   collidablesDebugDrawingRepresentation_.insert(
-      std::pair(collidable->GetGlobalGuid(), newShape));
+      std::pair(collidable->GetGuid(), newShape));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -174,7 +174,7 @@ void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
 
   // Remove from collidablesDebugDrawingRepresentation_
   const auto iter =
-      collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
+      collidablesDebugDrawingRepresentation_.find(collidable->GetGuid());
   if (iter != collidablesDebugDrawingRepresentation_.end()) {
     delete iter->second;
     collidablesDebugDrawingRepresentation_.erase(iter);
@@ -235,7 +235,7 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
         collidable->bDoesIntersect(rayCast, hitLocation)) {
       // If there is an intersection, create a HitResult
       HitResult hitResult;
-      hitResult.guid_ = entity->GetGlobalGuid();
+      hitResult.guid_ = entity->GetGuid();
       hitResult.name_ = entity->GetName();
       hitResult.hitPosition_ = hitLocation;  // Set the hit location
 
@@ -324,12 +324,12 @@ void CollisionSystem::vInitSystem() {
 
   vRegisterMessageHandler(
       ECSMessageType::ToggleCollisionForEntity, [this](const ECSMessage& msg) {
-        const auto stringGUID =
-            msg.getData<std::string>(ECSMessageType::ToggleCollisionForEntity);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ToggleCollisionForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
         for (const auto& entity : collidables_) {
-          if (entity->GetGlobalGuid() == stringGUID) {
+          if (entity->GetGuid() == guid) {
             const auto collidable = std::dynamic_pointer_cast<Collidable>(
                 entity->GetComponentByStaticTypeID(
                     Collidable::StaticGetTypeID()));

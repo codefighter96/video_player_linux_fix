@@ -39,19 +39,19 @@ void EntityObjectLocatorSystem::DebugPrint() {
 ////////////////////////////////////////////////////////////////////////////////////
 void EntityObjectLocatorSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  if (_entities.find(entity->GetGlobalGuid()) != _entities.end()) {
+  if (_entities.find(entity->GetGuid()) != _entities.end()) {
     spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
+                  entity->GetGuid());
     return;
   }
 
-  _entities.insert(std::pair(entity->GetGlobalGuid(), entity));
+  _entities.insert(std::pair(entity->GetGuid(), entity));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void EntityObjectLocatorSystem::vUnregisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  _entities.erase(entity->GetGlobalGuid());
+  _entities.erase(entity->GetGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

@@ -52,9 +52,9 @@ void ShapeSystem::vToggleAllShapesInScene(const bool bValue) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleSingleShapeInScene(const std::string& szGUID,
+void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid,
                                             const bool bValue) const {
-  const auto iter = m_mapszoShapes.find(szGUID);
+  const auto iter = m_mapszoShapes.find(guid);
   if (iter == m_mapszoShapes.end()) {
     return;
   }
@@ -116,7 +116,7 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
-    const EntityGUID& guid,
+    const EntityGUID guid,
     const std::shared_ptr<BaseShape>& shape) {
   const auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
@@ -178,7 +178,7 @@ void ShapeSystem::addShapesToScene(
 
     std::shared_ptr<BaseShape> sharedPtr = std::move(shape);
 
-    m_mapszoShapes.insert(std::pair(sharedPtr->GetGlobalGuid(), sharedPtr));
+    m_mapszoShapes.insert(std::pair(sharedPtr->GetGuid(), sharedPtr));
 
     sharedPtr->vRegisterEntity();
   }
@@ -205,7 +205,7 @@ void ShapeSystem::vInitSystem() {
         SPDLOG_TRACE("SetShapeTransform");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::SetShapeTransform);
+            msg.getData<EntityGUID>(ECSMessageType::SetShapeTransform);
 
         const auto position =
             msg.getData<filament::math::float3>(ECSMessageType::Position);
@@ -250,11 +250,11 @@ void ShapeSystem::vInitSystem() {
       ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleVisualForEntity");
 
-        const auto stringGUID =
-            msg.getData<std::string>(ECSMessageType::ToggleVisualForEntity);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        vToggleSingleShapeInScene(stringGUID, value);
+        vToggleSingleShapeInScene(guid, value);
 
         spdlog::debug("ToggleVisualForEntity Complete");
       });
@@ -265,7 +265,7 @@ void ShapeSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeTranslationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeTranslationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
 
         const auto position =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
@@ -305,7 +305,7 @@ void ShapeSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeRotationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeRotationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
 
         const auto values =
             msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
@@ -339,7 +339,7 @@ void ShapeSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeScaleByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeScaleByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
 
         const auto values =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);

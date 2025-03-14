@@ -314,7 +314,7 @@ void FilamentViewPlugin::sendReadyEvent() {
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialParameter(
     const flutter::EncodableMap& params,
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage materialData;
   materialData.addData(ECSMessageType::ChangeMaterialParameter, params);
   materialData.addData(ECSMessageType::EntityToTarget, guid);
@@ -325,7 +325,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialParameter(
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialDefinition(
     const flutter::EncodableMap& params,
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage materialData;
   materialData.addData(ECSMessageType::ChangeMaterialDefinitions, params);
   materialData.addData(ECSMessageType::EntityToTarget, guid);
@@ -344,7 +344,7 @@ std::optional<FlutterError> FilamentViewPlugin::ToggleShapesInScene(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
-    const std::string& guid,
+    const int64_t guid,
     const double posx,
     const double posy,
     const double posz,
@@ -486,7 +486,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeLightTransformByGUID(
-    const std::string& guid,
+    const int64_t guid,
     double posx,
     double posy,
     double posz,
@@ -511,7 +511,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeLightTransformByGUID(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeLightColorByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const std::string& color,
     const int64_t intensity) {
   ECSMessage lightData;
@@ -527,7 +527,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeLightColorByGUID(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::EnqueueAnimation(
-    const std::string& guid,
+    const int64_t guid,
     const int64_t animation_index) {
   ECSMessage enqueueMessage;
   enqueueMessage.addData(ECSMessageType::AnimationEnqueue,
@@ -540,7 +540,7 @@ std::optional<FlutterError> FilamentViewPlugin::EnqueueAnimation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ClearAnimationQueue(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage clearQueueMessage;
   clearQueueMessage.addData(ECSMessageType::AnimationClearQueue, guid);
   clearQueueMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -551,7 +551,7 @@ std::optional<FlutterError> FilamentViewPlugin::ClearAnimationQueue(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::PlayAnimation(
-    const std::string& guid,
+    const int64_t guid,
     const int64_t animation_index) {
   ECSMessage playMessage;
   playMessage.addData(ECSMessageType::AnimationPlay,
@@ -564,7 +564,7 @@ std::optional<FlutterError> FilamentViewPlugin::PlayAnimation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeAnimationSpeed(
-    const std::string& guid,
+    const int64_t guid,
     const double speed) {
   ECSMessage changeSpeedMessage;
   changeSpeedMessage.addData(ECSMessageType::AnimationChangeSpeed,
@@ -577,7 +577,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeAnimationSpeed(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::PauseAnimation(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage pauseMessage;
   pauseMessage.addData(ECSMessageType::AnimationPause, guid);
   pauseMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -588,7 +588,7 @@ std::optional<FlutterError> FilamentViewPlugin::PauseAnimation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ResumeAnimation(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage resumeMessage;
   resumeMessage.addData(ECSMessageType::AnimationResume, guid);
   resumeMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -599,7 +599,7 @@ std::optional<FlutterError> FilamentViewPlugin::ResumeAnimation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::SetAnimationLooping(
-    const std::string& guid,
+    const int64_t guid,
     const bool looping) {
   ECSMessage setLoopingMessage;
   setLoopingMessage.addData(ECSMessageType::AnimationSetLooping, looping);
@@ -646,7 +646,7 @@ std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeScaleByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z) {
@@ -663,7 +663,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeScaleByGUID(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeTranslationByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z) {
@@ -680,7 +680,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeTranslationByGUID(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeRotationByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z,
@@ -699,7 +699,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeRotationByGUID(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOffVisualForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleVisualForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, false);
@@ -710,7 +710,7 @@ std::optional<FlutterError> FilamentViewPlugin::TurnOffVisualForEntity(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOnVisualForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleVisualForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, true);
@@ -721,7 +721,7 @@ std::optional<FlutterError> FilamentViewPlugin::TurnOnVisualForEntity(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOffCollisionChecksForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleCollisionForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, false);
@@ -732,7 +732,7 @@ std::optional<FlutterError> FilamentViewPlugin::TurnOffCollisionChecksForEntity(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOnCollisionChecksForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleCollisionForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, true);

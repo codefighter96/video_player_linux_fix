@@ -120,6 +120,7 @@ add_library(plugin_filament_view STATIC
         core/entity/derived/shapes/plane.cc
         core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
+        core/utils/uuidGenerator.cc
         core/scene/view_target.cc
         core/systems/derived/view_target_system.cc
         core/systems/derived/entityobject_locator_system.cc

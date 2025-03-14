@@ -45,7 +45,7 @@ class ModelSystem : public ECSystem {
                      std::function<const ::filament::backend::BufferDescriptor&(
                          std::string uri)>& callback);
 
-  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szGUID);
+  filament::gltfio::FilamentAsset* poFindAssetByGuid(const EntityGUID guid);
 
   void updateAsyncAssetLoading();
 
@@ -97,6 +97,7 @@ class ModelSystem : public ECSystem {
       m_mapszoAssetsAwaitingDataLoad;
 
   // When loading, it will be in here so we know not to load more than 1
+  /// Map of asset paths to whether they are currently being loaded.
   std::map<std::string, bool> m_mapszbCurrentlyLoadingInstanceableAssets;
 
   // This is a reusable list of renderables for popping off
@@ -116,7 +117,7 @@ class ModelSystem : public ECSystem {
   void populateSceneWithAsyncLoadedAssets(const Model* model);
 
   static void vRemoveAndReaddModelToCollisionSystem(
-      const EntityGUID& guid,
+      const EntityGUID guid,
       const std::shared_ptr<Model>& model);
 
   using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;

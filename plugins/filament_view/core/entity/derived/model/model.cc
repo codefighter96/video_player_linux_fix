@@ -45,8 +45,6 @@ Model::Model(std::string assetPath,
   Deserialize::DecodeParameterWithDefault(
       kRenderable_IsPrimaryAssetToInstanceFrom,
       &m_bIsPrimaryAssetToInstanceFrom, params, false);
-
-  DeserializeNameAndGlobalGuid(params);
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -138,14 +138,12 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
         auto encodableMap = std::get<flutter::EncodableMap>(iter);
 
         // This will get placed on an entity
-        std::string overWriteGuid;
-        Deserialize::DecodeParameterWithDefault(kGlobalGuid, &overWriteGuid,
-                                                encodableMap, std::string(""));
+        EntityGUID overWriteGuid;
+        Deserialize::DecodeParameterWithDefaultInt64(kGuid, &overWriteGuid,
+                                                encodableMap, kNullGuid);
 
-        if (overWriteGuid.empty()) {
-          spdlog::warn(
-              "Your {} on light is empty string, will not add to scene",
-              kGlobalGuid);
+        if (overWriteGuid == kNullGuid) {
+          spdlog::warn("Light is missing a GUID, will not add to scene");
           continue;
         }
 
@@ -340,9 +338,8 @@ void SceneTextDeserializer::setUpLights() {
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
     const auto newEntity = std::make_shared<NonRenderableEntityObject>(
-        "SceneTextDeserializer::setUpLights");
+        "SceneTextDeserializer::setUpLights", fst);
 
-    newEntity->vOverrideGlobalGuid(fst);
     newEntity->vAddComponent(snd);
 
     LightSystem::vBuildLightAndAddToScene(*snd);
@@ -353,6 +350,7 @@ void SceneTextDeserializer::setUpLights() {
   // if a light didnt get deserialized, tell light system to create a default
   // one.
   if (lights_.empty()) {
+    SPDLOG_DEBUG("No lights found, creating default light");
     lightSystem->vCreateDefaultLight();
   }
 

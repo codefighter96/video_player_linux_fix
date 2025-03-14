@@ -65,7 +65,7 @@ void Animation::vUpdate(const float fElapsedTime) {
           ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
               AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
       animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGlobalGuid(), eAnimationStarted,
+          GetOwner()->GetGuid(), eAnimationStarted,
           std::to_string(m_nCurrentPlayingIndex));
     }
   }
@@ -90,7 +90,7 @@ void Animation::vUpdate(const float fElapsedTime) {
               AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
 
       animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGlobalGuid(), eAnimationEnded,
+          GetOwner()->GetGuid(), eAnimationEnded,
           std::to_string(m_nCurrentPlayingIndex));
     }
 
@@ -107,7 +107,7 @@ void Animation::vUpdate(const float fElapsedTime) {
                 AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
 
         animationSystem->vNotifyOfAnimationEvent(
-            GetOwner()->GetGlobalGuid(), eAnimationStarted,
+            GetOwner()->GetGuid(), eAnimationStarted,
             std::to_string(m_nCurrentPlayingIndex));
       }
 

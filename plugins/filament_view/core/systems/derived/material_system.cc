@@ -178,7 +178,7 @@ void MaterialSystem::vInitSystem() {
         const flutter::EncodableMap& params =
             msg.getData<flutter::EncodableMap>(
                 ECSMessageType::ChangeMaterialParameter);
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto objectLocatorSystem =
@@ -211,7 +211,7 @@ void MaterialSystem::vInitSystem() {
             msg.getData<flutter::EncodableMap>(
                 ECSMessageType::ChangeMaterialDefinitions);
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto objectLocatorSystem =

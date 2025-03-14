@@ -80,7 +80,7 @@ class CollisionSystem : public ECSystem {
 
   // Checks to see if we already has this guid in our mapping.
   [[nodiscard]] bool bHasEntityObjectRepresentation(
-      const EntityGUID& guid) const;
+      const EntityGUID guid) const;
 
  private:
   bool currentlyDrawingDebugCollidables = false;

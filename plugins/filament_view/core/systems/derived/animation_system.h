@@ -55,7 +55,7 @@ class AnimationSystem : public ECSystem {
   void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
   void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
 
-  void vNotifyOfAnimationEvent(const EntityGUID& entityGuid,
+  void vNotifyOfAnimationEvent(const EntityGUID entityGuid,
                                const AnimationEventType& eType,
                                const std::string& eventData) const;
 

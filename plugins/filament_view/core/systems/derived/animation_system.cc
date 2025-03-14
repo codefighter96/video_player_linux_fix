@@ -31,7 +31,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationEnqueue");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationEnqueue);
@@ -53,7 +53,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationClearQueue, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationClearQueue");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
@@ -73,7 +73,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationPlay, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationPlay");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationPlay);
@@ -95,7 +95,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationChangeSpeed, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationChangeSpeed");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto newSpeed =
             msg.getData<float>(ECSMessageType::AnimationChangeSpeed);
@@ -117,7 +117,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationPause, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationPause");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
@@ -137,7 +137,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationResume, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationResume");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
@@ -157,7 +157,7 @@ void AnimationSystem::vInitSystem() {
       ECSMessageType::AnimationSetLooping, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationSetLooping");
 
-        const EntityGUID& guid =
+        const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto shouldLoop =
             msg.getData<bool>(ECSMessageType::AnimationSetLooping);
@@ -187,19 +187,19 @@ void AnimationSystem::vUpdate(const float fElapsedTime) {
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  if (_entities.find(entity->GetGlobalGuid()) != _entities.end()) {
+  if (_entities.find(entity->GetGuid()) != _entities.end()) {
     spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
+                  entity->GetGuid());
     return;
   }
 
-  _entities.insert(std::pair(entity->GetGlobalGuid(), entity));
+  _entities.insert(std::pair(entity->GetGuid(), entity));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::vUnregisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  _entities.erase(entity->GetGlobalGuid());
+  _entities.erase(entity->GetGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,7 @@ void AnimationSystem::DebugPrint() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::vNotifyOfAnimationEvent(
-    const EntityGUID& entityGuid,
+    const EntityGUID entityGuid,
     const AnimationEventType& eType,
     const std::string& eventData) const {
   const auto event =
@@ -222,7 +222,7 @@ void AnimationSystem::vNotifyOfAnimationEvent(
                               flutter::EncodableValue(kAnimationEvent)},
                              {flutter::EncodableValue(kAnimationEventType),
                               flutter::EncodableValue(static_cast<int>(eType))},
-                             {flutter::EncodableValue(kGlobalGuid),
+                             {flutter::EncodableValue(kGuid),
                               flutter::EncodableValue(entityGuid)},
                              {flutter::EncodableValue(kAnimationEventData),
                               flutter::EncodableValue(eventData)}});

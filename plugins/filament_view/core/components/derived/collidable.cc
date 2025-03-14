@@ -150,7 +150,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       if (float discriminant = b * b - 4 * a * c; discriminant > 0) {
         if (float t = (-b - sqrt(discriminant)) / (2.0f * a); t > 0) {
           hitPosition = rayOrigin + t * rayDirection;
-          SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGlobalGuid());
+          SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGuid());
           return true;  // Ray hits the sphere
         }
       }
@@ -197,7 +197,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
 
       if (tmin > 0) {
         hitPosition = rayOrigin + tmin * rayDirection;
-        SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGlobalGuid());
+        SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGuid());
         return true;  // Ray hits the cube
       }
       break;
@@ -219,7 +219,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
           if (filament::math::float3 localHit = hitPosition - center;
               fabs(localHit.x) <= extents.x * 0.5f &&
               fabs(localHit.z) <= extents.z * 0.5f) {
-            SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGlobalGuid());
+            SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGuid());
             return true;  // Ray hits the quad
           }
         }

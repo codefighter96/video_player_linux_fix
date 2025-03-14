@@ -36,9 +36,6 @@ using filament::math::mat3f;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere() : stacks_(20), slices_(20) {}
-
-////////////////////////////////////////////////////////////////////////////
 Sphere::Sphere(const flutter::EncodableMap& params)
     : BaseShape(params), stacks_(20), slices_(20) {
   SPDLOG_TRACE("+-{}", __FUNCTION__);
@@ -54,6 +51,8 @@ Sphere::Sphere(const flutter::EncodableMap& params)
   Deserialize::DecodeParameterWithDefault(kSlices, &slices_, params,
                                           defaultSlices);
 }
+
+Sphere::Sphere() : BaseShape(), stacks_(20), slices_(20) {}
 
 ////////////////////////////////////////////////////////////////////////////
 bool Sphere::bInitAndCreateShape(filament::Engine* engine_,

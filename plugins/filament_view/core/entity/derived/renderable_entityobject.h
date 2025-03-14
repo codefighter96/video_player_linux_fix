@@ -32,8 +32,11 @@ class RenderableEntityObject : public EntityObject {
 
  public:
  protected:
-  explicit RenderableEntityObject(const flutter::EncodableMap& params);
-  RenderableEntityObject();
+  RenderableEntityObject() : EntityObject() {}
+  explicit RenderableEntityObject(const flutter::EncodableMap& params)
+      : EntityObject(params) {}
+  explicit RenderableEntityObject(const std::string& name, const EntityGUID guid)
+      : EntityObject(name, guid) {}
   virtual void DebugPrint() const = 0;
 
   // These are expected to have Material instances in base class after we go

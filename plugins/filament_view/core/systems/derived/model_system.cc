@@ -66,8 +66,8 @@ void ModelSystem::destroyAsset(
 
 ////////////////////////////////////////////////////////////////////////////////////
 filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
-    const std::string& szGUID) {
-  const auto iter = m_mapszoAssets.find(szGUID);
+    const EntityGUID guid) {
+  const auto iter = m_mapszoAssets.find(guid);
   if (iter == m_mapszoAssets.end()) {
     return nullptr;
   }
@@ -240,7 +240,7 @@ void ModelSystem::vSetupAssetThroughoutECS(
     std::shared_ptr<Model>& sharedPtr,
     filament::gltfio::FilamentAsset* filamentAsset,
     filament::gltfio::FilamentInstance* filamentAssetInstance) {
-  m_mapszoAssets.insert(std::pair(sharedPtr->GetGlobalGuid(), sharedPtr));
+  m_mapszoAssets.insert(std::pair(sharedPtr->GetGuid(), sharedPtr));
 
   filament::gltfio::Animator* animatorInstance = nullptr;
 
@@ -344,36 +344,38 @@ void ModelSystem::updateAsyncAssetLoading() {
   // eventually settle
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
-  for (const auto& [fst, snd] : m_mapszoAssets) {
-    populateSceneWithAsyncLoadedAssets(snd.get());
+  for (const auto& [guid, asset] : m_mapszoAssets) {
+    populateSceneWithAsyncLoadedAssets(asset.get());
 
     if (percentComplete != 1.0f) {
       continue;
     }
 
+    auto assetPath = asset->szGetAssetPath();
+
     // we're no longer loading, we're loaded.
-    m_mapszbCurrentlyLoadingInstanceableAssets.erase(fst);
+    m_mapszbCurrentlyLoadingInstanceableAssets.erase(assetPath);
 
     // once we're done loading our assets; we should be able to load instanced
     // models.
     if (auto foundAwaitingIter =
-            m_mapszoAssetsAwaitingDataLoad.find(snd->szGetAssetPath());
-        snd->bShouldKeepAssetDataInMemory() &&
+            m_mapszoAssetsAwaitingDataLoad.find(assetPath);
+        asset->bShouldKeepAssetDataInMemory() &&
         foundAwaitingIter != m_mapszoAssetsAwaitingDataLoad.end()) {
       spdlog::info("Loading additional instanced assets: {}",
-                   snd->szGetAssetPath());
+                   assetPath);
       for (const auto& itemToLoad : foundAwaitingIter->second) {
-        spdlog::info("Loading subset: {}", snd->szGetAssetPath());
+        spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
         loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
       }
       spdlog::info("Done Loading additional instanced assets: {}",
-                   snd->szGetAssetPath());
-      m_mapszoAssetsAwaitingDataLoad.erase(snd->szGetAssetPath());
+                   assetPath);
+      m_mapszoAssetsAwaitingDataLoad.erase(assetPath);
     }
 
     // You don't get collision as a primary asset.
-    if (snd->bIsPrimaryAssetToInstanceFrom()) {
+    if (asset->bIsPrimaryAssetToInstanceFrom()) {
       continue;
     }
 
@@ -389,12 +391,12 @@ void ModelSystem::updateAsyncAssetLoading() {
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
-    if (snd->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(fst)) {
+    if (asset->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
+        !collisionSystem->bHasEntityObjectRepresentation(guid)) {
       // I don't think this needs to become a message; as an async load
       // gives us un-deterministic throughput; it can't be replicated with a
       // messaging structure, and we have to wait till the load is done.
-      collisionSystem->vAddCollidable(snd.get());
+      collisionSystem->vAddCollidable(asset.get());
     }
   }
 }
@@ -574,7 +576,7 @@ void ModelSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeTranslationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeTranslationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
 
         const auto position =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
@@ -606,7 +608,7 @@ void ModelSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeRotationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeRotationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
 
         const auto values =
             msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
@@ -639,7 +641,7 @@ void ModelSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeScaleByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeScaleByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
 
         const auto values =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
@@ -669,11 +671,11 @@ void ModelSystem::vInitSystem() {
       ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleVisualForEntity");
 
-        const auto stringGUID =
-            msg.getData<std::string>(ECSMessageType::ToggleVisualForEntity);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        if (const auto ourEntity = m_mapszoAssets.find(stringGUID);
+        if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
           const auto fSystem =
               ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
@@ -710,7 +712,7 @@ void ModelSystem::vInitSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
-    const EntityGUID& guid,
+    const EntityGUID guid,
     const std::shared_ptr<Model>& model) {
   const auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(

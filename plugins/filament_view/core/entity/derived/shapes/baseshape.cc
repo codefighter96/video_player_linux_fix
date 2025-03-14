@@ -44,7 +44,8 @@ using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape()
-    : m_poVertexBuffer(nullptr),
+    : RenderableEntityObject(),
+      m_poVertexBuffer(nullptr),
       m_poIndexBuffer(nullptr),
       type_(ShapeType::Unset),
       m_f3Normal(0, 0, 0),
@@ -61,8 +62,6 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
       m_poMaterialInstance(
           Resource<filament::MaterialInstance*>::Error("Unset")) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
-
-  DeserializeNameAndGlobalGuid(params);
 
   auto oTransform = std::make_shared<BaseTransform>(params);
   auto oCommonRenderable = std::make_shared<CommonRenderable>(params);

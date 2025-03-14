@@ -39,7 +39,8 @@ using filament::math::short4;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Cube::Cube(const flutter::EncodableMap& params) : BaseShape(params) {
+Cube::Cube(const flutter::EncodableMap& params)
+    : BaseShape(params) {
   SPDLOG_TRACE("+-{}", __FUNCTION__);
 }
 
