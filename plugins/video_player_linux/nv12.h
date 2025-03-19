@@ -25,8 +25,7 @@
 
 namespace video_player_linux::nv12 {
 
-static const GLchar* kVertexSource = R"glsl(
-  #version 300 es
+static const GLchar* kVertexSource = R"glsl(#version 300 es
   precision highp float;
 
   layout(location = 0) in vec3 vertexPosition_modelspace;
@@ -40,8 +39,7 @@ static const GLchar* kVertexSource = R"glsl(
   }
 )glsl";
 
-static const GLchar* kFragmentSource = R"glsl(
-  #version 300 es
+static const GLchar* kFragmentSource = R"glsl(#version 300 es
   precision highp float;
   in vec2 Texcoord;
   uniform sampler2D textureY;
