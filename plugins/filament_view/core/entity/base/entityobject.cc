@@ -23,6 +23,7 @@
 #include <core/systems/derived/light_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <core/utils/uuidGenerator.h>
+#include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 #include <utility>
 
@@ -68,18 +69,12 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
 
 
   // Deserialize guid
-  if (const auto itGUID = params.find(flutter::EncodableValue(kGuid));
-      itGUID != params.end() && !itGUID->second.IsNull()) {
-    // they're requesting entity have a guid they desire.
-    // Note! There's no clash checking here.
-    if (auto requestedGUID = std::get<int64_t>(itGUID->second);
-        requestedGUID != kNullGuid) {
-      descriptor.guid = requestedGUID;
-    }
-  }
+  spdlog::debug("Deserializing guid");
+  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid,
+                                                 params, kNullGuid);
 
-  if(descriptor.guid == kNullGuid) {
-    SPDLOG_WARN("Failed to deserialize guid, generating new one");
+  if (descriptor.guid == kNullGuid) {
+    spdlog::warn("Failed to deserialize guid, generating new one");
     descriptor.guid = generateUUID();
   }
 

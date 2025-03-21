@@ -21,6 +21,9 @@
 
 #include <core/components/derived/material_definitions.h>
 
+#include <plugins/common/common.h>
+#include <utility>
+
 namespace plugin_filament_view {
 
 class Deserialize {
@@ -110,6 +113,7 @@ class Deserialize {
                                          const flutter::EncodableMap& params,
                                          const float& default_value);
 
+  // Takes either int32 or int64 and casts to int64
   static void DecodeParameterWithDefaultInt64(
       const char* key,
       int64_t* out_value,
