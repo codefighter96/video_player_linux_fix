@@ -152,9 +152,16 @@ void ECSystemManager::vInitSystems() {
   // it needs to run on the main thread.
   // asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
   for (const auto& system : m_vecSystems) {
-    system->vInitSystem();
+    try {
+      spdlog::debug("Initializing system {} at address {}",
+                    system->GetName(), static_cast<void*>(system.get()));
+      system->vInitSystem();
+    } catch (const std::exception& e) {
+      spdlog::error("Exception caught in vInitSystems: {}", e.what());
+    }
   }
 
+  spdlog::info("All systems initialized");
   m_eCurrentState = Initialized;
 
   //});
