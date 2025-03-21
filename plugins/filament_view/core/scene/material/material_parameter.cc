@@ -182,7 +182,7 @@ MaterialParameter::MaterialType MaterialParameter::getTypeForText(
 MaterialColorValue MaterialParameter::HexToColorFloat4(const std::string& hex) {
   // Ensure the string starts with '#' and is the correct length
   if (hex[0] != '#' || hex.length() != 9) {
-    throw std::invalid_argument("Invalid hex color format");
+    throw std::invalid_argument("Invalid hex color format: " + hex);
   }
 
   // Comes across from our dart as ARGB
