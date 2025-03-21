@@ -358,19 +358,16 @@ void ModelSystem::updateAsyncAssetLoading() {
 
     // once we're done loading our assets; we should be able to load instanced
     // models.
-    if (auto foundAwaitingIter =
-            m_mapszoAssetsAwaitingDataLoad.find(assetPath);
+    if (auto foundAwaitingIter = m_mapszoAssetsAwaitingDataLoad.find(assetPath);
         asset->bShouldKeepAssetDataInMemory() &&
         foundAwaitingIter != m_mapszoAssetsAwaitingDataLoad.end()) {
-      spdlog::info("Loading additional instanced assets: {}",
-                   assetPath);
+      spdlog::info("Loading additional instanced assets: {}", assetPath);
       for (const auto& itemToLoad : foundAwaitingIter->second) {
         spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
         loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
       }
-      spdlog::info("Done Loading additional instanced assets: {}",
-                   assetPath);
+      spdlog::info("Done Loading additional instanced assets: {}", assetPath);
       m_mapszoAssetsAwaitingDataLoad.erase(assetPath);
     }
 

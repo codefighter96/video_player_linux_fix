@@ -21,13 +21,13 @@
 #include <core/include/color.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecsystems_manager.h>
+#include <core/utils/uuidGenerator.h>
 #include <filament/Color.h>
 #include <filament/LightManager.h>
 #include <filament/Scene.h>
 #include <plugins/common/common.h>
 #include <utils/EntityManager.h>
 #include <asio/post.hpp>
-#include <core/utils/uuidGenerator.h>
 
 namespace plugin_filament_view {
 using filament::math::float3;
@@ -38,8 +38,8 @@ using filament::math::mat4f;
 void LightSystem::vCreateDefaultLight() {
   SPDLOG_DEBUG("{}", __FUNCTION__);
 
-  m_poDefaultLight =
-      std::make_shared<NonRenderableEntityObject>("DefaultLight", generateUUID());
+  m_poDefaultLight = std::make_shared<NonRenderableEntityObject>(
+      "DefaultLight", generateUUID());
   const auto oLightComp = std::make_shared<Light>();
   m_poDefaultLight->vAddComponent(oLightComp);
 
@@ -142,8 +142,8 @@ void LightSystem::vInitSystem() {
       [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeSceneLightProperties");
 
-        const auto guid = msg.getData<EntityGUID>(
-            ECSMessageType::ChangeSceneLightProperties);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ChangeSceneLightProperties);
 
         const auto colorValue = msg.getData<std::string>(
             ECSMessageType::ChangeSceneLightPropertiesColorValue);
@@ -222,8 +222,7 @@ void LightSystem::DebugPrint() {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRegisterEntityObject(
     const std::shared_ptr<EntityObject>& entity) {
-  if (m_mapGuidToEntity.find(entity->GetGuid()) !=
-      m_mapGuidToEntity.end()) {
+  if (m_mapGuidToEntity.find(entity->GetGuid()) != m_mapGuidToEntity.end()) {
     spdlog::error("{}: Entity {} already registered", __FUNCTION__,
                   entity->GetGuid());
     return;

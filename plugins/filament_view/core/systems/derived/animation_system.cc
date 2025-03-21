@@ -217,15 +217,14 @@ void AnimationSystem::vNotifyOfAnimationEvent(
     const EntityGUID entityGuid,
     const AnimationEventType& eType,
     const std::string& eventData) const {
-  const auto event =
-      flutter::EncodableMap({{flutter::EncodableValue("event"),
-                              flutter::EncodableValue(kAnimationEvent)},
-                             {flutter::EncodableValue(kAnimationEventType),
-                              flutter::EncodableValue(static_cast<int>(eType))},
-                             {flutter::EncodableValue(kGuid),
-                              flutter::EncodableValue(entityGuid)},
-                             {flutter::EncodableValue(kAnimationEventData),
-                              flutter::EncodableValue(eventData)}});
+  const auto event = flutter::EncodableMap(
+      {{flutter::EncodableValue("event"),
+        flutter::EncodableValue(kAnimationEvent)},
+       {flutter::EncodableValue(kAnimationEventType),
+        flutter::EncodableValue(static_cast<int>(eType))},
+       {flutter::EncodableValue(kGuid), flutter::EncodableValue(entityGuid)},
+       {flutter::EncodableValue(kAnimationEventData),
+        flutter::EncodableValue(eventData)}});
 
   vSendDataToEventChannel(event);
 }

@@ -25,13 +25,15 @@
 namespace plugin_filament_view {
 class MaterialParameter;
 
-/// @brief EntityGUID is a type alias for the GUID of an entity (currently an int64_t).
+/// @brief EntityGUID is a type alias for the GUID of an entity (currently an
+/// int64_t).
 using EntityGUID = int64_t;
 
 /// @brief kNullGuid is a constant that represents a null GUID.
 constexpr EntityGUID kNullGuid = 0;
 
-/// @brief EntityDescriptor is a struct that holds the name and guid of an entity.
+/// @brief EntityDescriptor is a struct that holds the name and guid of an
+/// entity.
 struct EntityDescriptor {
   std::string name = "";
   EntityGUID guid = kNullGuid;
@@ -62,9 +64,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
                        });
   }
 
-  [[nodiscard]] EntityGUID GetGuid() const {
-    return guid_;
-  }
+  [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
 
   EntityObject(const EntityObject&) = delete;
   EntityObject& operator=(const EntityObject&) = delete;
@@ -80,7 +80,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   void vUnregisterEntity();
 
  protected:
-  /// @brief Constructor for EntityObject. Generates a GUID and has an empty name.
+  /// @brief Constructor for EntityObject. Generates a GUID and has an empty
+  /// name.
   explicit EntityObject();
   /// @brief Constructor for EntityObject with a name. Generates a unique GUID.
   explicit EntityObject(std::string name);
@@ -88,9 +89,11 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   explicit EntityObject(EntityGUID guid);
   /// @brief Constructor for EntityObject with a name and GUID.
   EntityObject(std::string name, EntityGUID guid);
-  /// @brief Constructor for EntityObject based on an EntityDescriptor, containing a name and GUID.
+  /// @brief Constructor for EntityObject based on an EntityDescriptor,
+  /// containing a name and GUID.
   explicit EntityObject(const EntityDescriptor& descriptor);
-  /// @brief Constructor for EntityObject based on an EncodableMap. Deserializes the name and GUID.
+  /// @brief Constructor for EntityObject based on an EncodableMap. Deserializes
+  /// the name and GUID.
   explicit EntityObject(const flutter::EncodableMap& params);
 
   virtual ~EntityObject() {
@@ -144,7 +147,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   void vShallowCopyComponentToOther(size_t staticTypeID,
                                     EntityObject& other) const;
 
-  static EntityDescriptor DeserializeNameAndGuid(const flutter::EncodableMap& params);
+  static EntityDescriptor DeserializeNameAndGuid(
+      const flutter::EncodableMap& params);
 
  private:
   /// GUID of the entity.

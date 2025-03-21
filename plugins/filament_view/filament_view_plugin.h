@@ -109,14 +109,13 @@ class FilamentViewPlugin : public flutter::Plugin,
   std::optional<FlutterError> SetFogOptions(const bool enabled) override;
   // Set camera rotation by a float value.
   std::optional<FlutterError> SetCameraRotation(double value) override;
-  std::optional<FlutterError> ChangeLightTransformByGUID(
-      const int64_t guid,
-      double posx,
-      double posy,
-      double posz,
-      double dirx,
-      double diry,
-      double dirz) override;
+  std::optional<FlutterError> ChangeLightTransformByGUID(const int64_t guid,
+                                                         double posx,
+                                                         double posy,
+                                                         double posz,
+                                                         double dirx,
+                                                         double diry,
+                                                         double dirz) override;
   std::optional<FlutterError> ChangeLightColorByGUID(
       const int64_t guid,
       const std::string& color,
@@ -124,8 +123,7 @@ class FilamentViewPlugin : public flutter::Plugin,
   std::optional<FlutterError> EnqueueAnimation(
       const int64_t guid,
       int64_t animation_index) override;
-  std::optional<FlutterError> ClearAnimationQueue(
-      const int64_t guid) override;
+  std::optional<FlutterError> ClearAnimationQueue(const int64_t guid) override;
   std::optional<FlutterError> PlayAnimation(const int64_t guid,
                                             int64_t animation_index) override;
   std::optional<FlutterError> ChangeAnimationSpeed(const int64_t guid,

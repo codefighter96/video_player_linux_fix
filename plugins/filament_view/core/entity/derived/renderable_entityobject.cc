@@ -15,7 +15,5 @@
  */
 #include "renderable_entityobject.h"
 
-namespace plugin_filament_view {
-
-}
+namespace plugin_filament_view {}
 // namespace plugin_filament_view
