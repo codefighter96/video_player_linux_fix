@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <GLES3/gl3.h>
 #include <glib.h>
 
@@ -221,15 +223,15 @@ class Shader {
                       const GLchar* fsource = kFragmentSource) {
     GLint result;
     GLsizei length;
-    GLchar* info{};
+    std::array<GLchar, 1000> info{};
 
     vertex_shader_ = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader_, 1, &vsource, nullptr);
     glCompileShader(vertex_shader_);
     glGetShaderiv(vertex_shader_, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
-      glGetShaderInfoLog(vertex_shader_, 1000, &length, info);
-      SPDLOG_ERROR("Failed to compile {}", info);
+      glGetShaderInfoLog(vertex_shader_, info.size(), &length, info.data());
+      SPDLOG_ERROR("Failed to compile {}", std::string(info.data(), length));
       return 0;
     }
 
@@ -238,8 +240,8 @@ class Shader {
     glCompileShader(fragment_shader_);
     glGetShaderiv(fragment_shader_, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
-      glGetShaderInfoLog(fragment_shader_, 1000, &length, info);
-      SPDLOG_ERROR("Fail to compile {}", info);
+      glGetShaderInfoLog(vertex_shader_, info.size(), &length, info.data());
+      SPDLOG_ERROR("Failed to compile {}", std::string(info.data(), length));
       return 0;
     }
 
@@ -250,8 +252,8 @@ class Shader {
 
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &result);
     if (result == GL_FALSE) {
-      glGetProgramInfoLog(shaderProgram, 1000, &length, info);
-      SPDLOG_ERROR("Fail to link {}", info);
+      glGetProgramInfoLog(shaderProgram, info.size(), &length, info.data());
+      SPDLOG_ERROR("Fail to link {}", std::string(info.data(), length));
       return 0;
     }
 

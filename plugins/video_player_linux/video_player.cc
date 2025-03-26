@@ -316,7 +316,7 @@ gboolean VideoPlayer::OnBusMessage(GstBus* bus,
 
       val = gst_message_get_stream_status_object(msg);
 
-      SPDLOG_DEBUG("\ttype:   {}", type);
+      SPDLOG_DEBUG("\ttype:   {}", static_cast<guint>(type));
       path = gst_object_get_path_string(GST_MESSAGE_SRC(msg));
       SPDLOG_DEBUG("\tsource: {}", path);
       g_free(path);
