@@ -18,13 +18,13 @@
 
 #include <core/entity/base/entityobject.h>
 #include <core/systems/base/ecsystem.h>
+#include <core/utils/kvtree.h>
 #include <map>
 
 namespace plugin_filament_view {
 
-class EntityObjectLocatorSystem : public ECSystem {
-  friend class EntityObject;
 
+class EntityObjectLocatorSystem : public ECSystem {
  public:
   EntityObjectLocatorSystem() = default;
 
@@ -47,11 +47,31 @@ class EntityObjectLocatorSystem : public ECSystem {
   [[nodiscard]] std::shared_ptr<EntityObject> poGetEntityObjectById(
       EntityGUID id) const;
 
- private:
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> _entities;
+  // TODO: move those to ECSManager
+  /// Moves the entity with the given GUID to the parent with the given GUID.
+  void ReparentEntityObject(const std::shared_ptr<EntityObject>& entity,
+                             const EntityGUID& parentGuid);
+  /// Returns the children of the entity with the given GUID.
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> GetEntityChildren(
+      EntityGUID id) const;
+  /// Returns the GUIDs of the children of the entity with the given GUID.
+  [[nodiscard]] std::vector<EntityGUID> GetEntityChildrenGuids(
+      EntityGUID id) const;
 
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
+  /// Returns the parent of the entity with the given GUID.
+  [[nodiscard]] std::shared_ptr<EntityObject> GetEntityParent(
+      EntityGUID id) const;
+  /// Returns the GUID of the parent of the entity with the given GUID.
+  [[nodiscard]] std::optional<EntityGUID> GetEntityParentGuid(EntityGUID id) const;
+
+
+  // TODO: refactor these
+  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity,
+    const EntityGUID* parentGuid = nullptr);
   void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
+
+ private:
+  KVTree<EntityGUID, std::shared_ptr<EntityObject>> _entities;
 };
 
 }  // namespace plugin_filament_view
