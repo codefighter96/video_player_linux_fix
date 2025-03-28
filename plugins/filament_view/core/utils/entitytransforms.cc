@@ -151,7 +151,7 @@ void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
   const auto scalingMatrix =
       filament::math::mat4f::scaling(transform.GetScale());
   const auto translationMatrix =
-      filament::math::mat4f::translation(transform.GetCenterPosition());
+      filament::math::mat4f::translation(transform.GetPosition());
 
   // Combine the transformations: translate * rotate * scale
   const auto combinedTransform =
@@ -421,7 +421,7 @@ void EntityTransforms::vApplyTransform(
   const auto scalingMatrix =
       filament::math::mat4f::scaling(transform.GetScale());
   const auto translationMatrix =
-      filament::math::mat4f::translation(transform.GetCenterPosition());
+      filament::math::mat4f::translation(transform.GetPosition());
 
   // Combine the transformations: translate * rotate * scale
   const auto combinedTransform =
@@ -441,6 +441,24 @@ void EntityTransforms::vApplyTransform(
   const auto engine = filamentSystem->getFilamentEngine();
 
   vApplyTransform(oModelAsset, transform, engine);
+}
+
+////////////////////////////////////////////////////////////////////////////
+filament::math::float3 EntityTransforms::oGetTranslationFromTransform(
+    const filament::math::mat4f& transform) {
+  return transform[3].xyz;
+}
+
+////////////////////////////////////////////////////////////////////////////
+filament::math::float3 EntityTransforms::oGetScaleFromTransform(
+    const filament::math::mat4f& transform) {
+  throw std::runtime_error("Not implemented");
+}
+
+////////////////////////////////////////////////////////////////////////////
+filament::math::quatf EntityTransforms::oGetRotationFromTransform(
+    const filament::math::mat4f& transform) {
+  throw std::runtime_error("Not implemented");
 }
 
 }  // namespace plugin_filament_view

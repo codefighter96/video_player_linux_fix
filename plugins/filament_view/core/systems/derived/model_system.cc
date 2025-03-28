@@ -365,6 +365,8 @@ void ModelSystem::updateAsyncAssetLoading() {
       for (const auto& itemToLoad : foundAwaitingIter->second) {
         spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
+
+        // retry loading the asset, as we're done loading the instanceable data
         loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
       }
       spdlog::info("Done Loading additional instanced assets: {}", assetPath);
@@ -422,11 +424,18 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
             oOurModel->szGetAssetPath()) !=
         m_mapszbCurrentlyLoadingInstanceableAssets.end();
 
+    // if we are loading instanceable data...
     if (bWantsInstancedData) {
       std::string szAssetPath = oOurModel->szGetAssetPath();
+      // ... and we're currently loading it or it's already loaded
+      // add it to the list of assets to update when we're done loading.
+      // see: updateAsyncAssetLoading() (which the calls this again)
       if (isCurrentlyLoadingInstanceableData || hasInstancedDataLoaded) {
         const auto iter =
             m_mapszoAssetsAwaitingDataLoad.find(oOurModel->szGetAssetPath());
+
+        // find/create a list of instances to load
+        // and add this model to it.
         if (iter != m_mapszoAssetsAwaitingDataLoad.end()) {
           iter->second.emplace_back(std::move(oOurModel));
         } else {
@@ -587,7 +596,7 @@ void ModelSystem::vInitSystem() {
                   .get());
 
           // change stuff.
-          theObject->SetCenterPosition(position);
+          theObject->SetPosition(position);
 
           EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
 

@@ -114,14 +114,14 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     // Note I believe this is correct; more thorough testing is needed; there's
     // a concern around exporting models not centered at 0,0,0 and not being
     // 100% accurate.
-    ourTransform->SetCenterPosition(ourAABB.center() +
-                                    ourTransform->GetCenterPosition());
+    ourTransform->SetPosition(ourAABB.center() +
+                                    ourTransform->GetPosition());
     ourTransform->SetExtentsSize(ourAABB.extent());
     ourTransform->SetScale(ourAABB.extent());
 
     if (originalCollidable != nullptr &&
         originalCollidable->GetShouldMatchAttachedObject()) {
-      originalCollidable->SetCenterPoint(ourTransform->GetCenterPosition());
+      originalCollidable->SetCenterPoint(ourTransform->GetPosition());
 
       originalCollidable->SetShapeType(ShapeType::Cube);
       originalCollidable->SetExtentsSize(ourAABB.extent());

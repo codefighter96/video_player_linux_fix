@@ -34,12 +34,12 @@ class Collidable : public Component {
   Collidable()
       : Component(std::string(__FUNCTION__)),
         m_bIsStatic(true),
-        m_f3CenterPosition({0.0f, 0.0f, 0.0f}),
+        m_f3Position({0.0f, 0.0f, 0.0f}),
         m_nCollisionLayer(0),
         m_nCollisionMask(0xFFFFFFFF),
         m_bShouldMatchAttachedObject(false),
         m_eShapeType(),
-        m_f3ExtentsSize({0.0f, 0.0f, 0.0f}) {}
+        _extentSize({0.0f, 0.0f, 0.0f}) {}
 
   explicit Collidable(const flutter::EncodableMap& params);
 
@@ -52,10 +52,10 @@ class Collidable : public Component {
   }
   [[nodiscard]] ShapeType GetShapeType() const { return m_eShapeType; }
   [[nodiscard]] filament::math::float3 GetExtentsSize() const {
-    return m_f3ExtentsSize;
+    return _extentSize;
   }
   [[nodiscard]] filament::math::float3 GetCenterPoint() const {
-    return m_f3CenterPosition;
+    return m_f3Position;
   }
 
   [[nodiscard]] bool GetIsEnabled() const { return m_bIsEnabled; }
@@ -69,10 +69,10 @@ class Collidable : public Component {
   }
   void SetShapeType(ShapeType value) { m_eShapeType = value; }
   void SetExtentsSize(const filament::math::float3& value) {
-    m_f3ExtentsSize = value;
+    _extentSize = value;
   }
   void SetCenterPoint(const filament::math::float3& value) {
-    m_f3CenterPosition = value;
+    m_f3Position = value;
   }
 
   void SetEnabled(bool value) { m_bIsEnabled = value; }
@@ -97,7 +97,7 @@ class Collidable : public Component {
   bool m_bIsStatic = true;
   // if this isStatic, then we need to copy this on creation
   // from basetransform property
-  filament::math::float3 m_f3CenterPosition;
+  filament::math::float3 m_f3Position;
 
   // Layer for collision filtering
   // Not actively used in first iteration, but should be in future.
@@ -114,7 +114,7 @@ class Collidable : public Component {
   // if this !shouldMatchAttachedObject, then we need to deserialize these two
   // vars
   ShapeType m_eShapeType;
-  filament::math::float3 m_f3ExtentsSize;
+  filament::math::float3 _extentSize;
 
   // You can turn collision objects on / off during runtime without removing /
   // re-adding from the scene.

@@ -219,7 +219,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   EntityTransforms::vApplyTransform(
       m_poEntity, m_poBaseTransform.lock()->GetRotation(),
       m_poBaseTransform.lock()->GetScale(),
-      m_poBaseTransform.lock()->GetCenterPosition());
+      m_poBaseTransform.lock()->GetPosition());
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal

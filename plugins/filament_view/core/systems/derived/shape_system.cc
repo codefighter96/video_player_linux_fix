@@ -229,7 +229,7 @@ void ShapeSystem::vInitSystem() {
 
           // this ideally checks for SetShouldMatchAttachedObject in the future
           // - todo
-          baseTransform->SetCenterPosition(position);
+          baseTransform->SetPosition(position);
           baseTransform->SetRotation(rotation);
           baseTransform->SetScale(scale);
           collidable->SetCenterPoint(position);
@@ -285,7 +285,7 @@ void ShapeSystem::vInitSystem() {
 
           // this ideally checks for SetShouldMatchAttachedObject in the future
           // - todo
-          baseTransform->SetCenterPosition(position);
+          baseTransform->SetPosition(position);
           collidable->SetCenterPoint(position);
 
           EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),

@@ -30,6 +30,8 @@ class Model;
 
 using ::utils::Entity;
 
+// TODO: EntityTransforms utils should be moved to appropriate classes
+
 class EntityTransforms {
  public:
   // Utility functions for quaternion to matrix conversion
@@ -108,6 +110,13 @@ class EntityTransforms {
   static void vApplyTransform(const std::shared_ptr<Model>& oModelAsset,
                               const BaseTransform& transform,
                               ::filament::Engine* engine);
+
+  static filament::math::float3 oGetTranslationFromTransform(
+    const filament::math::mat4f& transform);
+	static filament::math::quatf oGetRotationFromTransform(
+    const filament::math::mat4f& transform);
+	static filament::math::float3 oGetScaleFromTransform(
+    const filament::math::mat4f& transform);
 };
 
 }  // namespace plugin_filament_view

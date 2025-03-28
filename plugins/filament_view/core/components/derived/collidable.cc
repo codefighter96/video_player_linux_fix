@@ -27,9 +27,9 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Collidable::Collidable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
-      m_f3CenterPosition({0}),
+      m_f3Position({0}),
       m_eShapeType(ShapeType::Cube),
-      m_f3ExtentsSize({1}) {
+      _extentSize({1}) {
   // Check if the key exists and if the value is an EncodableMap
   if (const auto itCollidableSpecific =
           params.find(flutter::EncodableValue(kCollidable));
@@ -54,7 +54,7 @@ Collidable::Collidable(const flutter::EncodableMap& params)
           collidableSpecificParams, false);
 
       Deserialize::DecodeParameterWithDefault(
-          kCollidableExtents, &m_f3ExtentsSize, params,
+          kCollidableExtents, &_extentSize, params,
           filament::math::float3(1.0f, 1.0f, 1.0f));
 
       // Deserialize the static flag, defaulting to 'true'
@@ -79,13 +79,13 @@ Collidable::Collidable(const flutter::EncodableMap& params)
   }
 
   if (m_bIsStatic) {
-    Deserialize::DecodeParameterWithDefault(kCenterPosition,
-                                            &m_f3CenterPosition, params,
+    Deserialize::DecodeParameterWithDefault(kPosition,
+                                            &m_f3Position, params,
                                             filament::math::float3(0, 0, 0));
   }
 
   if (!m_bShouldMatchAttachedObject) {
-    Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3ExtentsSize,
+    Deserialize::DecodeParameterWithDefault(kPosition, &_extentSize,
                                             params,
                                             filament::math::float3(1, 1, 1));
   }
@@ -100,8 +100,8 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 
   if (m_bIsStatic) {
     spdlog::debug(tabPrefix + "Center Point: x={}, y={}, z={}",
-                  m_f3CenterPosition.x, m_f3CenterPosition.y,
-                  m_f3CenterPosition.z);
+                  m_f3Position.x, m_f3Position.y,
+                  m_f3Position.z);
   }
 
   // Log the collision layer and mask
@@ -118,8 +118,8 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
       static_cast<int>(m_eShapeType));  // assuming ShapeType is an enum
 
   // Log the extents size (x, y, z)
-  spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
-                m_f3ExtentsSize.y, m_f3ExtentsSize.z);
+  spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", _extentSize.x,
+                _extentSize.y, _extentSize.z);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -130,8 +130,8 @@ bool Collidable::bDoesIntersect(const Ray& ray,
   }
 
   // Extract relevant data
-  const filament::math::float3& center = m_f3CenterPosition;
-  const filament::math::float3& extents = m_f3ExtentsSize;
+  const filament::math::float3& center = m_f3Position;
+  const filament::math::float3& extents = _extentSize;
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
 

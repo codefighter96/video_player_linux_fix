@@ -117,8 +117,11 @@ class Light : public Component {
   std::string m_szColor;
   float m_fColorTemperature;
   float m_fIntensity;
+
+  // TODO: refactor to use BaseTransform
   filament::math::float3 m_f3Position;
   filament::math::float3 m_f3Direction;
+  
   bool m_bCastLight;
   bool m_bCastShadows;
   float m_fFalloffRadius;

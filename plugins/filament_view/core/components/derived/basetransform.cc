@@ -17,6 +17,7 @@
 
 #include <core/include/literals.h>
 #include <core/utils/deserialize.h>
+#include <core/utils/entitytransforms.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -24,32 +25,46 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 BaseTransform::BaseTransform(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
-      m_f3CenterPosition(0, 0, 0),
-      m_f3ExtentsSize(0, 0, 0),
-      m_f3Scale(1, 1, 1),
-      m_quatRotation(0, 0, 0, 1) {
-  Deserialize::DecodeParameterWithDefault(kSize, &m_f3ExtentsSize, params,
-                                          filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3CenterPosition,
+      _extentSize(kFloat3Zero),
+      local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
+      global({kMat4fIdentity}) {
+  Deserialize::DecodeParameterWithDefault(kSize, &_extentSize, params,
+                                          kFloat3Zero);
+  Deserialize::DecodeParameterWithDefault(kPosition, &(local.position),
                                           params,
-                                          filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kScale, &m_f3Scale, params,
-                                          filament::math::float3(1, 1, 1));
-  Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params,
-                                          filament::math::quatf(0, 0, 0, 1));
+                                          kFloat3Zero);
+  Deserialize::DecodeParameterWithDefault(kScale, &(local.scale), params,
+                                          kFloat3One);
+  Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params,
+                                          kQuatfIdentity);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
-  spdlog::debug(tabPrefix + "Center Position: x={}, y={}, z={}",
-                m_f3CenterPosition.x, m_f3CenterPosition.y,
-                m_f3CenterPosition.z);
-  spdlog::debug(tabPrefix + "Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y,
-                m_f3Scale.z);
-  spdlog::debug(tabPrefix + "Rotation: x={}, y={}, z={} w={}", m_quatRotation.x,
-                m_quatRotation.y, m_quatRotation.z, m_quatRotation.w);
-  spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
-                m_f3ExtentsSize.y, m_f3ExtentsSize.z);
+  spdlog::debug(tabPrefix + "Local transform:");
+  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}",
+                local.position.x, local.position.y,
+                local.position.z);
+  spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x, local.scale.y,
+                local.scale.z);
+  spdlog::debug(tabPrefix + "Rot: x={}, y={}, z={} w={}", local.rotation.x,
+                local.rotation.y, local.rotation.z, local.rotation.w);
+  spdlog::debug(tabPrefix + "Ext: x={}, y={}, z={}", _extentSize.x,
+                _extentSize.y, _extentSize.z);
+  
+  spdlog::debug(tabPrefix + "Global transform:");
+  filament::math::float3 tmp;
+
+  tmp = EntityTransforms::oGetTranslationFromTransform(global.matrix);
+  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}", tmp.x, tmp.y, tmp.z);
+
+  // tmp = EntityTransforms::oGetScaleFromTransform(global);
+  // spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", tmp.x, tmp.y, tmp.z);
+  spdlog::debug(tabPrefix + "Scl: TODO");
+
+  // filament::math::quatf rot = EntityTransforms::oGetRotationFromTransform(global);
+  // spdlog::debug(tabPrefix + "Rot: x={}, y={}, z={} w={}", rot.x, rot.y, rot.z, rot.w);
+  spdlog::debug(tabPrefix + "Rot: TODO");
 }
 
 }  // namespace plugin_filament_view

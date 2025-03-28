@@ -25,6 +25,7 @@
 namespace plugin_filament_view {
 class MaterialParameter;
 
+// TODO: refactor to `EntityGUID` to `EntityId`
 /// @brief EntityGUID is a type alias for the GUID of an entity (currently an
 /// int64_t).
 using EntityGUID = int64_t;
@@ -64,6 +65,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
                        });
   }
 
+  // TODO: remove this, change guid to const and expose as public
   [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
 
   EntityObject(const EntityObject&) = delete;
