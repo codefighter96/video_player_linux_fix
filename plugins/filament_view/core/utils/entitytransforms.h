@@ -62,7 +62,8 @@ class EntityTransforms {
   static void vApplyTransform(const std::shared_ptr<utils::Entity>& poEntity,
                               const filament::math::quatf& rotation,
                               const filament::math::float3& scale,
-                              const filament::math::float3& translation);
+                              const filament::math::float3& translation,
+                              const std::shared_ptr<utils::Entity>& filamentEntityParent);
   static void vApplyShear(const std::shared_ptr<utils::Entity>& poEntity,
                           const filament::math::float3& shear);  // NOLINT
   static void vResetTransform(const std::shared_ptr<utils::Entity>& poEntity);
@@ -90,6 +91,7 @@ class EntityTransforms {
                               const filament::math::quatf& rotation,
                               const filament::math::float3& scale,
                               const filament::math::float3& translation,
+                              const std::shared_ptr<utils::Entity>& filamentEntityParent,
                               ::filament::Engine* engine);
   static void vApplyTransform(const std::shared_ptr<Entity>& poEntity,
                               const BaseTransform& transform);

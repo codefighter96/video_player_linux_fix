@@ -19,6 +19,7 @@
 #include <core/components/derived/collidable.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/entityobject_locator_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <core/utils/deserialize.h>
 #include <core/utils/entitytransforms.h>
@@ -216,10 +217,32 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .build(*engine_, *m_poEntity);
   }
 
-  EntityTransforms::vApplyTransform(
+  // Get parent entity id
+  auto entityLocator = ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
+        EntityObjectLocatorSystem::StaticGetTypeID(),
+        "BaseShape::vBuildRenderable");
+
+  const auto parentId = m_poBaseTransform.lock()->GetParentId();
+
+  if(parentId != kNullGuid) {
+    // Get the parent entity object
+    auto parentEntity = entityLocator->poGetEntityObjectById(parentId);
+    auto parentFilamentEntity = parentEntity->_filamentEntity;
+
+    EntityTransforms::vApplyTransform(
       m_poEntity, m_poBaseTransform.lock()->GetRotation(),
       m_poBaseTransform.lock()->GetScale(),
-      m_poBaseTransform.lock()->GetPosition());
+      m_poBaseTransform.lock()->GetPosition(),
+      parentFilamentEntity
+    );
+  } else {
+    EntityTransforms::vApplyTransform(
+      m_poEntity, m_poBaseTransform.lock()->GetRotation(),
+      m_poBaseTransform.lock()->GetScale(),
+      m_poBaseTransform.lock()->GetPosition(),
+      nullptr
+    );
+  }
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal

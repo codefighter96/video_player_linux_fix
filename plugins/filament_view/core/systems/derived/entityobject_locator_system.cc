@@ -62,8 +62,9 @@ std::shared_ptr<EntityObject> EntityObjectLocatorSystem::poGetEntityObjectById(
   const auto* node = _entities.get(id);
   if (!node) {
     spdlog::error(
-        "[EntityObjectLocatorSystem::GetEntityObjectById] Unable to find "
+        "[{}] Unable to find "
         "entity with id {}",
+        __FUNCTION__,
         id);
     return nullptr;
   }

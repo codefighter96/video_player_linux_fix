@@ -37,11 +37,14 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
                                           kFloat3One);
   Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params,
                                           kQuatfIdentity);
+  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params,
+                                               kNullGuid);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Local transform:");
+  spdlog::debug(tabPrefix + "ParentId: {}", _parentId);
   spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}",
                 local.position.x, local.position.y,
                 local.position.z);

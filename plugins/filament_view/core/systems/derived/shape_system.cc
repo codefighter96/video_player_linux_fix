@@ -163,11 +163,17 @@ void ShapeSystem::addShapesToScene(
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
-    auto oEntity = std::make_shared<Entity>(oEntityManager.create());
+    std::shared_ptr<Entity> oEntity = std::make_shared<Entity>(oEntityManager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity);
 
     poFilamentScene->addEntity(*oEntity);
+
+    // Save Filament entity ID to our entity
+    shape->_filamentEntity = oEntity;
+
+    spdlog::debug("Adding entity {} with filament entity {}",
+                  shape->GetGuid(), oEntity->getId());
 
     // To investigate a better system for implementing layer mask
     // across dart to here.

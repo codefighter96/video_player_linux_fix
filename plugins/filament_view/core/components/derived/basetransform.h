@@ -17,6 +17,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <core/entity/base/entityobject.h>
 #include <core/components/base/component.h>
 #include <filament/math/quat.h>
 #include <filament/math/mat4.h>
@@ -74,6 +75,7 @@ class BaseTransform : public Component {
   private:
     bool _isDirty = false;
     filament::math::float3 _extentSize;
+    EntityGUID _parentId = kNullGuid;
 
   public:
     TransformVectorData local;
@@ -92,6 +94,10 @@ class BaseTransform : public Component {
      *   Local
      */
     // Getters
+    [[nodiscard]] const EntityGUID GetParentId() const {
+      return _parentId;
+    }
+
     [[nodiscard]] const filament::math::float3& GetPosition() const {
       return local.position;
     }

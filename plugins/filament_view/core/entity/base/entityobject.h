@@ -21,9 +21,12 @@
 
 #include <core/components/base/component.h>
 #include <core/components/derived/material_definitions.h>
+#include <filament/Scene.h>
 
 namespace plugin_filament_view {
 class MaterialParameter;
+
+using utils::Entity;
 
 // TODO: refactor to `EntityGUID` to `EntityId`
 /// @brief EntityGUID is a type alias for the GUID of an entity (currently an
@@ -51,6 +54,10 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   friend class SceneTextDeserializer;
 
  public:
+  // Filament entity
+  std::shared_ptr<utils::Entity> _filamentEntity = nullptr;
+
+
   // Overloading the == operator to compare based on guid_
   bool operator==(const EntityObject& other) const {
     return guid_ == other.guid_;
