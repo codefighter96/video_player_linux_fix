@@ -176,7 +176,10 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
     oOurModel->setAssetInstance(assetInstance);
   }
 
-  EntityTransforms::vApplyTransform(oOurModel, *oOurModel->GetBaseTransform());
+  // by this point we should either have a subinstance, or THE primary instance
+  assert(assetInstance != nullptr);
+
+  EntityTransforms::vApplyTransform(assetInstance->getRoot(), *oOurModel->GetBaseTransform());
 
   std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
   vSetupAssetThroughoutECS(sharedPtr, asset, assetInstance);
@@ -188,6 +191,10 @@ void ModelSystem::loadModelGltf(
     const std::vector<uint8_t>& buffer,
     std::function<const filament::backend::BufferDescriptor&(
         std::string uri)>& /* callback */) {
+
+  throw std::runtime_error(
+      "[ModelSystem::loadModelGltf] Not implemented yet.");
+
   auto* asset = assetLoader_->createAsset(buffer.data(),
                                           static_cast<uint32_t>(buffer.size()));
   if (!asset) {
@@ -237,7 +244,8 @@ void ModelSystem::loadModelGltf(
 
   oOurModel->setAsset(asset);
 
-  EntityTransforms::vApplyTransform(oOurModel, *oOurModel->GetBaseTransform());
+  // TODO: fix this, we should be able to use the asset instance
+  EntityTransforms::vApplyTransform(oOurModel->getAssetInstance()->getRoot(), *oOurModel->GetBaseTransform());
 
   std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
 
@@ -596,22 +604,23 @@ void ModelSystem::vInitSystem() {
         const auto position =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
+        // find the model in our list:
         if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+          const auto model = ourEntity->second;
+          const auto transform = dynamic_cast<BaseTransform*>(
+            model
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           // change stuff.
-          theObject->SetPosition(position);
+          transform->SetPosition(position);
 
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
+          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
 
           // and change the collision
           vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                model);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
@@ -629,22 +638,23 @@ void ModelSystem::vInitSystem() {
             msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
         filament::math::quatf rotation(values);
 
-        // find the entity in our list:
+        // find the model in our list:
         if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+          const auto model = ourEntity->second;
+          const auto transform = dynamic_cast<BaseTransform*>(
+              model
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           // change stuff.
-          theObject->SetRotation(rotation);
+          transform->SetRotation(rotation);
 
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
+          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
 
           // and change the collision
           vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                model);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
@@ -661,22 +671,23 @@ void ModelSystem::vInitSystem() {
         const auto values =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
+        // find the model in our list:
         if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+          const auto model = ourEntity->second;
+          const auto transform = dynamic_cast<BaseTransform*>(
+              model
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           // change stuff.
-          theObject->SetScale(values);
+          transform->SetScale(values);
 
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
+          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
 
           // and change the collision
           vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                model);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");

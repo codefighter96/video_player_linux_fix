@@ -223,13 +223,14 @@ void ShapeSystem::vInitSystem() {
         // find the entity in our list:
         if (const auto ourEntity = m_mapszoShapes.find(guid);
             ourEntity != m_mapszoShapes.end()) {
+          const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
                   .get());
 
@@ -241,12 +242,12 @@ void ShapeSystem::vInitSystem() {
           collidable->SetCenterPoint(position);
           collidable->SetExtentsSize(scale);
 
-          EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),
+          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
 
           // and change the collision
           vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                entity);
         }
 
         SPDLOG_TRACE("SetShapeTransform Complete");
@@ -279,13 +280,14 @@ void ShapeSystem::vInitSystem() {
         // find the entity in our list:
         if (const auto ourEntity = m_mapszoShapes.find(guid);
             ourEntity != m_mapszoShapes.end()) {
+          const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
                   .get());
 
@@ -294,12 +296,12 @@ void ShapeSystem::vInitSystem() {
           baseTransform->SetPosition(position);
           collidable->SetCenterPoint(position);
 
-          EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),
+          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
 
           // and change the collision
           vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                entity);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
@@ -320,20 +322,21 @@ void ShapeSystem::vInitSystem() {
         // find the entity in our list:
         if (const auto ourEntity = m_mapszoShapes.find(guid);
             ourEntity != m_mapszoShapes.end()) {
+          const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           // change stuff.
           baseTransform->SetRotation(rotation);
 
-          EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),
+          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
 
           // and change the collision
           vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                entity);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
@@ -353,13 +356,14 @@ void ShapeSystem::vInitSystem() {
         // find the entity in our list:
         if (const auto ourEntity = m_mapszoShapes.find(guid);
             ourEntity != m_mapszoShapes.end()) {
+          const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
-              ourEntity->second
+              entity
                   ->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
                   .get());
 
@@ -368,12 +372,12 @@ void ShapeSystem::vInitSystem() {
           collidable->SetExtentsSize(values);
           baseTransform->SetScale(values);
 
-          EntityTransforms::vApplyTransform(ourEntity->second->poGetEntity(),
+          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
 
           // and change the collision
           vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+                                                entity);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");

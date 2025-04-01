@@ -88,6 +88,7 @@ class BaseShape : public RenderableEntityObject {
   /// future as well.
   Resource<filament::MaterialInstance*> m_poMaterialInstance;
 
+  // TODO: deprecate in favor of EntityObject#_filamentEntity
   std::shared_ptr<utils::Entity> m_poEntity;
 
   // Whether we have winding indexes in both directions.

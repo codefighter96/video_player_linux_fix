@@ -245,67 +245,34 @@ void EntityTransforms::vApplyTranslate(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
-  const filament::math::mat4f& transform) {
-const auto filamentSystem =
-ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-FilamentSystem::StaticGetTypeID(), "EntityTransforms");
-const auto engine = filamentSystem->getFilamentEngine();
-vApplyTransform(poEntity, transform, engine);
-}
-
-////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
+void EntityTransforms::vApplyTransform(const Entity& poEntity,
   const BaseTransform& transform) {
-const auto filamentSystem =
-ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-FilamentSystem::StaticGetTypeID(), "EntityTransforms");
-const auto engine = filamentSystem->getFilamentEngine();
 
-// Create the rotation, scaling, and translation matrices
-const auto rotationMatrix = QuaternionToMat4f(transform.GetRotation());
-const auto scalingMatrix =
-filament::math::mat4f::scaling(transform.GetScale());
-const auto translationMatrix =
-filament::math::mat4f::translation(transform.GetPosition());
+  // Create the rotation, scaling, and translation matrices
+  const auto rotation = transform.GetRotation();
+  const auto scaling = transform.GetScale();
+  const auto translation = transform.GetPosition();
 
-// Combine the transformations: translate * rotate * scale
-const auto combinedTransform =
-translationMatrix * rotationMatrix * scalingMatrix;
-
-vApplyTransform(poEntity, combinedTransform, engine);
-}
-
-////////////////////////////////////////////////////////////////////////////
-// TODO: deprecate
-void EntityTransforms::vApplyTransform(
-const std::shared_ptr<Entity>& poEntity,
-const filament::math::quatf& rotation,
-const filament::math::float3& scale,
-const filament::math::float3& translation,
-const std::shared_ptr<Entity>& filamentEntityParent) {
-const auto filamentSystem =
-ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-FilamentSystem::StaticGetTypeID(), "EntityTransforms");
-const auto engine = filamentSystem->getFilamentEngine();
-vApplyTransform(poEntity, rotation, scale, translation, filamentEntityParent, engine);
+  vApplyTransform(
+    poEntity,
+    rotation,
+    scaling,
+    translation,
+    // TODO: Get parent from transform
+    nullptr
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTransform(
-    const std::shared_ptr<Entity>& poEntity,
-    const filament::math::quatf& rotation,
-    const filament::math::float3& scale,
-    const filament::math::float3& translation,
-    const std::shared_ptr<Entity>& filamentEntityParent,
-    filament::Engine* engine) {
-
-
-  if (!*poEntity)
+  const Entity& poEntity,
+  const filament::math::quatf& rotation,
+  const filament::math::float3& scale,
+  const filament::math::float3& translation,
+  const Entity* parent
+) {
+  if (!poEntity)
     return;
-
-  auto& transformManager = engine->getTransformManager();
-  const auto instance = transformManager.getInstance(*poEntity);
 
   // Create the rotation, scaling, and translation matrices
   const auto rotationMatrix = QuaternionToMat4f(rotation);
@@ -318,28 +285,61 @@ void EntityTransforms::vApplyTransform(
       translationMatrix * rotationMatrix * scalingMatrix;
 
   
-
   // Set the combined transform back to the entity
-  transformManager.setTransform(instance, combinedTransform);
+  vApplyTransform(poEntity, combinedTransform, parent);
+}
 
+
+////////////////////////////////////////////////////////////////////////////
+void EntityTransforms::vApplyTransform(const Entity& poEntity,
+  const filament::math::mat4f& transform,
+  const Entity* parent) {
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(FilamentSystem::StaticGetTypeID(), "EntityTransforms");
+  const auto engine = filamentSystem->getFilamentEngine();
+  vApplyTransform(poEntity, transform, parent, engine);
+}
+
+////////////////////////////////////////////////////////////////////////////
+void EntityTransforms::vApplyTransform(const Entity& poEntity,
+                                       const filament::math::mat4f& transform,
+                                       const Entity* parent,
+                                       filament::Engine* engine) {
+  if (!poEntity)
+    return;
+
+  auto& transformManager = engine->getTransformManager();
+  const auto instance = transformManager.getInstance(poEntity);
+
+  // Set the provided transform matrix directly to the entity
+  transformManager.setTransform(instance, transform);
 
   // If a parent ID is provided, set the parent transform
-  if (filamentEntityParent != nullptr) {
+  if (parent != nullptr) {
     // Get instance of parent
-    const auto parentInstance = transformManager.getInstance(*filamentEntityParent);
+    const auto parentInstance = transformManager.getInstance(*parent);
+    // Get current parent
+    const auto currentParent = transformManager.getParent(instance);
+
+    // Skip parenting if same as current parent
+    if(currentParent == *parent) {
+      spdlog::debug("[{}] New parent entity is the same as the current Parent entity ({}), skipping reparenting.",
+                    __FUNCTION__, parent->getId());
+      return;
+    }
 
     // Check if the parent instance is valid
     if(parentInstance.isValid()) {
       if(instance.asValue() == parentInstance.asValue()) {
         throw std::runtime_error(
-          fmt::format("[{}] Parent instance is the same as the current instance ({}), skipping parenting.",
+          fmt::format("[{}] New parent instance is the same as the current instance ({}), skipping parenting.",
                       __FUNCTION__, instance.asValue()));
       }
     } else {
       throw std::runtime_error(
         fmt::format("[{}] Parent instance ? of {} is not valid.",
-                    __FUNCTION__, poEntity->getId()));
+                    __FUNCTION__, poEntity.getId()));
     }
+
 
     // Set the parent transform
     try {
@@ -352,22 +352,7 @@ void EntityTransforms::vApplyTransform(
     } catch (...) {
       spdlog::error("[{}] Unknown error setting parent", __FUNCTION__);
     }
-
   }
-}
-
-////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
-                                       const filament::math::mat4f& transform,
-                                       filament::Engine* engine) {
-  if (!*poEntity)
-    return;
-
-  auto& transformManager = engine->getTransformManager();
-  const auto instance = transformManager.getInstance(*poEntity);
-
-  // Set the provided transform matrix directly to the entity
-  transformManager.setTransform(instance, transform);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -441,42 +426,6 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
 
   // Set the look-at transform to the entity
   transformManager.setTransform(instance, lookAtMatrix);
-}
-
-////////////////////////////////////////////////////////////////////////////
-// HAS PARENTING!
-// TODO: remove
-void EntityTransforms::vApplyTransform(
-    const std::shared_ptr<Model>& oModelAsset,
-    const BaseTransform& transform,
-    filament::Engine* engine) {
-  auto& transformManager = engine->getTransformManager();
-
-  // Get filament asset and entity
-  filament::gltfio::FilamentInstance* assetInstance = oModelAsset->getAssetInstance();
-  if (assetInstance == nullptr) {
-    throw std::runtime_error(
-        "[EntityTransforms::vApplyTransform] No entity to work with???");
-  }
-
-
-  // TODO: this should be initialized inside of EntityObject when loading model
-  Entity entityToWorkWith = assetInstance->getRoot();
-
-  // Set transform on the entity
-  vApplyTransform(std::make_shared<Entity>(entityToWorkWith), transform);
-}
-
-////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(
-    const std::shared_ptr<Model>& oModelAsset,
-    const BaseTransform& transform) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  vApplyTransform(oModelAsset, transform, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -230,14 +230,14 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     auto parentFilamentEntity = parentEntity->_filamentEntity;
 
     EntityTransforms::vApplyTransform(
-      m_poEntity, m_poBaseTransform.lock()->GetRotation(),
+      *m_poEntity, m_poBaseTransform.lock()->GetRotation(),
       m_poBaseTransform.lock()->GetScale(),
       m_poBaseTransform.lock()->GetPosition(),
-      parentFilamentEntity
+      parentFilamentEntity.get()
     );
   } else {
     EntityTransforms::vApplyTransform(
-      m_poEntity, m_poBaseTransform.lock()->GetRotation(),
+      *m_poEntity, m_poBaseTransform.lock()->GetRotation(),
       m_poBaseTransform.lock()->GetScale(),
       m_poBaseTransform.lock()->GetPosition(),
       nullptr
