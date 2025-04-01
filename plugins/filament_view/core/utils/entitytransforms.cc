@@ -445,37 +445,26 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
 
 ////////////////////////////////////////////////////////////////////////////
 // HAS PARENTING!
+// TODO: remove
 void EntityTransforms::vApplyTransform(
     const std::shared_ptr<Model>& oModelAsset,
     const BaseTransform& transform,
     filament::Engine* engine) {
   auto& transformManager = engine->getTransformManager();
 
-  // Get filament entity
-  Entity entityToWorkWith;
-  if (oModelAsset->getAsset() != nullptr) {
-    entityToWorkWith = oModelAsset->getAsset()->getRoot();
-  } else if (oModelAsset->getAssetInstance() != nullptr) {
-    entityToWorkWith = oModelAsset->getAssetInstance()->getRoot();
-  } else {
+  // Get filament asset and entity
+  filament::gltfio::FilamentInstance* assetInstance = oModelAsset->getAssetInstance();
+  if (assetInstance == nullptr) {
     throw std::runtime_error(
         "[EntityTransforms::vApplyTransform] No entity to work with???");
   }
-  const auto ei = transformManager.getInstance(entityToWorkWith);
 
-  // Create the rotation, scaling, and translation matrices
-  const auto rotationMatrix = QuaternionToMat4f(transform.GetRotation());
-  const auto scalingMatrix =
-      filament::math::mat4f::scaling(transform.GetScale());
-  const auto translationMatrix =
-      filament::math::mat4f::translation(transform.GetPosition());
 
-  // Combine the transformations: translate * rotate * scale
-  const auto combinedTransform =
-      translationMatrix * rotationMatrix * scalingMatrix;
+  // TODO: this should be initialized inside of EntityObject when loading model
+  Entity entityToWorkWith = assetInstance->getRoot();
 
-  // Set the combined transform back to the entity
-  transformManager.setTransform(ei, combinedTransform);
+  // Set transform on the entity
+  vApplyTransform(std::make_shared<Entity>(entityToWorkWith), transform);
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -141,6 +141,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       return;
     }
 
+    oOurModel->setAsset(asset);
     resourceLoader_->asyncBeginLoad(asset);
 
     if (oOurModel->bShouldKeepAssetDataInMemory()) {
@@ -164,7 +165,15 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       rcm.setScreenSpaceContactShadows(ri, false);
     }
 
-    oOurModel->setAsset(asset);
+
+    // get primary instance
+    assetInstance = asset->getInstance();
+    if(assetInstance == nullptr) {
+      throw std::runtime_error(
+          "[ModelSystem::loadModelGlb] Failed to fetch primary asset instance.");
+    }
+
+    oOurModel->setAssetInstance(assetInstance);
   }
 
   EntityTransforms::vApplyTransform(oOurModel, *oOurModel->GetBaseTransform());
