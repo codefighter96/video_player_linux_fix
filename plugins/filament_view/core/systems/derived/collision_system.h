@@ -56,12 +56,6 @@ class CollisionSystem : public ECSystem {
   void vInitSystem() override;
   void vShutdownSystem() override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(CollisionSystem).hash_code();
-  }
-
   void vAddCollidable(EntityObject* collidable);
   void vRemoveCollidable(EntityObject* collidable);
 

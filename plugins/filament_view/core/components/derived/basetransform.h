@@ -210,10 +210,6 @@ class BaseTransform : public Component {
      */
     void DebugPrint(const std::string& tabPrefix) const override;
     
-    static size_t StaticGetTypeID() { return typeid(BaseTransform).hash_code(); }
-
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
     [[nodiscard]] Component* Clone() const override {
       return new BaseTransform(*this);
     }

@@ -40,12 +40,6 @@ class AnimationSystem : public ECSystem {
   AnimationSystem(const AnimationSystem&) = delete;
   AnimationSystem& operator=(const AnimationSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(AnimationSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

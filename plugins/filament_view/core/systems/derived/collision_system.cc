@@ -54,7 +54,7 @@ bool CollisionSystem::bHasEntityObjectRepresentation(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vAddCollidable(EntityObject* collidable) {
-  if (!collidable->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
+  if (!collidable->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())) {
     spdlog::error(
         "You tried to add an entityObject that didnt have a collidable on it, "
         "bailing out.");
@@ -62,7 +62,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   }
 
   const auto originalCollidable = dynamic_cast<Collidable*>(
-      collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
+      collidable->GetComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())
           .get());
 
   if (originalCollidable != nullptr &&
@@ -89,18 +89,17 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     newShape->type_ = ShapeType::Cube;
 
     ourModelObject->vShallowCopyComponentToOther(
-        BaseTransform::StaticGetTypeID(), *newShape);
+        Component::StaticGetTypeID<BaseTransform>(), *newShape);
     ourModelObject->vShallowCopyComponentToOther(
-        CommonRenderable::StaticGetTypeID(), *newShape);
+        Component::StaticGetTypeID<CommonRenderable>(), *newShape);
 
     const std::shared_ptr<Component> componentBT =
-        newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
+        newShape->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>());
     const std::shared_ptr<BaseTransform> baseTransformPtr =
         std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
     const std::shared_ptr<Component> componentCR =
-        newShape->GetComponentByStaticTypeID(
-            CommonRenderable::StaticGetTypeID());
+        newShape->GetComponentByStaticTypeID(Component::StaticGetTypeID<CommonRenderable>());
     const std::shared_ptr<CommonRenderable> commonRenderablePtr =
         std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
@@ -152,7 +151,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "vAddCollidable");
+          "vAddCollidable");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
@@ -219,7 +218,7 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   for (const auto& entity : collidables_) {
     // Make sure collidable is still here....
     auto collidable = std::dynamic_pointer_cast<Collidable>(
-        entity->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
+        entity->GetComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()));
     if (!collidable) {
       continue;  // No collidable component, skip this entity
     }
@@ -332,7 +331,7 @@ void CollisionSystem::vInitSystem() {
           if (entity->GetGuid() == guid) {
             const auto collidable = std::dynamic_pointer_cast<Collidable>(
                 entity->GetComponentByStaticTypeID(
-                    Collidable::StaticGetTypeID()));
+                    Component::StaticGetTypeID<Collidable>()));
 
             collidable->SetEnabled(value);
 

@@ -63,7 +63,7 @@ void Animation::vUpdate(const float fElapsedTime) {
     if (m_bNotifyOfAnimationEvents) {
       const auto animationSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+              "Animation::vUpdate");
       animationSystem->vNotifyOfAnimationEvent(
           GetOwner()->GetGuid(), eAnimationStarted,
           std::to_string(m_nCurrentPlayingIndex));
@@ -87,7 +87,7 @@ void Animation::vUpdate(const float fElapsedTime) {
       // send message here to dart
       const auto animationSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+              "Animation::vUpdate");
 
       animationSystem->vNotifyOfAnimationEvent(
           GetOwner()->GetGuid(), eAnimationEnded,
@@ -104,7 +104,7 @@ void Animation::vUpdate(const float fElapsedTime) {
         // send message here to dart
         const auto animationSystem =
             ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-                AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+                "Animation::vUpdate");
 
         animationSystem->vNotifyOfAnimationEvent(
             GetOwner()->GetGuid(), eAnimationStarted,

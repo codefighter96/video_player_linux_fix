@@ -111,7 +111,7 @@ BaseShape::~BaseShape() {
 void BaseShape::vDestroyBuffers() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
+          "BaseShape::vDestroyBuffers");
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
   if (m_poMaterialInstance.getStatus() == Status::Success &&
@@ -143,17 +143,17 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   other.m_bHasTexturedMaterial = m_bHasTexturedMaterial;
 
   // and now components.
-  this->vShallowCopyComponentToOther(BaseTransform::StaticGetTypeID(), other);
-  this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
+  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<BaseTransform>(), other);
+  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(),
                                      other);
 
   const std::shared_ptr<Component> componentBT =
-      GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
+      GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>());
   const std::shared_ptr<BaseTransform> baseTransformPtr =
       std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
   const std::shared_ptr<Component> componentCR =
-      GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
+      GetComponentByStaticTypeID(Component::StaticGetTypeID<CommonRenderable>());
   const std::shared_ptr<CommonRenderable> commonRenderablePtr =
       std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
@@ -165,7 +165,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
   const auto materialSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
-          MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+          "BaseShape::vBuildRenderable");
 
   if (materialSystem == nullptr) {
     spdlog::error("Failed to get material system.");
@@ -174,7 +174,7 @@ void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
     // the material param list
 
     const auto materialDefinitions =
-        GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
+        GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>());
     if (materialDefinitions != nullptr) {
       m_poMaterialInstance = materialSystem->getMaterialInstance(
           dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
@@ -219,7 +219,6 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
   // Get parent entity id
   auto entityLocator = ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-        EntityObjectLocatorSystem::StaticGetTypeID(),
         "BaseShape::vBuildRenderable");
 
   const auto parentId = m_poBaseTransform.lock()->GetParentId();
@@ -259,7 +258,6 @@ void BaseShape::vRemoveEntityFromScene() const {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
@@ -274,7 +272,6 @@ void BaseShape::vAddEntityToScene() const {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "BaseShape::vRemoveEntityFromScene");
   filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
@@ -305,8 +302,8 @@ void BaseShape::vChangeMaterialDefinitions(
     const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID())) {
-    vRemoveComponent(MaterialDefinitions::StaticGetTypeID());
+  if (HasComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>())) {
+    vRemoveComponent(Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
   // If you want to inspect the params coming in.
@@ -333,7 +330,6 @@ void BaseShape::vChangeMaterialDefinitions(
   // now, reload / rebuild the material?
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call
@@ -352,7 +348,7 @@ void BaseShape::vChangeMaterialInstanceProperty(
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID()).get());
+      GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>()).get());
   if (matDefs == nullptr) {
     return;
   }

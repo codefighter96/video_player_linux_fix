@@ -22,10 +22,10 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include <cxxabi.h>
 
 #include <core/systems/messages/ecs_message.h>
 #include <core/systems/messages/ecs_message_types.h>
+#include <core/utils/identifiable_type.h>
 
 namespace flutter {
 class PluginRegistrar;
@@ -36,7 +36,7 @@ namespace plugin_filament_view {
 
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
-class ECSystem {
+class ECSystem : public IdentifiableType {
  public:
   virtual ~ECSystem() = default;
 
@@ -61,25 +61,6 @@ class ECSystem {
   virtual void vUpdate(float /*deltaTime*/) = 0;
 
   virtual void vShutdownSystem() = 0;
-
-  [[nodiscard]] virtual const char* GetName() const {
-    const char* name = typeid(*this).name();
-
-    // Demangle the name if possible
-    int status = -4;
-    char* demangled = abi::__cxa_demangle(name, nullptr, nullptr, &status);
-    if (status == 0) {
-      name = demangled;
-    }
-
-    return name;
-  }
-
-  [[nodiscard]] virtual size_t GetTypeID() const = 0;
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ECSystem).hash_code();
-  }
 
   virtual void DebugPrint() = 0;
 

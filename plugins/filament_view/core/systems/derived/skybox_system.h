@@ -67,12 +67,6 @@ class SkyboxSystem : public ECSystem {
   SkyboxSystem(const SkyboxSystem&) = delete;
   SkyboxSystem& operator=(const SkyboxSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(SkyboxSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

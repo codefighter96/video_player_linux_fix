@@ -40,7 +40,7 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(
   if (!buffer.empty()) {
     const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "loadMaterialFromAsset");
+            "loadMaterialFromAsset");
     const auto engine = filamentSystem->getFilamentEngine();
 
     const auto material = filament::Material::Builder()
@@ -68,7 +68,7 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadMaterialFromUrl");
+          "loadMaterialFromUrl");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (!buffer.empty()) {

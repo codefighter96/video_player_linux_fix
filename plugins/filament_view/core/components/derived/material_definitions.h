@@ -72,13 +72,7 @@ class MaterialDefinitions : public Component {
   [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
-
-  static size_t StaticGetTypeID() {
-    return typeid(MaterialDefinitions).hash_code();
-  }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
+  
   [[nodiscard]] Component* Clone() const override {
     auto* cloned =
         new MaterialDefinitions(*this);  // Copy constructor is called here

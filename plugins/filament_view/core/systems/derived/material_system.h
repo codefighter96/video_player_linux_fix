@@ -49,12 +49,6 @@ class MaterialSystem : public ECSystem {
   void vShutdownSystem() override;
   void DebugPrint() override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(MaterialSystem).hash_code();
-  }
-
  private:
   std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
   std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;

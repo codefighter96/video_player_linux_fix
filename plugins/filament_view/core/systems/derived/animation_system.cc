@@ -39,7 +39,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vEnqueueAnimation(animationIndex);
@@ -59,7 +59,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vClearQueue();
@@ -81,7 +81,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vPlayAnimation(animationIndex);
@@ -103,7 +103,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vSetPlaybackSpeedScalar(newSpeed);
@@ -123,7 +123,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vPause();
@@ -143,7 +143,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vResume();
@@ -165,7 +165,7 @@ void AnimationSystem::vInitSystem() {
         if (const auto it = _entities.find(guid); it != _entities.end()) {
           const auto animationComponent = dynamic_cast<Animation*>(
               it->second
-                  ->GetComponentByStaticTypeID(Animation::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())
                   .get());
           if (animationComponent) {
             animationComponent->vSetLooping(shouldLoop);
@@ -179,7 +179,7 @@ void AnimationSystem::vInitSystem() {
 void AnimationSystem::vUpdate(const float fElapsedTime) {
   for (auto& [fst, snd] : _entities) {
     const auto animator = dynamic_cast<Animation*>(
-        snd->GetComponentByStaticTypeID(Animation::StaticGetTypeID()).get());
+        snd->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>()).get());
     animator->vUpdate(fElapsedTime);
   }
 }

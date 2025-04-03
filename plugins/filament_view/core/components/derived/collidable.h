@@ -82,11 +82,7 @@ class Collidable : public Component {
   [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
   bool bDoesIntersect(const Ray& ray,
                       ::filament::math::float3& hitPosition) const;
-
-  static size_t StaticGetTypeID() { return typeid(Collidable).hash_code(); }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
+  
   [[nodiscard]] Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
   }

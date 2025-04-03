@@ -42,12 +42,6 @@ class LightSystem : public ECSystem {
   LightSystem(const LightSystem&) = delete;
   LightSystem& operator=(const LightSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(LightSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

@@ -88,7 +88,7 @@ void EntityObject::vDebugPrintComponents() const {
 
   for (const auto& component : components_) {
     spdlog::debug("\tComponent Type \'{}\' Name \'{}\'",
-                  component->GetRTTITypeName(), component->GetName());
+                  component->GetTypeName(), component->GetName());
     component->DebugPrint("\t\t");
   }
 }
@@ -101,7 +101,7 @@ void EntityObject::vUnregisterEntity() {
 
   const auto objectLocatorSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          EntityObjectLocatorSystem::StaticGetTypeID(), "vRegisterEntity");
+          "vRegisterEntity");
 
   objectLocatorSystem->vUnregisterEntityObject(shared_from_this());
 
@@ -116,7 +116,7 @@ void EntityObject::vRegisterEntity() {
 
   const auto objectLocatorSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          EntityObjectLocatorSystem::StaticGetTypeID(), "vRegisterEntity");
+          "vRegisterEntity");
 
   objectLocatorSystem->vRegisterEntityObject(shared_from_this());
 
@@ -141,18 +141,18 @@ void EntityObject::vAddComponent(std::shared_ptr<Component> component,
   component->entityOwner_ = this;
 
   if (bAutoAddToSystems) {
-    if (component->GetTypeID() == Light::StaticGetTypeID()) {
+    if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
       const auto lightSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
-              LightSystem::StaticGetTypeID(), __FUNCTION__);
+              __FUNCTION__);
 
       lightSystem->vRegisterEntityObject(shared_from_this());
     }
 
-    if (component->GetTypeID() == Animation::StaticGetTypeID()) {
+    if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
       const auto animationSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "loadModelGltf");
+              "loadModelGltf");
 
       animationSystem->vRegisterEntityObject(shared_from_this());
     }

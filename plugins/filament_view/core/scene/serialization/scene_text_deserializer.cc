@@ -221,10 +221,10 @@ void SceneTextDeserializer::setUpShapes() {
 
   const auto shapeSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-          ShapeSystem::StaticGetTypeID(), "setUpShapes");
+          "setUpShapes");
   const auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(), "setUpShapes");
+          "setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
     spdlog::error(
@@ -233,7 +233,7 @@ void SceneTextDeserializer::setUpShapes() {
   }
 
   for (const auto& shape : shapes_) {
-    if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
+    if (shape->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())) {
       if (collisionSystem != nullptr) {
         collisionSystem->vAddCollidable(shape.get());
       }
@@ -253,7 +253,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
-            ModelSystem::StaticGetTypeID(), "loadModel");
+            "loadModel");
 
     if (modelSystem == nullptr) {
       spdlog::error("Unable to find the model system.");
@@ -291,7 +291,7 @@ void SceneTextDeserializer::setUpSkybox() const {
 
   auto skyboxSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<SkyboxSystem>(
-          SkyboxSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   if (!skybox_) {
     SkyboxSystem::setDefaultSkybox();
@@ -332,7 +332,7 @@ void SceneTextDeserializer::setUpSkybox() const {
 void SceneTextDeserializer::setUpLights() {
   const auto lightSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
-          LightSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
@@ -362,7 +362,7 @@ void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
   auto indirectlightSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
-          IndirectLightSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.

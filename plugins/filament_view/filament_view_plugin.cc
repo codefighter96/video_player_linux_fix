@@ -122,16 +122,13 @@ void DeserializeDataAndSetupMessageChannels(
   }
 
   const auto animationSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-          AnimationSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(__FUNCTION__);
 
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(__FUNCTION__);
 
   const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(__FUNCTION__);
 
   collisionSystem->vSetupMessageChannels(registrar,
                                          "plugin.filament_view.collision_info");
@@ -390,8 +387,7 @@ FilamentViewPlugin::ToggleDebugCollidableViewsInScene(const bool value) {
 std::optional<FlutterError> FilamentViewPlugin::ChangeCameraMode(
     const std::string& mode) {
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vChangePrimaryCameraMode(0, mode);
   return std::nullopt;
@@ -442,7 +438,7 @@ std::optional<FlutterError>
 FilamentViewPlugin::ResetInertiaCameraToDefaultValues() {
   const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   viewTargetSystem->vResetInertiaCameraToDefaultValues(0);
   return std::nullopt;
@@ -478,7 +474,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
     const double value) {
   const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   viewTargetSystem->vSetCurrentCameraOrbitAngle(0, static_cast<float>(value));
   return std::nullopt;
@@ -784,7 +780,6 @@ void FilamentViewPlugin::on_touch(const int32_t action,
   if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-            ViewTargetSystem::StaticGetTypeID(),
             "FilamentViewPlugin::on_touch");
 
     // has to be changed to 'which' on touch was hit

@@ -22,6 +22,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 namespace plugin_filament_view {
 
@@ -64,14 +65,41 @@ class ECSystemManager {
     m_vecSystems.clear();
   }
 
-  std::shared_ptr<ECSystem> poGetSystem(size_t systemTypeID,
-                                        const std::string& where);
+  template <typename Target>
+  std::shared_ptr<ECSystem> poGetSystem(const std::string& where) {
+    if (const auto callingThread = pthread_self();
+        callingThread != filament_api_thread_id_) {
+      // Note we should have a 'log once' base functionality in common
+      // creating this inline for now.
+      if (const auto foundIter = m_mapOffThreadCallers.find(where);
+          foundIter == m_mapOffThreadCallers.end()) {
+        spdlog::info(
+            "From {} "
+            "You're calling to get a system from an off thread, undefined "
+            "experience!"
+            " Use a message to do your work or grab the ecsystemmanager strand "
+            "and "
+            "do your work.",
+            where);
+  
+        m_mapOffThreadCallers.insert(std::pair(where, 0));
+      }
+    }
+  
+    std::unique_lock lock(vecSystemsMutex);
+    const size_t systemTypeID = ECSystem::StaticGetTypeID<Target>();
+    for (const auto& system : m_vecSystems) {
+      if (system->GetTypeID() == systemTypeID) {
+        return system;
+      }
+    }
+    return nullptr;  // If no matching system found
+  }
 
   template <typename Target>
-  std::shared_ptr<Target> poGetSystemAs(size_t systemTypeID,
-                                        const std::string& where) {
-    // Retrieve the system from the manager using its type ID
-    auto system = poGetSystem(systemTypeID, where);
+  std::shared_ptr<Target> poGetSystemAs(const std::string& where) {
+    // Retrieve the system from the manager
+    auto system = poGetSystem<Target>(where);
     // Perform dynamic pointer cast to the desired type
     return std::dynamic_pointer_cast<Target>(system);
   }

@@ -70,7 +70,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
 
     const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "setIndirectLight");
+            "setIndirectLight");
     const auto engine = filamentSystem->getFilamentEngine();
 
     builder.build(*engine);
@@ -121,7 +121,7 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     const double intensity) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadIndirectLightHdrFromFile");
+          "loadIndirectLightHdrFromFile");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Texture* texture;
@@ -228,7 +228,7 @@ void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
 void IndirectLightSystem::vShutdownSystem() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "setIndirectLight");
+          "setIndirectLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
   const auto prevIndirectLight =

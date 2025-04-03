@@ -163,7 +163,7 @@ void Model::DebugPrint() const {
 void Model::vLoadMaterialDefinitionsToMaterialInstance() {
   const auto materialSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
-          MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+          "BaseShape::vBuildRenderable");
 
   if (materialSystem == nullptr) {
     spdlog::error("Failed to get material system.");
@@ -171,7 +171,7 @@ void Model::vLoadMaterialDefinitionsToMaterialInstance() {
     // this will also set all the default values of the material instance from
     // the material param list
     const auto materialDefinitions =
-        GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
+        GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>());
     if (materialDefinitions != nullptr) {
       m_poMaterialInstance = materialSystem->getMaterialInstance(
           dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
@@ -188,8 +188,8 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID())) {
-    vRemoveComponent(MaterialDefinitions::StaticGetTypeID());
+  if (HasComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>())) {
+    vRemoveComponent(Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
   // If you want to inspect the params coming in.
@@ -216,7 +216,6 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
   // now, reload / rebuild the material?
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call
@@ -275,7 +274,7 @@ void Model::vChangeMaterialInstanceProperty(
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID()).get());
+      GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>()).get());
   if (matDefs == nullptr) {
     return;
   }

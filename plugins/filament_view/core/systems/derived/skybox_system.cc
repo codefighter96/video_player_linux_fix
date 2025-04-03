@@ -45,7 +45,7 @@ std::future<void> SkyboxSystem::Initialize() {
   post(strand_, [&, promise] {
     const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "SKyboxManager::Init::Lambda");
+            "SKyboxManager::Init::Lambda");
     const auto engine = filamentSystem->getFilamentEngine();
 
     const auto whiteSkybox = filament::Skybox::Builder()
@@ -70,7 +70,7 @@ void SkyboxSystem::setDefaultSkybox() {
 void SkyboxSystem::setTransparentSkybox() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "setTransparentSkybox");
+          "setTransparentSkybox");
 
   filamentSystem->getFilamentScene()->setSkybox(nullptr);
 }
@@ -247,7 +247,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
   post(strand_, [&, promise, color] {
     const auto filamentSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-            FilamentSystem::StaticGetTypeID(), "setSkyboxFromColor");
+            "setSkyboxFromColor");
     const auto engine = filamentSystem->getFilamentEngine();
 
     const auto colorArray = colorOf(color);
@@ -272,7 +272,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrFile");
+          "loadSkyboxFromHdrFile");
   const auto engine = filamentSystem->getFilamentEngine();
 
   try {
@@ -330,7 +330,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
+          "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
   try {
@@ -390,7 +390,7 @@ void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 void SkyboxSystem::vShutdownSystem() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadSkyboxFromHdrBuffer");
+          "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (const auto prevSkybox = filamentSystem->getFilamentScene()->getSkybox()) {

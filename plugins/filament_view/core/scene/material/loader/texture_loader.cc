@@ -52,7 +52,7 @@ filament::Texture* TextureLoader::createTextureFromImage(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
+          "createTextureFromImage");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Texture* texture =

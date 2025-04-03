@@ -184,7 +184,6 @@ void MaterialSystem::vInitSystem() {
         const auto objectLocatorSystem =
             ECSystemManager::GetInstance()
                 ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    EntityObjectLocatorSystem::StaticGetTypeID(),
                     "ChangeMaterialParameter");
 
         if (const auto entityObject =
@@ -217,7 +216,6 @@ void MaterialSystem::vInitSystem() {
         const auto objectLocatorSystem =
             ECSystemManager::GetInstance()
                 ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    EntityObjectLocatorSystem::StaticGetTypeID(),
                     "ChangeMaterialDefinitions");
 
         if (const auto entityObject =
@@ -240,7 +238,7 @@ void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 void MaterialSystem::vShutdownSystem() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+          "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

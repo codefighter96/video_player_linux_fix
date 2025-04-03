@@ -32,11 +32,7 @@ class Animation final : public Component {
   explicit Animation(const flutter::EncodableMap& params);
 
   void DebugPrint(const std::string& tabPrefix) const override;
-
-  static size_t StaticGetTypeID() { return typeid(Animation).hash_code(); }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
+  
   [[nodiscard]] Component* Clone() const override {
     return new Animation(*this);
   }

@@ -109,7 +109,7 @@ void DebugLinesSystem::DebugPrint() {
 void DebugLinesSystem::vCleanup() {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vCleanup");
+          "DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
@@ -127,7 +127,7 @@ void DebugLinesSystem::vCleanup() {
 void DebugLinesSystem::vUpdate(const float fElapsedTime) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vUpdate");
+          "DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
@@ -174,7 +174,7 @@ void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vAddLine");
+          "DebugLinesSystem::vAddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();

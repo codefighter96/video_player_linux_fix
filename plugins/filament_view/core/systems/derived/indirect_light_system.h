@@ -63,12 +63,6 @@ class IndirectLightSystem : public ECSystem {
 
   ~IndirectLightSystem() override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(IndirectLightSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

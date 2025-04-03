@@ -15,7 +15,7 @@
  */
 #include "ecsystems_manager.h"
 
-#include <spdlog/spdlog.h>
+// #include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
 #include <thread>
@@ -153,8 +153,8 @@ void ECSystemManager::vInitSystems() {
   // asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
   for (const auto& system : m_vecSystems) {
     try {
-      spdlog::debug("Initializing system {} at address {}",
-                    system->GetName(), static_cast<void*>(system.get()));
+      spdlog::debug("Initializing system {} (ID {}) at address {}",
+                    system->GetTypeName(), system->GetTypeID(), static_cast<void*>(system.get()));
       system->vInitSystem();
     } catch (const std::exception& e) {
       spdlog::error("Exception caught in vInitSystems: {}", e.what());
@@ -165,38 +165,6 @@ void ECSystemManager::vInitSystems() {
   m_eCurrentState = Initialized;
 
   //});
-}
-
-////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
-    const size_t systemTypeID,
-    const std::string& where) {
-  if (const auto callingThread = pthread_self();
-      callingThread != filament_api_thread_id_) {
-    // Note we should have a 'log once' base functionality in common
-    // creating this inline for now.
-    if (const auto foundIter = m_mapOffThreadCallers.find(where);
-        foundIter == m_mapOffThreadCallers.end()) {
-      spdlog::info(
-          "From {} "
-          "You're calling to get a system from an off thread, undefined "
-          "experience!"
-          " Use a message to do your work or grab the ecsystemmanager strand "
-          "and "
-          "do your work.",
-          where);
-
-      m_mapOffThreadCallers.insert(std::pair(where, 0));
-    }
-  }
-
-  std::unique_lock lock(vecSystemsMutex);
-  for (const auto& system : m_vecSystems) {
-    if (system->GetTypeID() == systemTypeID) {
-      return system;
-    }
-  }
-  return nullptr;  // If no matching system found
 }
 
 ////////////////////////////////////////////////////////////////////////////

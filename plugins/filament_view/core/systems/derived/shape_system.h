@@ -52,12 +52,6 @@ class ShapeSystem : public ECSystem {
   static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
       const flutter::EncodableMap& mapData);
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ShapeSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

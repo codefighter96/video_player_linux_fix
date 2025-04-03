@@ -57,7 +57,7 @@ void ModelSystem::destroyAsset(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
                                                      asset->getEntityCount());
@@ -92,7 +92,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadModelGlb");
+          "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
   auto& rcm = engine->getRenderableManager();
 
@@ -223,7 +223,7 @@ void ModelSystem::loadModelGltf(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadModelGltf");
+          "loadModelGltf");
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
@@ -268,9 +268,9 @@ void ModelSystem::vSetupAssetThroughoutECS(
   }
 
   if (animatorInstance != nullptr &&
-      sharedPtr->HasComponentByStaticTypeID(Animation::StaticGetTypeID())) {
+      sharedPtr->HasComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())) {
     const auto animatorComponent =
-        sharedPtr->GetComponentByStaticTypeID(Animation::StaticGetTypeID());
+        sharedPtr->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>());
     const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
     animator->vSetAnimator(*animatorInstance);
 
@@ -293,7 +293,7 @@ void ModelSystem::vSetupAssetThroughoutECS(
 void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
@@ -397,7 +397,7 @@ void ModelSystem::updateAsyncAssetLoading() {
 
     auto collisionSystem =
         ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-            CollisionSystem::StaticGetTypeID(), "updateAsyncAssetLoading");
+            "updateAsyncAssetLoading");
     if (collisionSystem == nullptr) {
       spdlog::warn("Failed to get collision system when loading model");
       continue;
@@ -407,7 +407,7 @@ void ModelSystem::updateAsyncAssetLoading() {
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
-    if (asset->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
+    if (asset->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
         !collisionSystem->bHasEntityObjectRepresentation(guid)) {
       // I don't think this needs to become a message; as an async load
       // gives us un-deterministic throughput; it can't be replicated with a
@@ -564,7 +564,7 @@ void ModelSystem::vInitSystem() {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");
+          "ModelSystem::vInitSystem");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (engine == nullptr) {
@@ -610,7 +610,7 @@ void ModelSystem::vInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
             model
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -644,7 +644,7 @@ void ModelSystem::vInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
               model
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -677,7 +677,7 @@ void ModelSystem::vInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
               model
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -705,7 +705,6 @@ void ModelSystem::vInitSystem() {
             ourEntity != m_mapszoAssets.end()) {
           const auto fSystem =
               ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-                  FilamentSystem::StaticGetTypeID(),
                   "vRegisterMessageHandler::ToggleVisualForEntity");
 
           if (const auto modelAsset = ourEntity->second->getAsset()) {
@@ -742,7 +741,6 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
     const std::shared_ptr<Model>& model) {
   const auto collisionSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(),
           "vRemoveAndReaddModelToCollisionSystem");
   if (collisionSystem == nullptr) {
     spdlog::warn(
@@ -754,7 +752,7 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
   // if we are marked for collidable, have one in the scene, remove and readd
   // if this is a performance issue, we can do the transform move in the future
   // instead.
-  if (model->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
+  if (model->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
       collisionSystem->bHasEntityObjectRepresentation(guid)) {
     collisionSystem->vRemoveCollidable(model.get());
     collisionSystem->vAddCollidable(model.get());

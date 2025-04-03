@@ -65,7 +65,7 @@ void LightSystem::vBuildLightAndAddToScene(Light& light) {
 void LightSystem::vBuildLight(Light& light) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "vBuildLight");
+          "vBuildLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (light.m_poFilamentEntityLight == nullptr) {
@@ -116,7 +116,6 @@ void LightSystem::vBuildLight(Light& light) {
 void LightSystem::vRemoveLightFromScene(const Light& light) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "lightManager::vRemoveLightFromScene");
 
   const auto scene = filamentSystem->getFilamentScene();
@@ -128,7 +127,7 @@ void LightSystem::vRemoveLightFromScene(const Light& light) {
 void LightSystem::vAddLightToScene(const Light& light) {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "lightManager::vAddLightToScene");
+          "lightManager::vAddLightToScene");
 
   const auto scene = filamentSystem->getFilamentScene();
 
@@ -156,7 +155,7 @@ void LightSystem::vInitSystem() {
             ourEntity != m_mapGuidToEntity.end()) {
           const auto theLight = dynamic_cast<Light*>(
               ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
                   .get());
           theLight->SetIntensity(intensityValue);
           theLight->SetColor(colorValue);
@@ -184,7 +183,7 @@ void LightSystem::vInitSystem() {
             ourEntity != m_mapGuidToEntity.end()) {
           auto theLight = dynamic_cast<Light*>(
               ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
+                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
                   .get());
           theLight->SetPosition(position);
           theLight->SetDirection(rotation);
@@ -204,7 +203,7 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
     const auto component = dynamic_cast<Light*>(
-        m_poDefaultLight->GetComponentByStaticTypeID(Light::StaticGetTypeID())
+        m_poDefaultLight->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
             .get());
     vRemoveLightFromScene(*component);
 

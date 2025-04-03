@@ -63,7 +63,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     return guid_ == other.guid_;
   }
 
-  // Pass in the <DerivedClass>::StaticGetTypeID()
+  // Pass in the Component::StaticGetTypeID<DerivedClass>()
   // Returns true if valid, false if not found.
   [[nodiscard]] bool HasComponentByStaticTypeID(size_t staticTypeID) const {
     return std::any_of(components_.begin(), components_.end(),
@@ -127,7 +127,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
                       components_.end());
   }
 
-  // Pass in the <DerivedClass>::StaticGetTypeID()
+  // Pass in the Component::StaticGetTypeID<DerivedClass>()
   // Returns component if valid, nullptr if not found.
   [[nodiscard]] std::shared_ptr<Component> GetComponentByStaticTypeID(
       size_t staticTypeID) {

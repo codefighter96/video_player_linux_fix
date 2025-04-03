@@ -72,12 +72,6 @@ class ModelSystem : public ECSystem {
   void vShutdownSystem() override;
   void DebugPrint() override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ModelSystem).hash_code();
-  }
-
  private:
   ::filament::gltfio::AssetLoader* assetLoader_{};
   ::filament::gltfio::MaterialProvider* materialProvider_{};

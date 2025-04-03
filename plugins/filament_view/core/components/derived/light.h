@@ -98,11 +98,7 @@ class Light : public Component {
   void SetSunHaloFalloff(float falloff) { m_fSunHaloFalloff = falloff; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
-
-  static size_t StaticGetTypeID() { return typeid(Light).hash_code(); }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
+  
   [[nodiscard]] Component* Clone() const override { return new Light(*this); }
 
   static ::filament::LightManager::Type textToLightType(

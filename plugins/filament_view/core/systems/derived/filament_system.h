@@ -30,12 +30,6 @@ class FilamentSystem : public ECSystem {
   FilamentSystem(const FilamentSystem&) = delete;
   FilamentSystem& operator=(const FilamentSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(FilamentSystem).hash_code();
-  }
-
   void vInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

@@ -72,12 +72,6 @@ class DebugLinesSystem final : public ECSystem {
   // called from vShutdownSystem during the systems shutdown routine.
   void vCleanup();
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(DebugLinesSystem).hash_code();
-  }
-
  private:
   bool m_bCurrentlyDrawingDebugLines = false;
 

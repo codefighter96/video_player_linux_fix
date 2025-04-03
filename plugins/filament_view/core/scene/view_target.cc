@@ -72,7 +72,7 @@ ViewTarget::~ViewTarget() {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "~ViewTarget");
+          "~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroy(fview_);
@@ -154,7 +154,7 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width,
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
+          "ViewTarget::Initialize");
 
   const auto engine = filamentSystem->getFilamentEngine();
   fswapChain_ = engine->createSwapChain(&native_window_);
@@ -171,7 +171,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   fview_->setScene(filamentSystem->getFilamentScene());
 
@@ -321,7 +321,7 @@ void ViewTarget::vChangeQualitySettings(
 
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "Change Quality Settings");
+          "Change Quality Settings");
 
   // Now apply the settings to the Filament engine and view
   applySettings(filamentSystem->getFilamentEngine(), settings, fview_);
@@ -346,7 +346,7 @@ void ViewTarget::SendFrameViewCallback(
 
   const auto viewTargetSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   viewTargetSystem->vSendDataToEventChannel(encodableMap);
 }
@@ -389,7 +389,7 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   // Render the scene, unless the renderer wants to skip the frame.
   if (const auto filamentSystem =
           ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-              FilamentSystem::StaticGetTypeID(), "DrawFrame");
+              "DrawFrame");
       filamentSystem->getFilamentRenderer()->beginFrame(fswapChain_, time)) {
     // Note you might want render time and gameplay time to be different
     // but for smooth animation you don't. (physics would be simulated w/o
@@ -487,7 +487,7 @@ void ViewTarget::vOnTouch(const int32_t action,
                           const double* point_data) const {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+          __FUNCTION__);
 
   // if action is 0, then on 'first' touch, cast ray from camera;
   const auto viewport = fview_->getViewport();

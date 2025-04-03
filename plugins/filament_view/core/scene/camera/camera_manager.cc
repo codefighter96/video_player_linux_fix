@@ -47,7 +47,7 @@ void CameraManager::setDefaultFilamentCamera() {
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+          "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto fview = m_poOwner->getFilamentView();
@@ -261,7 +261,7 @@ void CameraManager::updateCameraManipulator(const Camera* cameraInfo) {
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+          "CameraManager::setDefaultCamera");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
   manipulatorBuilder.viewport(static_cast<int>(viewport.width),
@@ -452,7 +452,7 @@ void CameraManager::destroyCamera() const {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "destroyCamera");
+          "destroyCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroyCameraComponent(cameraEntity_);
@@ -507,7 +507,6 @@ std::pair<filament::math::float3, filament::math::float3>
 CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
   const auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "CameraManager::aGetRayInformationFromOnTouchPosition");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
@@ -564,7 +563,7 @@ void CameraManager::onAction(int32_t action,
 
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+          "CameraManager::setDefaultCamera");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
   auto touch =
@@ -713,7 +712,6 @@ void CameraManager::updateCameraProjection() {
 float CameraManager::calculateAspectRatio() const {
   auto filamentSystem =
       ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
           "CameraManager::aGetRayInformationFromOnTouchPosition");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
