@@ -343,8 +343,9 @@ void EntityTransforms::vApplyTransform(const Entity& poEntity,
 
     // Set the parent transform
     try {
-      // get parent transform
+      // make sure the parent has a valid transform
       const auto parentTransform = transformManager.getTransform(parentInstance);
+      assert(parentTransform.isValid());
 
       transformManager.setParent(instance, parentInstance);
     } catch (const std::exception& e) {

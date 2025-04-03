@@ -94,7 +94,7 @@ class BaseTransform : public Component {
      *   Local
      */
     // Getters
-    [[nodiscard]] const EntityGUID GetParentId() const {
+    [[nodiscard]] EntityGUID GetParentId() const {
       return _parentId;
     }
 
