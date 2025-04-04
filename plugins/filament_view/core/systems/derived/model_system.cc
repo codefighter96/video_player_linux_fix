@@ -753,7 +753,7 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
   // if this is a performance issue, we can do the transform move in the future
   // instead.
   if (model->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
-      collisionSystem->bHasEntityObjectRepresentation(guid)) {
+      collisionSystem->hasEntity(guid)) {
     collisionSystem->vRemoveCollidable(model.get());
     collisionSystem->vAddCollidable(model.get());
   }

@@ -46,7 +46,7 @@ flutter::EncodableValue HitResult::Encode() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CollisionSystem::bHasEntityObjectRepresentation(
+bool CollisionSystem::hasEntity(
     const EntityGUID guid) const {
   return collidablesDebugDrawingRepresentation_.find(guid) !=
          collidablesDebugDrawingRepresentation_.end();

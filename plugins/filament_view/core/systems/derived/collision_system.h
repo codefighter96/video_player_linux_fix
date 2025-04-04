@@ -73,7 +73,7 @@ class CollisionSystem : public ECSystem {
       CollisionEventType eType) const;
 
   // Checks to see if we already has this guid in our mapping.
-  [[nodiscard]] bool bHasEntityObjectRepresentation(
+  [[nodiscard]] bool hasEntity(
       const EntityGUID guid) const;
 
  private:
