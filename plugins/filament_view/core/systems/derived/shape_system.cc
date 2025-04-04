@@ -131,7 +131,7 @@ void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
   // if this is a performance issue, we can do the transform move in the future
   // instead.
   if (shape->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
-      collisionSystem->bHasEntityObjectRepresentation(guid)) {
+      collisionSystem->hasEntity(guid)) {
     collisionSystem->vRemoveCollidable(shape.get());
     collisionSystem->vAddCollidable(shape.get());
   }
@@ -170,7 +170,7 @@ void ShapeSystem::addShapesToScene(
     // Save Filament entity ID to our entity
     shape->_filamentEntity = oEntity;
 
-    spdlog::debug("Adding entity {} with filament entity {}",
+    spdlog::trace("Adding entity {} with filament entity {}",
                   shape->GetGuid(), oEntity->getId());
 
     // To investigate a better system for implementing layer mask

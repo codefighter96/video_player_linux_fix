@@ -68,7 +68,6 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
 
 
   // Deserialize guid
-  spdlog::debug("Deserializing guid");
   Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid,
                                                  params, kNullGuid);
 

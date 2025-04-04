@@ -227,7 +227,7 @@ void LightSystem::vRegisterEntityObject(
     return;
   }
 
-  spdlog::debug("Adding entity with {}", entity->GetGuid());
+  spdlog::trace("Adding entity with {}", entity->GetGuid());
 
   m_mapGuidToEntity.insert(std::pair(entity->GetGuid(), entity));
 }

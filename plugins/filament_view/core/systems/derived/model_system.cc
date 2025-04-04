@@ -309,10 +309,10 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
     constexpr size_t maxToPopAtOnce = 128;
     auto maxToPop = std::min(count, maxToPopAtOnce);
 
-    SPDLOG_DEBUG(
-        "ModelSystem::populateSceneWithAsyncLoadedAssets async load count "
+    spdlog::debug(
+        "[{}] async load for asset '{}', renderable count "
         "available[{}] - working on [{}]",
-        count, maxToPop);
+        __FUNCTION__, model->szGetAssetPath(), count, maxToPop);
     // Note for high amounts, we should probably do a small amount; break out;
     // and let it come back do more on another frame.
 
