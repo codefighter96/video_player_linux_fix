@@ -20,7 +20,7 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/material_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <filament/RenderableManager.h>
 #include <plugins/common/common.h>
@@ -162,7 +162,7 @@ void Model::DebugPrint() const {
 ////////////////////////////////////////////////////////////////////////////
 void Model::vLoadMaterialDefinitionsToMaterialInstance() {
   const auto materialSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
+      ECSManager::GetInstance()->getSystem<MaterialSystem>(
           "BaseShape::vBuildRenderable");
 
   if (materialSystem == nullptr) {
@@ -215,7 +215,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
 
   // now, reload / rebuild the material?
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call

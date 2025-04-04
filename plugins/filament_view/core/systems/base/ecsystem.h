@@ -34,6 +34,8 @@ class EncodableValue;
 
 namespace plugin_filament_view {
 
+class ECSManager;
+
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
 class ECSystem : public IdentifiableType {
@@ -56,7 +58,12 @@ class ECSystem : public IdentifiableType {
   // Process incoming messages
   virtual void vProcessMessages();
 
-  virtual void vInitSystem() = 0;
+  void vInitSystem(const plugin_filament_view::ECSManager& ecsManager) {
+    ecs = const_cast<ECSManager*>(&ecsManager);
+    vOnInitSystem();
+  }
+
+  virtual void vOnInitSystem() = 0;
 
   virtual void vUpdate(float /*deltaTime*/) = 0;
 
@@ -70,10 +77,14 @@ class ECSystem : public IdentifiableType {
   void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
  protected:
+  ECSManager* ecs = nullptr;
+
   // Handle a specific message type by invoking the registered handlers
   virtual void vHandleMessage(const ECSMessage& msg);
 
  private:
+
+
   std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages
   std::unordered_map<ECSMessageType,
                      std::vector<ECSMessageHandler>,

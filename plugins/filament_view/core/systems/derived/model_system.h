@@ -67,7 +67,7 @@ class ModelSystem : public ECSystem {
       const std::shared_ptr<Model>& oOurModel,
       const std::string& url);
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;
@@ -110,7 +110,7 @@ class ModelSystem : public ECSystem {
 
   void populateSceneWithAsyncLoadedAssets(const Model* model);
 
-  static void vRemoveAndReaddModelToCollisionSystem(
+  void vRemoveAndReaddModelToCollisionSystem(
       const EntityGUID guid,
       const std::shared_ptr<Model>& model);
 

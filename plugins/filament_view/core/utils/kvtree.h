@@ -45,7 +45,7 @@ class KVTreeNode {
 
   // Remove a child from this node.
   // It does not delete
-  void removeChild(Key& key);
+  void removeChild(const Key& key);
 
   // Grant KVTree access to all members of KVTreeNode.
   friend class KVTree<Key, Value>;
@@ -85,7 +85,7 @@ class KVTree {
 
   // Removes the node identified by the given key, all its children and
   // associated values.
-  void remove(Key& key);
+  void remove(const Key& key);
 
   // Clears the tree of all nodes and values.
   void clear();

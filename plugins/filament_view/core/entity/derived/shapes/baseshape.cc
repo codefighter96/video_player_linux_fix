@@ -19,8 +19,7 @@
 #include <core/components/derived/collidable.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <core/utils/entitytransforms.h>
 #include <filament/RenderableManager.h>
@@ -110,7 +109,7 @@ BaseShape::~BaseShape() {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vDestroyBuffers");
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
@@ -164,7 +163,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
   const auto materialSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
+      ECSManager::GetInstance()->getSystem<MaterialSystem>(
           "BaseShape::vBuildRenderable");
 
   if (materialSystem == nullptr) {
@@ -218,14 +217,13 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   }
 
   // Get parent entity id
-  auto entityLocator = ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-        "BaseShape::vBuildRenderable");
+  auto ecs = ECSManager::GetInstance();
 
   const auto parentId = m_poBaseTransform.lock()->GetParentId();
 
   if(parentId != kNullGuid) {
     // Get the parent entity object
-    auto parentEntity = entityLocator->poGetEntityObjectById(parentId);
+    auto parentEntity = ecs->getEntity(parentId);
     auto parentFilamentEntity = parentEntity->_filamentEntity;
 
     EntityTransforms::vApplyTransform(
@@ -257,7 +255,7 @@ void BaseShape::vRemoveEntityFromScene() const {
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
@@ -271,7 +269,7 @@ void BaseShape::vAddEntityToScene() const {
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
   filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
@@ -329,7 +327,7 @@ void BaseShape::vChangeMaterialDefinitions(
 
   // now, reload / rebuild the material?
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call

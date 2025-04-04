@@ -30,7 +30,7 @@ class FilamentSystem : public ECSystem {
   FilamentSystem(const FilamentSystem&) = delete;
   FilamentSystem& operator=(const FilamentSystem&) = delete;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

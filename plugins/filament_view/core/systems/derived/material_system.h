@@ -44,7 +44,7 @@ class MaterialSystem : public ECSystem {
   MaterialSystem(const MaterialSystem&) = delete;
   MaterialSystem& operator=(const MaterialSystem&) = delete;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

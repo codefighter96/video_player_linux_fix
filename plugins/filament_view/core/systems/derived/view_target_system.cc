@@ -29,7 +29,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vInitSystem() {
+void ViewTargetSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
         spdlog::debug("ViewTargetCreateRequest");

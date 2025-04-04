@@ -84,7 +84,7 @@ add_library(plugin_filament_view STATIC
         core/entity/derived/nonrenderable_entityobject.cc
         core/entity/derived/renderable_entityobject.cc
         core/systems/base/ecsystem.cc
-        core/systems/ecsystems_manager.cc
+        core/systems/ecs.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc
         core/entity/derived/model/model.cc
@@ -123,7 +123,6 @@ add_library(plugin_filament_view STATIC
         core/utils/uuidGenerator.cc
         core/scene/view_target.cc
         core/systems/derived/view_target_system.cc
-        core/systems/derived/entityobject_locator_system.cc
 )
 
 target_include_directories(plugin_filament_view PUBLIC

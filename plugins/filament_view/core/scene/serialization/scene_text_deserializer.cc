@@ -18,13 +18,12 @@
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 #include <asio/post.hpp>
@@ -36,9 +35,9 @@ namespace plugin_filament_view {
 //////////////////////////////////////////////////////////////////////////////////////////
 SceneTextDeserializer::SceneTextDeserializer(
     const std::vector<uint8_t>& params) {
-  const auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecs = ECSManager::GetInstance();
   const std::string& flutterAssetsPath =
-      ecsManager->getConfigValue<std::string>(kAssetPath);
+      ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
   vDeserializeRootLevel(params, flutterAssetsPath);
@@ -194,7 +193,7 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
   ECSMessage viewTargetCameraSet;
   viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad,
                               camera_);
-  ECSystemManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
+  ECSManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
 
   indirect_light_.reset();
   skybox_.reset();
@@ -220,10 +219,10 @@ void SceneTextDeserializer::setUpShapes() {
   SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
 
   const auto shapeSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
+      ECSManager::GetInstance()->getSystem<ShapeSystem>(
           "setUpShapes");
   const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+      ECSManager::GetInstance()->getSystem<CollisionSystem>(
           "setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
@@ -247,12 +246,12 @@ void SceneTextDeserializer::setUpShapes() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
-  const auto ecsManager = ECSystemManager::GetInstance();
-  const auto& strand = *ecsManager->GetStrand();
+  const auto ecs = ECSManager::GetInstance();
+  const auto& strand = *ecs->GetStrand();
 
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
+        ECSManager::GetInstance()->getSystem<ModelSystem>(
             "loadModel");
 
     if (modelSystem == nullptr) {
@@ -290,11 +289,11 @@ void SceneTextDeserializer::setUpSkybox() const {
   // Todo move to a message.
 
   auto skyboxSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<SkyboxSystem>(
+      ECSManager::GetInstance()->getSystem<SkyboxSystem>(
           __FUNCTION__);
 
   if (!skybox_) {
-    SkyboxSystem::setDefaultSkybox();
+    skyboxSystem->setDefaultSkybox();
     // makeSurfaceViewTransparent();
   } else {
     if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
@@ -302,27 +301,28 @@ void SceneTextDeserializer::setUpSkybox() const {
           !hdr_skybox->szGetAssetPath().empty()) {
         const auto shouldUpdateLight =
             hdr_skybox->szGetAssetPath() == indirect_light_->getAssetPath();
-        SkyboxSystem::setSkyboxFromHdrAsset(
+
+        skyboxSystem->setSkyboxFromHdrAsset(
             hdr_skybox->szGetAssetPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         const auto shouldUpdateLight =
             hdr_skybox->szGetURLPath() == indirect_light_->getUrl();
-        SkyboxSystem::setSkyboxFromHdrUrl(
+        skyboxSystem->setSkyboxFromHdrUrl(
             hdr_skybox->szGetURLPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       if (const auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
           !kxt_skybox->szGetAssetPath().empty()) {
-        SkyboxSystem::setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
+        skyboxSystem->setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
       } else if (!kxt_skybox->szGetURLPath().empty()) {
-        SkyboxSystem::setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
+        skyboxSystem->setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
       if (const auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
           !color_skybox->szGetColor().empty()) {
-        SkyboxSystem::setSkyboxFromColor(color_skybox->szGetColor());
+        skyboxSystem->setSkyboxFromColor(color_skybox->szGetColor());
       }
     }
   }
@@ -331,7 +331,7 @@ void SceneTextDeserializer::setUpSkybox() const {
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpLights() {
   const auto lightSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
+      ECSManager::GetInstance()->getSystem<LightSystem>(
           __FUNCTION__);
 
   // Note, this introduces a fire and forget functionality for entities
@@ -342,7 +342,7 @@ void SceneTextDeserializer::setUpLights() {
 
     newEntity->vAddComponent(snd);
 
-    LightSystem::vBuildLightAndAddToScene(*snd);
+    lightSystem->vBuildLightAndAddToScene(*snd);
 
     newEntity->vRegisterEntity();
   }
@@ -361,27 +361,27 @@ void SceneTextDeserializer::setUpLights() {
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
   auto indirectlightSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
+      ECSManager::GetInstance()->getSystem<IndirectLightSystem>(
           __FUNCTION__);
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.
-    // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
+    // plugin_filament_view::indirectlightSystem->setDefaultIndirectLight();
   } else {
     if (const auto indirectLight = indirect_light_.get();
         dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
-        IndirectLightSystem::setIndirectLightFromKtxAsset(
+        indirectlightSystem->setIndirectLightFromKtxAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       } else if (!indirectLight->getUrl().empty()) {
-        IndirectLightSystem::setIndirectLightFromKtxUrl(
+        indirectlightSystem->setIndirectLightFromKtxUrl(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         // val shouldUpdateLight = indirectLight->getAssetPath() !=
         // scene?.skybox?.assetPath if (shouldUpdateLight) {
-        IndirectLightSystem::setIndirectLightFromHdrAsset(
+        indirectlightSystem->setIndirectLightFromHdrAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
         //}
 
@@ -389,16 +389,16 @@ void SceneTextDeserializer::setUpIndirectLight() const {
         // auto shouldUpdateLight = indirectLight->getUrl() !=
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
-        IndirectLightSystem::setIndirectLightFromHdrUrl(
+        indirectlightSystem->setIndirectLightFromHdrUrl(
             indirectLight->getUrl(), indirectLight->getIntensity());
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      IndirectLightSystem::setIndirectLight(
+      indirectlightSystem->setIndirectLight(
           dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
       // Already called in the default constructor.
-      // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
+      // plugin_filament_view::indirectlightSystem->setDefaultIndirectLight();
     }
   }
 }

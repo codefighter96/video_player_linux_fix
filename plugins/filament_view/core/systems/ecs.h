@@ -24,9 +24,12 @@
 #include <vector>
 #include <spdlog/spdlog.h>
 
+#include <core/utils/kvtree.h>
+#include <core/entity/base/entityobject.h>
+
 namespace plugin_filament_view {
 
-class ECSystemManager {
+class ECSManager {
  public:
   enum RunState {
     NotInitialized,
@@ -37,36 +40,90 @@ class ECSystemManager {
   };
   RunState getRunState() const { return m_eCurrentState; }
 
-  static ECSystemManager* GetInstance();
+  static ECSManager* GetInstance();
 
-  ECSystemManager(const ECSystemManager&) = delete;
-  ECSystemManager& operator=(const ECSystemManager&) = delete;
+  ECSManager(const ECSManager&) = delete;
+  ECSManager& operator=(const ECSManager&) = delete;
 
-  void vAddSystem(std::shared_ptr<ECSystem> system);
 
-  void vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
-    std::unique_lock<std::mutex> lock(vecSystemsMutex);
-    m_vecSystems.erase(
-        std::remove(m_vecSystems.begin(), m_vecSystems.end(), system),
-        m_vecSystems.end());
+  void vInitSystems();
+
+  /**
+    * @brief Updates the engine logic for the current frame.
+    *
+    * It's called once per frame and is responsible for updating
+    * all engine entities, systems, and logic based on the elapsed time since
+    * the last frame.
+    *
+    * NOTE: must be run on the main thread.
+    *
+    * @param deltaTime The time elapsed since the last frame, in seconds.
+    *                  This value should be used to make all movement and
+    *                  time-based calculations frame rate independent.
+    */
+  void vUpdate(float deltaTime);
+  void vShutdownSystems();
+
+  void DebugPrint() const;
+
+  void StartMainLoop();
+  void StopMainLoop();
+
+  [[nodiscard]] bool bIsCompletedStopping() const {
+    return m_bSpawnedThreadFinished;
   }
 
-  // Send a message to all registered systems
+  //
+  //  Entity
+  //
+  void addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent = nullptr);
+  void removeEntity(const EntityGUID& entityGuid);
+  [[nodiscard]] std::shared_ptr<EntityObject> getEntity(
+    EntityGUID id) const;
+
+  /// Moves the entity with the given GUID to the parent with the given GUID.
+  void reparentEntity(const std::shared_ptr<EntityObject>& entity,
+                            const EntityGUID& parentGuid);
+  /// Returns the children of the entity with the given GUID.
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntityChildren(
+      EntityGUID id) const;
+  /// Returns the GUIDs of the children of the entity with the given GUID.
+  [[nodiscard]] std::vector<EntityGUID> getEntityChildrenGuids(
+      EntityGUID id) const;
+
+  /// Returns the parent of the entity with the given GUID.
+  [[nodiscard]] std::shared_ptr<EntityObject> getEntityParent(
+      EntityGUID id) const;
+  /// Returns the GUID of the parent of the entity with the given GUID.
+  [[nodiscard]] std::optional<EntityGUID> getEntityParentGuid(EntityGUID id) const;
+  
+
+  //
+  //  Component
+  // 
+
+  // TODO: move all component code to here
+
+  //
+  //  System
+  //
+  void vAddSystem(std::shared_ptr<ECSystem> system);
+  void vRemoveSystem(const std::shared_ptr<ECSystem>& system);
+  void vRemoveAllSystems();
+
+  /**
+    * Send a message to all registered systems
+    * \deprecated Deprecated in favor of queueTask
+    */
   void vRouteMessage(const ECSMessage& msg) {
     std::unique_lock<std::mutex> lock(vecSystemsMutex);
     for (const auto& system : m_vecSystems) {
       system->vSendMessage(msg);
     }
   }
-
-  // Clear all systems
-  void vRemoveAllSystems() {
-    std::unique_lock<std::mutex> lock(vecSystemsMutex);
-    m_vecSystems.clear();
-  }
-
+  
   template <typename Target>
-  std::shared_ptr<ECSystem> poGetSystem(const std::string& where) {
+  std::shared_ptr<Target> getSystem(const std::string& where) {
     if (const auto callingThread = pthread_self();
         callingThread != filament_api_thread_id_) {
       // Note we should have a 'log once' base functionality in common
@@ -90,32 +147,16 @@ class ECSystemManager {
     const size_t systemTypeID = ECSystem::StaticGetTypeID<Target>();
     for (const auto& system : m_vecSystems) {
       if (system->GetTypeID() == systemTypeID) {
-        return system;
+        // Perform dynamic pointer cast to the desired type
+        return std::dynamic_pointer_cast<Target>(system);
       }
     }
     return nullptr;  // If no matching system found
   }
 
-  template <typename Target>
-  std::shared_ptr<Target> poGetSystemAs(const std::string& where) {
-    // Retrieve the system from the manager
-    auto system = poGetSystem<Target>(where);
-    // Perform dynamic pointer cast to the desired type
-    return std::dynamic_pointer_cast<Target>(system);
-  }
-
-  void vInitSystems();
-  void vUpdate(float deltaTime);
-  void vShutdownSystems();
-
-  void DebugPrint() const;
-
-  void StartRunLoop();
-  void StopRunLoop();
-
-  [[nodiscard]] bool bIsCompletedStopping() const {
-    return m_bSpawnedThreadFinished;
-  }
+  //
+  //  Threading
+  //
 
   [[nodiscard]] pthread_t GetFilamentAPIThreadID() const {
     return filament_api_thread_id_;
@@ -128,6 +169,10 @@ class ECSystemManager {
   [[nodiscard]] std::unique_ptr<asio::io_context::strand>& GetStrand() {
     return strand_;
   }
+
+  //
+  //  Global state (configuration)
+  //
 
   template <typename T>
   void setConfigValue(const std::string& key, T value) {
@@ -151,17 +196,16 @@ class ECSystemManager {
   }
 
  private:
-  ECSystemManager();
-  ~ECSystemManager();
+  ECSManager();
+  ~ECSManager();
 
-  static ECSystemManager* m_poInstance;
+  static ECSManager* m_poInstance;
 
   void vSetupThreadingInternals();
 
-  void RunLoop();
+  void MainLoop();
   std::atomic<bool> m_bIsRunning{false};
   std::atomic<bool> m_bSpawnedThreadFinished{false};
-  void ExecuteOnMainThread(float elapsedTime);
 
   std::thread filament_api_thread_;
   pthread_t filament_api_thread_id_{};
@@ -172,8 +216,17 @@ class ECSystemManager {
 
   std::atomic<bool> isHandlerExecuting{false};
 
-  std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
+  //
+  //  Entity
+  //
+  KVTree<EntityGUID, std::shared_ptr<EntityObject>> _entities;
+  std::mutex _entitiesMutex;
 
+  //
+  //  System
+  //
+
+  std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
   std::mutex vecSystemsMutex;
 
   std::map<std::string, std::any> m_mapConfigurationValues;

@@ -19,9 +19,8 @@
 #include <core/components/derived/light.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/animation_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
 #include <core/systems/derived/light_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/uuidGenerator.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
@@ -99,11 +98,9 @@ void EntityObject::vUnregisterEntity() {
     return;
   }
 
-  const auto objectLocatorSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          "vRegisterEntity");
+  const auto ecs = ECSManager::GetInstance();
 
-  objectLocatorSystem->vUnregisterEntityObject(shared_from_this());
+  ecs->removeEntity(guid_);
 
   m_bAlreadyRegistered = false;
 }
@@ -114,11 +111,8 @@ void EntityObject::vRegisterEntity() {
     return;
   }
 
-  const auto objectLocatorSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          "vRegisterEntity");
-
-  objectLocatorSystem->vRegisterEntityObject(shared_from_this());
+  const auto ecs = ECSManager::GetInstance();
+  ecs->addEntity(shared_from_this());
 
   m_bAlreadyRegistered = true;
 }
@@ -143,7 +137,7 @@ void EntityObject::vAddComponent(std::shared_ptr<Component> component,
   if (bAutoAddToSystems) {
     if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
       const auto lightSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
+          ECSManager::GetInstance()->getSystem<LightSystem>(
               __FUNCTION__);
 
       lightSystem->vRegisterEntityObject(shared_from_this());
@@ -151,7 +145,7 @@ void EntityObject::vAddComponent(std::shared_ptr<Component> component,
 
     if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
       const auto animationSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
+          ECSManager::GetInstance()->getSystem<AnimationSystem>(
               "loadModelGltf");
 
       animationSystem->vRegisterEntityObject(shared_from_this());

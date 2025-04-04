@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ecsystems_manager.h"
+#include "ecs.h"
 
 // #include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
 #include <thread>
+#include <core/utils/kvtree.cc> // NOLINT
 
 namespace plugin_filament_view {
 
+template class KVTree<EntityGUID, std::shared_ptr<EntityObject>>;
+
 ////////////////////////////////////////////////////////////////////////////
-ECSystemManager* ECSystemManager::m_poInstance = nullptr;
-ECSystemManager* ECSystemManager::GetInstance() {
+ECSManager* ECSManager::m_poInstance = nullptr;
+ECSManager* ECSManager::GetInstance() {
   if (m_poInstance == nullptr) {
-    m_poInstance = new ECSystemManager();
+    m_poInstance = new ECSManager();
   }
 
   return m_poInstance;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ECSystemManager::~ECSystemManager() {
-  spdlog::debug("ECSystemManager~");
+ECSManager::~ECSManager() {
+  spdlog::debug("ECSManager~");
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ECSystemManager::ECSystemManager()
+ECSManager::ECSManager()
     : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
       work_(make_work_guard(io_context_->get_executor())),
       strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
@@ -47,7 +50,7 @@ ECSystemManager::ECSystemManager()
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::StartRunLoop() {
+void ECSManager::StartMainLoop() {
   if (m_bIsRunning) {
     return;
   }
@@ -55,20 +58,20 @@ void ECSystemManager::StartRunLoop() {
   m_bIsRunning = true;
   m_bSpawnedThreadFinished = false;
 
-  // Launch RunLoop in a separate thread
-  loopThread_ = std::thread(&ECSystemManager::RunLoop, this);
+  // Launch MainLoop in a separate thread
+  loopThread_ = std::thread(&ECSManager::MainLoop, this);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vSetupThreadingInternals() {
+void ECSManager::vSetupThreadingInternals() {
   filament_api_thread_ = std::thread([this] {
     // Save this thread's ID as it runs io_context_->run()
     filament_api_thread_id_ = pthread_self();
 
     // Optionally set the thread name
-    pthread_setname_np(filament_api_thread_id_, "ECSystemManagerThreadRunner");
+    pthread_setname_np(filament_api_thread_id_, "ECSManagerThreadRunner");
 
-    spdlog::debug("ECSystemManager Filament API thread started: 0x{:x}",
+    spdlog::debug("ECSManager Filament API thread started: 0x{:x}",
                   filament_api_thread_id_);
 
     io_context_->run();
@@ -76,7 +79,7 @@ void ECSystemManager::vSetupThreadingInternals() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::RunLoop() {
+void ECSManager::MainLoop() {
   constexpr std::chrono::milliseconds frameTime(16);  // ~1/60 second
 
   // Initialize lastFrameTime to the current time
@@ -94,7 +97,7 @@ void ECSystemManager::RunLoop() {
       post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
-          ExecuteOnMainThread(
+          vUpdate(
               elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
@@ -121,7 +124,7 @@ void ECSystemManager::RunLoop() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::StopRunLoop() {
+void ECSManager::StopMainLoop() {
   m_bIsRunning = false;
   if (loopThread_.joinable()) {
     loopThread_.join();
@@ -139,23 +142,146 @@ void ECSystemManager::StopRunLoop() {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::ExecuteOnMainThread(const float elapsedTime) {
-  vUpdate(elapsedTime);
+
+//
+//  Entity
+//
+
+
+void ECSManager::addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent) {
+  std::unique_lock lock(_entitiesMutex);
+
+  const EntityGUID id = entity->GetGuid();
+
+  if (_entities.get(id)) {
+    spdlog::error(
+      "[{}] Entity with GUID {} already exists",
+      __FUNCTION__, id
+    );
+    return;
+  }
+
+  _entities.insert(id, entity, parent);
 }
 
+void ECSManager::removeEntity(const EntityGUID& id) {
+  std::unique_lock lock(_entitiesMutex);
+
+  _entities.remove(id);
+}
+
+std::shared_ptr<EntityObject> ECSManager::getEntity(EntityGUID id) const {
+  const auto* node = _entities.get(id);
+  if (!node) {
+    spdlog::error(
+        "[{}] Unable to find "
+        "entity with id {}",
+        __FUNCTION__,
+        id);
+    return nullptr;
+  }
+  return *(node->getValue());
+}
+
+void ECSManager::reparentEntity(
+  const std::shared_ptr<EntityObject>& entity,
+  const EntityGUID& parentGuid) {
+try {
+  _entities.reparent(entity->GetGuid(), &parentGuid);
+} catch (const std::runtime_error& e) {
+  spdlog::error("[ECSManager::ReparentEntityObject] {}",
+                e.what());
+}
+}
+
+std::vector<EntityGUID> ECSManager::getEntityChildrenGuids(EntityGUID id) const {
+  const auto* node = _entities.get(id);
+  if (!node) {
+    spdlog::error(
+        "[{}] Unable to find entity with id {}",
+        __FUNCTION__,
+        id);
+    return {};
+  }
+
+  std::vector<KVTreeNode<EntityGUID, std::shared_ptr<EntityObject>>*>
+      childrenNodes = node->getChildren();
+
+  std::vector<EntityGUID> childrenGuids;
+  childrenGuids.reserve(childrenNodes.size());
+  for (const auto* childNode : childrenNodes) {
+    childrenGuids.push_back(childNode->getKey());
+  }
+
+  return childrenGuids;
+}
+
+std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntityChildren(EntityGUID id) const {
+  std::vector<EntityGUID> childrenGuids = getEntityChildrenGuids(id);
+
+  std::vector<std::shared_ptr<EntityObject>> children;
+  children.reserve(childrenGuids.size());
+  for (const auto& childGuid : childrenGuids) {
+    const auto child = getEntity(childGuid);
+    if (child) {
+      children.push_back(child);
+    }
+  }
+
+  return children;
+}
+
+std::optional<EntityGUID> ECSManager::getEntityParentGuid(EntityGUID id) const {
+  const auto* node = _entities.get(id);
+  if (!node) {
+    spdlog::error(
+        "[ECSManager::GetEntityParentGuid] Unable to find "
+        "entity with id {}",
+        id);
+    return std::nullopt;
+  }
+
+  const auto* parentNode = node->getParent();
+  if (!parentNode) {
+    return std::nullopt;
+  }
+
+  return parentNode->getKey();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vInitSystems() {
+void ECSManager::vInitSystems() {
   // Note this is currently expected to be called from within
   // an already asio post, Leaving this commented out so you know
   // that you could change up the routine, but if you do
   // it needs to run on the main thread.
-  // asio::post(*ECSystemManager::GetInstance()->GetStrand(), [&] {
+  // asio::post(*ECSManager::GetInstance()->GetStrand(), [&] {
   for (const auto& system : m_vecSystems) {
     try {
       spdlog::debug("Initializing system {} (ID {}) at address {}",
                     system->GetTypeName(), system->GetTypeID(), static_cast<void*>(system.get()));
-      system->vInitSystem();
+      
+      system->vInitSystem(*const_cast<const ECSManager*>(this));
+
     } catch (const std::exception& e) {
       spdlog::error("Exception caught in vInitSystems: {}", e.what());
     }
@@ -168,15 +294,28 @@ void ECSystemManager::vInitSystems() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
+void ECSManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   std::unique_lock lock(vecSystemsMutex);
   spdlog::debug("Adding system at address {}",
                 static_cast<void*>(system.get()));
   m_vecSystems.push_back(std::move(system));
 }
 
+void ECSManager::vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
+  std::unique_lock lock(vecSystemsMutex);
+  auto it = std::remove(m_vecSystems.begin(), m_vecSystems.end(), system);
+  if (it != m_vecSystems.end()) {
+    m_vecSystems.erase(it, m_vecSystems.end());
+  }
+}
+
+void ECSManager::vRemoveAllSystems() {
+  std::unique_lock lock(vecSystemsMutex);
+  m_vecSystems.clear();
+}
+
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vUpdate(const float deltaTime) {
+void ECSManager::vUpdate(const float deltaTime) {
   // Copy systems under mutex
   std::vector<std::shared_ptr<ECSystem>> systemsCopy;
   {
@@ -198,18 +337,18 @@ void ECSystemManager::vUpdate(const float deltaTime) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::DebugPrint() const {
+void ECSManager::DebugPrint() const {
   for (const auto& system : m_vecSystems) {
     spdlog::debug(
-        "ECSystemManager:: DebugPrintProcessing system at address {}, "
+        "ECSManager:: DebugPrintProcessing system at address {}, "
         "use_count={}",
         static_cast<void*>(system.get()), system.use_count());
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::vShutdownSystems() {
-  post(*GetInstance()->GetStrand(), [&] {
+void ECSManager::vShutdownSystems() {
+  post(*this->GetStrand(), [&] {
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other

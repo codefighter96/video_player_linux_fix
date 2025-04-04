@@ -19,7 +19,7 @@
 
 #include <core/components/derived/collidable.h>
 #include <core/include/file_utils.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
 #include <filament/Scene.h>
@@ -56,7 +56,7 @@ void ModelSystem::destroyAsset(
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           __FUNCTION__);
 
   filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
@@ -82,7 +82,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   if (assetLoader_ == nullptr) {
     // NOTE, this should only be temporary until CustomModelViewer isn't
     // necessary in implementation.
-    vInitSystem();
+    vOnInitSystem();
 
     if (assetLoader_ == nullptr) {
       spdlog::error("unable to initialize model system");
@@ -91,7 +91,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
   auto& rcm = engine->getRenderableManager();
@@ -222,7 +222,7 @@ void ModelSystem::loadModelGltf(
   asset->releaseSourceData();
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "loadModelGltf");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -292,7 +292,7 @@ void ModelSystem::vSetupAssetThroughoutECS(
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           __FUNCTION__);
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -396,7 +396,7 @@ void ModelSystem::updateAsyncAssetLoading() {
     }
 
     auto collisionSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+        ecs->getSystem<CollisionSystem>(
             "updateAsyncAssetLoading");
     if (collisionSystem == nullptr) {
       spdlog::warn("Failed to get collision system when loading model");
@@ -427,10 +427,10 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
 
   try {
     const asio::io_context::strand& strand_(
-        *ECSystemManager::GetInstance()->GetStrand());
+        *ecs->GetStrand());
 
     const auto assetPath =
-        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+        ecs->getConfigValue<std::string>(kAssetPath);
 
     const bool bWantsInstancedData = oOurModel->bShouldKeepAssetDataInMemory();
     const bool hasInstancedDataLoaded =
@@ -502,7 +502,7 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
-  post(*ECSystemManager::GetInstance()->GetStrand(),
+  post(*ecs->GetStrand(),
        [&, model = std::move(oOurModel), promise,
         url = std::move(url)]() mutable {
          plugin_common_curl::CurlClient client;
@@ -557,13 +557,13 @@ std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vInitSystem() {
+void ModelSystem::vOnInitSystem() {
   if (materialProvider_ != nullptr) {
     return;
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "ModelSystem::vInitSystem");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -704,7 +704,7 @@ void ModelSystem::vInitSystem() {
         if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
           const auto fSystem =
-              ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+              ecs->getSystem<FilamentSystem>(
                   "vRegisterMessageHandler::ToggleVisualForEntity");
 
           if (const auto modelAsset = ourEntity->second->getAsset()) {
@@ -740,7 +740,7 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
     const EntityGUID guid,
     const std::shared_ptr<Model>& model) {
   const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+      ecs->getSystem<CollisionSystem>(
           "vRemoveAndReaddModelToCollisionSystem");
   if (collisionSystem == nullptr) {
     spdlog::warn(

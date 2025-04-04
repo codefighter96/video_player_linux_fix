@@ -23,7 +23,7 @@
 #include <core/include/color.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/hdr_loader.h>
 #include <filament/IndirectLight.h>
 #include <filament/Scene.h>
@@ -40,11 +40,11 @@ std::future<void> SkyboxSystem::Initialize() {
   auto future(promise->get_future());
 
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
 
   post(strand_, [&, promise] {
     const auto filamentSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+        ecs->getSystem<FilamentSystem>(
             "SKyboxManager::Init::Lambda");
     const auto engine = filamentSystem->getFilamentEngine();
 
@@ -69,7 +69,7 @@ void SkyboxSystem::setDefaultSkybox() {
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::setTransparentSkybox() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "setTransparentSkybox");
 
   filamentSystem->getFilamentScene()->setSkybox(nullptr);
@@ -87,7 +87,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
   auto future(promise->get_future());
 
   const auto assetPath =
-      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+      ecs->getConfigValue<std::string>(kAssetPath);
 
   std::filesystem::path asset_path = assetPath;
 
@@ -98,7 +98,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
   }
 
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
 
   post(strand_,
        [&, promise, asset_path, showSun, shouldUpdateLight, intensity] {
@@ -127,7 +127,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
   }
 
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
 
   SPDLOG_DEBUG("Skybox downloading HDR Asset: {}", url.c_str());
   post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
@@ -159,7 +159,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
   auto future(promise->get_future());
 
   const auto assetPath =
-      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+      ecs->getConfigValue<std::string>(kAssetPath);
 
   std::filesystem::path asset_path = assetPath;
   asset_path /= path;
@@ -168,7 +168,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(
         Resource<std::string_view>::Error("KTX Asset path is not valid"));
   }
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
 
   SPDLOG_DEBUG("Skybox loading KTX Asset: {}", asset_path.c_str());
   post(strand_, [&, promise, asset_path] {
@@ -202,7 +202,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(
   }
 
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
   post(strand_, [&, promise, url] {
     plugin_common_curl::CurlClient client;
 
@@ -242,11 +242,11 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(
     return future;
   }
   const asio::io_context::strand& strand_(
-      *ECSystemManager::GetInstance()->GetStrand());
+      *ecs->GetStrand());
 
   post(strand_, [&, promise, color] {
     const auto filamentSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+        ecs->getSystem<FilamentSystem>(
             "setSkyboxFromColor");
     const auto engine = filamentSystem->getFilamentEngine();
 
@@ -271,7 +271,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
   filament::Texture* texture;
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "loadSkyboxFromHdrFile");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -329,7 +329,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
   filament::Texture* texture;
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -379,7 +379,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vInitSystem() {
+void SkyboxSystem::vOnInitSystem() {
   Initialize();
 }
 
@@ -389,7 +389,7 @@ void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::vShutdownSystem() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 

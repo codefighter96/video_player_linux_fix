@@ -24,14 +24,13 @@
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
 #include <filament/Engine.h>
 #include <filament/Scene.h>
 #include <plugins/common/common.h>
 
 #include "collision_system.h"
-#include "entityobject_locator_system.h"
 
 namespace plugin_filament_view {
 
@@ -119,7 +118,7 @@ void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
     const EntityGUID guid,
     const std::shared_ptr<BaseShape>& shape) {
   const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
+      ecs->getSystem<CollisionSystem>(
           "vRemoveAndReaddShapeToCollisionSystem");
   if (collisionSystem == nullptr) {
     spdlog::warn(
@@ -149,7 +148,7 @@ void ShapeSystem::addShapesToScene(
   }*/
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "addShapesToScene");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -192,7 +191,7 @@ void ShapeSystem::addShapesToScene(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vInitSystem() {
+void ShapeSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleShapesInScene");

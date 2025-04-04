@@ -53,7 +53,7 @@ class CollisionSystem : public ECSystem {
 
   void vUpdate(float fElapsedTime) override;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vShutdownSystem() override;
 
   void vAddCollidable(EntityObject* collidable);

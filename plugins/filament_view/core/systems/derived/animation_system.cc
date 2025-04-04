@@ -17,7 +17,7 @@
 
 #include <core/entity/base/entityobject.h>
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <plugin_registrar.h>
 #include <plugins/common/common.h>
 #include <standard_method_codec.h>
@@ -25,7 +25,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vInitSystem() {
+void AnimationSystem::vOnInitSystem() {
   // Handler for AnimationEnqueue
   vRegisterMessageHandler(
       ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {

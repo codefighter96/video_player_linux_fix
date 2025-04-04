@@ -20,7 +20,7 @@
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/color.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/uuidGenerator.h>
 #include <filament/Color.h>
 #include <filament/LightManager.h>
@@ -64,7 +64,7 @@ void LightSystem::vBuildLightAndAddToScene(Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vBuildLight(Light& light) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "vBuildLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -115,7 +115,7 @@ void LightSystem::vBuildLight(Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRemoveLightFromScene(const Light& light) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "lightManager::vRemoveLightFromScene");
 
   const auto scene = filamentSystem->getFilamentScene();
@@ -126,7 +126,7 @@ void LightSystem::vRemoveLightFromScene(const Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vAddLightToScene(const Light& light) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "lightManager::vAddLightToScene");
 
   const auto scene = filamentSystem->getFilamentScene();
@@ -135,7 +135,7 @@ void LightSystem::vAddLightToScene(const Light& light) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vInitSystem() {
+void LightSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ChangeSceneLightProperties,
       [this](const ECSMessage& msg) {

@@ -18,7 +18,7 @@
 #include "filament_system.h"
 
 #include <core/scene/geometry/ray.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
 #include <filament/Engine.h>
 #include <filament/IndexBuffer.h>
@@ -108,7 +108,7 @@ void DebugLinesSystem::DebugPrint() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -126,7 +126,7 @@ void DebugLinesSystem::vCleanup() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vUpdate(const float fElapsedTime) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -148,7 +148,7 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vInitSystem() {
+void DebugLinesSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("Adding debug line: ");
@@ -173,7 +173,7 @@ void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
   }
 
   auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "DebugLinesSystem::vAddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 

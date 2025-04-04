@@ -81,7 +81,7 @@ void KVTree<Key, Value>::reparent(const Key& key, const Key* parentKey) {
 }
 
 template <typename Key, typename Value>
-void KVTree<Key, Value>::remove(Key& key) {
+void KVTree<Key, Value>::remove(const Key& key) {
     auto* node = get(key);
     
     // Exception: key not found.
@@ -155,7 +155,7 @@ void KVTreeNode<Key, Value>::addChild(KVTreeNode* child) {
 }
 
 template <typename Key, typename Value>
-void KVTreeNode<Key, Value>::removeChild(Key& key) {
+void KVTreeNode<Key, Value>::removeChild(const Key& key) {
     children.erase(std::remove_if(children.begin(), children.end(),
         [&](auto& item) {
             return item->getKey() == key;

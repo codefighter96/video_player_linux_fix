@@ -62,7 +62,7 @@ class DebugLinesSystem final : public ECSystem {
 
   void vUpdate(float fElapsedTime) override;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vShutdownSystem() override;
 
   void vAddLine(::filament::math::float3 startPoint,

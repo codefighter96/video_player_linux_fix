@@ -17,7 +17,7 @@
 #include "material_definitions.h"
 
 #include <core/include/literals.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <filament/Material.h>
 #include <filament/TextureSampler.h>
 #include <plugins/common/common.h>
@@ -33,7 +33,7 @@ MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
   const auto flutterAssetPath =
-      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+      ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
@@ -85,7 +85,7 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
     spdlog::debug(tabPrefix + "assetPath: [{}]", assetPath_);
 
     const auto flutterAssetPath =
-        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+        ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
     const std::filesystem::path asset_folder(flutterAssetPath);
     spdlog::debug(tabPrefix + "asset_path {} valid",

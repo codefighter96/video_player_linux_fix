@@ -20,10 +20,8 @@
 #include <core/components/derived/material_definitions.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <plugins/common/common.h>
-
-#include "entityobject_locator_system.h"
 
 namespace plugin_filament_view {
 
@@ -170,7 +168,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vInitSystem() {
+void MaterialSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
         spdlog::debug("ChangeMaterialParameter");
@@ -181,13 +179,7 @@ void MaterialSystem::vInitSystem() {
         const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        const auto objectLocatorSystem =
-            ECSystemManager::GetInstance()
-                ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    "ChangeMaterialParameter");
-
-        if (const auto entityObject =
-                objectLocatorSystem->poGetEntityObjectById(guid);
+        if (const auto entityObject = ecs->getEntity(guid);
             entityObject != nullptr) {
           spdlog::debug("ChangeMaterialParameter valid entity found.");
 
@@ -213,13 +205,8 @@ void MaterialSystem::vInitSystem() {
         const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        const auto objectLocatorSystem =
-            ECSystemManager::GetInstance()
-                ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    "ChangeMaterialDefinitions");
-
         if (const auto entityObject =
-                objectLocatorSystem->poGetEntityObjectById(guid);
+                ecs->getEntity(guid);
             entityObject != nullptr) {
           spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
@@ -237,7 +224,7 @@ void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 

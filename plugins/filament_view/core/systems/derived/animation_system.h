@@ -40,7 +40,7 @@ class AnimationSystem : public ECSystem {
   AnimationSystem(const AnimationSystem&) = delete;
   AnimationSystem& operator=(const AnimationSystem&) = delete;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

@@ -21,7 +21,7 @@
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <filament/Scene.h>
 #include <plugins/common/common.h>
 
@@ -150,7 +150,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   newShape->m_bIsWireframe = true;
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "vAddCollidable");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -290,7 +290,7 @@ void CollisionSystem::SendCollisionInformationCallback(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vInitSystem() {
+void CollisionSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
         auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);

@@ -52,13 +52,13 @@ class ShapeSystem : public ECSystem {
   static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
       const flutter::EncodableMap& mapData);
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;
 
  private:
-  static void vRemoveAndReaddShapeToCollisionSystem(
+  void vRemoveAndReaddShapeToCollisionSystem(
       const EntityGUID guid,
       const std::shared_ptr<shapes::BaseShape>& shape);
 

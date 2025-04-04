@@ -18,7 +18,7 @@
 #include <core/include/file_utils.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <plugins/common/curl_client/curl_client.h>
 
 namespace plugin_filament_view {
@@ -34,12 +34,12 @@ MaterialLoader::MaterialLoader() = default;
 Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(
     const std::string& path) {
   const auto assetPath =
-      ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+      ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
   const auto buffer = readBinaryFile(path, assetPath);
 
   if (!buffer.empty()) {
     const auto filamentSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+        ECSManager::GetInstance()->getSystem<FilamentSystem>(
             "loadMaterialFromAsset");
     const auto engine = filamentSystem->getFilamentEngine();
 
@@ -67,7 +67,7 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "loadMaterialFromUrl");
   const auto engine = filamentSystem->getFilamentEngine();
 

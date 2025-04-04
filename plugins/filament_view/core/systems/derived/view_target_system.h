@@ -34,7 +34,7 @@ class ViewTargetSystem : public ECSystem {
   ViewTargetSystem(const ViewTargetSystem&) = delete;
   ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

@@ -18,7 +18,7 @@
 
 #include <flutter/plugin_registrar.h>
 
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <filament_view_plugin.h>
 
 void FilamentViewPluginCApiRegisterWithRegistrar(
@@ -58,11 +58,11 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
       platform_view_context);*/
 
   // after we're done doing setup, kick off the run loops
-  if (const auto ecsManager =
-          plugin_filament_view::ECSystemManager::GetInstance();
-      ecsManager->getRunState() ==
-      plugin_filament_view::ECSystemManager::RunState::Initialized) {
-    ecsManager->DebugPrint();
-    ecsManager->StartRunLoop();
+  if (const auto ecs =
+          plugin_filament_view::ECSManager::GetInstance();
+      ecs->getRunState() ==
+      plugin_filament_view::ECSManager::RunState::Initialized) {
+    ecs->DebugPrint();
+    ecs->StartMainLoop();
   }
 }

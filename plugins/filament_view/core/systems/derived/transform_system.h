@@ -41,7 +41,7 @@ namespace plugin_filament_view {
       TransformSystem() = default;
 
       void vUpdate(float fElapsedTime) override;
-      void vInitSystem() override;
+      void vOnInitSystem() override;
       void vShutdownSystem() override;
 
       [[nodiscard]] size_t GetTypeID() const override {
