@@ -27,6 +27,7 @@
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
 #include <core/systems/derived/view_target_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
 #include <event_sink.h>
 #include <event_stream_handler_functions.h>
@@ -72,6 +73,7 @@ void RunOnceCheckAndInitializeECSystems() {
     ecs->vAddSystem(std::make_unique<LightSystem>());
     ecs->vAddSystem(std::make_unique<ViewTargetSystem>());
     ecs->vAddSystem(std::make_unique<AnimationSystem>());
+    ecs->vAddSystem(std::make_unique<TransformSystem>());
     // Internal debate whether we auto subscribe to systems on entity creation
     // or not.
 

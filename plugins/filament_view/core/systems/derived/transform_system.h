@@ -16,39 +16,99 @@
 
 #pragma once
 
-#include <core/entity/base/entityobject.h>
-#include <core/components/derived/basetransform.h>
-#include <core/entity/base/entityobject.h>
-#include <core/include/literals.h>
 #include <core/systems/base/ecsystem.h>
-#include <core/utils/uuidGenerator.h>
-#include <utility>
+#include <core/components/derived/basetransform.h>
+#include <core/utils/entitytransforms.h>
+#include <filament/TransformManager.h>
+
 
 namespace plugin_filament_view {
+
+/**
+  * TransformSystem is responsible for updating the transforms of entities in the scene.
+  * It handles:
+  * - Updating the global transforms after local transforms have been modified
+  * - Updating Filament's parent tree based on the ECS hierarchy
+  * - TODO: Asynchronous interpolation of transforms 
+  */
+
+class TransformSystem : public ECSystem {
+  public:
+    TransformSystem() = default;
+
+    void vOnInitSystem() override;
+    void vProcessMessages() override;
+    void vShutdownSystem() override;
+    void vHandleMessage(const ECSMessage& msg) override;
+    void DebugPrint() override;
+
+
+    void vUpdate(float deltaTime) override {
+      
+      // Start Filament transform transaction
+      tm->openLocalTransformTransaction();
+
+      // interpolateTransforms(deltaTime);
+      updateTransforms();
+      updateFilamentParentTree();
+
+      // Commit Filament transform transaction
+      tm->commitLocalTransformTransaction();
+
+    }
   
-  using ::utils::Entity;
+  protected:
+    filament::TransformManager* tm = nullptr;
+    //
+    // Internal logic
+    //
 
-  /**
-    * TransformSystem is responsible for updating the transforms of entities in the scene.
-    * It handles:
-    * - Updating the global transforms after local transforms have been modified
-    * - Updating Filament's parent tree based on the ECS hierarchy
-    * - TODO: Asynchronous interpolation of transforms 
-    */
+    /**
+      * Updates the transforms of all entities in the scene.
+      *
+      * For each transform marked as "dirty", it commits the transform changes
+      * to the Filament engine. This includes updating the local transforms
+      * and updating the global ones wherever needed.
+      */
+    inline void updateTransforms();
+    /**
+      * Performs reparenting of the Filament parent tree.
+      *
+      * Iterates on all transforms, updating the Filament parent tree
+      * in event of hierarchy changes.
+      */
+    inline void updateFilamentParentTree();
 
-  class TransformSystem : public ECSystem {
-    public:
-      TransformSystem() = default;
+    /**
+      * TODO: implement this
+      * Performs "async" lerp on transforms.
+      *
+      * For each transform marked as "animating", it performs a lerp step
+      * towards the target transform.
+      */
+    // inline void interpolateTransforms(float deltaTime);
 
-      void vUpdate(float fElapsedTime) override;
-      void vOnInitSystem() override;
-      void vShutdownSystem() override;
+  public:
+    //
+    // Utility functions
+    //
+    // void applyTransform()
 
-      [[nodiscard]] size_t GetTypeID() const override {
-        return StaticGetTypeID();
-      }
+    //    (global)
+    static inline filament::math::mat4f calculateTransform(
+      const BaseTransform& transform
+    ) {
+      return calculateTransform(
+        transform.GetPosition(),
+        transform.GetRotation(),
+        transform.GetScale());
+    }
+    static inline filament::math::mat4f calculateTransform(
+      const filament::math::float3& position,
+      const filament::math::quatf& rotation,
+      const filament::math::float3& scale
+    );
+    
+};
 
-      static constexpr size_t StaticGetTypeID() {
-        return typeid(TransformSystem).hash_code();
-      }
 }

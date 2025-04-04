@@ -123,6 +123,7 @@ add_library(plugin_filament_view STATIC
         core/utils/uuidGenerator.cc
         core/scene/view_target.cc
         core/systems/derived/view_target_system.cc
+        core/systems/derived/transform_system.cc
 )
 
 target_include_directories(plugin_filament_view PUBLIC

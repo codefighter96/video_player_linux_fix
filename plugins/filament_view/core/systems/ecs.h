@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <spdlog/spdlog.h>
 #include <core/systems/base/ecsystem.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
@@ -22,7 +23,6 @@
 #include <memory>
 #include <shared_mutex>
 #include <vector>
-#include <spdlog/spdlog.h>
 
 #include <core/utils/kvtree.h>
 #include <core/entity/base/entityobject.h>
