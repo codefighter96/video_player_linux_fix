@@ -576,12 +576,16 @@ void ModelSystem::vOnInitSystem() {
       engine, UBERARCHIVE_DEFAULT_DATA,
       static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
 
+      // new NameComponentManager(EntityManager::get());
+  names_ = new ::utils::NameComponentManager(::utils::EntityManager::get());
+
   SPDLOG_DEBUG("UbershaderProvider MaterialsCount: {}",
                materialProvider_->getMaterialsCount());
 
   AssetConfiguration assetConfiguration{};
   assetConfiguration.engine = engine;
   assetConfiguration.materials = materialProvider_;
+  assetConfiguration.names = names_;
   assetLoader_ = AssetLoader::create(assetConfiguration);
 
   ResourceConfiguration resourceConfiguration{};

@@ -21,6 +21,7 @@
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
+#include <filament/utils/NameComponentManager.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <list>
@@ -76,6 +77,7 @@ class ModelSystem : public ECSystem {
   ::filament::gltfio::AssetLoader* assetLoader_{};
   ::filament::gltfio::MaterialProvider* materialProvider_{};
   ::filament::gltfio::ResourceLoader* resourceLoader_{};
+  ::utils::NameComponentManager* names_{};
 
   // This is the EntityObject guids to model instantiated.
   std::map<EntityGUID, std::shared_ptr<Model>> m_mapszoAssets;  // NOLINT
