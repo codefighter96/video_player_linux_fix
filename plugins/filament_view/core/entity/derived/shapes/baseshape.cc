@@ -16,7 +16,6 @@
 
 #include "baseshape.h"
 
-#include <core/components/derived/collidable.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecs.h>
@@ -86,6 +85,8 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
     // They're requesting a collidable on this object. Make one.
     auto collidableComp = std::make_shared<Collidable>(params);
     vAddComponent(std::move(collidableComp));
+
+    m_poCollidable = std::weak_ptr<Collidable>(collidableComp);
   }
 
   // if we have material definitions data request, we'll build that component
@@ -189,12 +190,24 @@ void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
 void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
+  filament::math::float3 aabb;
+
+  // If we have a collidable, we need to set the AABB to its extent size
+  // otherwise we use transform's scale
+  if (m_poCollidable.lock() != nullptr) {
+    const auto collidable = m_poCollidable.lock();
+    aabb = collidable->GetExtentsSize();
+  } else {
+    aabb = m_poBaseTransform.lock()->GetScale();
+  }
+  
+
   if (m_bIsWireframe) {
     // We might want to have a specific Material for wireframes in the future.
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
+        .boundingBox({{}, aabb})
         //.material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
                   m_poIndexBuffer)
@@ -206,7 +219,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     vLoadMaterialDefinitionsToMaterialInstance();
 
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
+        .boundingBox({{}, aabb})
         .material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
                   m_poVertexBuffer, m_poIndexBuffer)

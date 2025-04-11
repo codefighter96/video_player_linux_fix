@@ -67,6 +67,7 @@ class Collidable : public Component {
   }
   void SetShapeType(ShapeType value) { m_eShapeType = value; }
   void SetExtentsSize(const filament::math::float3& value) {
+    if(m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collidable");
     _extentSize = value;
   }
 

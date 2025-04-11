@@ -20,6 +20,7 @@
 
 #include <core/components/derived/basetransform.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/collidable.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <core/include/shapetypes.h>
@@ -80,6 +81,7 @@ class BaseShape : public RenderableEntityObject {
   // lookup, but they're not owned here, but on EntityObject's list.
   std::weak_ptr<BaseTransform> m_poBaseTransform;
   std::weak_ptr<CommonRenderable> m_poCommonRenderable;
+  std::weak_ptr<Collidable> m_poCollidable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal;

@@ -25,11 +25,8 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 BaseTransform::BaseTransform(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
-      _extentSize(kFloat3Zero),
       local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
       global({kMat4fIdentity}) {
-  Deserialize::DecodeParameterWithDefault(kSize, &_extentSize, params,
-                                          kFloat3Zero);
   Deserialize::DecodeParameterWithDefault(kPosition, &(local.position),
                                           params,
                                           kFloat3Zero);
@@ -52,8 +49,6 @@ void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
                 local.scale.z);
   spdlog::debug(tabPrefix + "Rot: x={}, y={}, z={} w={}", local.rotation.x,
                 local.rotation.y, local.rotation.z, local.rotation.w);
-  spdlog::debug(tabPrefix + "Ext: x={}, y={}, z={}", _extentSize.x,
-                _extentSize.y, _extentSize.z);
   
   spdlog::debug(tabPrefix + "Global transform:");
   filament::math::float3 tmp;

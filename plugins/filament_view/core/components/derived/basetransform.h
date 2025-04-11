@@ -74,7 +74,6 @@ static constexpr filament::math::mat4f kMat4fIdentity = filament::math::mat4f();
 class BaseTransform : public Component {
   private:
     bool _isDirty = false;
-    filament::math::float3 _extentSize;
     EntityGUID _parentId = kNullGuid;
 
   public:
@@ -83,7 +82,6 @@ class BaseTransform : public Component {
 
     BaseTransform()
           : Component(std::string(__FUNCTION__)),
-            _extentSize(kFloat3One),
             local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
             global({kMat4fIdentity}) {}
 
@@ -102,11 +100,7 @@ class BaseTransform : public Component {
       return local.position;
     }
 
-    [[nodiscard]] const filament::math::float3& GetExtentsSize() const {
-      return _extentSize;
-    }
-
-    [[nodiscard]] const filament::math::float3& GetScale() const {
+    [[nodiscard]] inline const filament::math::float3& GetScale() const {
       return local.scale;
     }
 
@@ -120,12 +114,7 @@ class BaseTransform : public Component {
       _isDirty = true;
     }
 
-    void SetExtentsSize(const filament::math::float3& extentsSize) {
-      _extentSize = extentsSize;
-      // NOTE: doesn't set dirty to true as it doesn't affect the transform matrix
-    }
-
-    void SetScale(const filament::math::float3& scale) {
+    inline void SetScale(const filament::math::float3& scale) {
       local.scale = scale;
       _isDirty = true;
     }

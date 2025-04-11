@@ -71,8 +71,6 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     if (const auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
         originalShape != nullptr) {
       originalCollidable->SetShapeType(originalShape->type_);
-      originalCollidable->SetExtentsSize(
-          originalShape->m_poBaseTransform.lock()->GetExtentsSize());
     }
 
     // modeled handled below
@@ -113,10 +111,10 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     // Note I believe this is correct; more thorough testing is needed; there's
     // a concern around exporting models not centered at 0,0,0 and not being
     // 100% accurate.
-    ourTransform->SetPosition(ourAABB.center() +
-                                    ourTransform->GetPosition());
-    ourTransform->SetExtentsSize(ourAABB.extent());
-    ourTransform->SetScale(ourAABB.extent());
+    // ourTransform->SetPosition(ourAABB.center() +
+    //                                 ourTransform->GetPosition());
+    // // ourTransform->SetExtentsSize(ourAABB.extent());
+    // ourTransform->SetScale(ourAABB.extent());
 
     if (originalCollidable != nullptr &&
         originalCollidable->GetShouldMatchAttachedObject()) {
