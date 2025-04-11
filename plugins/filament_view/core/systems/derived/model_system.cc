@@ -254,10 +254,10 @@ void ModelSystem::loadModelGltf(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vSetupAssetThroughoutECS(
-    std::shared_ptr<Model>& sharedPtr,
+    std::shared_ptr<Model>& modelEntity,
     filament::gltfio::FilamentAsset* filamentAsset,
     filament::gltfio::FilamentInstance* filamentAssetInstance) {
-  m_mapszoAssets.insert(std::pair(sharedPtr->GetGuid(), sharedPtr));
+  m_mapszoAssets.insert(std::pair(modelEntity->GetGuid(), modelEntity));
 
   filament::gltfio::Animator* animatorInstance = nullptr;
 
@@ -268,9 +268,9 @@ void ModelSystem::vSetupAssetThroughoutECS(
   }
 
   if (animatorInstance != nullptr &&
-      sharedPtr->HasComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())) {
+      modelEntity->HasComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())) {
     const auto animatorComponent =
-        sharedPtr->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>());
+        modelEntity->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>());
     const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
     animator->vSetAnimator(*animatorInstance);
 
@@ -283,10 +283,10 @@ void ModelSystem::vSetupAssetThroughoutECS(
         "on this, but you didn't load an animation component, load one if you "
         "want that "
         "functionality",
-        sharedPtr->szGetAssetPath(), animatorInstance->getAnimationCount());
+        modelEntity->szGetAssetPath(), animatorInstance->getAnimationCount());
   }
 
-  sharedPtr->vRegisterEntity();
+  modelEntity->vRegisterEntity();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -361,6 +361,15 @@ void ModelSystem::updateAsyncAssetLoading() {
   // eventually settle
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
 
+  // Get the collision system to add collidables
+  auto collisionSystem =
+  ecs->getSystem<CollisionSystem>(
+      "updateAsyncAssetLoading");
+  if (collisionSystem == nullptr) {
+    spdlog::warn("Failed to get collision system when loading model");
+    // TODO: should we throw an exception here?
+  }
+
   for (const auto& [guid, asset] : m_mapszoAssets) {
     populateSceneWithAsyncLoadedAssets(asset.get());
 
@@ -395,23 +404,12 @@ void ModelSystem::updateAsyncAssetLoading() {
       continue;
     }
 
-    auto collisionSystem =
-        ecs->getSystem<CollisionSystem>(
-            "updateAsyncAssetLoading");
-    if (collisionSystem == nullptr) {
-      spdlog::warn("Failed to get collision system when loading model");
-      continue;
-    }
-
     // if its 'done' loading, we need to create our large AABB collision
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
     if (asset->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(guid)) {
-      // I don't think this needs to become a message; as an async load
-      // gives us un-deterministic throughput; it can't be replicated with a
-      // messaging structure, and we have to wait till the load is done.
+        !collisionSystem->hasEntity(guid)) {
       collisionSystem->vAddCollidable(asset.get());
     }
   }
@@ -598,6 +596,7 @@ void ModelSystem::vOnInitSystem() {
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
 
   // ChangeTranslationByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeTranslationByGUID");
@@ -619,18 +618,14 @@ void ModelSystem::vOnInitSystem() {
 
           // change stuff.
           transform->SetPosition(position);
-
           EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                model);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
       });
 
   // ChangeRotationByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeRotationByGUID");
@@ -653,18 +648,14 @@ void ModelSystem::vOnInitSystem() {
 
           // change stuff.
           transform->SetRotation(rotation);
-
           EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                model);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
       });
 
   // ChangeScaleByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeScaleByGUID");
@@ -686,12 +677,7 @@ void ModelSystem::vOnInitSystem() {
 
           // change stuff.
           transform->SetScale(values);
-
           EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                model);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");

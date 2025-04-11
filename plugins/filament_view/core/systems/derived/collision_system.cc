@@ -120,7 +120,6 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
     if (originalCollidable != nullptr &&
         originalCollidable->GetShouldMatchAttachedObject()) {
-      originalCollidable->SetCenterPoint(ourTransform->GetPosition());
 
       originalCollidable->SetShapeType(ShapeType::Cube);
       originalCollidable->SetExtentsSize(ourAABB.extent());
@@ -160,6 +159,11 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   const auto oEntity = std::make_shared<Entity>(oEntityManager.create());
 
   newShape->bInitAndCreateShape(engine, oEntity);
+
+  // Set wireframe parent
+  /// TODO: set wireframe parent
+  
+
   poFilamentScene->addEntity(*oEntity);
 
   // now store in map.
@@ -229,9 +233,13 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     //    continue; // Skip if layers don't match
     // }
 
+    // Get the transform of the collidable
+    const auto entityTransform = std::dynamic_pointer_cast<BaseTransform>(
+        entity->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>()));
+
     // Perform intersection test with the ray
     if (filament::math::float3 hitLocation;
-        collidable->bDoesIntersect(rayCast, hitLocation)) {
+        collidable->bDoesIntersect(rayCast, hitLocation, entityTransform)) {
       // If there is an intersection, create a HitResult
       HitResult hitResult;
       hitResult.guid_ = entity->GetGuid();

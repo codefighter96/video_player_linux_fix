@@ -27,7 +27,7 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 Collidable::Collidable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
-      m_f3Position({0}),
+      m_f3StaticPosition({0}),
       m_eShapeType(ShapeType::Cube),
       _extentSize({1}) {
   // Check if the key exists and if the value is an EncodableMap
@@ -57,9 +57,9 @@ Collidable::Collidable(const flutter::EncodableMap& params)
           kCollidableExtents, &_extentSize, params,
           filament::math::float3(1.0f, 1.0f, 1.0f));
 
-      // Deserialize the static flag, defaulting to 'true'
+      // Deserialize the static flag, defaulting to 'false'
       Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic,
-                                              params, true);
+                                              params, false);
 
       if (!m_bShouldMatchAttachedObject) {
         // Deserialize the shape type, defaulting to some default ShapeType
@@ -78,17 +78,17 @@ Collidable::Collidable(const flutter::EncodableMap& params)
     spdlog::error("Collidable parameter not found or is of incorrect type.");
   }
 
-  if (m_bIsStatic) {
-    Deserialize::DecodeParameterWithDefault(kPosition,
-                                            &m_f3Position, params,
-                                            filament::math::float3(0, 0, 0));
-  }
+  // if (m_bIsStatic) {
+  //   Deserialize::DecodeParameterWithDefault(kPosition,
+  //                                           &m_f3StaticPosition, params,
+  //                                           filament::math::float3(0, 0, 0));
+  // }
 
-  if (!m_bShouldMatchAttachedObject) {
-    Deserialize::DecodeParameterWithDefault(kPosition, &_extentSize,
-                                            params,
-                                            filament::math::float3(1, 1, 1));
-  }
+  // if (!m_bShouldMatchAttachedObject) {
+  //   Deserialize::DecodeParameterWithDefault(kPosition, &_extentSize,
+  //                                           params,
+  //                                           filament::math::float3(1, 1, 1));
+  // }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -99,9 +99,9 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Is Static: {}", m_bIsStatic);
 
   if (m_bIsStatic) {
-    spdlog::debug(tabPrefix + "Center Point: x={}, y={}, z={}",
-                  m_f3Position.x, m_f3Position.y,
-                  m_f3Position.z);
+    spdlog::debug(tabPrefix + "Static Position: x={}, y={}, z={}",
+                  m_f3StaticPosition.x, m_f3StaticPosition.y,
+                  m_f3StaticPosition.z);
   }
 
   // Log the collision layer and mask
@@ -124,14 +124,21 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 
 ////////////////////////////////////////////////////////////////////////////
 bool Collidable::bDoesIntersect(const Ray& ray,
-                                filament::math::float3& hitPosition) const {
+                                filament::math::float3& hitPosition,
+                                const std::shared_ptr<BaseTransform>& transform
+                              ) const {
   if (!GetIsEnabled()) {
     return false;
   }
 
+  // TODO: implement static colliders
+  if(m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
+
   // Extract relevant data
-  const filament::math::float3& center = m_f3Position;
-  const filament::math::float3& extents = _extentSize;
+  const filament::math::float3& center = m_bIsStatic ?
+      m_f3StaticPosition : transform->GetPosition();
+  const filament::math::float3& scale = transform->GetScale();
+  const filament::math::float3& extents = _extentSize * scale;
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
 

@@ -18,6 +18,7 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/base/component.h>
+#include <core/components/derived/basetransform.h>
 #include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
 
@@ -33,8 +34,8 @@ class Collidable : public Component {
  public:
   Collidable()
       : Component(std::string(__FUNCTION__)),
-        m_bIsStatic(true),
-        m_f3Position({0.0f, 0.0f, 0.0f}),
+        m_bIsStatic(false),
+        m_f3StaticPosition({0.0f, 0.0f, 0.0f}),
         m_nCollisionLayer(0),
         m_nCollisionMask(0xFFFFFFFF),
         m_bShouldMatchAttachedObject(false),
@@ -54,9 +55,6 @@ class Collidable : public Component {
   [[nodiscard]] filament::math::float3 GetExtentsSize() const {
     return _extentSize;
   }
-  [[nodiscard]] filament::math::float3 GetCenterPoint() const {
-    return m_f3Position;
-  }
 
   [[nodiscard]] bool GetIsEnabled() const { return m_bIsEnabled; }
 
@@ -71,9 +69,6 @@ class Collidable : public Component {
   void SetExtentsSize(const filament::math::float3& value) {
     _extentSize = value;
   }
-  void SetCenterPoint(const filament::math::float3& value) {
-    m_f3Position = value;
-  }
 
   void SetEnabled(bool value) { m_bIsEnabled = value; }
 
@@ -81,7 +76,9 @@ class Collidable : public Component {
 
   [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
   bool bDoesIntersect(const Ray& ray,
-                      ::filament::math::float3& hitPosition) const;
+                      ::filament::math::float3& hitPosition,
+                      const std::shared_ptr<BaseTransform>& transform
+                    ) const;
   
   [[nodiscard]] Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
@@ -90,10 +87,10 @@ class Collidable : public Component {
  private:
   // If true, the object is static and won't sync move with its renderable
   // object once created in place.
-  bool m_bIsStatic = true;
+  bool m_bIsStatic = false;
   // if this isStatic, then we need to copy this on creation
   // from basetransform property
-  filament::math::float3 m_f3Position;
+  filament::math::float3 m_f3StaticPosition;
 
   // Layer for collision filtering
   // Not actively used in first iteration, but should be in future.
