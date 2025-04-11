@@ -92,11 +92,11 @@ class BaseTransform : public Component {
      *   Local
      */
     // Getters
-    [[nodiscard]] EntityGUID GetParentId() const {
+    [[nodiscard]] inline EntityGUID GetParentId() const {
       return _parentId;
     }
 
-    [[nodiscard]] const filament::math::float3& GetPosition() const {
+    [[nodiscard]] inline const filament::math::float3& GetPosition() const {
       return local.position;
     }
 
@@ -104,12 +104,12 @@ class BaseTransform : public Component {
       return local.scale;
     }
 
-    [[nodiscard]] const filament::math::quatf& GetRotation() const {
+    [[nodiscard]] inline const filament::math::quatf& GetRotation() const {
       return local.rotation;
     }
 
     // Setters
-    void SetPosition(const filament::math::float3& position) {
+    inline void SetPosition(const filament::math::float3& position) {
       local.position = position;
       _isDirty = true;
     }
@@ -119,13 +119,13 @@ class BaseTransform : public Component {
       _isDirty = true;
     }
 
-    void SetRotation(const filament::math::quatf& rotation) {
+    inline void SetRotation(const filament::math::quatf& rotation) {
       local.rotation = rotation;
       _isDirty = true;
     }
 
     /// Sets all transform values at once. All params are optional (nullptr)
-    void SetTransform(const filament::math::float3* position = nullptr,
+    inline void SetTransform(const filament::math::float3* position = nullptr,
                       const filament::math::float3* scale = nullptr,
                       const filament::math::quatf* rotation = nullptr) {
       if (position) {
@@ -149,11 +149,11 @@ class BaseTransform : public Component {
      *   Global
      */
     // Getters
-    [[nodiscard]] bool IsDirty() const {
+    [[nodiscard]] inline bool IsDirty() const {
       return _isDirty;
     }
 
-    [[nodiscard]] const filament::math::mat4f& GetGlobalMatrix() const {
+    [[nodiscard]] inline const filament::math::mat4f& GetGlobalMatrix() const {
       return global.matrix;
     }
 
