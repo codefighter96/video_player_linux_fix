@@ -240,10 +240,6 @@ void ShapeSystem::vOnInitSystem() {
 
           EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
-
-          // and change the collision
-          vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                entity);
         }
 
         SPDLOG_TRACE("SetShapeTransform Complete");
@@ -294,10 +290,6 @@ void ShapeSystem::vOnInitSystem() {
 
           EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
-
-          // and change the collision
-          vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                entity);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
@@ -329,10 +321,6 @@ void ShapeSystem::vOnInitSystem() {
 
           EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
-
-          // and change the collision
-          vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                entity);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
@@ -370,10 +358,6 @@ void ShapeSystem::vOnInitSystem() {
 
           EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
                                             *baseTransform);
-
-          // and change the collision
-          vRemoveAndReaddShapeToCollisionSystem(ourEntity->first,
-                                                entity);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");
