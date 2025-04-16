@@ -117,7 +117,12 @@ class ECSManager {
     */
   void vRouteMessage(const ECSMessage& msg) {
     std::unique_lock<std::mutex> lock(vecSystemsMutex);
-    for (const auto& system : m_vecSystems) {
+    // for (const auto& system : _systems) {
+    //   system->vSendMessage(msg);
+    // }
+
+    // _systems is a map
+    for (auto& [_, system] : _systems) {
       system->vSendMessage(msg);
     }
   }
@@ -145,7 +150,7 @@ class ECSManager {
   
     std::unique_lock lock(vecSystemsMutex);
     const size_t systemTypeID = ECSystem::StaticGetTypeID<Target>();
-    for (const auto& system : m_vecSystems) {
+    for (auto& [_, system] : _systems) {
       if (system->GetTypeID() == systemTypeID) {
         // Perform dynamic pointer cast to the desired type
         return std::dynamic_pointer_cast<Target>(system);
@@ -200,21 +205,12 @@ class ECSManager {
   ~ECSManager();
 
   static ECSManager* m_poInstance;
+  std::map<std::string, std::any> m_mapConfigurationValues;
 
   void vSetupThreadingInternals();
 
   void MainLoop();
-  std::atomic<bool> m_bIsRunning{false};
-  std::atomic<bool> m_bSpawnedThreadFinished{false};
 
-  std::thread filament_api_thread_;
-  pthread_t filament_api_thread_id_{};
-  std::unique_ptr<asio::io_context> io_context_;
-  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
-  std::unique_ptr<asio::io_context::strand> strand_;
-  std::thread loopThread_;
-
-  std::atomic<bool> isHandlerExecuting{false};
 
   //
   //  Entity
@@ -223,15 +219,33 @@ class ECSManager {
   std::mutex _entitiesMutex;
 
   //
+  //  Component
+  //
+
+  //
   //  System
   //
 
-  std::vector<std::shared_ptr<ECSystem>> m_vecSystems;
+  std::map<TypeID, std::shared_ptr<ECSystem>> _systems;
   std::mutex vecSystemsMutex;
 
-  std::map<std::string, std::any> m_mapConfigurationValues;
+  //
+  // Threading
+  //
+
+  std::atomic<bool> m_bIsRunning{false};
+  std::atomic<bool> m_bSpawnedThreadFinished{false};
+  std::atomic<bool> isHandlerExecuting{false};
+
+  std::thread filament_api_thread_;
+  pthread_t filament_api_thread_id_{};
+  std::unique_ptr<asio::io_context> io_context_;
+  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
+  std::unique_ptr<asio::io_context::strand> strand_;
+  std::thread loopThread_;
 
   std::map<std::string, int> m_mapOffThreadCallers;
+
 
   RunState m_eCurrentState;
 };

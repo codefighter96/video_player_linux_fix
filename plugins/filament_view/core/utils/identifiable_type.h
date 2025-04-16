@@ -17,6 +17,9 @@
 
 #include <cxxabi.h>
 
+/// @brief TypeID represents the ID of a type.
+using TypeID = size_t;
+
 /** Base class that keeps track of subclass IDs and provides a way to
   * identify them by type ID at runtime.
   * Simplified implementation that doesn't require subclasses to override anything 

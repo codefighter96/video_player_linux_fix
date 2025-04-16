@@ -275,13 +275,12 @@ void ECSManager::vInitSystems() {
   // that you could change up the routine, but if you do
   // it needs to run on the main thread.
   // asio::post(*ECSManager::GetInstance()->GetStrand(), [&] {
-  for (const auto& system : m_vecSystems) {
+  for (auto& [systemId, system] : _systems) {
     try {
-      spdlog::debug("Initializing system {} (ID {}) at address {}",
-                    system->GetTypeName(), system->GetTypeID(), static_cast<void*>(system.get()));
+      spdlog::debug("Initializing system {} ({}) at address {}",
+        system->GetTypeName(), systemId, static_cast<void*>(system.get()));
       
       system->vInitSystem(*const_cast<const ECSManager*>(this));
-
     } catch (const std::exception& e) {
       spdlog::error("Exception caught in vInitSystems: {}", e.what());
     }
@@ -296,37 +295,55 @@ void ECSManager::vInitSystems() {
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   std::unique_lock lock(vecSystemsMutex);
-  spdlog::debug("Adding system at address {}",
-                static_cast<void*>(system.get()));
-  m_vecSystems.push_back(std::move(system));
+  const TypeID systemId = system->GetTypeID();
+
+  // Check if the system is already registered
+  if (_systems.find(systemId) != _systems.end()) {
+    throw std::runtime_error(
+        fmt::format("System {} ({}) is already registered", system->GetTypeName(),
+                    systemId));
+  }
+
+  spdlog::debug("Adding system {} ({}) at address {}",
+    system->GetTypeName(), systemId, static_cast<void*>(system.get()));
+
+  // _systems is a map
+  _systems.insert({systemId, system});
 }
 
 void ECSManager::vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
   std::unique_lock lock(vecSystemsMutex);
-  auto it = std::remove(m_vecSystems.begin(), m_vecSystems.end(), system);
-  if (it != m_vecSystems.end()) {
-    m_vecSystems.erase(it, m_vecSystems.end());
+  
+  const TypeID systemId = system->GetTypeID();
+  auto it = _systems.find(systemId);
+  if (it != _systems.end()) {
+    spdlog::debug("Removing system {} ({}) at address {}",
+      system->GetTypeName(), systemId, static_cast<void*>(system.get()));
+    _systems.erase(it);
+  } else {
+    spdlog::error("System {} ({}) not found in the map",
+                  system->GetTypeName(), systemId);
   }
 }
 
 void ECSManager::vRemoveAllSystems() {
   std::unique_lock lock(vecSystemsMutex);
-  m_vecSystems.clear();
+  _systems.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::vUpdate(const float deltaTime) {
   // Copy systems under mutex
-  std::vector<std::shared_ptr<ECSystem>> systemsCopy;
+  std::map<TypeID, std::shared_ptr<ECSystem>> systemsCopy;
   {
     std::unique_lock lock(vecSystemsMutex);
 
-    // Copy the systems vector
-    systemsCopy = m_vecSystems;
+    // Copy the systems map
+    systemsCopy = _systems;
   }  // Mutex is unlocked here
 
   // Iterate over the copy without holding the mutex
-  for (const auto& system : systemsCopy) {
+  for (auto& [id, system] : systemsCopy) {
     if (system) {
       system->vProcessMessages();
       system->vUpdate(deltaTime);
@@ -338,11 +355,11 @@ void ECSManager::vUpdate(const float deltaTime) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::DebugPrint() const {
-  for (const auto& system : m_vecSystems) {
+  for (auto& [id, system] : _systems) {
     spdlog::debug(
-        "ECSManager:: DebugPrintProcessing system at address {}, "
+        "[{}] system {} at address {}, "
         "use_count={}",
-        static_cast<void*>(system.get()), system.use_count());
+        __FUNCTION__, system->GetTypeName(), static_cast<void*>(system.get()), system.use_count());
   }
 }
 
@@ -353,9 +370,21 @@ void ECSManager::vShutdownSystems() {
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
     // systems
-    for (auto it = m_vecSystems.rbegin(); it != m_vecSystems.rend(); ++it) {
-      (*it)->vShutdownSystem();
+    // for (auto& [id, system] : _systems) {
+    //   (*it)->vShutdownSystem();
+    // }
+    for (auto it = _systems.rbegin(); it != _systems.rend(); ++it) {
+      const auto& system = it->second;
+      if (system) {
+        spdlog::debug("Shutting down system {} ({}) at address {}",
+                      system->GetTypeName(), it->first,
+                      static_cast<void*>(system.get()));
+        system->vShutdownSystem();
+      } else {
+        spdlog::error("Encountered null system pointer!");
+      }
     }
+
 
     m_eCurrentState = Shutdown;
   });
