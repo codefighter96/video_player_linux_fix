@@ -35,6 +35,12 @@ class RenderableEntityObject : public EntityObject {
   RenderableEntityObject() : EntityObject() {}
   explicit RenderableEntityObject(const flutter::EncodableMap& params)
       : EntityObject(params) {}
+
+  explicit RenderableEntityObject(const std::string& name)
+  : EntityObject(name) {}
+
+  explicit RenderableEntityObject(const EntityGUID guid)
+  : EntityObject(guid) {}
   explicit RenderableEntityObject(const std::string& name,
                                   const EntityGUID guid)
       : EntityObject(name, guid) {}

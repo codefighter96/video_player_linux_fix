@@ -31,6 +31,8 @@ class NonRenderableEntityObject : public EntityObject {
  public:
   explicit NonRenderableEntityObject(const flutter::EncodableMap& params)
       : EntityObject(params) {}
+  explicit NonRenderableEntityObject(const std::string& name)
+      : EntityObject(name) {}
   explicit NonRenderableEntityObject(const std::string& name,
                                      const EntityGUID guid)
       : EntityObject(name, guid) {}

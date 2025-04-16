@@ -78,11 +78,12 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   // make the BaseShape Object
   shapes::BaseShape* newShape = nullptr;
+  std::string colliderBoxName = collidable->GetName() + " (collider)";
   if (dynamic_cast<Model*>(collidable)) {
     const auto ourModelObject = dynamic_cast<Model*>(collidable);
     const auto ourAABB = ourModelObject->poGetBoundingBox();
 
-    newShape = new shapes::Cube();
+    newShape = new shapes::Cube(colliderBoxName);
     newShape->m_bDoubleSided = false;
     newShape->type_ = ShapeType::Cube;
 
@@ -124,15 +125,15 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     }
   } else if (dynamic_cast<shapes::Cube*>(collidable)) {
     const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
-    newShape = new shapes::Cube();
+    newShape = new shapes::Cube(colliderBoxName);
     originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
     const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
-    newShape = new shapes::Sphere();
+    newShape = new shapes::Sphere(colliderBoxName);
     originalObject->CloneToOther(*newShape);
   } else if (dynamic_cast<shapes::Plane*>(collidable)) {
     const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
-    newShape = new shapes::Plane();
+    newShape = new shapes::Plane(colliderBoxName);
     originalObject->CloneToOther(*newShape);
   }
 

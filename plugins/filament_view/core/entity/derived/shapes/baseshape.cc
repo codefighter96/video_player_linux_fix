@@ -42,24 +42,8 @@ using filament::math::short4;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-BaseShape::BaseShape()
-    : RenderableEntityObject(),
-      m_poVertexBuffer(nullptr),
-      m_poIndexBuffer(nullptr),
-      type_(ShapeType::Unset),
-      m_f3Normal(0, 0, 0),
-      m_poMaterialInstance(
-          Resource<filament::MaterialInstance*>::Error("Unset")) {}
-
-////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const flutter::EncodableMap& params)
-    : RenderableEntityObject(params),
-      m_poVertexBuffer(nullptr),
-      m_poIndexBuffer(nullptr),
-      type_(ShapeType::Unset),
-      m_f3Normal(0, 0, 0),
-      m_poMaterialInstance(
-          Resource<filament::MaterialInstance*>::Error("Unset")) {
+    : RenderableEntityObject(params) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
   auto oTransform = std::make_shared<BaseTransform>(params);

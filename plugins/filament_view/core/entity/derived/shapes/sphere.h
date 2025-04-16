@@ -27,8 +27,19 @@ namespace shapes {
 
 class Sphere : public BaseShape {
  public:
+  // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
+  // Sphere() :
+  //   BaseShape() {}
+  /// @brief Constructor for Sphere with a name. Generates a unique GUID.
+  explicit Sphere(std::string name) :
+    BaseShape(name) {}
+  /// @brief Constructor for Sphere with GUID. Name is empty.
+  explicit Sphere(EntityGUID guid) :
+    BaseShape(guid) {}
+  /// @brief Constructor for Sphere with a name and GUID.
+  explicit Sphere(std::string name, EntityGUID guid) :
+    BaseShape(name, guid) {}
   explicit Sphere(const flutter::EncodableMap& params);
-  Sphere();
   ~Sphere() override = default;
 
   // Disallow copy and assign.
@@ -46,8 +57,8 @@ class Sphere : public BaseShape {
 
   void createSingleSidedSphere(::filament::Engine* engine_);
 
-  int stacks_;
-  int slices_;
+  int stacks_ = 20;
+  int slices_ = 20;
 
   std::vector<::filament::math::float3> vertices_;
   std::vector<::filament::math::float3> normals_;

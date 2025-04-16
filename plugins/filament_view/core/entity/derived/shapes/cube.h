@@ -28,8 +28,19 @@ namespace shapes {
 
 class Cube : public BaseShape {
  public:
+  // /// @brief Constructor for Cube. Generates a GUID and has an empty name.
+  // Cube() :
+  //   BaseShape() {}
+  /// @brief Constructor for Cube with a name. Generates a unique GUID.
+  explicit Cube(std::string name) :
+    BaseShape(name) {}
+  /// @brief Constructor for Cube with GUID. Name is empty.
+  explicit Cube(EntityGUID guid) :
+    BaseShape(guid) {}
+  /// @brief Constructor for Cube with a name and GUID.
+  explicit Cube(std::string name, EntityGUID guid) :
+    BaseShape(name, guid) {}
   explicit Cube(const flutter::EncodableMap& params);
-  Cube() = default;
   ~Cube() override = default;
 
   // Disallow copy and assign.
