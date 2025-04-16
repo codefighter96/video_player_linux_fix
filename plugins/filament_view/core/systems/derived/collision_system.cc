@@ -23,6 +23,7 @@
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/ecs.h>
 #include <filament/Scene.h>
+#include <filament/TransformManager.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -159,11 +160,23 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
 
   newShape->bInitAndCreateShape(engine, oEntity);
 
-  // Set wireframe parent
-  /// TODO: set wireframe parent
-  
-
   poFilamentScene->addEntity(*oEntity);
+  newShape->_fEntity = oEntity;
+
+  // TODO: just no.
+  spdlog::debug("Setting collidable wireframe parent");
+  auto& tm = engine->getTransformManager();
+  spdlog::debug("getTransformManager done");
+  spdlog::debug("collidable ({}), _fEntity at mem {}", collidable->GetGuid(),
+  reinterpret_cast<std::uintptr_t>(collidable->_fEntity.get()));
+  /// TODO: THIS IS THE BUG! Parent has no _fEntity
+  const auto parentInstance = tm.getInstance(*(collidable->_fEntity.get()));
+  spdlog::debug("parentInstance = getInstance done");
+  const auto childInstance = tm.getInstance(*(oEntity.get()));
+  spdlog::debug("childInstance = getInstance done");
+  tm.setParent(childInstance, parentInstance);
+  spdlog::debug("setParent done");
+  spdlog::debug("Setting collidable wireframe parent done");
 
   // now store in map.
   collidablesDebugDrawingRepresentation_.insert(

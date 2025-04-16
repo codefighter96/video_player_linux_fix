@@ -431,13 +431,33 @@ void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
 ////////////////////////////////////////////////////////////////////////////
 filament::math::float3 EntityTransforms::oGetTranslationFromTransform(
     const filament::math::mat4f& transform) {
+  // The last column is the translation vector.
   return transform[3].xyz;
+}
+
+float lengthhh(const filament::math::float3& v) {
+  // Vector3 length is calculated as the square root of the sum of squares of its components.
+  return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::float3 EntityTransforms::oGetScaleFromTransform(
     const filament::math::mat4f& transform) {
-  throw std::runtime_error("Not implemented");
+  // Extract the scale from the transformation matrix:
+  // The scale is the length of the basis vectors
+  // (the first three columns of the matrix).
+  const filament::math::float3 scale = {
+      lengthhh(transform[0].xyz),
+      lengthhh(transform[1].xyz),
+      lengthhh(transform[2].xyz)};
+
+  // Normalize the scale vector
+  const float length = lengthhh(scale);
+  if (length > 0.0f) {
+    return scale;
+  } else {
+    return filament::math::float3(1.0f, 1.0f, 1.0f);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////

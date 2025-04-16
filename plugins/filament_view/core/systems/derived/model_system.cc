@@ -18,18 +18,25 @@
 #include "filament_system.h"
 
 #include <core/components/derived/collidable.h>
+#include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/file_utils.h>
 #include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
 #include <filament/Scene.h>
-#include <filament/filament/RenderableManager.h>
 #include <filament/gltfio/ResourceLoader.h>
 #include <filament/gltfio/TextureProvider.h>
 #include <filament/gltfio/materials/uberarchive.h>
 #include <filament/utils/Slice.h>
+#include <filament/TransformManager.h>
 #include <algorithm>  // for max
 #include <asio/post.hpp>
+
+// rapidjson
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/rapidjson.h>
 
 #include "animation_system.h"
 
@@ -75,6 +82,161 @@ filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
   return iter->second->getAsset();
 }
 
+bool ModelSystem::setupRenderable(
+  const Entity entity,
+  const Model* model,
+  filament::gltfio::FilamentAsset* asset,
+  filament::RenderableManager& rcm,
+  utils::EntityManager& em
+) {
+
+  // spdlog::debug("Entity ({}){} has extras: {}", entity.getId(), name, extras);
+
+  const auto ri = rcm.getInstance(entity);
+  const auto commonRenderable = model->GetCommonRenderable();
+  rcm.setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
+  rcm.setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
+  rcm.setScreenSpaceContactShadows(ri, false);
+
+  // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
+  const char* extras = asset->getExtras(entity);
+  return extras != nullptr;
+}
+
+
+void ModelSystem::setupCollidableChild(
+  const Entity entity,
+  const Model* model,
+  filament::gltfio::FilamentAsset* asset,
+  filament::RenderableManager& rcm,
+  utils::EntityManager& em,
+  filament::TransformManager& tm
+) {
+  // Get name
+  const char* name = asset->getName(entity);
+  if(name == nullptr) {
+    name = "(null)";
+  }
+  // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
+  const char* extras = asset->getExtras(entity);
+  if(extras == nullptr) {
+    extras = "{}";
+  }
+
+  // if extras has a "fs_touchEvent" property, get the value
+  if(extras != nullptr) {
+    // parse using RapidJSON
+    rapidjson::Document doc;
+    doc.Parse(extras);
+    if(doc.HasParseError()) {
+      spdlog::error(rapidjson::GetParseError_En(doc.GetParseError()));
+      throw std::runtime_error(
+          "[ModelSystem::setupRenderable] Failed to parse extras JSON");
+    }
+
+    constexpr char kTouchEventProp[] = "customDataProp";
+    if(doc.HasMember(kTouchEventProp)) {
+      const auto& touchEvent = doc[kTouchEventProp];
+      // type: string (event name)
+      const auto& type = touchEvent.GetString();
+      spdlog::debug("{} type: {}", kTouchEventProp, type);
+
+      // get aabb
+      const auto ri = rcm.getInstance(entity);
+      const filament::Box aabb = rcm.getAxisAlignedBoundingBox(ri);
+
+      // get center
+      const filament::math::float3 center = aabb.center;
+
+      // check if is a perfect cube (with epsilon = 0.01)
+      constexpr float epsilon = 0.01f;
+      const float sizeX = aabb.halfExtent.x * 2;
+      const float sizeY = aabb.halfExtent.y * 2;
+      const float sizeZ = aabb.halfExtent.z * 2;
+      const bool isCube = std::abs(sizeX - sizeY) < epsilon &&
+                          std::abs(sizeY - sizeZ) < epsilon;
+      spdlog::debug("isCube: {}", isCube);
+
+      spdlog::debug("Hello????");
+
+      // create a child entityobject
+      const EntityGUID parentGuid = model->GetGuid();
+      spdlog::debug("Parent entity: {}", parentGuid);
+      const std::string childName = std::string(name);
+      spdlog::debug("Created name");
+      std::shared_ptr<EntityObject> childEntity =
+          std::make_shared<NonRenderableEntityObject>(childName);
+      spdlog::debug("Created child entityobject: {}", childName);
+      childEntity->_fEntity = std::make_shared<utils::Entity>(em.create());
+
+      spdlog::debug("Created entityobject");
+
+      const int rootEntityId = 0;
+      filament::math::mat4f localMatrix = filament::math::mat4f();
+      auto en = *childEntity->_fEntity.get();
+      while(en.getId() != rootEntityId) {
+        spdlog::debug("Getting transform for entity {}", en.getId());
+
+        const auto instance = tm.getInstance(en);
+        // localMatrix = filament::math::mat4f::multiply(tm.getTransform(instance), localMatrix);
+        en = tm.getParent(instance);
+      }
+
+      spdlog::debug("yayyyyY!");
+
+
+      // attach transform
+      auto transform = std::make_shared<BaseTransform>();
+      transform->SetPosition(center);
+      transform->SetRotation(filament::math::quatf(0, 0, 0, 1));
+      transform->SetScale(filament::math::float3(1, 1, 1));
+      childEntity->vAddComponent(transform);
+
+      spdlog::debug("Added transform");
+
+      // attach collidable
+      auto collidable = std::make_shared<Collidable>();
+      collidable->SetIsStatic(false);
+      collidable->SetExtentsSize(filament::math::float3(sizeX, sizeY, sizeZ));
+      collidable->SetShapeType(isCube ? ShapeType::Cube :
+                                        ShapeType::Sphere);
+      childEntity->vAddComponent(collidable);
+
+      spdlog::debug("Added collidable");
+
+      // insert as child
+      spdlog::debug("Adding child entity {} to model: {}",
+                  childEntity->GetGuid(), parentGuid
+      );
+      
+      EntityTransforms::vApplyTransform(
+        *(childEntity->_fEntity.get()),
+        transform->GetRotation(),
+        transform->GetScale(),
+        transform->GetPosition(),
+        model->_fEntity.get()
+      );
+      childEntity->vRegisterEntity();
+
+      spdlog::debug("Child object '{}' added to model '{}'",
+                  childEntity->GetName(), model->GetName());
+      transform->DebugPrint("  ");
+      collidable->DebugPrint("  ");
+
+      spdlog::debug("Transform applied!");
+
+      // add to collision system
+      const auto collisionSystem =
+          ecs->getSystem<CollisionSystem>(
+              "setupRenderable");
+
+      // collisionSystem->vAddCollidable(childEntity.get());
+
+      spdlog::debug("Collidable added!");
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
                                const std::vector<uint8_t>& buffer,
@@ -95,6 +257,11 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
           "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
   auto& rcm = engine->getRenderableManager();
+  auto& em = engine->getEntityManager();
+  auto& tm = engine->getTransformManager();
+
+  const auto instancedModelData =
+      m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath());
 
   // Note if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
@@ -102,30 +269,45 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   filament::gltfio::FilamentAsset* asset = nullptr;
   filament::gltfio::FilamentInstance* assetInstance = nullptr;
 
-  const auto instancedModelData =
-      m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath());
+  std::vector<Entity> collidableChildren = {};
+
+  spdlog::debug("ModelSystem::loadModelGlb: {}", oOurModel->szGetAssetPath());
   if (instancedModelData != m_mapInstanceableAssets_.end()) {
     // we have the model already, use it.
-    assetInstance = assetLoader_->createInstance(instancedModelData->second);
+    asset = instancedModelData->second;
+    assetInstance = assetLoader_->createInstance(asset);
 
     const Entity* instanceEntities = assetInstance->getEntities();
     const size_t instanceEntityCount = assetInstance->getEntityCount();
 
-    for (size_t i = 0; i < instanceEntityCount; i++) {
-      const Entity entity = instanceEntities[i];
-
-      // Check if this entity has a Renderable component
-      if (rcm.hasComponent(entity)) {
-        const auto ri = rcm.getInstance(entity);
-
-        rcm.setCastShadows(
-            ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-        rcm.setReceiveShadows(
-            ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-        rcm.setScreenSpaceContactShadows(ri, false);
+    for (size_t i = 0; i < instanceEntityCount; ++i) {
+      const auto entity = instanceEntities[i];
+      filamentSystem->getFilamentScene()->addEntity(entity);
+      const bool hasCollidableChild = setupRenderable(entity, oOurModel.get(), asset, rcm, em);
+      if (hasCollidableChild) {
+        collidableChildren.push_back(entity);
       }
 
-      filamentSystem->getFilamentScene()->addEntity(entity);
+      // print name
+      const char* name = asset->getName(entity);
+      if(name == nullptr) {
+        name = "(null)";
+      }
+      spdlog::debug("Entity ({}){}", entity.getId(), name);
+
+      // print position, scale, rotation
+      const auto instance = tm.getInstance(entity);
+      const auto transform = tm.getWorldTransform(instance);
+      const auto position = EntityTransforms::oGetTranslationFromTransform(transform);
+      const auto scale = EntityTransforms::oGetScaleFromTransform(transform);
+      // const auto rotation = EntityTransforms::oGetRotationFromTransform(transform);
+      spdlog::debug("Position: ({}, {}, {})", position.x, position.y, position.z);
+      spdlog::debug("Scale: ({}, {}, {})", scale.x, scale.y, scale.z);
+      // spdlog::debug("Rotation: ({}, {}, {}, {})", rotation.x, rotation.y, rotation.z, rotation.w);
+
+      // print parent id
+      const auto parent = tm.getParent(instance);
+      spdlog::debug("Parent: {}", parent.getId());
     }
 
     filamentSystem->getFilamentScene()->addEntity(assetInstance->getRoot());
@@ -150,22 +332,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
     } else {
       asset->releaseSourceData();
     }
-
-    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                         asset->getRenderableEntityCount()};
-
-    for (const auto entity : listOfRenderables) {
-      const auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(
-          ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-      rcm.setReceiveShadows(
-          ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-      // Investigate this more before making it a property on common renderable
-      // component.
-      rcm.setScreenSpaceContactShadows(ri, false);
-    }
-
-
+    
     // get primary instance
     assetInstance = asset->getInstance();
     if(assetInstance == nullptr) {
@@ -180,9 +347,13 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   assert(assetInstance != nullptr);
 
   EntityTransforms::vApplyTransform(assetInstance->getRoot(), *oOurModel->GetBaseTransform());
-
   std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
   vSetupAssetThroughoutECS(sharedPtr, asset, assetInstance);
+
+  // Set up collidable children
+  for (const auto entity : collidableChildren) {
+    setupCollidableChild(entity, sharedPtr.get(), asset, rcm, em, tm);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -208,14 +379,14 @@ void ModelSystem::loadModelGltf(
   for (const auto uri : uris) {
     (void)uri;
     SPDLOG_DEBUG("resource uri: {}", uri);
-#if 0   // TODO
+    #if 0   // TODO
               auto resourceBuffer = callback(uri);
               if (!resourceBuffer) {
                   this->asset_ = nullptr;
                   return;
               }
               resourceLoader_->addResourceData(uri, resourceBuffer);
-#endif  // TODO
+    #endif  // TODO
   }
   resourceLoader_->asyncBeginLoad(asset);
   // modelViewer->setAnimator(asset->getInstance()->getAnimator());
@@ -227,19 +398,13 @@ void ModelSystem::loadModelGltf(
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
+  auto& em = engine->getEntityManager();
 
   utils::Slice const listOfRenderables{asset->getRenderableEntities(),
                                        asset->getRenderableEntityCount()};
 
   for (const auto entity : listOfRenderables) {
-    const auto ri = rcm.getInstance(entity);
-    rcm.setCastShadows(
-        ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-    rcm.setReceiveShadows(
-        ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-    // Investigate this more before making it a property on common renderable
-    // component.
-    rcm.setScreenSpaceContactShadows(ri, false);
+    setupRenderable(entity, oOurModel.get(), asset, rcm, em);
   }
 
   oOurModel->setAsset(asset);
@@ -297,6 +462,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto& rcm = engine->getRenderableManager();
+  auto& em = engine->getEntityManager();
 
   auto* asset = model->getAsset();
 
@@ -321,19 +487,12 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
     utils::Slice const listOfRenderables{asset->getRenderableEntities(),
                                          asset->getRenderableEntityCount()};
 
-    for (const auto entity : listOfRenderables) {
-      const auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(ri,
-                         model->GetCommonRenderable()->IsCastShadowsEnabled());
-      rcm.setReceiveShadows(
-          ri, model->GetCommonRenderable()->IsReceiveShadowsEnabled());
-      // Investigate this more before making it a property on common renderable
-      // component.
-      rcm.setScreenSpaceContactShadows(ri, false);
-    }
-
     // we won't load the primary asset to render.
     if (!model->bIsPrimaryAssetToInstanceFrom()) {
+      for (const auto entity : listOfRenderables) {
+        setupRenderable(entity, model, asset, rcm, em);
+      }
+
       filamentSystem->getFilamentScene()->addEntities(readyRenderables_,
                                                       maxToPop);
     }

@@ -41,9 +41,20 @@ class BaseShape : public RenderableEntityObject {
   friend class plugin_filament_view::CollisionSystem;
 
  public:
+  /// @brief Constructor for BaseShape. Generates a GUID and has an empty
+  /// name.
+  BaseShape() :
+    RenderableEntityObject() {}
+  /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
+  explicit BaseShape(std::string name) :
+      RenderableEntityObject(name) {}
+  /// @brief Constructor for BaseShape with GUID. Name is empty.
+  explicit BaseShape(EntityGUID guid) :
+      RenderableEntityObject(guid) {}
+  /// @brief Constructor for BaseShape with a name and GUID.
+  BaseShape(std::string name, EntityGUID guid) :
+      RenderableEntityObject(name, guid) {}
   explicit BaseShape(const flutter::EncodableMap& params);
-
-  BaseShape();
 
   ~BaseShape() override;
 
@@ -66,8 +77,8 @@ class BaseShape : public RenderableEntityObject {
   [[nodiscard]] std::shared_ptr<Entity> poGetEntity() { return m_poEntity; }
 
  protected:
-  ::filament::VertexBuffer* m_poVertexBuffer;
-  ::filament::IndexBuffer* m_poIndexBuffer;
+  ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
+  ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
 
   void DebugPrint() const override;
 
@@ -75,7 +86,7 @@ class BaseShape : public RenderableEntityObject {
   // using all the internal variables.
   void vBuildRenderable(::filament::Engine* engine_);
 
-  ShapeType type_{};
+  ShapeType type_ = ShapeType::Unset;
 
   // Components - saved off here for faster
   // lookup, but they're not owned here, but on EntityObject's list.
@@ -84,13 +95,14 @@ class BaseShape : public RenderableEntityObject {
   std::weak_ptr<Collidable> m_poCollidable;
 
   /// direction of the shape rotation in the world space
-  filament::math::float3 m_f3Normal;
+  filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
   /// material to be used for the shape - instantiated from material definition
   /// This should probably be on the entity level as model would use this in
   /// future as well.
-  Resource<filament::MaterialInstance*> m_poMaterialInstance;
+  Resource<filament::MaterialInstance*> m_poMaterialInstance = 
+      Resource<filament::MaterialInstance*>::Error("Unset");
 
-  // TODO: deprecate in favor of EntityObject#_filamentEntity
+  // TODO: deprecate in favor of EntityObject#_fEntity
   std::shared_ptr<utils::Entity> m_poEntity;
 
   // Whether we have winding indexes in both directions.

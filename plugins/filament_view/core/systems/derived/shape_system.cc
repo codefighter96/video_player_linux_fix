@@ -168,7 +168,7 @@ void ShapeSystem::addShapesToScene(
     poFilamentScene->addEntity(*oEntity);
 
     // Save Filament entity ID to our entity
-    shape->_filamentEntity = oEntity;
+    shape->_fEntity = oEntity;
 
     spdlog::trace("Adding entity {} with filament entity {}",
                   shape->GetGuid(), oEntity->getId());

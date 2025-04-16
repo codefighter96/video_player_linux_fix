@@ -143,6 +143,10 @@ class BaseTransform : public Component {
       _isDirty = true;
     }
 
+    inline void SetDirty(bool dirty) {
+      _isDirty = dirty;
+    }
+
 
 
     /*

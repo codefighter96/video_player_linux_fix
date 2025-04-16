@@ -22,6 +22,7 @@
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
 #include <filament/utils/NameComponentManager.h>
+#include <filament/filament/RenderableManager.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <list>
@@ -49,6 +50,23 @@ class ModelSystem : public ECSystem {
   filament::gltfio::FilamentAsset* poFindAssetByGuid(const EntityGUID guid);
 
   void updateAsyncAssetLoading();
+
+  /// Returns whether has extras
+  bool setupRenderable(
+      const Entity entity,
+      const Model* model,
+      filament::gltfio::FilamentAsset* asset,
+      filament::RenderableManager& rcm,
+      utils::EntityManager& em);
+
+  void setupCollidableChild(
+    const Entity entity,
+    const Model* model,
+    filament::gltfio::FilamentAsset* asset,
+    filament::RenderableManager& rcm,
+    utils::EntityManager& em,
+    filament::TransformManager& tm
+  );
 
   std::future<Resource<std::string_view>> loadGlbFromAsset(
       std::shared_ptr<Model> oOurModel,

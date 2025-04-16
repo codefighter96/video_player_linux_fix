@@ -176,14 +176,22 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
   filament::math::float3 aabb;
 
+
+  spdlog::debug("Building shape '{}'({}) with AABB: {}",
+                GetName(), GetGuid(), 0);
+
   // If we have a collidable, we need to set the AABB to its extent size
   // otherwise we use transform's scale
   if (m_poCollidable.lock() != nullptr) {
     const auto collidable = m_poCollidable.lock();
     aabb = collidable->GetExtentsSize();
+    spdlog::debug("Has collidable");
   } else {
     aabb = m_poBaseTransform.lock()->GetScale();
+    spdlog::debug("No collidable, using transform scale");
   }
+
+  spdlog::debug("AABB: x={}, y={}, z={}", aabb.x, aabb.y, aabb.z);
   
 
   if (m_bIsWireframe) {
@@ -221,7 +229,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   if(parentId != kNullGuid) {
     // Get the parent entity object
     auto parentEntity = ecs->getEntity(parentId);
-    auto parentFilamentEntity = parentEntity->_filamentEntity;
+    auto parentFilamentEntity = parentEntity->_fEntity;
 
     EntityTransforms::vApplyTransform(
       *m_poEntity, m_poBaseTransform.lock()->GetRotation(),

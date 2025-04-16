@@ -38,6 +38,7 @@ class HitResult {
 // or spatial tree structure in place that makes this type of work more
 // efficient.
 class CollisionSystem : public ECSystem {
+  friend class ModelSystem;
  public:
   CollisionSystem() = default;
 

@@ -52,10 +52,11 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   friend class AnimationSystem;
   friend class LightSystem;
   friend class SceneTextDeserializer;
+  friend class TransformSystem;
 
  public:
   // Filament entity
-  std::shared_ptr<utils::Entity> _filamentEntity = nullptr;
+  std::shared_ptr<utils::Entity> _fEntity = nullptr;
 
 
   // Overloading the == operator to compare based on guid_

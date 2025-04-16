@@ -44,17 +44,17 @@ class TransformSystem : public ECSystem {
 
 
     void vUpdate(float deltaTime) override {
-      
-      // Start Filament transform transaction
+      //   Filament transform transaction:
+      // updating the transforms and the parent tree can be
+      // quite expensive, so we want to batch them
       tm->openLocalTransformTransaction();
 
       // interpolateTransforms(deltaTime);
       updateTransforms();
       updateFilamentParentTree();
 
-      // Commit Filament transform transaction
+      // committing calculates the final global transforms
       tm->commitLocalTransformTransaction();
-
     }
   
   protected:
@@ -92,7 +92,26 @@ class TransformSystem : public ECSystem {
     //
     // Utility functions
     //
-    // void applyTransform()
+    
+    /// Applies the transform to the entity with the given ID.
+    ///
+    /// \param entityId The ID of the entity to apply the transform to.
+    /// \param forceRecalculate If true, forces a recalculation of the transform
+    /// even if it is not marked as dirty.
+    void applyTransform(
+      const EntityGUID entityId,
+      const bool forceRecalculate = false
+    );
+
+    void applyTransform(
+      const EntityObject& entity,
+      const bool forceRecalculate = false
+    );
+
+    void reparentEntity(
+      const EntityObject& entity,
+      const EntityObject& parent
+    );
 
     //    (global)
     static inline filament::math::mat4f calculateTransform(
@@ -101,7 +120,8 @@ class TransformSystem : public ECSystem {
       return calculateTransform(
         transform.GetPosition(),
         transform.GetRotation(),
-        transform.GetScale());
+        transform.GetScale()
+      );
     }
     static inline filament::math::mat4f calculateTransform(
       const filament::math::float3& position,
