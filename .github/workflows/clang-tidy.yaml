@@ -60,7 +60,9 @@ jobs:
             libjpeg-turbo8-dev libturbojpeg0-dev libjpeg-dev \
             libpng-dev libwebp-dev \
             \
-            libflatpak-dev libxml2-dev zlib1g-dev
+            libflatpak-dev libxml2-dev zlib1g-dev \
+            \
+            libpipewire-0.3-dev
 
           sudo apt-get -o DPkg::Lock::Timeout=1200 -y install \
             clang \
@@ -167,6 +169,7 @@ jobs:
             \
             -D BUILD_PLUGIN_AUDIOPLAYERS_LINUX=OFF \
             -D BUILD_PLUGIN_CAMERA=OFF \
+            -D BUILD_PLUGIN_CAMERA_PIPEWIRE=ON \
             -D BUILD_PLUGIN_CLOUD_FIRESTORE=OFF \
             -D BUILD_PLUGIN_COMP_REGION=OFF \
             -D BUILD_PLUGIN_COMP_SURF=OFF \
