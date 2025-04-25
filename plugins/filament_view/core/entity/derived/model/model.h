@@ -35,7 +35,6 @@ class Model : public RenderableEntityObject {
     smarter_raw_ptr<const flutter::EncodableMap> _initParams;
  public:
   Model(std::string assetPath,
-        std::string url,
         const flutter::EncodableMap& params);
 
   ~Model() override = default;
@@ -128,28 +127,8 @@ class Model : public RenderableEntityObject {
 class GlbModel final : public Model {
  public:
   GlbModel(std::string assetPath,
-           std::string url,
            const flutter::EncodableMap& params);
 
   ~GlbModel() override = default;
 };
-
-class GltfModel final : public Model {
- public:
-  GltfModel(std::string assetPath,
-            std::string url,
-            std::string pathPrefix,
-            std::string pathPostfix,
-            const flutter::EncodableMap& params);
-
-  ~GltfModel() override = default;
-
-  [[nodiscard]] std::string szGetPrefix() const { return pathPrefix_; }
-  [[nodiscard]] std::string szGetPostfix() const { return pathPostfix_; }
-
- private:
-  std::string pathPrefix_;
-  std::string pathPostfix_;
-};
-
 }  // namespace plugin_filament_view

@@ -347,50 +347,7 @@ void ModelSystem::loadModelGltf(
     std::function<const filament::backend::BufferDescriptor&(
         std::string uri)>& /* callback */) {
 
-  throw std::runtime_error(
-      "[ModelSystem::loadModelGltf] Not implemented yet.");
-
-  auto* asset = assetLoader_->createAsset(buffer.data(),
-                                          static_cast<uint32_t>(buffer.size()));
-  if (!asset) {
-    spdlog::error("Failed to loadModelGltf->createasset from buffered data.");
-    return;
-  }
-
-  const auto uri_data = asset->getResourceUris();
-  const auto uris =
-      std::vector(uri_data, uri_data + asset->getResourceUriCount());
-  for (const auto uri : uris) {
-    (void)uri;
-    SPDLOG_DEBUG("resource uri: {}", uri);
-    #if 0   // TODO
-              auto resourceBuffer = callback(uri);
-              if (!resourceBuffer) {
-                  this->asset_ = nullptr;
-                  return;
-              }
-              resourceLoader_->addResourceData(uri, resourceBuffer);
-    #endif  // TODO
-  }
-  resourceLoader_->asyncBeginLoad(asset);
-  // modelViewer->setAnimator(asset->getInstance()->getAnimator());
-  asset->releaseSourceData();
-
-  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                       asset->getRenderableEntityCount()};
-
-  for (const auto entity : listOfRenderables) {
-    setupRenderable(entity, oOurModel.get(), asset);
-  }
-
-  oOurModel->setAsset(asset);
-
-  // TODO: fix this, we should be able to use the asset instance
-  EntityTransforms::vApplyTransform(oOurModel->getAssetInstance()->getRoot(), *oOurModel->GetBaseTransform());
-
-  std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
-
-  vSetupAssetThroughoutECS(sharedPtr, asset, nullptr);
+  throw std::runtime_error("GLTF support not implemented yet.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -624,27 +581,6 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
-    std::shared_ptr<Model> oOurModel,
-    std::string url) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto promise_future(promise->get_future());
-  post(*ecs->GetStrand(),
-       [&, model = std::move(oOurModel), promise,
-        url = std::move(url)]() mutable {
-         plugin_common_curl::CurlClient client;
-         const auto buffer = client.RetrieveContentAsVector();
-         if (client.GetCode() != CURLE_OK) {
-           promise->set_value(Resource<std::string_view>::Error(
-               "Couldn't load Glb from " + url));
-         }
-         handleFile(std::move(model), buffer, url, promise);
-       });
-  return promise_future;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::handleFile(std::shared_ptr<Model>&& oOurModel,
                              const std::vector<uint8_t>& buffer,
                              const std::string& fileSource,
@@ -658,30 +594,6 @@ void ModelSystem::handleFile(std::shared_ptr<Model>&& oOurModel,
     promise->set_value(Resource<std::string_view>::Error(
         "Couldn't load glb model from " + fileSource));
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGltfFromAsset(
-    const std::shared_ptr<Model>& /*oOurModel*/,
-    const std::string& /* path */,
-    const std::string& /* pre_path */,
-    const std::string& /* post_path */) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto future(promise->get_future());
-  promise->set_value(Resource<std::string_view>::Error("Not implemented yet"));
-  return future;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
-    const std::shared_ptr<Model>& /*oOurModel*/,
-    const std::string& /* url */) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto future(promise->get_future());
-  promise->set_value(Resource<std::string_view>::Error("Not implemented yet"));
-  return future;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

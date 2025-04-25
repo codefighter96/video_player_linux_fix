@@ -286,19 +286,10 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
       }
 
       if (!glb_model->szGetURLPath().empty()) {
-        modelSystem->loadGlbFromUrl(std::move(model), glb_model->szGetURLPath());
+        throw std::runtime_error("URL loading is not supported for GLB models.");
       }
-    } else if (dynamic_cast<GltfModel*>(model.get())) {
-      const auto gltf_model = dynamic_cast<GltfModel*>(model.get());
-      if (!gltf_model->szGetAssetPath().empty()) {
-        modelSystem->loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
-                                       gltf_model->szGetPrefix(),
-                                       gltf_model->szGetPostfix());
-      }
-
-      if (!gltf_model->szGetURLPath().empty()) {
-        modelSystem->loadGltfFromUrl(model, gltf_model->szGetURLPath());
-      }
+    } else {
+      throw std::runtime_error("GLTF support not implemented yet.");
     }
   });
 }

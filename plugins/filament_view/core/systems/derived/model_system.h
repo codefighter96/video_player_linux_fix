@@ -70,20 +70,6 @@ class ModelSystem : public ECSystem {
       std::shared_ptr<Model> oOurModel,
       const std::string& path);
 
-  std::future<Resource<std::string_view>> loadGlbFromUrl(
-      std::shared_ptr<Model> oOurModel,
-      std::string url);
-
-  std::future<Resource<std::string_view>> loadGltfFromAsset(
-      const std::shared_ptr<Model>& oOurModel,
-      const std::string& path,
-      const std::string& pre_path,
-      const std::string& post_path);
-
-  std::future<Resource<std::string_view>> loadGltfFromUrl(
-      const std::shared_ptr<Model>& oOurModel,
-      const std::string& url);
-
   void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;

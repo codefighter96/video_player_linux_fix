@@ -31,11 +31,9 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 Model::Model(std::string assetPath,
-             std::string url,
              const flutter::EncodableMap& params)
     : RenderableEntityObject(params),
       assetPath_(std::move(assetPath)),
-      url_(std::move(url)),
       m_poAsset(nullptr),
       m_poAssetInstance(nullptr) {
   Deserialize::DecodeParameterWithDefault(kRenderable_KeepAssetInMemory,
@@ -93,19 +91,8 @@ void Model::onInitialize() {
 
 ////////////////////////////////////////////////////////////////////////////
 GlbModel::GlbModel(std::string assetPath,
-                   std::string url,
                    const flutter::EncodableMap& params)
-    : Model(std::move(assetPath), std::move(url), params) {}
-
-////////////////////////////////////////////////////////////////////////////
-GltfModel::GltfModel(std::string assetPath,
-                     std::string url,
-                     std::string pathPrefix,
-                     std::string pathPostfix,
-                     const flutter::EncodableMap& params)
-    : Model(std::move(assetPath), std::move(url), params),
-      pathPrefix_(std::move(pathPrefix)),
-      pathPostfix_(std::move(pathPostfix)) {}
+    : Model(std::move(assetPath), params) {}
 
 ////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<Model> Model::Deserialize(
@@ -114,9 +101,6 @@ std::shared_ptr<Model> Model::Deserialize(
   SPDLOG_TRACE("++Model::Model");
   std::unique_ptr<Animation> animation;
   std::optional<std::string> assetPath;
-  std::optional<std::string> pathPrefix;
-  std::optional<std::string> pathPostfix;
-  std::optional<std::string> url;
   bool is_glb = false;
 
   for (const auto& [fst, snd] : params) {
@@ -127,14 +111,6 @@ std::shared_ptr<Model> Model::Deserialize(
       assetPath = std::get<std::string>(snd);
     } else if (key == "isGlb" && std::holds_alternative<bool>(snd)) {
       is_glb = std::get<bool>(snd);
-    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
-      url = std::get<std::string>(snd);
-    } else if (key == "pathPrefix" &&
-               std::holds_alternative<std::string>(snd)) {
-      pathPrefix = std::get<std::string>(snd);
-    } else if (key == "pathPostfix" &&
-               std::holds_alternative<std::string>(snd)) {
-      pathPostfix = std::get<std::string>(snd);
     } else if (key == "scene" &&
                std::holds_alternative<flutter::EncodableMap>(snd)) {
       spdlog::warn("Scenes are no longer valid off of a model node.");
@@ -150,15 +126,11 @@ std::shared_ptr<Model> Model::Deserialize(
   if (is_glb) {
     spdlog::debug("Model::Deserialize - is_glb");
     toReturn = std::make_shared<GlbModel>(
-        assetPath.has_value() ? std::move(assetPath.value()) : "",
-        url.has_value() ? std::move(url.value()) : "", params);
+        std::move(assetPath.value()), params
+    );
   } else {
     spdlog::debug("Model::Deserialize - is_gltf");
-    toReturn = std::make_shared<GltfModel>(
-        assetPath.has_value() ? std::move(assetPath.value()) : "",
-        url.has_value() ? std::move(url.value()) : "",
-        pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
-        pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", params);
+    throw std::runtime_error("GLTF support not implemented yet.");
   }
   
   auto ecs = ECSManager::GetInstance();
