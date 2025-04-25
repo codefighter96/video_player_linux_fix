@@ -45,7 +45,7 @@ Model::Model(std::string assetPath,
       &m_bIsPrimaryAssetToInstanceFrom, params, false);
 
 
-  _initParams = &params;
+  _initParams = params;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ void Model::onInitialize() {
 
   // Transform (required)
   spdlog::debug("Making Transform...");
-  auto transform = std::make_shared<BaseTransform>(*_initParams);
+  auto transform = std::make_shared<BaseTransform>(_initParams);
   spdlog::debug("addComponent transform");
   spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
   ecs->addComponent(guid_, std::move(transform));
@@ -63,17 +63,17 @@ void Model::onInitialize() {
 
   // Collidable (optional)
   spdlog::debug("Making Collidable...");
-  if (const auto it = _initParams->find(flutter::EncodableValue(kCollidable));
-      it != _initParams->end() && !it->second.IsNull()) {
+  if (const auto it = _initParams.find(flutter::EncodableValue(kCollidable));
+      it != _initParams.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
-    auto collidable = std::make_shared<Collidable>(*_initParams);
+    auto collidable = std::make_shared<Collidable>(_initParams);
     ecs->addComponent(guid_, std::move(collidable));
   }
 
   // Animation (optional)
   spdlog::debug("Making Animation...");
-  if (const auto it = _initParams->find(flutter::EncodableValue(kAnimation));
-      it != _initParams->end() && !it->second.IsNull()) {
+  if (const auto it = _initParams.find(flutter::EncodableValue(kAnimation));
+      it != _initParams.end() && !it->second.IsNull()) {
     auto animation = std::make_shared<Animation>(
         std::get<flutter::EncodableMap>(it->second));
     ecs->addComponent(guid_, std::move(animation));
@@ -81,7 +81,7 @@ void Model::onInitialize() {
 
   // CommonRenderable (required)
   spdlog::debug("Making CommonRenderable...");
-  auto commonRenderable = std::make_shared<CommonRenderable>(*_initParams);
+  auto commonRenderable = std::make_shared<CommonRenderable>(_initParams);
   ecs->addComponent(guid_, std::move(commonRenderable));
 
   // TODO: Setup renderable & children, from ModelSystem::

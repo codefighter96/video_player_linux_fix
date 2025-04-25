@@ -32,7 +32,7 @@ class Model : public RenderableEntityObject {
     /// This is used to set up the model's properties and behavior.
     /// It is passed to the constructor and stored as a member variable,
     /// and deallocated following the model's initialization.
-    smarter_raw_ptr<const flutter::EncodableMap> _initParams;
+    flutter::EncodableMap _initParams;
  public:
   Model(std::string assetPath,
         const flutter::EncodableMap& params);
