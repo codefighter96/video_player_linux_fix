@@ -81,14 +81,25 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
-  spdlog::debug("EntityObject Name \'{}\' UUID {} ComponentCount {}", name_,
-                guid_, components_.size());
-
-  for (const auto& component : components_) {
-    spdlog::debug("\tComponent Type \'{}\' Name \'{}\'",
-                  component->GetTypeName(), component->GetName());
-    component->DebugPrint("\t\t");
+  if(!isInitialized()) {
+    spdlog::debug("EntityObject '{}'({}) is not initialized 0 components", name_, guid_);
+    return;
   }
+
+  std::vector<std::string> componentNames;
+  // get list of component pointers
+  const auto components = ecs->getComponents(guid_);
+  for (const auto& component : components) {
+    if (component == nullptr) {
+      spdlog::warn("Component is null");
+      continue;
+    }
+    componentNames.push_back(component->GetTypeName());
+  }
+
+  spdlog::debug("EntityObject '{}'({}) has {} components: {}",
+                name_, guid_, componentNames.size(),
+                fmt::join(componentNames, ", "));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

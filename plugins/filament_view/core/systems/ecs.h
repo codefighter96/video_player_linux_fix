@@ -167,9 +167,7 @@ class ECSManager {
 
   //
   //  Component
-  // 
-
-  // TODO: move all component code to here
+  //
 
   /// Adds a component to the entity with the given GUID.
   void addComponent(const EntityGUID entityGuid,
@@ -201,6 +199,11 @@ class ECSManager {
   );
 
   [[nodiscard]] bool hasComponent(const EntityGUID entityGuid, TypeID componentTypeId);
+
+  /// Returns a vector of pointers to all components of the entity with the given GUID.
+  [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponents(
+    const EntityGUID& entityGuid
+  );
 
   //
   //  System

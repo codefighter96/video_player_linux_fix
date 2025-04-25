@@ -342,6 +342,22 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
 
 }
 
+std::vector<std::shared_ptr<Component>> ECSManager::getComponents(
+  const EntityGUID& entityGuid
+) {
+  std::unique_lock lock(_componentsMutex);
+  std::vector<std::shared_ptr<Component>> entityComponents;
+
+  for (const auto& [componentId, componentMap] : _components) {
+    auto it = componentMap.find(entityGuid);
+    if (it != componentMap.end()) {
+      entityComponents.push_back(it->second);
+    }
+  }
+
+  return entityComponents;
+}
+
 
 
 //
