@@ -344,35 +344,33 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
 
 
 
+//
+//  System
+//
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////
 void ECSManager::vInitSystems() {
   // Note this is currently expected to be called from within
   // an already asio post, Leaving this commented out so you know
   // that you could change up the routine, but if you do
   // it needs to run on the main thread.
   // asio::post(*ECSManager::GetInstance()->GetStrand(), [&] {
+  std::string systemName = "(null)";
   for (auto& [systemId, system] : _systems) {
     try {
+      systemName = system->GetTypeName();
       spdlog::debug("Initializing system {} ({}) at address {}",
-        system->GetTypeName(), systemId, static_cast<void*>(system.get()));
+        systemName, systemId, static_cast<void*>(system.get()));
       
       system->vInitSystem(*const_cast<const ECSManager*>(this));
     } catch (const std::exception& e) {
-      spdlog::error("Exception caught in vInitSystems: {}", e.what());
+      #ifndef CRASH_ON_INIT 
+      spdlog::error("Failed to initialize system {} ({}): {}",
+        systemName, systemId, e.what());
+      #else
+      throw std::runtime_error(
+        fmt::format("Failed to initialize system {} ({}): {}",
+                    systemName, systemId, e.what()));
+      #endif
     }
   }
 

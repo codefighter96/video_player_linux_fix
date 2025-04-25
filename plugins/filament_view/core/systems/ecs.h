@@ -26,6 +26,9 @@
 
 #include <core/utils/kvtree.h>
 #include <core/entity/base/entityobject.h>
+#include <core/utils/asserts.h>
+
+#define CRASH_ON_INIT // if true, will not continue if any ECSystem fails to init
 
 namespace plugin_filament_view {
 
@@ -256,7 +259,7 @@ class ECSManager {
   //
 
   template <typename T>
-  void setConfigValue(const std::string& key, T value) {
+  void inline setConfigValue(const std::string& key, T value) {
     m_mapConfigurationValues[key] = value;
   }
 
