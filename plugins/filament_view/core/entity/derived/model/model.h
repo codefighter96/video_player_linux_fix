@@ -27,6 +27,12 @@
 namespace plugin_filament_view {
 
 class Model : public RenderableEntityObject {
+  private:
+    /// @brief JSON data configuring the model.
+    /// This is used to set up the model's properties and behavior.
+    /// It is passed to the constructor and stored as a member variable,
+    /// and deallocated following the model's initialization.
+    smarter_raw_ptr<const flutter::EncodableMap> _initParams;
  public:
   Model(std::string assetPath,
         std::string url,

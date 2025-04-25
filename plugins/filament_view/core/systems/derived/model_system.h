@@ -18,11 +18,13 @@
 #include <core/entity/derived/model/model.h>
 #include <core/include/resource.h>
 #include <core/systems/base/ecsystem.h>
+#include <core/systems/derived/filament_system.h>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
 #include <filament/utils/NameComponentManager.h>
 #include <filament/filament/RenderableManager.h>
+#include <filament/TransformManager.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <list>
@@ -55,17 +57,13 @@ class ModelSystem : public ECSystem {
   bool setupRenderable(
       const Entity entity,
       const Model* model,
-      filament::gltfio::FilamentAsset* asset,
-      filament::RenderableManager& rcm,
-      utils::EntityManager& em);
+      filament::gltfio::FilamentAsset* asset
+  );
 
   void setupCollidableChild(
     const Entity entity,
     const Model* model,
-    filament::gltfio::FilamentAsset* asset,
-    filament::RenderableManager& rcm,
-    utils::EntityManager& em,
-    filament::TransformManager& tm
+    filament::gltfio::FilamentAsset* asset
   );
 
   std::future<Resource<std::string_view>> loadGlbFromAsset(
@@ -76,13 +74,13 @@ class ModelSystem : public ECSystem {
       std::shared_ptr<Model> oOurModel,
       std::string url);
 
-  static std::future<Resource<std::string_view>> loadGltfFromAsset(
+  std::future<Resource<std::string_view>> loadGltfFromAsset(
       const std::shared_ptr<Model>& oOurModel,
       const std::string& path,
       const std::string& pre_path,
       const std::string& post_path);
 
-  static std::future<Resource<std::string_view>> loadGltfFromUrl(
+  std::future<Resource<std::string_view>> loadGltfFromUrl(
       const std::shared_ptr<Model>& oOurModel,
       const std::string& url);
 
@@ -96,6 +94,13 @@ class ModelSystem : public ECSystem {
   ::filament::gltfio::MaterialProvider* materialProvider_{};
   ::filament::gltfio::ResourceLoader* resourceLoader_{};
   ::utils::NameComponentManager* names_{};
+
+  // filamentEngine, RenderableManager, EntityManager, TransformManager
+  smarter_shared_ptr<FilamentSystem> _filament;
+  smarter_raw_ptr<filament::Engine> _engine;
+  smarter_raw_ptr<filament::RenderableManager> _rcm;
+  smarter_raw_ptr<utils::EntityManager> _em;
+  smarter_raw_ptr<filament::TransformManager> _tm;
 
   // This is the EntityObject guids to model instantiated.
   std::map<EntityGUID, std::shared_ptr<Model>> m_mapszoAssets;  // NOLINT

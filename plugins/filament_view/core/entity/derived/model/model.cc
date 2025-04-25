@@ -45,35 +45,50 @@ Model::Model(std::string assetPath,
   Deserialize::DecodeParameterWithDefault(
       kRenderable_IsPrimaryAssetToInstanceFrom,
       &m_bIsPrimaryAssetToInstanceFrom, params, false);
+
+
+  _initParams = &params;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void Model::onInitialize() {
-    std::shared_ptr<BaseTransform> poTransform,
-    std::shared_ptr<CommonRenderable> poCommonRenderable,
-    const flutter::EncodableMap& params) {
-  m_poBaseTransform = std::weak_ptr<BaseTransform>(poTransform);
-  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(poCommonRenderable);
+  checkInitialized();
+  spdlog::debug("Model::onInitialize - make components");
 
-  vAddComponent(std::move(poTransform));
-  vAddComponent(std::move(poCommonRenderable));
+  // Transform (required)
+  spdlog::debug("Making Transform...");
+  auto transform = std::make_shared<BaseTransform>(*_initParams);
+  spdlog::debug("addComponent transform");
+  spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
+  ecs->addComponent(guid_, std::move(transform));
+  spdlog::debug("addComponent transform done");
 
-  // if we have collidable data request, we need to build that component, as its
-  // optional
-  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
-      it != params.end() && !it->second.IsNull()) {
+  // Collidable (optional)
+  spdlog::debug("Making Collidable...");
+  if (const auto it = _initParams->find(flutter::EncodableValue(kCollidable));
+      it != _initParams->end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
     auto collidable = std::make_shared<Collidable>(*_initParams);
     ecs->addComponent(guid_, std::move(collidable));
   }
 
-  // if we have animation data; lets deserialize and add it to this
-  if (const auto it = params.find(flutter::EncodableValue(kAnimation));
-      it != params.end() && !it->second.IsNull()) {
-    auto animationInformation = std::make_shared<Animation>(
+  // Animation (optional)
+  spdlog::debug("Making Animation...");
+  if (const auto it = _initParams->find(flutter::EncodableValue(kAnimation));
+      it != _initParams->end() && !it->second.IsNull()) {
+    auto animation = std::make_shared<Animation>(
         std::get<flutter::EncodableMap>(it->second));
     ecs->addComponent(guid_, std::move(animation));
   }
+
+  // CommonRenderable (required)
+  spdlog::debug("Making CommonRenderable...");
+  auto commonRenderable = std::make_shared<CommonRenderable>(*_initParams);
+  ecs->addComponent(guid_, std::move(commonRenderable));
+
+  // TODO: Setup renderable & children, from ModelSystem::
+
+  spdlog::debug("Model::onInitialize - done!");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -130,22 +145,26 @@ std::shared_ptr<Model> Model::Deserialize(
     }*/
   }
 
+  std::shared_ptr<Model> toReturn;
+
   if (is_glb) {
-    auto toReturn = std::make_shared<GlbModel>(
+    spdlog::debug("Model::Deserialize - is_glb");
+    toReturn = std::make_shared<GlbModel>(
         assetPath.has_value() ? std::move(assetPath.value()) : "",
         url.has_value() ? std::move(url.value()) : "", params);
-
-    toReturn->vInitComponents(std::move(oTransform),
-                              std::move(oCommonRenderable), params);
-    return toReturn;
+  } else {
+    spdlog::debug("Model::Deserialize - is_gltf");
+    toReturn = std::make_shared<GltfModel>(
+        assetPath.has_value() ? std::move(assetPath.value()) : "",
+        url.has_value() ? std::move(url.value()) : "",
+        pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
+        pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", params);
   }
-
-  auto toReturn = std::make_shared<GltfModel>(
-      assetPath.has_value() ? std::move(assetPath.value()) : "",
-      url.has_value() ? std::move(url.value()) : "",
+  
   auto ecs = ECSManager::GetInstance();
   spdlog::debug("Adding entity {} from {}", toReturn->GetGuid(), __FUNCTION__);
   ecs->addEntity(toReturn); // this now inits components, takes params from constructor
+  toReturn->vDebugPrintComponents();
   return toReturn;
 }
 

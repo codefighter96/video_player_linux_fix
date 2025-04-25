@@ -15,7 +15,6 @@
  */
 #include "model_system.h"
 #include "collision_system.h"
-#include "filament_system.h"
 
 #include <core/components/derived/collidable.h>
 #include <core/entity/derived/nonrenderable_entityobject.h>
@@ -28,8 +27,8 @@
 #include <filament/gltfio/TextureProvider.h>
 #include <filament/gltfio/materials/uberarchive.h>
 #include <filament/utils/Slice.h>
-#include <filament/TransformManager.h>
 #include <algorithm>  // for max
+#include <cassert>
 #include <asio/post.hpp>
 
 // rapidjson
@@ -62,11 +61,7 @@ void ModelSystem::destroyAsset(
     return;
   }
 
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          __FUNCTION__);
-
-  filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
+  _filament->getFilamentScene()->removeEntities(asset->getEntities(),
                                                      asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
@@ -85,18 +80,16 @@ filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
 bool ModelSystem::setupRenderable(
   const Entity entity,
   const Model* model,
-  filament::gltfio::FilamentAsset* asset,
-  filament::RenderableManager& rcm,
-  utils::EntityManager& em
+  filament::gltfio::FilamentAsset* asset
 ) {
 
   // spdlog::debug("Entity ({}){} has extras: {}", entity.getId(), name, extras);
 
-  const auto ri = rcm.getInstance(entity);
+  const auto ri = _rcm->getInstance(entity);
   const auto commonRenderable = model->GetCommonRenderable();
-  rcm.setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
-  rcm.setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
-  rcm.setScreenSpaceContactShadows(ri, false);
+  _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
+  _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
+  _rcm->setScreenSpaceContactShadows(ri, false);
 
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
   const char* extras = asset->getExtras(entity);
@@ -107,10 +100,7 @@ bool ModelSystem::setupRenderable(
 void ModelSystem::setupCollidableChild(
   const Entity entity,
   const Model* model,
-  filament::gltfio::FilamentAsset* asset,
-  filament::RenderableManager& rcm,
-  utils::EntityManager& em,
-  filament::TransformManager& tm
+  filament::gltfio::FilamentAsset* asset
 ) {
   // Get name
   const char* name = asset->getName(entity);
@@ -131,7 +121,7 @@ void ModelSystem::setupCollidableChild(
     if(doc.HasParseError()) {
       spdlog::error(rapidjson::GetParseError_En(doc.GetParseError()));
       throw std::runtime_error(
-          "[ModelSystem::setupRenderable] Failed to parse extras JSON");
+          "[ModelSystem::setupCollidableChild] Failed to parse extras JSON");
     }
 
     constexpr char kTouchEventProp[] = "customDataProp";
@@ -142,8 +132,8 @@ void ModelSystem::setupCollidableChild(
       spdlog::debug("{} type: {}", kTouchEventProp, type);
 
       // get aabb
-      const auto ri = rcm.getInstance(entity);
-      const filament::Box aabb = rcm.getAxisAlignedBoundingBox(ri);
+      const auto ri = _rcm->getInstance(entity);
+      const filament::Box aabb = _rcm->getAxisAlignedBoundingBox(ri);
 
       // get center
       const filament::math::float3 center = aabb.center;
@@ -167,7 +157,7 @@ void ModelSystem::setupCollidableChild(
       std::shared_ptr<EntityObject> childEntity =
           std::make_shared<NonRenderableEntityObject>(childName);
       spdlog::debug("Created child entityobject: {}", childName);
-      childEntity->_fEntity = std::make_shared<utils::Entity>(em.create());
+      childEntity->_fEntity = std::make_shared<utils::Entity>(_em->create());
 
       spdlog::debug("Created entityobject");
 
@@ -177,9 +167,9 @@ void ModelSystem::setupCollidableChild(
       while(en.getId() != rootEntityId) {
         spdlog::debug("Getting transform for entity {}", en.getId());
 
-        const auto instance = tm.getInstance(en);
-        // localMatrix = filament::math::mat4f::multiply(tm.getTransform(instance), localMatrix);
-        en = tm.getParent(instance);
+        const auto instance = _tm->getInstance(en);
+        // localMatrix = filament::math::mat4f::multiply(_tm->getTransform(instance), localMatrix);
+        en = _tm->getParent(instance);
       }
 
       spdlog::debug("yayyyyY!");
@@ -255,13 +245,6 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   }
   const auto assetPath = oOurModel->szGetAssetPath();
   const auto instancedModelData = m_mapInstanceableAssets_.find(assetPath);
-      ecs->getSystem<FilamentSystem>(
-          "loadModelGlb");
-  const auto engine = filamentSystem->getFilamentEngine();
-  auto& rcm = engine->getRenderableManager();
-  auto& em = engine->getEntityManager();
-  auto& tm = engine->getTransformManager();
-
 
   // Note if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
@@ -282,8 +265,9 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 
     for (size_t i = 0; i < instanceEntityCount; ++i) {
       const auto entity = instanceEntities[i];
-      filamentSystem->getFilamentScene()->addEntity(entity);
-      const bool hasCollidableChild = setupRenderable(entity, oOurModel.get(), asset, rcm, em);
+      _filament->getFilamentScene()->addEntity(entity);
+
+      const bool hasCollidableChild = setupRenderable(entity, oOurModel.get(), asset);
       if (hasCollidableChild) {
         collidableChildren.push_back(entity);
       }
@@ -296,8 +280,8 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       spdlog::debug("Entity ({}){}", entity.getId(), name);
 
       // print position, scale, rotation
-      const auto instance = tm.getInstance(entity);
-      const auto transform = tm.getWorldTransform(instance);
+      const auto instance = _tm->getInstance(entity);
+      const auto transform = _tm->getWorldTransform(instance);
       const auto position = EntityTransforms::oGetTranslationFromTransform(transform);
       const auto scale = EntityTransforms::oGetScaleFromTransform(transform);
       // const auto rotation = EntityTransforms::oGetRotationFromTransform(transform);
@@ -306,11 +290,11 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       // spdlog::debug("Rotation: ({}, {}, {}, {})", rotation.x, rotation.y, rotation.z, rotation.w);
 
       // print parent id
-      const auto parent = tm.getParent(instance);
+      const auto parent = _tm->getParent(instance);
       spdlog::debug("Parent: {}", parent.getId());
     }
 
-    filamentSystem->getFilamentScene()->addEntity(assetInstance->getRoot());
+    _filament->getFilamentScene()->addEntity(assetInstance->getRoot());
     oOurModel->setAssetInstance(assetInstance);
   }
 
@@ -351,9 +335,9 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   vSetupAssetThroughoutECS(sharedPtr, asset, assetInstance);
 
   // Set up collidable children
-  for (const auto entity : collidableChildren) {
-    setupCollidableChild(entity, sharedPtr.get(), asset, rcm, em, tm);
-  }
+  // for (const auto entity : collidableChildren) {
+  //   setupCollidableChild(entity, sharedPtr.get(), asset);
+  // }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -392,19 +376,11 @@ void ModelSystem::loadModelGltf(
   // modelViewer->setAnimator(asset->getInstance()->getAnimator());
   asset->releaseSourceData();
 
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "loadModelGltf");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  auto& rcm = engine->getRenderableManager();
-  auto& em = engine->getEntityManager();
-
   utils::Slice const listOfRenderables{asset->getRenderableEntities(),
                                        asset->getRenderableEntityCount()};
 
   for (const auto entity : listOfRenderables) {
-    setupRenderable(entity, oOurModel.get(), asset, rcm, em);
+    setupRenderable(entity, oOurModel.get(), asset);
   }
 
   oOurModel->setAsset(asset);
@@ -457,14 +433,6 @@ void ModelSystem::vSetupAssetThroughoutECS(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          __FUNCTION__);
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  auto& rcm = engine->getRenderableManager();
-  auto& em = engine->getEntityManager();
-
   auto* asset = model->getAsset();
 
   if (!asset) {
@@ -491,10 +459,10 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
     // we won't load the primary asset to render.
     if (!model->bIsPrimaryAssetToInstanceFrom()) {
       for (const auto entity : listOfRenderables) {
-        setupRenderable(entity, model, asset, rcm, em);
+        setupRenderable(entity, model, asset);
       }
 
-      filamentSystem->getFilamentScene()->addEntities(readyRenderables_,
+      _filament->getFilamentScene()->addEntities(readyRenderables_,
                                                       maxToPop);
     }
 
@@ -505,7 +473,7 @@ void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
     spdlog::info(
         "Note: Light entities have come in from asset model load;"
         "these are not attached to our entities and will be un changeable");
-    filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
+    _filament->getFilamentScene()->addEntities(asset->getLightEntities(),
                                                     sizeof(*lightEntities));
   }
 }
@@ -530,14 +498,14 @@ void ModelSystem::updateAsyncAssetLoading() {
     // TODO: should we throw an exception here?
   }
 
-  for (const auto& [guid, asset] : m_mapszoAssets) {
-    populateSceneWithAsyncLoadedAssets(asset.get());
+  for (const auto& [guid, model] : m_mapszoAssets) {
+    populateSceneWithAsyncLoadedAssets(model.get());
 
     if (percentComplete != 1.0f) {
       continue;
     }
 
-    auto assetPath = asset->szGetAssetPath();
+    auto assetPath = model->szGetAssetPath();
 
     // we're no longer loading, we're loaded.
     m_mapszbCurrentlyLoadingInstanceableAssets.erase(assetPath);
@@ -545,22 +513,22 @@ void ModelSystem::updateAsyncAssetLoading() {
     // once we're done loading our assets; we should be able to load instanced
     // models.
     if (auto foundAwaitingIter = m_mapszoAssetsAwaitingDataLoad.find(assetPath);
-        asset->bShouldKeepAssetDataInMemory() &&
+        model->bShouldKeepAssetDataInMemory() &&
         foundAwaitingIter != m_mapszoAssetsAwaitingDataLoad.end()) {
       spdlog::info("Loading additional instanced assets: {}", assetPath);
       for (const auto& itemToLoad : foundAwaitingIter->second) {
         spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
 
-        // retry loading the asset, as we're done loading the instanceable data
+        // retry loading the model, as we're done loading the instanceable data
         loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
       }
       spdlog::info("Done Loading additional instanced assets: {}", assetPath);
       m_mapszoAssetsAwaitingDataLoad.erase(assetPath);
     }
 
-    // You don't get collision as a primary asset.
-    if (asset->bIsPrimaryAssetToInstanceFrom()) {
+    // You don't get collision as a primary model instance.
+    if (model->bIsPrimaryAssetToInstanceFrom()) {
       continue;
     }
 
@@ -568,10 +536,12 @@ void ModelSystem::updateAsyncAssetLoading() {
     // object if this model it's referencing required one.
     //
     // Also need to make sure it hasn't already created one for this model.
-    if (asset->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
-        !collisionSystem->hasEntity(guid)) {
-      collisionSystem->vAddCollidable(asset.get());
-    }
+
+    // TODO: fix, this crashes
+    // if (model->HasComponent(Component::StaticGetTypeID<Collidable>()) &&
+    //     !collisionSystem->hasEntity(guid)) {
+    //   collisionSystem->vAddCollidable(model.get());
+    // }
   }
 }
 
@@ -720,18 +690,25 @@ void ModelSystem::vOnInitSystem() {
     return;
   }
 
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "ModelSystem::vInitSystem");
-  const auto engine = filamentSystem->getFilamentEngine();
+  // Get filament
+  _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
+  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
 
-  if (engine == nullptr) {
-    spdlog::error("Engine is null, delaying vInitSystem");
-    return;
-  }
+  _engine = _filament->getFilamentEngine();
+  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+
+  _rcm = _engine->getRenderableManager();
+  _tm = _engine->getTransformManager();
+  _em = _engine->getEntityManager();
+
+  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+
+  spdlog::debug("[{}] loaded filament systems", __FUNCTION__);
 
   materialProvider_ = filament::gltfio::createUbershaderProvider(
-      engine, UBERARCHIVE_DEFAULT_DATA,
+      _engine, UBERARCHIVE_DEFAULT_DATA,
       static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
 
       // new NameComponentManager(EntityManager::get());
@@ -741,19 +718,20 @@ void ModelSystem::vOnInitSystem() {
                materialProvider_->getMaterialsCount());
 
   AssetConfiguration assetConfiguration{};
-  assetConfiguration.engine = engine;
+  assetConfiguration.engine = _engine;
   assetConfiguration.materials = materialProvider_;
   assetConfiguration.names = names_;
   assetLoader_ = AssetLoader::create(assetConfiguration);
 
   ResourceConfiguration resourceConfiguration{};
-  resourceConfiguration.engine = engine;
+  resourceConfiguration.engine = _engine;
   resourceConfiguration.normalizeSkinningWeights = true;
   resourceLoader_ = new ResourceLoader(resourceConfiguration);
 
-  const auto decoder = filament::gltfio::createStbProvider(engine);
+  const auto decoder = filament::gltfio::createStbProvider(_engine);
   resourceLoader_->addTextureProvider("image/png", decoder);
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
+  // TODO: add support for other texture formats here
 
   // ChangeTranslationByGUID
   // TODO: move to TransformSystem
@@ -853,28 +831,25 @@ void ModelSystem::vOnInitSystem() {
 
         if (const auto ourEntity = m_mapszoAssets.find(guid);
             ourEntity != m_mapszoAssets.end()) {
-          const auto fSystem =
-              ecs->getSystem<FilamentSystem>(
-                  "vRegisterMessageHandler::ToggleVisualForEntity");
 
           if (const auto modelAsset = ourEntity->second->getAsset()) {
             if (value) {
-              fSystem->getFilamentScene()->addEntities(
+              _filament->getFilamentScene()->addEntities(
                   modelAsset->getRenderableEntities(),
                   modelAsset->getRenderableEntityCount());
             } else {
-              fSystem->getFilamentScene()->removeEntities(
+              _filament->getFilamentScene()->removeEntities(
                   modelAsset->getRenderableEntities(),
                   modelAsset->getRenderableEntityCount());
             }
           } else if (const auto modelAssetInstance =
                          ourEntity->second->getAssetInstance()) {
             if (value) {
-              fSystem->getFilamentScene()->addEntities(
+              _filament->getFilamentScene()->addEntities(
                   modelAssetInstance->getEntities(),
                   modelAssetInstance->getEntityCount());
             } else {
-              fSystem->getFilamentScene()->removeEntities(
+              _filament->getFilamentScene()->removeEntities(
                   modelAssetInstance->getEntities(),
                   modelAssetInstance->getEntityCount());
             }

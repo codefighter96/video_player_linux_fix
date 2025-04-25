@@ -39,7 +39,9 @@ SceneTextDeserializer::SceneTextDeserializer(
   const std::string& flutterAssetsPath = _ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
+  spdlog::debug("[{}] deserializing root...", __FUNCTION__);
   vDeserializeRootLevel(params, flutterAssetsPath);
+  spdlog::debug("[{}] deserializing root done!", __FUNCTION__);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +64,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
     if (key == kModel) {
       spdlog::warn("Loading Single Model - Deprecated Functionality {}", key);
 
+      spdlog::debug("Deserializing Single Model {} ...", key);
       auto deserializedModel = Model::Deserialize(
           flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
       if (deserializedModel == nullptr) {
@@ -80,6 +83,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           continue;
         }
 
+        spdlog::debug("===== Deserializing Multiple Models {} ...", key);
         auto deserializedModel = Model::Deserialize(
             flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
@@ -90,6 +94,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       }
 
     } else if (key == kScene) {
+      spdlog::debug("===== Deserializing Scene {} ...", key);
       vDeserializeSceneLevel(snd);
     } else if (key == kShapes &&
                std::holds_alternative<flutter::EncodableList>(snd)) {
@@ -184,11 +189,18 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vRunPostSetupLoad() {
+  spdlog::debug("setUpLoadingModels");
   setUpLoadingModels();
+  spdlog::debug("setUpSkybox");
   setUpSkybox();
+  spdlog::debug("setUpLights");
   setUpLights();
+  spdlog::debug("setUpIndirectLight");
   setUpIndirectLight();
+  spdlog::debug("setUpShapes");
   setUpShapes();
+
+  spdlog::debug("setups done!");
 
   // note Camera* is deleted on the other side, freeing up the memory.
   ECSMessage viewTargetCameraSet;
@@ -267,26 +279,25 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
       return;
     }
 
-    const auto& loader = modelSystem;
     if (dynamic_cast<GlbModel*>(model.get())) {
       const auto glb_model = dynamic_cast<GlbModel*>(model.get());
       if (!glb_model->szGetAssetPath().empty()) {
-        loader->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
+        modelSystem->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
       }
 
       if (!glb_model->szGetURLPath().empty()) {
-        loader->loadGlbFromUrl(std::move(model), glb_model->szGetURLPath());
+        modelSystem->loadGlbFromUrl(std::move(model), glb_model->szGetURLPath());
       }
     } else if (dynamic_cast<GltfModel*>(model.get())) {
       const auto gltf_model = dynamic_cast<GltfModel*>(model.get());
       if (!gltf_model->szGetAssetPath().empty()) {
-        ModelSystem::loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
+        modelSystem->loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
                                        gltf_model->szGetPrefix(),
                                        gltf_model->szGetPostfix());
       }
 
       if (!gltf_model->szGetURLPath().empty()) {
-        ModelSystem::loadGltfFromUrl(model, gltf_model->szGetURLPath());
+        modelSystem->loadGltfFromUrl(model, gltf_model->szGetURLPath());
       }
     }
   });

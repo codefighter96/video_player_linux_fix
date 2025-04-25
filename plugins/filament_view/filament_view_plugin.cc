@@ -109,6 +109,7 @@ void DeserializeDataAndSetupMessageChannels(
   // called.
   if (postSetupDeserializer == nullptr) {
     post(strand, [=, &initPromise]() mutable {
+      spdlog::debug("running SceneTextDeserializer");
       sceneTextDeserializer = std::make_unique<SceneTextDeserializer>(params);
       postSetupDeserializer = sceneTextDeserializer.get();
 
@@ -121,14 +122,13 @@ void DeserializeDataAndSetupMessageChannels(
     initFuture.wait();
   }
 
-  const auto animationSystem =
-      ECSManager::GetInstance()->getSystem<AnimationSystem>(__FUNCTION__);
 
-  const auto viewTargetSystem =
-      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
+  spdlog::debug("getting systems");
+  const auto animationSystem = ecs->getSystem<AnimationSystem>(__FUNCTION__);
 
-  const auto collisionSystem =
-      ECSManager::GetInstance()->getSystem<CollisionSystem>(__FUNCTION__);
+  const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(__FUNCTION__);
+
+  const auto collisionSystem = ecs->getSystem<CollisionSystem>(__FUNCTION__);
 
   collisionSystem->vSetupMessageChannels(registrar,
                                          "plugin.filament_view.collision_info");
@@ -185,7 +185,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   viewTargetCreationRequest.addData(
       ECSMessageType::ViewTargetCreateRequestHeight,
       static_cast<uint32_t>(height));
-  ECSManager::GetInstance()->vRouteMessage(viewTargetCreationRequest);
+
+  ecs->vRouteMessage(viewTargetCreationRequest);
 
   // Safeguarded to only be called once internal
   DeserializeDataAndSetupMessageChannels(registrar, params);
