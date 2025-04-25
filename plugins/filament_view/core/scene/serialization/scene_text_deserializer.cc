@@ -100,10 +100,12 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeSystem::poDeserializeShapeFromData(
+
+        spdlog::debug("===== Deserializing Shape {} ...", key);
+        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
             std::get<flutter::EncodableMap>(iter));
 
-        shapes_.emplace_back(shape.release());
+        shapes_.emplace_back(std::move(deserializedShape));
       }
     } else {
       spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}",

@@ -21,6 +21,8 @@
 
 namespace plugin_filament_view {
 
+/// TODO: remove this and refactor specific methods into the Renderable component (CoI, come on)
+
 // Renderable Entity Objects are intended to have material settings on them
 // where NonRenderable EntityObjects do not. Its expected on play Renderable's
 // have the ability to show up in the scene as models/shapes/objects

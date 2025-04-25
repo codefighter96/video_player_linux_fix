@@ -102,10 +102,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     const std::shared_ptr<CommonRenderable> commonRenderablePtr =
         std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
-    newShape->m_poBaseTransform =
-        std::weak_ptr<BaseTransform>(baseTransformPtr);
-    newShape->m_poCommonRenderable =
-        std::weak_ptr<CommonRenderable>(commonRenderablePtr);
+    /// TODO: ecs->addComponent
 
     const auto& ourTransform = baseTransformPtr;
 
@@ -123,18 +120,22 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
       originalCollidable->SetShapeType(ShapeType::Cube);
       originalCollidable->SetExtentsSize(ourAABB.extent());
     }
-  } else if (dynamic_cast<shapes::Cube*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
-    newShape = new shapes::Cube(colliderBoxName);
-    originalObject->CloneToOther(*newShape);
-  } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
-    newShape = new shapes::Sphere(colliderBoxName);
-    originalObject->CloneToOther(*newShape);
-  } else if (dynamic_cast<shapes::Plane*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
-    newShape = new shapes::Plane(colliderBoxName);
-    originalObject->CloneToOther(*newShape);
+  } else {
+    // if it's a shape
+    /// TODO: need to add newShape to ecs before can CloneToOther (it sets the components)
+    if (dynamic_cast<shapes::Cube*>(collidable)) {
+      const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
+      newShape = new shapes::Cube(colliderBoxName);
+      originalObject->CloneToOther(*newShape);
+    } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
+      const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
+      newShape = new shapes::Sphere(colliderBoxName);
+      originalObject->CloneToOther(*newShape);
+    } else if (dynamic_cast<shapes::Plane*>(collidable)) {
+      const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
+      newShape = new shapes::Plane(colliderBoxName);
+      originalObject->CloneToOther(*newShape);
+    }
   }
 
   if (newShape == nullptr) {
@@ -163,19 +164,19 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   newShape->_fEntity = oEntity;
 
   // TODO: just no.
-  spdlog::debug("Setting collidable wireframe parent");
-  auto& tm = engine->getTransformManager();
-  spdlog::debug("getTransformManager done");
-  spdlog::debug("collidable ({}), _fEntity at mem {}", collidable->GetGuid(),
-  reinterpret_cast<std::uintptr_t>(collidable->_fEntity.get()));
-  /// TODO: THIS IS THE BUG! Parent has no _fEntity
-  const auto parentInstance = tm.getInstance(*(collidable->_fEntity.get()));
-  spdlog::debug("parentInstance = getInstance done");
-  const auto childInstance = tm.getInstance(*(oEntity.get()));
-  spdlog::debug("childInstance = getInstance done");
-  tm.setParent(childInstance, parentInstance);
-  spdlog::debug("setParent done");
-  spdlog::debug("Setting collidable wireframe parent done");
+  // spdlog::debug("Setting collidable wireframe parent");
+  // auto& tm = engine->getTransformManager();
+  // spdlog::debug("getTransformManager done");
+  // spdlog::debug("collidable ({}), _fEntity at mem {}", collidable->GetGuid(),
+  // reinterpret_cast<std::uintptr_t>(collidable->_fEntity.get()));
+  // /// TODO: THIS IS THE BUG! Parent has no _fEntity
+  // const auto parentInstance = tm.getInstance(*(collidable->_fEntity.get()));
+  // spdlog::debug("parentInstance = getInstance done");
+  // const auto childInstance = tm.getInstance(*(oEntity.get()));
+  // spdlog::debug("childInstance = getInstance done");
+  // tm.setParent(childInstance, parentInstance);
+  // spdlog::debug("setParent done");
+  // spdlog::debug("Setting collidable wireframe parent done");
 
   // now store in map.
   collidablesDebugDrawingRepresentation_.insert(

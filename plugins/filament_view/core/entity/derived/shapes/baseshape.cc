@@ -44,43 +44,63 @@ using utils::Entity;
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const flutter::EncodableMap& params)
     : RenderableEntityObject(params) {
-  SPDLOG_TRACE("++{}", __FUNCTION__);
-
-  auto oTransform = std::make_shared<BaseTransform>(params);
-  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
-
-  m_poBaseTransform = std::weak_ptr<BaseTransform>(oTransform);
-  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(oCommonRenderable);
-
-  vAddComponent(std::move(oTransform));
-  vAddComponent(std::move(oCommonRenderable));
-
+  // Decode parameters
   Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
-                                              ShapeType::Unset);
+    ShapeType::Unset);
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
-                                          float3(0, 0, 0));
+    float3(0, 0, 0));
   Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
-                                          false);
+    false);
 
-  // if we have collidable data request, we need to build that component, as its
-  // optional
-  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
-      it != params.end() && !it->second.IsNull()) {
+  _initParams = params;
+}
+
+void BaseShape::onInitialize() {
+  checkInitialized();
+
+  spdlog::debug("BaseShape::onInitialize");
+  spdlog::debug("BaseShape (id {})", guid_);
+
+  // spdlog::debug("_initParams has addr 0x{:x}", reinterpret_cast<uintptr_t>(&_initParams));
+
+  // get guid from params
+  EntityGUID guid = kNullGuid;
+  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &guid, _initParams,
+    kNullGuid);
+
+  // Check if the guid is valid
+  spdlog::debug("_initParams has guid {}, real guid is {}",
+                guid, guid_);
+
+  // Transform (required)
+  spdlog::debug("Making Transform...");
+  auto transform = std::make_shared<BaseTransform>(_initParams);
+  ecs->addComponent(guid_, std::move(transform));
+
+  // Collidable (optional)
+  spdlog::debug("Making Collidable...");
+  if (const auto it = _initParams.find(flutter::EncodableValue(kCollidable));
+      it != _initParams.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
-    auto collidableComp = std::make_shared<Collidable>(params);
-    vAddComponent(std::move(collidableComp));
-
-    m_poCollidable = std::weak_ptr<Collidable>(collidableComp);
+    auto collidableComp = std::make_shared<Collidable>(_initParams);
+    ecs->addComponent(guid_, std::move(collidableComp));
   }
 
-  // if we have material definitions data request, we'll build that component
-  // (optional)
-  if (const auto it = params.find(flutter::EncodableValue(kMaterial));
-      it != params.end() && !it->second.IsNull()) {
+  // MaterialDefinitions (optional)
+  spdlog::debug("Making MaterialDefinitions...");
+  if (const auto it = _initParams.find(flutter::EncodableValue(kMaterial));
+      it != _initParams.end() && !it->second.IsNull()) {
     auto materialDefinitions = std::make_shared<MaterialDefinitions>(
         std::get<flutter::EncodableMap>(it->second));
-    vAddComponent(std::move(materialDefinitions));
+    ecs->addComponent(guid_, std::move(materialDefinitions));
   }
+
+  // CommonRenderable (required)
+  spdlog::debug("Making CommonRenderable...");
+  auto commonRenderable = std::make_shared<CommonRenderable>(_initParams);
+  ecs->addComponent(guid_, std::move(commonRenderable));
+
+  // TODO: setup renderable & children, from ShapeSystem::...?
 
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }

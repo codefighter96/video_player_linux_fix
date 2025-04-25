@@ -161,6 +161,8 @@ void ShapeSystem::addShapesToScene(
   // oEntitymanager.create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
+    spdlog::debug("addShapesToScene: {}", shape->GetGuid());
+
     std::shared_ptr<Entity> oEntity = std::make_shared<Entity>(oEntityManager.create());
 
     shape->bInitAndCreateShape(poFilamentEngine, oEntity);

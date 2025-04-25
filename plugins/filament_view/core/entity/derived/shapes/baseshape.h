@@ -77,8 +77,11 @@ class BaseShape : public RenderableEntityObject {
   [[nodiscard]] std::shared_ptr<Entity> poGetEntity() { return m_poEntity; }
 
  protected:
+  flutter::EncodableMap _initParams;
   ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
   ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
+
+  void onInitialize() override;
 
   void DebugPrint() const override;
 
@@ -87,12 +90,6 @@ class BaseShape : public RenderableEntityObject {
   void vBuildRenderable(::filament::Engine* engine_);
 
   ShapeType type_ = ShapeType::Unset;
-
-  // Components - saved off here for faster
-  // lookup, but they're not owned here, but on EntityObject's list.
-  std::weak_ptr<BaseTransform> m_poBaseTransform;
-  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
-  std::weak_ptr<Collidable> m_poCollidable;
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
@@ -120,6 +117,7 @@ class BaseShape : public RenderableEntityObject {
       const TextureMap& loadedTextures) override;
 
  private:
+
   void vDestroyBuffers();
 
   // This does NOT come over as a property (currently), only used by
