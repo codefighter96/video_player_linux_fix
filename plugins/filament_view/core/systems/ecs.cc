@@ -378,11 +378,40 @@ void ECSManager::vInitSystems() {
 
   spdlog::info("All systems initialized");
   m_eCurrentState = Initialized;
-
-  //});
 }
 
-////////////////////////////////////////////////////////////////////////////
+std::shared_ptr<ECSystem> ECSManager::getSystem(
+  TypeID systemTypeID, 
+  const std::string& where
+) {
+  if (const auto callingThread = pthread_self();
+      callingThread != filament_api_thread_id_) {
+    // Note we should have a 'log once' base functionality in common
+    // creating this inline for now.
+    if (const auto foundIter = m_mapOffThreadCallers.find(where);
+        foundIter == m_mapOffThreadCallers.end()) {
+      spdlog::info(
+          "From {} "
+          "You're calling to get a system from an off thread, undefined "
+          "experience!"
+          " Use a message to do your work or grab the ecsystemmanager strand "
+          "and "
+          "do your work.",
+          where);
+
+      m_mapOffThreadCallers.insert(std::pair(where, 0));
+    }
+  }
+
+  std::unique_lock lock(_systemsMutex);
+  auto it = _systems.find(systemTypeID);
+  if (it != _systems.end()) {
+    return it->second;  // Return the found system
+  } else {
+    return nullptr;  // If no matching system found
+  }
+}
+
 void ECSManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   std::unique_lock lock(_systemsMutex);
   const TypeID systemId = system->GetTypeID();
