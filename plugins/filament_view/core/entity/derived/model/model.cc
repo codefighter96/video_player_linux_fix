@@ -37,12 +37,12 @@ Model::Model(std::string assetPath,
       m_poAsset(nullptr),
       m_poAssetInstance(nullptr) {
   Deserialize::DecodeParameterWithDefault(kRenderable_KeepAssetInMemory,
-                                          &m_bShouldKeepAssetDataInMemory,
+                                          &m_isInstanced,
                                           params, false);
 
   Deserialize::DecodeParameterWithDefault(
       kRenderable_IsPrimaryAssetToInstanceFrom,
-      &m_bIsPrimaryAssetToInstanceFrom, params, false);
+      &m_isInstancePrimary, params, false);
 
 
   _initParams = params;
@@ -133,10 +133,10 @@ std::shared_ptr<Model> Model::Deserialize(
     throw std::runtime_error("GLTF support not implemented yet.");
   }
   
-  auto ecs = ECSManager::GetInstance();
+  // TODO: this should NOT be happening here
   spdlog::debug("Adding entity {} from {}", toReturn->GetGuid(), __FUNCTION__);
+  auto ecs = ECSManager::GetInstance();
   ecs->addEntity(toReturn); // this now inits components, takes params from constructor
-  toReturn->vDebugPrintComponents();
   return toReturn;
 }
 

@@ -162,7 +162,7 @@ void ModelSystem::setupCollidableChild(
       spdlog::debug("Created entityobject");
 
       const int rootEntityId = 0;
-      filament::math::mat4f localMatrix = filament::math::mat4f();
+      // filament::math::mat4f localMatrix = filament::math::mat4f();
       auto en = *childEntity->_fEntity.get();
       while(en.getId() != rootEntityId) {
         spdlog::debug("Getting transform for entity {}", en.getId());
@@ -230,9 +230,9 @@ void ModelSystem::setupCollidableChild(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
-                               const std::vector<uint8_t>& buffer,
-                               const std::string& /*assetName*/) {
+void ModelSystem::loadModelGlb(std::shared_ptr<Model> model,
+                               const std::vector<uint8_t>& buffer
+) {
   if (assetLoader_ == nullptr) {
     // NOTE, this should only be temporary until CustomModelViewer isn't
     // necessary in implementation.
@@ -243,8 +243,9 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       return;
     }
   }
-  const auto assetPath = oOurModel->szGetAssetPath();
-  const auto instancedModelData = m_mapInstanceableAssets_.find(assetPath);
+
+  const auto assetPath = model->szGetAssetPath();
+  spdlog::debug("ModelSystem::loadModelGlb: {}", assetPath);
 
   // Note if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
@@ -254,48 +255,11 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 
   std::vector<Entity> collidableChildren = {};
 
-  spdlog::debug("ModelSystem::loadModelGlb: {}", assetPath);
+  // check if instanceable
+  const auto instancedModelData = m_mapInstanceableAssets_.find(assetPath);
   if (instancedModelData != m_mapInstanceableAssets_.end()) {
-    // we have the model already, use it.
     asset = instancedModelData->second;
     assetInstance = assetLoader_->createInstance(asset);
-
-    const Entity* instanceEntities = assetInstance->getEntities();
-    const size_t instanceEntityCount = assetInstance->getEntityCount();
-
-    for (size_t i = 0; i < instanceEntityCount; ++i) {
-      const auto entity = instanceEntities[i];
-      _filament->getFilamentScene()->addEntity(entity);
-
-      const bool hasCollidableChild = setupRenderable(entity, oOurModel.get(), asset);
-      if (hasCollidableChild) {
-        collidableChildren.push_back(entity);
-      }
-
-      // print name
-      const char* name = asset->getName(entity);
-      if(name == nullptr) {
-        name = "(null)";
-      }
-      spdlog::debug("Entity ({}){}", entity.getId(), name);
-
-      // print position, scale, rotation
-      const auto instance = _tm->getInstance(entity);
-      const auto transform = _tm->getWorldTransform(instance);
-      const auto position = EntityTransforms::oGetTranslationFromTransform(transform);
-      const auto scale = EntityTransforms::oGetScaleFromTransform(transform);
-      // const auto rotation = EntityTransforms::oGetRotationFromTransform(transform);
-      spdlog::debug("Position: ({}, {}, {})", position.x, position.y, position.z);
-      spdlog::debug("Scale: ({}, {}, {})", scale.x, scale.y, scale.z);
-      // spdlog::debug("Rotation: ({}, {}, {}, {})", rotation.x, rotation.y, rotation.z, rotation.w);
-
-      // print parent id
-      const auto parent = _tm->getParent(instance);
-      spdlog::debug("Parent: {}", parent.getId());
-    }
-
-    _filament->getFilamentScene()->addEntity(assetInstance->getRoot());
-    oOurModel->setAssetInstance(assetInstance);
   }
 
   // instance-able / primary object.
@@ -307,10 +271,10 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       return;
     }
 
-    oOurModel->setAsset(asset);
+    model->setAsset(asset);
     resourceLoader_->asyncBeginLoad(asset);
 
-    if (oOurModel->bShouldKeepAssetDataInMemory()) {
+    if (model->isInstanced()) {
       m_mapInstanceableAssets_.insert(
           std::pair(assetPath, asset));
     } else {
@@ -324,15 +288,23 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
           "[ModelSystem::loadModelGlb] Failed to fetch primary asset instance.");
     }
 
-    oOurModel->setAssetInstance(assetInstance);
+    model->setAssetInstance(assetInstance);
+  }
+  // instance / secondary object.
+  else {
+    model->setAssetInstance(assetInstance);
+    addModelToScene(model.get(), true);
   }
 
-  // by this point we should either have a subinstance, or THE primary instance
-  assert(assetInstance != nullptr);
+  // TODO: move the stuff below to `addModelToScene`,
+  // if not done it will cause non-instanceables to:
+  // - have improper initial transforms
+  // - not have additional components configured (see `vSetupAssetThroughoutECS`)
 
-  EntityTransforms::vApplyTransform(assetInstance->getRoot(), *oOurModel->GetBaseTransform());
-  std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
-  vSetupAssetThroughoutECS(sharedPtr, asset, assetInstance);
+  // by this point we should either have a subinstance, or THE primary instance
+  debug_assert(assetInstance != nullptr, "This should NEVER be null!");
+  std::shared_ptr<Model> sharedPtr = std::move(model);
+  vSetupAssetThroughoutECS(sharedPtr);
 
   // Set up collidable children
   // for (const auto entity : collidableChildren) {
@@ -341,34 +313,32 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::loadModelGltf(
-    std::shared_ptr<Model> oOurModel,
-    const std::vector<uint8_t>& buffer,
-    std::function<const filament::backend::BufferDescriptor&(
-        std::string uri)>& /* callback */) {
-
-  throw std::runtime_error("GLTF support not implemented yet.");
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vSetupAssetThroughoutECS(
-    std::shared_ptr<Model>& modelEntity,
-    filament::gltfio::FilamentAsset* filamentAsset,
-    filament::gltfio::FilamentInstance* filamentAssetInstance) {
-  m_mapszoAssets.insert(std::pair(modelEntity->GetGuid(), modelEntity));
+    std::shared_ptr<Model>& model) {
+  m_mapszoAssets.insert(std::pair(model->GetGuid(), model));
 
+  // Add to ECS
+  spdlog::debug("Adding entity {} from {}", model->GetGuid(), __FUNCTION__);
+  ecs->addEntity(model);
+
+  // Get asset data
+  auto asset = model->getAsset();
+  auto assetInstance = model->getAssetInstance();
+
+  // Set up transform
+  EntityTransforms::vApplyTransform(assetInstance->getRoot(), *model->GetBaseTransform());
+
+  // Set up animator
   filament::gltfio::Animator* animatorInstance = nullptr;
-
-  if (filamentAssetInstance != nullptr) {
-    animatorInstance = filamentAssetInstance->getAnimator();
-  } else if (filamentAsset != nullptr) {
-    animatorInstance = filamentAsset->getInstance()->getAnimator();
+  if (assetInstance != nullptr) {
+    animatorInstance = assetInstance->getAnimator();
+  } else if (asset != nullptr) {
+    animatorInstance = asset->getInstance()->getAnimator();
   }
-
   if (animatorInstance != nullptr &&
-      modelEntity->HasComponent(Component::StaticGetTypeID<Animation>())) {
+      model->HasComponent(Component::StaticGetTypeID<Animation>())) {
     const auto animatorComponent =
-        modelEntity->GetComponent(Component::StaticGetTypeID<Animation>());
+        model->GetComponent(Component::StaticGetTypeID<Animation>());
     const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
     animator->vSetAnimator(*animatorInstance);
 
@@ -381,58 +351,115 @@ void ModelSystem::vSetupAssetThroughoutECS(
         "on this, but you didn't load an animation component, load one if you "
         "want that "
         "functionality",
-        modelEntity->szGetAssetPath(), animatorInstance->getAnimationCount());
+        model->szGetAssetPath(), animatorInstance->getAnimationCount());
   }
-
-  spdlog::debug("Adding entity {} from {}", modelEntity->GetGuid(), __FUNCTION__);
-  ecs->addEntity(modelEntity);
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
-  auto* asset = model->getAsset();
+void ModelSystem::addModelToScene(
+  Model* model,
+  bool isInstanced
+) {
+  const bool isInScene = model->isInScene();
+  // TODO: get `isInstanced` from the `model` instead. Currently `isInstanced` is UNRELIABLE!
 
-  if (!asset) {
+  if(isInScene) {
+    spdlog::warn(
+      "[{}] model '{}'({}) is already in scene (asset {}), skipping add",
+      __FUNCTION__, model->GetName(), model->GetGuid(), model->assetPath_
+    );
     return;
   }
 
-  size_t count = asset->popRenderables(nullptr, 0);
-  while (count) {
-    constexpr size_t maxToPopAtOnce = 128;
-    auto maxToPop = std::min(count, maxToPopAtOnce);
+  Entity* modelEntities = nullptr;
+  size_t modelEntityCount = 0;
 
-    spdlog::debug(
-        "[{}] async load for asset '{}', renderable count "
-        "available[{}] - working on [{}]",
-        __FUNCTION__, model->szGetAssetPath(), count, maxToPop);
-    // Note for high amounts, we should probably do a small amount; break out;
-    // and let it come back do more on another frame.
+  if(isInstanced) {
+    runtime_assert(
+      model->getAssetInstance() != nullptr,
+      "ModelSystem::addModelToScene: model asset instance cannot be null"
+    );
+    runtime_assert(
+      model->getAsset() == nullptr,
+      "ModelSystem::addModelToScene: model asset should be null"
+    );
 
-    asset->popRenderables(readyRenderables_, maxToPop);
-
-    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                         asset->getRenderableEntityCount()};
-
-    // we won't load the primary asset to render.
-    if (!model->bIsPrimaryAssetToInstanceFrom()) {
-      for (const auto entity : listOfRenderables) {
-        setupRenderable(entity, model, asset);
-      }
-
-      _filament->getFilamentScene()->addEntities(readyRenderables_,
-                                                      maxToPop);
+    modelEntities = const_cast<utils::Entity*>(model->getAssetInstance()->getEntities());
+    modelEntityCount = model->getAssetInstance()->getEntityCount();
+  } else {
+    // runtime_assert(
+    //   model->getAsset() != nullptr,
+    //   "ModelSystem::addModelToScene: model asset cannot be null"
+    // );
+    if(model->getAsset() == nullptr) {
+      spdlog::warn(
+        "ModelSystem::addModelToScene: model asset is null ({}), "
+        "deferring load till later",
+        model->assetPath_
+      );
+      return;
     }
 
-    count = asset->popRenderables(nullptr, 0);
+    modelEntities = const_cast<utils::Entity*>(model->getAsset()->getRenderableEntities());
+    modelEntityCount = model->getAsset()->getRenderableEntityCount();
   }
 
-  if ([[maybe_unused]] auto lightEntities = asset->getLightEntities()) {
-    spdlog::info(
-        "Note: Light entities have come in from asset model load;"
-        "these are not attached to our entities and will be un changeable");
-    _filament->getFilamentScene()->addEntities(asset->getLightEntities(),
-                                                    sizeof(*lightEntities));
+  /*
+   *  Renderable setup
+   */
+  utils::Slice const renderables{
+    modelEntities,
+    modelEntityCount
+  };
+
+  for (const auto entity : renderables) {
+    // const auto entity = modelEntities[i];
+    _filament->getFilamentScene()->addEntity(entity);
+
+    // TODO: move this elsewhere to enable creation of proper children
+    // const bool hasCollidableChild = 
+      setupRenderable(
+        entity,
+        model,
+        const_cast<filament::gltfio::FilamentAsset*>(
+          model->getAssetInstance()->getAsset()
+        )
+      );
+
+    // if (hasCollidableChild) {
+    //   collidableChildren.push_back(entity);
+    // }
+
+    // // print name
+    // const char* name = asset->getName(entity);
+    // if(name == nullptr) {
+    //   name = "(null)";
+    // }
+    // spdlog::debug("Entity ({}){}", entity.getId(), name);
+
+    // // print position, scale, rotation
+    // const auto instance = _tm->getInstance(entity);
+    // const auto transform = _tm->getWorldTransform(instance);
+    // const auto position = EntityTransforms::oGetTranslationFromTransform(transform);
+    // const auto scale = EntityTransforms::oGetScaleFromTransform(transform);
+    // // const auto rotation = EntityTransforms::oGetRotationFromTransform(transform);
+    // spdlog::debug("Position: ({}, {}, {})", position.x, position.y, position.z);
+    // spdlog::debug("Scale: ({}, {}, {})", scale.x, scale.y, scale.z);
+    // // spdlog::debug("Rotation: ({}, {}, {}, {})", rotation.x, rotation.y, rotation.z, rotation.w);
+
+    // // print parent id
+    // const auto parent = _tm->getParent(instance);
+    // spdlog::debug("Parent: {}", parent.getId());
+
+    model->m_isInScene = true;
   }
+
+  if(isInstanced) {
+    auto assetInstance = model->getAssetInstance();
+    _filament->getFilamentScene()->addEntity(assetInstance->getRoot());
+  }
+
+  // TODO: (see `loadModelGlb`) move ECS setup here
+  // NOTE: how do we get an assetInstance from a non-instanceable?
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -445,6 +472,9 @@ void ModelSystem::updateAsyncAssetLoading() {
   // us visuals without collidables in a scene with <tons> of objects; but would
   // eventually settle
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
+  if (percentComplete != 1.0f) {
+    return;
+  }
 
   // Get the collision system to add collidables
   auto collisionSystem =
@@ -455,39 +485,53 @@ void ModelSystem::updateAsyncAssetLoading() {
     // TODO: should we throw an exception here?
   }
 
-  for (const auto& [guid, model] : m_mapszoAssets) {
-    populateSceneWithAsyncLoadedAssets(model.get());
-
-    if (percentComplete != 1.0f) {
-      continue;
-    }
+  for (const auto& [guid, model] : m_mapszoAssets) { // TODO: use a different list to check loading
 
     auto assetPath = model->szGetAssetPath();
 
-    // we're no longer loading, we're loaded.
-    m_mapszbCurrentlyLoadingInstanceableAssets.erase(assetPath);
+    // mark as loaded.
+    _assetsLoading.erase(assetPath);
 
     // once we're done loading our assets; we should be able to load instanced
     // models.
-    if (auto foundAwaitingIter = m_mapszoAssetsAwaitingDataLoad.find(assetPath);
-        model->bShouldKeepAssetDataInMemory() &&
-        foundAwaitingIter != m_mapszoAssetsAwaitingDataLoad.end()) {
+    if (auto foundAwaitingIter = _entitiesAwaitingLoadInstanced.find(assetPath);
+        model->isInstanced() &&
+        foundAwaitingIter != _entitiesAwaitingLoadInstanced.end()) {
       spdlog::info("Loading additional instanced assets: {}", assetPath);
       for (const auto& itemToLoad : foundAwaitingIter->second) {
         spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
 
         // retry loading the model, as we're done loading the instanceable data
-        loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
+        spdlog::debug("Calling loadModelGlb (instanceable: {}) after async load -> {}",
+                      itemToLoad->isInstanced(), assetPath);
+
+        // TODO: this shouldn't be called here! but it's needed
+        // Basically this function does two things:
+        // - actually starts the async load from buffer (when called in `handleFile`)
+        // - a bunch of other random things to set up instancing (no bueno! called here)
+        // The latter is a big problem, because it causes non-instanceables to be initialized improperly,
+        // and it relies on ECS insertion being done in Model::Deserialize, which SHOULDN'T HAPPEN!
+        // ECS insertion needs to be moved elsewhere (see other TODOs) and the actual instancing
+        // should be done elsewhere, not in `loadModelGlb`.
+        // Maybe a `setupInstancedModel()`, but that requires on the 'instanceableness' of the entity
+        // being tracked properly, which it's not.
+        loadModelGlb(itemToLoad, emptyVec);
       }
       spdlog::info("Done Loading additional instanced assets: {}", assetPath);
-      m_mapszoAssetsAwaitingDataLoad.erase(assetPath);
+      _entitiesAwaitingLoadInstanced.erase(assetPath);
     }
+    // else {
+    //   spdlog::info("No instanced assets to load: {}", assetPath);
+    // }
 
     // You don't get collision as a primary model instance.
-    if (model->bIsPrimaryAssetToInstanceFrom()) {
+    if (model->isInstancePrimary()) {
       continue;
     }
+
+    // Insert models into the scene
+    addModelToScene(model.get(), false);
 
     // if its 'done' loading, we need to create our large AABB collision
     // object if this model it's referencing required one.
@@ -504,7 +548,7 @@ void ModelSystem::updateAsyncAssetLoading() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
-    std::shared_ptr<Model> oOurModel,
+    std::shared_ptr<Model> model,
     const std::string& path) {
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
@@ -517,33 +561,33 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
     const auto assetPath =
         ecs->getConfigValue<std::string>(kAssetPath);
 
-    const bool bWantsInstancedData = oOurModel->bShouldKeepAssetDataInMemory();
+    const bool bWantsInstancedData = model->isInstanced();
     const bool hasInstancedDataLoaded =
-        m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath()) !=
+        m_mapInstanceableAssets_.find(model->szGetAssetPath()) !=
         m_mapInstanceableAssets_.end();
     const bool isCurrentlyLoadingInstanceableData =
-        m_mapszbCurrentlyLoadingInstanceableAssets.find(
-            oOurModel->szGetAssetPath()) !=
-        m_mapszbCurrentlyLoadingInstanceableAssets.end();
+        _assetsLoading.find(
+            model->szGetAssetPath()) !=
+        _assetsLoading.end();
 
     // if we are loading instanceable data...
     if (bWantsInstancedData) {
-      std::string szAssetPath = oOurModel->szGetAssetPath();
+      std::string szAssetPath = model->szGetAssetPath();
       // ... and we're currently loading it or it's already loaded
       // add it to the list of assets to update when we're done loading.
       // see: updateAsyncAssetLoading() (which the calls this again)
       if (isCurrentlyLoadingInstanceableData || hasInstancedDataLoaded) {
         const auto iter =
-            m_mapszoAssetsAwaitingDataLoad.find(oOurModel->szGetAssetPath());
+            _entitiesAwaitingLoadInstanced.find(model->szGetAssetPath());
 
         // find/create a list of instances to load
         // and add this model to it.
-        if (iter != m_mapszoAssetsAwaitingDataLoad.end()) {
-          iter->second.emplace_back(std::move(oOurModel));
+        if (iter != _entitiesAwaitingLoadInstanced.end()) {
+          iter->second.emplace_back(std::move(model));
         } else {
           std::list<std::shared_ptr<Model>> modelListToLoad;
-          modelListToLoad.emplace_back(std::move(oOurModel));
-          m_mapszoAssetsAwaitingDataLoad.insert(
+          modelListToLoad.emplace_back(std::move(model));
+          _entitiesAwaitingLoadInstanced.insert(
               std::pair(szAssetPath, modelListToLoad));
         }
 
@@ -557,12 +601,11 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
       // if we're not loading instance data, this will fall out and load it, set
       // that we're loading it. next model will see its loading. and add itself
       // to the wait.
-      m_mapszbCurrentlyLoadingInstanceableAssets.insert(
-          std::pair(szAssetPath, true));
+      _assetsLoading.insert(szAssetPath);
     }
 
     post(strand_,
-         [&, model = std::move(oOurModel), promise, path, assetPath]() mutable {
+         [&, model = std::move(model), promise, path, assetPath]() mutable {
            try {
              const auto buffer = readBinaryFile(path, assetPath);
              handleFile(std::move(model), buffer, path, promise);
@@ -587,7 +630,9 @@ void ModelSystem::handleFile(std::shared_ptr<Model>&& oOurModel,
                              const PromisePtr& promise) {
   spdlog::debug("handleFile");
   if (!buffer.empty()) {
-    loadModelGlb(std::move(oOurModel), buffer, fileSource);
+    spdlog::debug("Calling loadModelGlb (instanceable: {}) instantly -> {}", 
+                  oOurModel->isInstanced(), fileSource);
+    loadModelGlb(std::move(oOurModel), buffer);
     promise->set_value(Resource<std::string_view>::Success(
         "Loaded glb model successfully from " + fileSource));
   } else {
@@ -798,7 +843,11 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vUpdate(float /*fElapsedTime*/) {
+  // Make sure all models are loaded
   updateAsyncAssetLoading();
+
+  // Instance models that have just been loaded
+  // TODO: see TODOs in `updateAsyncAssetLoading`
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

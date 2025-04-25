@@ -27,6 +27,7 @@
 namespace plugin_filament_view {
 
 class Model : public RenderableEntityObject {
+  friend class ModelSystem;
   private:
     /// @brief JSON data configuring the model.
     /// This is used to set up the model's properties and behavior.
@@ -56,7 +57,7 @@ class Model : public RenderableEntityObject {
   }
 
   void SetPrimaryAssetToInstanceFrom(bool bValue) {
-    m_bIsPrimaryAssetToInstanceFrom = bValue;
+    m_isInstancePrimary = bValue;
   }
 
   [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const {
@@ -77,13 +78,21 @@ class Model : public RenderableEntityObject {
   [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
   [[nodiscard]] std::string szGetURLPath() const { return url_; }
 
-  [[nodiscard]] bool bShouldKeepAssetDataInMemory() const {
-    return m_bShouldKeepAssetDataInMemory;
+  /// Returns whether the model is a secondary instance of a model asset
+  [[nodiscard]] bool isInstanced() const {
+    return m_isInstanced;
   }
 
-  [[nodiscard]] bool bIsPrimaryAssetToInstanceFrom() const {
-    return m_bIsPrimaryAssetToInstanceFrom;
+  /// Returns whether the model is a primary instanceable asset
+  [[nodiscard]] bool isInstancePrimary() const {
+    return m_isInstancePrimary;
   }
+
+  /// Returns whether the model is in the scene
+  [[nodiscard]] bool isInScene() const {
+    return m_isInScene;
+  }
+
   [[nodiscard]] filament::Aabb poGetBoundingBox() {
     if (m_poAsset != nullptr) {
       return m_poAsset->getBoundingBox();
@@ -101,9 +110,12 @@ class Model : public RenderableEntityObject {
   filament::gltfio::FilamentAsset* m_poAsset;
   filament::gltfio::FilamentInstance* m_poAssetInstance;
 
-  // used for instancing objects.
-  bool m_bShouldKeepAssetDataInMemory = false;
-  bool m_bIsPrimaryAssetToInstanceFrom = false;
+  /// Whether the model is a secondary instance of a model asset
+  bool m_isInstanced = false;
+  /// Whether the model is a primary instanceable asset
+  bool m_isInstancePrimary = false;
+  /// Whether it's been inserted into the scene
+  bool m_isInScene = false;
 
   void DebugPrint() const override;
 

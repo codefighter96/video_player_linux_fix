@@ -28,8 +28,22 @@
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <list>
+#include <set>
 
 namespace plugin_filament_view {
+
+enum ModelAssetState {
+  /// Default value, not set
+  unknown,
+  /// Used when a model is queued for loading
+  loading,
+  /// Used when a model is loaded and is ready to be used
+  loaded,
+  /// Used when a model is loaded and in use (in the scene)
+  done,
+  /// Used when a model failed to load
+  error
+};
 
 class Model;
 
@@ -40,14 +54,9 @@ class ModelSystem : public ECSystem {
   void destroyAllAssetsOnModels();
   void destroyAsset(const filament::gltfio::FilamentAsset* asset) const;
 
-  void loadModelGlb(std::shared_ptr<Model> oOurModel,
-                    const std::vector<uint8_t>& buffer,
-                    const std::string& assetName);
+  void loadModelGlb(std::shared_ptr<Model> model,
+                    const std::vector<uint8_t>& buffer);
 
-  void loadModelGltf(std::shared_ptr<Model> oOurModel,
-                     const std::vector<uint8_t>& buffer,
-                     std::function<const ::filament::backend::BufferDescriptor&(
-                         std::string uri)>& callback);
 
   filament::gltfio::FilamentAsset* poFindAssetByGuid(const EntityGUID guid);
 
@@ -98,28 +107,30 @@ class ModelSystem : public ECSystem {
   // So we start the program, and say we want 20 foxes. We only load '1',
   // queue the other ones in here, and instance off the main one when its
   // completed.
-  std::map<std::string, std::list<std::shared_ptr<Model>>>
-      m_mapszoAssetsAwaitingDataLoad;
+  std::map<std::string, std::list<std::shared_ptr<Model>>> _entitiesAwaitingLoadInstanced;
+
+  /// List of entities that are waiting to be instanced
+  /// after being loaded.
+  /// When `updateAsyncAssetLoading` detects that an asset is loaded,
+  /// it will move the corresponding entity from this list to the scene.
+  /// The value indicates whether the entity is instanced or not.
+  std::map<std::shared_ptr<Model>, bool> _entitiesToBeAddedToScene;
 
   // When loading, it will be in here so we know not to load more than 1
   /// Map of asset paths to whether they are currently being loaded.
-  std::map<std::string, bool> m_mapszbCurrentlyLoadingInstanceableAssets;
-
-  // This is a reusable list of renderables for popping off
-  // async load.
-  // NOTE If you change this size; the async update loop on the system count
-  // needs to change.
-  utils::Entity readyRenderables_[128];
+  std::set<std::string> _assetsLoading {};
 
   // not actively used, to be moved
   std::vector<float> morphWeights_;
 
   void vSetupAssetThroughoutECS(
-      std::shared_ptr<Model>& sharedPtr,
-      filament::gltfio::FilamentAsset* filamentAsset,
-      filament::gltfio::FilamentInstance* filamentAssetInstance);
+      std::shared_ptr<Model>& sharedPtr);
 
-  void populateSceneWithAsyncLoadedAssets(const Model* model);
+  /// Creates renderables and adds them to the scene
+  void addModelToScene(
+    Model* Model,
+    bool isInstanced
+  );
 
   void vRemoveAndReaddModelToCollisionSystem(
       const EntityGUID guid,
