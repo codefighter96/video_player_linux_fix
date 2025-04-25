@@ -37,6 +37,8 @@ class SceneTextDeserializer {
   virtual ~SceneTextDeserializer() = default;
 
  private:
+  smarter_raw_ptr<ECSManager> _ecs;
+
   // These get released to the Model_system / obj locator
   std::vector<std::shared_ptr<Model>> models_;
   // These get released to the Shape_System / obj locator
@@ -54,7 +56,7 @@ class SceneTextDeserializer {
   void setUpIndirectLight() const;
   void setUpShapes();
 
-  static void loadModel(std::shared_ptr<Model>& model);
+  void loadModel(std::shared_ptr<Model>& model);
 
   std::unique_ptr<Skybox> skybox_;
   std::unique_ptr<IndirectLight> indirect_light_;

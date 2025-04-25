@@ -86,7 +86,7 @@ void TransformSystem::applyTransform(
   const bool forceRecalculate
 ) {
   const std::shared_ptr<BaseTransform> transform = std::dynamic_pointer_cast<BaseTransform>(
-    entity.GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+    entity.GetComponent(Component::StaticGetTypeID<BaseTransform>())
   );
   if (transform == nullptr) {
     throw std::runtime_error("Transform component not found");

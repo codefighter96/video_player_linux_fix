@@ -35,9 +35,8 @@ namespace plugin_filament_view {
 //////////////////////////////////////////////////////////////////////////////////////////
 SceneTextDeserializer::SceneTextDeserializer(
     const std::vector<uint8_t>& params) {
-  const auto ecs = ECSManager::GetInstance();
-  const std::string& flutterAssetsPath =
-      ecs->getConfigValue<std::string>(kAssetPath);
+  _ecs = ECSManager::GetInstance();
+  const std::string& flutterAssetsPath = _ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
   vDeserializeRootLevel(params, flutterAssetsPath);
@@ -216,28 +215,36 @@ void SceneTextDeserializer::setUpLoadingModels() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpShapes() {
-  SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
+  spdlog::debug("{} {}", __FUNCTION__, __LINE__);
 
+  spdlog::debug("getting systems");
   const auto shapeSystem =
-      ECSManager::GetInstance()->getSystem<ShapeSystem>(
+      _ecs->getSystem<ShapeSystem>(
           "setUpShapes");
   const auto collisionSystem =
-      ECSManager::GetInstance()->getSystem<CollisionSystem>(
+      _ecs->getSystem<CollisionSystem>(
           "setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
-    spdlog::error(
+    throw std::runtime_error(
         "[SceneTextDeserializer] Error.ShapeSystem or collisionSystem is null");
-    return;
   }
 
   for (const auto& shape : shapes_) {
-    if (shape->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())) {
-      if (collisionSystem != nullptr) {
-        collisionSystem->vAddCollidable(shape.get());
-      }
-    }
+    spdlog::debug("Adding shape to scene {}", shape->GetGuid());
+    _ecs->addEntity(shape);
+    /// TODO: fix shape collidables
+    // spdlog::debug("Adding collidable...");
+    // if (shape->HasComponent<Collidable>()) {
+    //   spdlog::debug("Shape {} has collidable! Adding to collision system", shape->GetGuid());
+    //   if (collisionSystem != nullptr) {
+    //     collisionSystem->vAddCollidable(shape.get());
+    //   }
+    // }
+    // spdlog::debug("Collidable added!");
   }
+
+  spdlog::debug("Shape setup done, adding to scene");
 
   shapeSystem->addShapesToScene(&shapes_);
 
@@ -246,8 +253,7 @@ void SceneTextDeserializer::setUpShapes() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
-  const auto ecs = ECSManager::GetInstance();
-  const auto& strand = *ecs->GetStrand();
+  const auto& strand = *_ecs->GetStrand();
 
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem =
@@ -330,9 +336,7 @@ void SceneTextDeserializer::setUpSkybox() const {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpLights() {
-  const auto lightSystem =
-      ECSManager::GetInstance()->getSystem<LightSystem>(
-          __FUNCTION__);
+  const auto lightSystem = _ecs->getSystem<LightSystem>(__FUNCTION__);
 
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
@@ -340,11 +344,10 @@ void SceneTextDeserializer::setUpLights() {
     const auto newEntity = std::make_shared<NonRenderableEntityObject>(
         "SceneTextDeserializer::setUpLights", fst);
 
-    newEntity->vAddComponent(snd);
+    _ecs->addEntity(newEntity);
+    _ecs->addComponent(newEntity->GetGuid(), snd);
 
     lightSystem->vBuildLightAndAddToScene(*snd);
-
-    newEntity->vRegisterEntity();
   }
 
   // if a light didnt get deserialized, tell light system to create a default

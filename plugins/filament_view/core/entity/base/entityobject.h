@@ -19,8 +19,11 @@
 #include <string>
 #include <vector>
 
+#include <utility>
+
 #include <core/components/base/component.h>
 #include <core/components/derived/material_definitions.h>
+#include <core/utils/smarter_pointers.h>
 #include <filament/Scene.h>
 
 namespace plugin_filament_view {
@@ -43,8 +46,12 @@ struct EntityDescriptor {
   EntityGUID guid = kNullGuid;
 };
 
+class ECSManager;
+
 /// @brief EntityObject is the base class for all entities in the system.
 class EntityObject : public std::enable_shared_from_this<EntityObject> {
+  friend class ECSManager;
+  // TODO: do we need to expose these?
   friend class CollisionSystem;
   friend class MaterialSystem;
   friend class ModelSystem;
@@ -64,14 +71,29 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     return guid_ == other.guid_;
   }
 
+  [[nodiscard]] inline bool isInitialized()  const{
+    return _isInitialized;
+  }
+
+  /// @brief Checks if the entity is initialized. Throws an exception if not.
+  /// @throws std::runtime_error if the entity is not initialized.
+  void checkInitialized() const {
+    // TODO: mutex?
+
+    if (!_isInitialized) {
+      throw std::runtime_error(
+          // fmt::format("[{}] EntityObject ({}) is not initialized", __FUNCTION__, guid_));
+          "EntityObject is not initialized");
+    }
+  }
+
+  template <typename T>
+  [[nodiscard]] inline bool HasComponent() const {
+    return HasComponent(Component::StaticGetTypeID<T>());
+  }
   // Pass in the Component::StaticGetTypeID<DerivedClass>()
   // Returns true if valid, false if not found.
-  [[nodiscard]] bool HasComponentByStaticTypeID(size_t staticTypeID) const {
-    return std::any_of(components_.begin(), components_.end(),
-                       [staticTypeID](const auto& item) {
-                         return item->GetTypeID() == staticTypeID;
-                       });
-  }
+  [[nodiscard]] bool HasComponent(size_t staticTypeID) const;
 
   // TODO: remove this, change guid to const and expose as public
   [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
@@ -79,17 +101,26 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   EntityObject(const EntityObject&) = delete;
   EntityObject& operator=(const EntityObject&) = delete;
 
-  // This will register the object to the entity object locator
-  // system. Components will be registered with their respective
-  // System when a component is added to the entity.
-  void vRegisterEntity();
+  /// 
+  void onAddComponent(std::shared_ptr<Component> component);
 
-  // Called from destructor but if saved in other list, which it
-  // will be. then it won't unregister. So you need to call this
-  // when you want it gone.
-  void vUnregisterEntity();
+  virtual void DebugPrint() const = 0;
+
+  [[nodiscard]] inline const std::string& GetName() const { return name_; }
 
  protected:
+  smarter_raw_ptr<ECSManager> ecs = nullptr;
+
+  /// GUID of the entity.
+  /// This is used for identifying the entity, and must be unique.
+  /// Also used as a key in the entity object locator system.
+  EntityGUID guid_;
+
+  /// Name of the entity.
+  /// This is used only for debugging and logging purposes.
+  /// It is not used for identifying the entity, and does not need to be unique.
+  std::string name_;
+
   /// @brief Constructor for EntityObject. Generates a GUID and has an empty
   /// name.
   explicit EntityObject();
@@ -106,49 +137,22 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// the name and GUID.
   explicit EntityObject(const flutter::EncodableMap& params);
 
-  virtual ~EntityObject() {
-    vUnregisterEntity();
+  virtual ~EntityObject() = default;
 
-    // smart ptrs in components deleted on clear.
-    components_.clear();
+  /// Called immediately after the entity is registered in the ECSManager.
+  /// NOTE: this is a good place to initialize components and children.
+  virtual void onInitialize() {};
+  /// Called immediately before the entity is unregistered in the ECSManager.
+  /// NOTE: it doesn't need to deallocate components or children, the ECSManager will do that.
+  virtual void onDestroy() {};
+
+  template <typename T>
+  [[nodiscard]] inline std::shared_ptr<T> GetComponent() const {
+    return std::dynamic_pointer_cast<T>(GetComponent(Component::StaticGetTypeID<T>()));
   }
-
-  virtual void DebugPrint() const = 0;
-
-  [[nodiscard]] const std::string& GetName() const { return name_; }
-
-  void vAddComponent(std::shared_ptr<Component> component,
-                     bool bAutoAddToSystems = true);
-
-  void vRemoveComponent(size_t staticTypeID) {
-    components_.erase(std::remove_if(components_.begin(), components_.end(),
-                                     [&](auto& item) {
-                                       return item->GetTypeID() == staticTypeID;
-                                     }),
-                      components_.end());
-  }
-
   // Pass in the Component::StaticGetTypeID<DerivedClass>()
   // Returns component if valid, nullptr if not found.
-  [[nodiscard]] std::shared_ptr<Component> GetComponentByStaticTypeID(
-      size_t staticTypeID) {
-    for (const auto& item : components_) {
-      if (item->GetTypeID() == staticTypeID) {
-        return item;
-      }
-    }
-    return nullptr;
-  }
-
-  [[nodiscard]] std::shared_ptr<Component> GetComponentByStaticTypeID(
-      size_t staticTypeID) const {
-    for (const auto& item : components_) {
-      if (item->GetTypeID() == staticTypeID) {
-        return item;
-      }
-    }
-    return nullptr;
-  }
+  [[nodiscard]] std::shared_ptr<Component> GetComponent(size_t staticTypeID) const;
 
   void vDebugPrintComponents() const;
 
@@ -161,22 +165,31 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
       const flutter::EncodableMap& params);
 
  private:
-  /// GUID of the entity.
-  /// This is used for identifying the entity, and must be unique.
-  /// Also used as a key in the entity object locator system.
-  EntityGUID guid_;
+  std::mutex _initMutex;
+  bool _isInitialized = false;
 
-  /// Name of the entity.
-  /// This is used only for debugging and logging purposes.
-  /// It is not used for identifying the entity, and does not need to be unique.
-  std::string name_;
+  /// Called by ECSManager when the entity is registered.
+  void initialize(ECSManager* ecsManager) {
+    std::lock_guard lock(_initMutex);
 
-  bool m_bAlreadyRegistered{};
+    // Make sure it's not already initialized
+    assert(_isInitialized == false);
 
-  // Vector for now, we shouldn't be adding and removing
-  // components frequently during runtime.
-  //
-  // In the future this is probably a map<type, vector_or_list<Comp*>>
-  std::vector<std::shared_ptr<Component>> components_;
+    ecs = ecsManager;
+    _isInitialized = true;
+    onInitialize();
+  }
+
+  /// Called by ECSManager when the entity is unregistered.
+  void uninitialize() {
+    std::lock_guard lock(_initMutex);
+
+    // Make sure it's not already uninitialized
+    assert(_isInitialized == true);
+
+    onDestroy();
+    ecs = nullptr;
+    _isInitialized = false;
+  }
 };
 }  // namespace plugin_filament_view

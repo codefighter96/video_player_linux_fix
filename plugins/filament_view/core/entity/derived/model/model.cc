@@ -48,7 +48,7 @@ Model::Model(std::string assetPath,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::vInitComponents(
+void Model::onInitialize() {
     std::shared_ptr<BaseTransform> poTransform,
     std::shared_ptr<CommonRenderable> poCommonRenderable,
     const flutter::EncodableMap& params) {
@@ -63,8 +63,8 @@ void Model::vInitComponents(
   if (const auto it = params.find(flutter::EncodableValue(kCollidable));
       it != params.end() && !it->second.IsNull()) {
     // They're requesting a collidable on this object. Make one.
-    auto collidableComp = std::make_shared<Collidable>(params);
-    vAddComponent(std::move(collidableComp));
+    auto collidable = std::make_shared<Collidable>(*_initParams);
+    ecs->addComponent(guid_, std::move(collidable));
   }
 
   // if we have animation data; lets deserialize and add it to this
@@ -72,7 +72,7 @@ void Model::vInitComponents(
       it != params.end() && !it->second.IsNull()) {
     auto animationInformation = std::make_shared<Animation>(
         std::get<flutter::EncodableMap>(it->second));
-    vAddComponent(std::move(animationInformation));
+    ecs->addComponent(guid_, std::move(animation));
   }
 }
 
@@ -103,9 +103,6 @@ std::shared_ptr<Model> Model::Deserialize(
   std::optional<std::string> pathPostfix;
   std::optional<std::string> url;
   bool is_glb = false;
-
-  auto oTransform = std::make_shared<BaseTransform>(params);
-  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
 
   for (const auto& [fst, snd] : params) {
     if (snd.IsNull())
@@ -146,11 +143,9 @@ std::shared_ptr<Model> Model::Deserialize(
   auto toReturn = std::make_shared<GltfModel>(
       assetPath.has_value() ? std::move(assetPath.value()) : "",
       url.has_value() ? std::move(url.value()) : "",
-      pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
-      pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", params);
-
-  toReturn->vInitComponents(std::move(oTransform), std::move(oCommonRenderable),
-                            params);
+  auto ecs = ECSManager::GetInstance();
+  spdlog::debug("Adding entity {} from {}", toReturn->GetGuid(), __FUNCTION__);
+  ecs->addEntity(toReturn); // this now inits components, takes params from constructor
   return toReturn;
 }
 
@@ -171,7 +166,7 @@ void Model::vLoadMaterialDefinitionsToMaterialInstance() {
     // this will also set all the default values of the material instance from
     // the material param list
     const auto materialDefinitions =
-        GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>());
+        GetComponent(Component::StaticGetTypeID<MaterialDefinitions>());
     if (materialDefinitions != nullptr) {
       m_poMaterialInstance = materialSystem->getMaterialInstance(
           dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
@@ -188,8 +183,8 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>())) {
-    vRemoveComponent(Component::StaticGetTypeID<MaterialDefinitions>());
+  if (HasComponent(Component::StaticGetTypeID<MaterialDefinitions>())) {
+    ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
   // If you want to inspect the params coming in.
@@ -199,7 +194,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
   }*/
 
   auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
-  vAddComponent(std::move(materialDefinitions));
+  ecs->addComponent(guid_, std::move(materialDefinitions));
 
   m_poMaterialInstance.vReset();
 
@@ -274,7 +269,7 @@ void Model::vChangeMaterialInstanceProperty(
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>()).get());
+      GetComponent(Component::StaticGetTypeID<MaterialDefinitions>()).get());
   if (matDefs == nullptr) {
     return;
   }

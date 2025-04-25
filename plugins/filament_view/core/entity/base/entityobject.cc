@@ -92,66 +92,49 @@ void EntityObject::vDebugPrintComponents() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vUnregisterEntity() {
-  if (!m_bAlreadyRegistered) {
-    return;
-  }
-
-  const auto ecs = ECSManager::GetInstance();
-
-  ecs->removeEntity(guid_);
-
-  m_bAlreadyRegistered = false;
+std::shared_ptr<Component> EntityObject::GetComponent(size_t staticTypeID) const {
+  checkInitialized();
+  return ecs->getComponent(guid_, staticTypeID);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vRegisterEntity() {
-  if (m_bAlreadyRegistered) {
-    return;
-  }
-
-  const auto ecs = ECSManager::GetInstance();
-  ecs->addEntity(shared_from_this());
-
-  m_bAlreadyRegistered = true;
+[[nodiscard]] bool EntityObject::HasComponent(size_t staticTypeID) const {
+  checkInitialized();
+  spdlog::debug("EntityObject::HasComponent {} {}", guid_, staticTypeID);
+  return ecs->hasComponent(guid_, staticTypeID);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
                                                 EntityObject& other) const {
-  const auto component = GetComponentByStaticTypeID(staticTypeID);
+  checkInitialized();
+  const auto component = ecs->getComponent(guid_, staticTypeID);
   if (component == nullptr) {
     spdlog::warn("Unable to clone component of {}", staticTypeID);
     return;
   }
 
-  other.vAddComponent(std::shared_ptr<Component>(component->Clone()));
+  ecs->addComponent(other.guid_, std::shared_ptr<Component>(component->Clone()));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vAddComponent(std::shared_ptr<Component> component,
-                                 const bool bAutoAddToSystems) {
+void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
+  checkInitialized();
   component->entityOwner_ = this;
 
-  if (bAutoAddToSystems) {
-    if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
-      const auto lightSystem =
-          ECSManager::GetInstance()->getSystem<LightSystem>(
-              __FUNCTION__);
+  // TODO: nuh-uh, the components should not need registration
+  if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
+    const auto lightSystem =
+        ECSManager::GetInstance()->getSystem<LightSystem>(
+            __FUNCTION__);
 
-      lightSystem->vRegisterEntityObject(shared_from_this());
-    }
-
-    if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
-      const auto animationSystem =
-          ECSManager::GetInstance()->getSystem<AnimationSystem>(
-              "loadModelGltf");
-
-      animationSystem->vRegisterEntityObject(shared_from_this());
-    }
+    lightSystem->vRegisterEntityObject(shared_from_this());
   }
+  else if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
+    const auto animationSystem =
+        ECSManager::GetInstance()->getSystem<AnimationSystem>(
+            "loadModelGltf");
 
-  components_.emplace_back(std::move(component));
+    animationSystem->vRegisterEntityObject(shared_from_this());
+  }
 }
 
 }  // namespace plugin_filament_view

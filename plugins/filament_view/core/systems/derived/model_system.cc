@@ -190,7 +190,7 @@ void ModelSystem::setupCollidableChild(
       transform->SetPosition(center);
       transform->SetRotation(filament::math::quatf(0, 0, 0, 1));
       transform->SetScale(filament::math::float3(1, 1, 1));
-      childEntity->vAddComponent(transform);
+      ecs->addComponent(childEntity->GetGuid(), transform);
 
       spdlog::debug("Added transform");
 
@@ -200,7 +200,7 @@ void ModelSystem::setupCollidableChild(
       collidable->SetExtentsSize(filament::math::float3(sizeX, sizeY, sizeZ));
       collidable->SetShapeType(isCube ? ShapeType::Cube :
                                         ShapeType::Sphere);
-      childEntity->vAddComponent(collidable);
+      ecs->addComponent(childEntity->GetGuid(), collidable);
 
       spdlog::debug("Added collidable");
 
@@ -216,7 +216,11 @@ void ModelSystem::setupCollidableChild(
         transform->GetPosition(),
         model->_fEntity.get()
       );
-      childEntity->vRegisterEntity();
+      // childEntity->vRegisterEntity();
+      spdlog::debug("Adding entity {} from {}", childEntity->GetGuid(), __FUNCTION__);
+      ecs->addEntity(childEntity
+        // ,parentGuid
+      );
 
       spdlog::debug("Child object '{}' added to model '{}'",
                   childEntity->GetName(), model->GetName());
@@ -226,9 +230,7 @@ void ModelSystem::setupCollidableChild(
       spdlog::debug("Transform applied!");
 
       // add to collision system
-      const auto collisionSystem =
-          ecs->getSystem<CollisionSystem>(
-              "setupRenderable");
+      const auto collisionSystem = ecs->getSystem<CollisionSystem>("setupCollidableChild");
 
       // collisionSystem->vAddCollidable(childEntity.get());
 
@@ -251,8 +253,8 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
       return;
     }
   }
-
-  const auto filamentSystem =
+  const auto assetPath = oOurModel->szGetAssetPath();
+  const auto instancedModelData = m_mapInstanceableAssets_.find(assetPath);
       ecs->getSystem<FilamentSystem>(
           "loadModelGlb");
   const auto engine = filamentSystem->getFilamentEngine();
@@ -260,8 +262,6 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
   auto& em = engine->getEntityManager();
   auto& tm = engine->getTransformManager();
 
-  const auto instancedModelData =
-      m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath());
 
   // Note if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
@@ -271,7 +271,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 
   std::vector<Entity> collidableChildren = {};
 
-  spdlog::debug("ModelSystem::loadModelGlb: {}", oOurModel->szGetAssetPath());
+  spdlog::debug("ModelSystem::loadModelGlb: {}", assetPath);
   if (instancedModelData != m_mapInstanceableAssets_.end()) {
     // we have the model already, use it.
     asset = instancedModelData->second;
@@ -328,7 +328,7 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
 
     if (oOurModel->bShouldKeepAssetDataInMemory()) {
       m_mapInstanceableAssets_.insert(
-          std::pair(oOurModel->szGetAssetPath(), asset));
+          std::pair(assetPath, asset));
     } else {
       asset->releaseSourceData();
     }
@@ -433,9 +433,9 @@ void ModelSystem::vSetupAssetThroughoutECS(
   }
 
   if (animatorInstance != nullptr &&
-      modelEntity->HasComponentByStaticTypeID(Component::StaticGetTypeID<Animation>())) {
+      modelEntity->HasComponent(Component::StaticGetTypeID<Animation>())) {
     const auto animatorComponent =
-        modelEntity->GetComponentByStaticTypeID(Component::StaticGetTypeID<Animation>());
+        modelEntity->GetComponent(Component::StaticGetTypeID<Animation>());
     const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
     animator->vSetAnimator(*animatorInstance);
 
@@ -451,7 +451,8 @@ void ModelSystem::vSetupAssetThroughoutECS(
         modelEntity->szGetAssetPath(), animatorInstance->getAnimationCount());
   }
 
-  modelEntity->vRegisterEntity();
+  spdlog::debug("Adding entity {} from {}", modelEntity->GetGuid(), __FUNCTION__);
+  ecs->addEntity(modelEntity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -772,7 +773,7 @@ void ModelSystem::vOnInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
             model
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -802,7 +803,7 @@ void ModelSystem::vOnInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
               model
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -831,7 +832,7 @@ void ModelSystem::vOnInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = dynamic_cast<BaseTransform*>(
               model
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -901,7 +902,7 @@ void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
   // if we are marked for collidable, have one in the scene, remove and readd
   // if this is a performance issue, we can do the transform move in the future
   // instead.
-  if (model->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
+  if (model->HasComponent(Component::StaticGetTypeID<Collidable>()) &&
       collisionSystem->hasEntity(guid)) {
     collisionSystem->vRemoveCollidable(model.get());
     collisionSystem->vAddCollidable(model.get());

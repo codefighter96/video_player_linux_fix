@@ -41,7 +41,7 @@ void LightSystem::vCreateDefaultLight() {
   m_poDefaultLight = std::make_shared<NonRenderableEntityObject>(
       "DefaultLight", generateUUID());
   const auto oLightComp = std::make_shared<Light>();
-  m_poDefaultLight->vAddComponent(oLightComp);
+  ecs->addComponent(m_poDefaultLight->GetGuid(), oLightComp);
 
   oLightComp->SetIntensity(200);
   oLightComp->SetDirection({0, -1, 0});
@@ -52,7 +52,7 @@ void LightSystem::vCreateDefaultLight() {
 
   vBuildLightAndAddToScene(*oLightComp);
 
-  m_poDefaultLight->vRegisterEntity();
+  ecs->addEntity(m_poDefaultLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ void LightSystem::vOnInitSystem() {
             ourEntity != m_mapGuidToEntity.end()) {
           const auto theLight = dynamic_cast<Light*>(
               ourEntity->second
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
+                  ->GetComponent(Component::StaticGetTypeID<Light>())
                   .get());
           theLight->SetIntensity(intensityValue);
           theLight->SetColor(colorValue);
@@ -183,7 +183,7 @@ void LightSystem::vOnInitSystem() {
             ourEntity != m_mapGuidToEntity.end()) {
           auto theLight = dynamic_cast<Light*>(
               ourEntity->second
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
+                  ->GetComponent(Component::StaticGetTypeID<Light>())
                   .get());
           theLight->SetPosition(position);
           theLight->SetDirection(rotation);
@@ -203,7 +203,7 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
     const auto component = dynamic_cast<Light*>(
-        m_poDefaultLight->GetComponentByStaticTypeID(Component::StaticGetTypeID<Light>())
+        m_poDefaultLight->GetComponent(Component::StaticGetTypeID<Light>())
             .get());
     vRemoveLightFromScene(*component);
 

@@ -70,7 +70,7 @@ void ShapeSystem::vRemoveAllShapesInScene() {
   vToggleAllShapesInScene(false);
 
   for (const auto& [fst, snd] : m_mapszoShapes) {
-    snd->vUnregisterEntity();
+    ecs->removeEntity(snd->GetGuid());
   }
 
   m_mapszoShapes.clear();
@@ -130,7 +130,7 @@ void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
   // if we are marked for collidable, have one in the scene, remove and readd
   // if this is a performance issue, we can do the transform move in the future
   // instead.
-  if (shape->HasComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>()) &&
+  if (shape->HasComponent(Component::StaticGetTypeID<Collidable>()) &&
       collisionSystem->hasEntity(guid)) {
     collisionSystem->vRemoveCollidable(shape.get());
     collisionSystem->vAddCollidable(shape.get());
@@ -184,7 +184,7 @@ void ShapeSystem::addShapesToScene(
 
     m_mapszoShapes.insert(std::pair(sharedPtr->GetGuid(), sharedPtr));
 
-    sharedPtr->vRegisterEntity();
+    ecs->addEntity(sharedPtr);
   }
 
   SPDLOG_TRACE("--{}", __FUNCTION__);
@@ -224,12 +224,12 @@ void ShapeSystem::vOnInitSystem() {
           const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())
+                  ->GetComponent(Component::StaticGetTypeID<Collidable>())
                   .get());
 
           // this ideally checks for SetShouldMatchAttachedObject in the future
@@ -275,12 +275,12 @@ void ShapeSystem::vOnInitSystem() {
           const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())
+                  ->GetComponent(Component::StaticGetTypeID<Collidable>())
                   .get());
 
           // this ideally checks for SetShouldMatchAttachedObject in the future
@@ -313,7 +313,7 @@ void ShapeSystem::vOnInitSystem() {
           const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           // change stuff.
@@ -343,12 +343,12 @@ void ShapeSystem::vOnInitSystem() {
           const auto entity = ourEntity->second;
           const auto baseTransform = dynamic_cast<BaseTransform*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>())
+                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
                   .get());
 
           const auto collidable = dynamic_cast<Collidable*>(
               entity
-                  ->GetComponentByStaticTypeID(Component::StaticGetTypeID<Collidable>())
+                  ->GetComponent(Component::StaticGetTypeID<Collidable>())
                   .get());
 
           // this ideally checks for SetShouldMatchAttachedObject in the future

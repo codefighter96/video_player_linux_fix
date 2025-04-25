@@ -26,6 +26,7 @@
 #include <core/systems/messages/ecs_message.h>
 #include <core/systems/messages/ecs_message_types.h>
 #include <core/utils/identifiable_type.h>
+#include <core/utils/smarter_pointers.h>
 
 namespace flutter {
 class PluginRegistrar;
@@ -77,7 +78,7 @@ class ECSystem : public IdentifiableType {
   void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
  protected:
-  ECSManager* ecs = nullptr;
+  smarter_raw_ptr<ECSManager> ecs = nullptr;
 
   // Handle a specific message type by invoking the registered handlers
   virtual void vHandleMessage(const ECSMessage& msg);

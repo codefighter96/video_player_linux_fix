@@ -38,9 +38,71 @@ class ECSManager {
     ShutdownStarted,
     Shutdown
   };
-  RunState getRunState() const { return m_eCurrentState; }
 
-  static ECSManager* GetInstance();
+ private:
+  std::map<std::string, std::any> m_mapConfigurationValues;
+
+  void vSetupThreadingInternals();
+
+  void MainLoop();
+
+
+  //
+  //  Entity
+  //
+  std::mutex _entitiesMutex;
+  KVTree<EntityGUID, std::shared_ptr<EntityObject>> _entities;
+
+  //
+  //  Component
+  //
+
+  std::mutex _componentsMutex;
+  /// Map of component type IDs to their corresponding entityID->component maps
+  std::map<TypeID, std::map<EntityGUID, std::shared_ptr<Component>>> _components;
+
+  //
+  //  System
+  //
+
+  std::mutex _systemsMutex;
+  std::map<TypeID, std::shared_ptr<ECSystem>> _systems;
+
+
+
+  //
+  // Threading
+  //
+  std::atomic<bool> m_bIsRunning{false};
+  std::atomic<bool> m_bSpawnedThreadFinished{false};
+  std::atomic<bool> isHandlerExecuting{false};
+
+  std::thread filament_api_thread_;
+  pthread_t filament_api_thread_id_{};
+  std::unique_ptr<asio::io_context> io_context_;
+  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
+  std::unique_ptr<asio::io_context::strand> strand_;
+  std::thread loopThread_;
+
+  std::map<std::string, int> m_mapOffThreadCallers;
+
+
+  RunState m_eCurrentState;
+  static ECSManager* m_poInstance;
+
+  ECSManager();
+  ~ECSManager();
+
+
+ public:
+  [[nodiscard]] inline RunState getRunState() const { return m_eCurrentState; }
+
+  [[nodiscard]] inline static ECSManager* GetInstance() {
+    if (m_poInstance == nullptr) {
+      m_poInstance = new ECSManager();
+    }
+    return m_poInstance;
+  }
 
   ECSManager(const ECSManager&) = delete;
   ECSManager& operator=(const ECSManager&) = delete;
@@ -77,25 +139,27 @@ class ECSManager {
   //  Entity
   //
   void addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent = nullptr);
-  void removeEntity(const EntityGUID& entityGuid);
-  [[nodiscard]] std::shared_ptr<EntityObject> getEntity(
-    EntityGUID id) const;
+  void removeEntity(const EntityGUID entityGuid);
+  [[nodiscard]] std::shared_ptr<EntityObject> getEntity(EntityGUID id);
 
   /// Moves the entity with the given GUID to the parent with the given GUID.
   void reparentEntity(const std::shared_ptr<EntityObject>& entity,
                             const EntityGUID& parentGuid);
   /// Returns the children of the entity with the given GUID.
   [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntityChildren(
-      EntityGUID id) const;
+      EntityGUID id);
   /// Returns the GUIDs of the children of the entity with the given GUID.
   [[nodiscard]] std::vector<EntityGUID> getEntityChildrenGuids(
-      EntityGUID id) const;
+      EntityGUID id);
 
   /// Returns the parent of the entity with the given GUID.
   [[nodiscard]] std::shared_ptr<EntityObject> getEntityParent(
-      EntityGUID id) const;
+      EntityGUID id);
   /// Returns the GUID of the parent of the entity with the given GUID.
-  [[nodiscard]] std::optional<EntityGUID> getEntityParentGuid(EntityGUID id) const;
+  [[nodiscard]] std::optional<EntityGUID> getEntityParentGuid(EntityGUID id);
+
+  /// Checks whether the entity with the given GUID exists. Throws a runtime error if it does not.
+  void checkHasEntity(EntityGUID id);
   
 
   //
@@ -103,6 +167,37 @@ class ECSManager {
   // 
 
   // TODO: move all component code to here
+
+  /// Adds a component to the entity with the given GUID.
+  void addComponent(const EntityGUID entityGuid,
+                            const std::shared_ptr<Component>& component);
+
+  /// Removes a component from the entity with the given GUID.
+  void removeComponent(const EntityGUID& entityGuid,
+                                 TypeID componentTypeId) {
+    // Check if the entity exists
+    checkHasEntity(entityGuid);
+
+    std::unique_lock lock(_componentsMutex);
+    auto componentMap = _components[componentTypeId];
+    componentMap.erase(entityGuid);
+  }
+
+  /// Returns the component of the given type from the entity with the given GUID.
+  template <typename T>
+  [[nodiscard]] inline std::shared_ptr<T> getComponent(const EntityGUID& entityGuid) {
+    return std::dynamic_pointer_cast<T>(getComponent(
+      entityGuid,
+      Component::StaticGetTypeID<T>()
+    ));
+  }
+
+  [[nodiscard]] std::shared_ptr<Component> getComponent(
+    const EntityGUID& entityGuid,
+    TypeID componentTypeId
+  );
+
+  [[nodiscard]] bool hasComponent(const EntityGUID entityGuid, TypeID componentTypeId);
 
   //
   //  System
@@ -116,7 +211,7 @@ class ECSManager {
     * \deprecated Deprecated in favor of queueTask
     */
   void vRouteMessage(const ECSMessage& msg) {
-    std::unique_lock<std::mutex> lock(vecSystemsMutex);
+    std::unique_lock<std::mutex> lock(_systemsMutex);
     // for (const auto& system : _systems) {
     //   system->vSendMessage(msg);
     // }
@@ -148,7 +243,7 @@ class ECSManager {
       }
     }
   
-    std::unique_lock lock(vecSystemsMutex);
+    std::unique_lock lock(_systemsMutex);
     const size_t systemTypeID = ECSystem::StaticGetTypeID<Target>();
     for (auto& [_, system] : _systems) {
       if (system->GetTypeID() == systemTypeID) {
@@ -199,54 +294,5 @@ class ECSManager {
       throw std::runtime_error("Error: Key not found: " + key);
     }
   }
-
- private:
-  ECSManager();
-  ~ECSManager();
-
-  static ECSManager* m_poInstance;
-  std::map<std::string, std::any> m_mapConfigurationValues;
-
-  void vSetupThreadingInternals();
-
-  void MainLoop();
-
-
-  //
-  //  Entity
-  //
-  KVTree<EntityGUID, std::shared_ptr<EntityObject>> _entities;
-  std::mutex _entitiesMutex;
-
-  //
-  //  Component
-  //
-
-  //
-  //  System
-  //
-
-  std::map<TypeID, std::shared_ptr<ECSystem>> _systems;
-  std::mutex vecSystemsMutex;
-
-  //
-  // Threading
-  //
-
-  std::atomic<bool> m_bIsRunning{false};
-  std::atomic<bool> m_bSpawnedThreadFinished{false};
-  std::atomic<bool> isHandlerExecuting{false};
-
-  std::thread filament_api_thread_;
-  pthread_t filament_api_thread_id_{};
-  std::unique_ptr<asio::io_context> io_context_;
-  asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
-  std::unique_ptr<asio::io_context::strand> strand_;
-  std::thread loopThread_;
-
-  std::map<std::string, int> m_mapOffThreadCallers;
-
-
-  RunState m_eCurrentState;
 };
 }  // namespace plugin_filament_view

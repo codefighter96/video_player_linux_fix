@@ -63,10 +63,10 @@ class Model : public RenderableEntityObject {
   }
 
   [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-    return m_poBaseTransform.lock();
+    return GetComponent<BaseTransform>();
   }
   [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
-    return m_poCommonRenderable.lock();
+    return GetComponent<CommonRenderable>();
   }
 
   [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
@@ -89,10 +89,6 @@ class Model : public RenderableEntityObject {
     return {};
   }
 
-  void vInitComponents(std::shared_ptr<BaseTransform> poTransform,
-                       std::shared_ptr<CommonRenderable> poCommonRenderable,
-                       const flutter::EncodableMap& params);
-
  protected:
   std::string assetPath_;
   std::string url_;
@@ -106,10 +102,7 @@ class Model : public RenderableEntityObject {
 
   void DebugPrint() const override;
 
-  // Components - saved off here for faster
-  // lookup, but they're not owned here, but on EntityObject's list.
-  std::weak_ptr<BaseTransform> m_poBaseTransform;
-  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
+  void onInitialize() override;
 
   /// material to be used for the model - instantiated from material definition
   /// Only after a run time request to change has been made.

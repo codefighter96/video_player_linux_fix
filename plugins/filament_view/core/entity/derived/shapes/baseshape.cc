@@ -132,18 +132,16 @@ void BaseShape::CloneToOther(BaseShape& other) const {
                                      other);
 
   const std::shared_ptr<Component> componentBT =
-      GetComponentByStaticTypeID(Component::StaticGetTypeID<BaseTransform>());
+      GetComponent(Component::StaticGetTypeID<BaseTransform>());
   const std::shared_ptr<BaseTransform> baseTransformPtr =
       std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
   const std::shared_ptr<Component> componentCR =
-      GetComponentByStaticTypeID(Component::StaticGetTypeID<CommonRenderable>());
+      GetComponent(Component::StaticGetTypeID<CommonRenderable>());
   const std::shared_ptr<CommonRenderable> commonRenderablePtr =
       std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
-  other.m_poBaseTransform = std::weak_ptr<BaseTransform>(baseTransformPtr);
-  other.m_poCommonRenderable =
-      std::weak_ptr<CommonRenderable>(commonRenderablePtr);
+  /// TODO: ecs->addComponent
 }
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
@@ -158,7 +156,7 @@ void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
     // the material param list
 
     const auto materialDefinitions =
-        GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>());
+        GetComponent(Component::StaticGetTypeID<MaterialDefinitions>());
     if (materialDefinitions != nullptr) {
       m_poMaterialInstance = materialSystem->getMaterialInstance(
           dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
@@ -172,27 +170,30 @@ void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vBuildRenderable(filament::Engine* engine_) {
+  checkInitialized();
   // material_manager can and will be null for now on wireframe creation.
 
   filament::math::float3 aabb;
+  spdlog::debug("Building shape '{}'({}) with AABB",
+                GetName(), GetGuid());
 
-
-  spdlog::debug("Building shape '{}'({}) with AABB: {}",
-                GetName(), GetGuid(), 0);
+  const auto transform = GetComponent<BaseTransform>();
 
   // If we have a collidable, we need to set the AABB to its extent size
   // otherwise we use transform's scale
-  if (m_poCollidable.lock() != nullptr) {
-    const auto collidable = m_poCollidable.lock();
+  if (HasComponent<Collidable>()) {
+    const auto collidable = GetComponent<Collidable>();
     aabb = collidable->GetExtentsSize();
     spdlog::debug("Has collidable");
   } else {
-    aabb = m_poBaseTransform.lock()->GetScale();
+    aabb = transform->GetScale();
     spdlog::debug("No collidable, using transform scale");
   }
 
   spdlog::debug("AABB: x={}, y={}, z={}", aabb.x, aabb.y, aabb.z);
-  
+
+
+  const auto renderable = GetComponent<CommonRenderable>();
 
   if (m_bIsWireframe) {
     // We might want to have a specific Material for wireframes in the future.
@@ -203,7 +204,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         //.material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
                   m_poIndexBuffer)
-        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
+        .culling(renderable->IsCullingOfObjectEnabled())
         .receiveShadows(false)
         .castShadows(false)
         .build(*engine_, *m_poEntity);
@@ -215,16 +216,16 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
                   m_poVertexBuffer, m_poIndexBuffer)
-        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
-        .receiveShadows(m_poCommonRenderable.lock()->IsReceiveShadowsEnabled())
-        .castShadows(m_poCommonRenderable.lock()->IsCastShadowsEnabled())
+        .culling(renderable->IsCullingOfObjectEnabled())
+        .receiveShadows(renderable->IsReceiveShadowsEnabled())
+        .castShadows(renderable->IsCastShadowsEnabled())
         .build(*engine_, *m_poEntity);
   }
 
   // Get parent entity id
-  auto ecs = ECSManager::GetInstance();
+  checkInitialized();
 
-  const auto parentId = m_poBaseTransform.lock()->GetParentId();
+  const auto parentId = transform->GetParentId();
 
   if(parentId != kNullGuid) {
     // Get the parent entity object
@@ -232,16 +233,16 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     auto parentFilamentEntity = parentEntity->_fEntity;
 
     EntityTransforms::vApplyTransform(
-      *m_poEntity, m_poBaseTransform.lock()->GetRotation(),
-      m_poBaseTransform.lock()->GetScale(),
-      m_poBaseTransform.lock()->GetPosition(),
+      *m_poEntity, transform->GetRotation(),
+      transform->GetScale(),
+      transform->GetPosition(),
       parentFilamentEntity.get()
     );
   } else {
     EntityTransforms::vApplyTransform(
-      *m_poEntity, m_poBaseTransform.lock()->GetRotation(),
-      m_poBaseTransform.lock()->GetScale(),
-      m_poBaseTransform.lock()->GetPosition(),
+      *m_poEntity, transform->GetRotation(),
+      transform->GetScale(),
+      transform->GetPosition(),
       nullptr
     );
   }
@@ -260,7 +261,7 @@ void BaseShape::vRemoveEntityFromScene() const {
   }
 
   const auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
@@ -274,7 +275,7 @@ void BaseShape::vAddEntityToScene() const {
   }
 
   const auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      ecs->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
   filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
@@ -305,8 +306,8 @@ void BaseShape::vChangeMaterialDefinitions(
     const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>())) {
-    vRemoveComponent(Component::StaticGetTypeID<MaterialDefinitions>());
+  if (HasComponent(Component::StaticGetTypeID<MaterialDefinitions>())) {
+    ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
   // If you want to inspect the params coming in.
@@ -316,7 +317,7 @@ void BaseShape::vChangeMaterialDefinitions(
   }*/
 
   auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
-  vAddComponent(std::move(materialDefinitions));
+  ecs->addComponent(guid_, std::move(materialDefinitions));
 
   m_poMaterialInstance.vReset();
 
@@ -351,7 +352,7 @@ void BaseShape::vChangeMaterialInstanceProperty(
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(Component::StaticGetTypeID<MaterialDefinitions>()).get());
+      GetComponent(Component::StaticGetTypeID<MaterialDefinitions>()).get());
   if (matDefs == nullptr) {
     return;
   }
