@@ -61,19 +61,10 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       continue;
     }
 
-    if (key == kModel) {
-      spdlog::warn("Loading Single Model - Deprecated Functionality {}", key);
-
-      spdlog::debug("Deserializing Single Model {} ...", key);
-      auto deserializedModel = Model::Deserialize(
-          flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
-      if (deserializedModel == nullptr) {
-        spdlog::error("Unable to load model");
-        continue;
-      }
-      models_.emplace_back(std::move(deserializedModel));
-    } else if (key == kModels &&
-               std::holds_alternative<flutter::EncodableList>(snd)) {
+    if (
+      key == kModels &&
+      std::holds_alternative<flutter::EncodableList>(snd)
+    ) {
       SPDLOG_TRACE("Loading Multiple Models {}", key);
 
       auto list = std::get<flutter::EncodableList>(snd);

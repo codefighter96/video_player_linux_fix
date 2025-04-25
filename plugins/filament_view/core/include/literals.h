@@ -118,7 +118,6 @@ static constexpr char kReceiveShadows[] = "receiveShadows";
 static constexpr char kCastShadows[] = "castShadows";
 static constexpr char kDirection[] = "direction";
 static constexpr char kLength[] = "length";
-static constexpr char kModel[] = "model";
 static constexpr char kModels[] = "models";
 static constexpr char kFallback[] = "fallback";
 static constexpr char kScene[] = "scene";
