@@ -273,10 +273,6 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
     if (!glb_model->szGetAssetPath().empty()) {
       modelSystem->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
     }
-
-    if (!glb_model->szGetURLPath().empty()) {
-      throw std::runtime_error("URL loading is not supported for GLB models.");
-    }
   });
 }
 

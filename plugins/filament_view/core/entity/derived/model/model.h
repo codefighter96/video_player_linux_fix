@@ -28,18 +28,12 @@ namespace plugin_filament_view {
 
 class Model : public RenderableEntityObject {
   friend class ModelSystem;
-  private:
-    /// @brief JSON data configuring the model.
-    /// This is used to set up the model's properties and behavior.
-    /// It is passed to the constructor and stored as a member variable,
-    /// and deallocated following the model's initialization.
-    flutter::EncodableMap _initParams;
  public:
-  Model(std::string assetPath,
-        const flutter::EncodableMap& params);
+  Model();
 
   ~Model() override = default;
 
+  /// @brief Static deserializer - calls the constructor and deserializeFrom under the hood
   static std::shared_ptr<Model> Deserialize(const flutter::EncodableMap& params);
 
   // Disallow copy and assign.
@@ -74,7 +68,6 @@ class Model : public RenderableEntityObject {
   }
 
   [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
-  [[nodiscard]] std::string szGetURLPath() const { return url_; }
 
   /// Returns whether the model is a secondary instance of a model asset
   [[nodiscard]] bool isInstanced() const {
@@ -103,7 +96,6 @@ class Model : public RenderableEntityObject {
 
  protected:
   std::string assetPath_;
-  std::string url_;
 
   filament::gltfio::FilamentAsset* m_poAsset;
   filament::gltfio::FilamentInstance* m_poAssetInstance;
@@ -119,6 +111,8 @@ class Model : public RenderableEntityObject {
 
   void onInitialize() override;
 
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+
   /// material to be used for the model - instantiated from material definition
   /// Only after a run time request to change has been made.
   /// This should probably be on the entity level as model would use this in
@@ -132,6 +126,12 @@ class Model : public RenderableEntityObject {
   void vChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
       const TextureMap& /*loadedTextures*/) override;
+
+ private:
+  /*
+   *  Init data (temporary)
+   */
+  std::shared_ptr<Animation> _tmpAnimation = nullptr;
 };
 
 }  // namespace plugin_filament_view
