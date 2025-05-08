@@ -35,6 +35,7 @@ MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
   const auto flutterAssetPath =
       ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
+  // TODO: rewrite this without the for
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
     SPDLOG_TRACE("Material Param {}", key);
@@ -98,7 +99,11 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
 
   for (const auto& [fst, snd] : parameters_) {
     if (snd != nullptr)
-      snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
+      // snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
+      spdlog::debug(
+          tabPrefix + "parameter: {} type: {}",
+          snd->szGetParameterName(),
+          static_cast<int>(snd->type_));
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");

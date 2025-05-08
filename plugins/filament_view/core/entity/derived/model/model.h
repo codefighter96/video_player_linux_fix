@@ -113,12 +113,6 @@ class Model : public RenderableEntityObject {
 
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  /// material to be used for the model - instantiated from material definition
-  /// Only after a run time request to change has been made.
-  /// This should probably be on the entity level as model would use this in
-  /// future as well.
-  Resource<filament::MaterialInstance*> m_poMaterialInstance;
-  void vLoadMaterialDefinitionsToMaterialInstance();
 
   void vChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,

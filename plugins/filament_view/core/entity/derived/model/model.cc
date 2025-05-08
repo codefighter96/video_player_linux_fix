@@ -105,30 +105,6 @@ void Model::DebugPrint() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::vLoadMaterialDefinitionsToMaterialInstance() {
-  const auto materialSystem =
-      ECSManager::GetInstance()->getSystem<MaterialSystem>(
-          "BaseShape::vBuildRenderable");
-
-  if (materialSystem == nullptr) {
-    spdlog::error("Failed to get material system.");
-  } else {
-    // this will also set all the default values of the material instance from
-    // the material param list
-    const auto materialDefinitions =
-        GetComponent(Component::StaticGetTypeID<MaterialDefinitions>());
-    if (materialDefinitions != nullptr) {
-      m_poMaterialInstance = materialSystem->getMaterialInstance(
-          dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
-    }
-
-    if (m_poMaterialInstance.getStatus() != Status::Success) {
-      spdlog::error("Failed to get material instance.");
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////
 void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it

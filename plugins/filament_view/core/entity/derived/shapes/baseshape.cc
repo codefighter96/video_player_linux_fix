@@ -42,63 +42,43 @@ using filament::math::short4;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-BaseShape::BaseShape(const flutter::EncodableMap& params)
-    : RenderableEntityObject(params) {
-  // Decode parameters
-  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
-    ShapeType::Unset);
-  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
-    float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
-    false);
 
-  _initParams = params;
+void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
+  RenderableEntityObject::deserializeFrom(params);
+
+  // shapeType
+  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params, ShapeType::Unset);
+
+  // normal
+  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, float3(0, 0, 0));
+
+  // isDoubleSided
+  m_bDoubleSided = Deserialize::DecodeParameterWithDefault<bool>(kDoubleSided, params, false);
+
+  // MaterialDefinitions (optional)
+  if(Deserialize::HasKey(params, kMaterial)) {
+    auto matdefParams = std::get<flutter::EncodableMap>(
+      params.find(flutter::EncodableValue(kMaterial))->second
+    );
+    _tmpMaterialDefinitions = std::make_shared<MaterialDefinitions>(matdefParams);
+  } else {
+    spdlog::debug("This entity params has no material definitions");
+  }
 }
 
 void BaseShape::onInitialize() {
-  checkInitialized();
+  RenderableEntityObject::onInitialize();
 
+  checkInitialized();
   spdlog::debug("BaseShape::onInitialize");
   spdlog::debug("BaseShape (id {})", guid_);
 
-  // spdlog::debug("_initParams has addr 0x{:x}", reinterpret_cast<uintptr_t>(&_initParams));
-
-  // get guid from params
-  EntityGUID guid = kNullGuid;
-  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &guid, _initParams,
-    kNullGuid);
-
-  // Check if the guid is valid
-  spdlog::debug("_initParams has guid {}, real guid is {}",
-                guid, guid_);
-
-  // Transform (required)
-  spdlog::debug("Making Transform...");
-  auto transform = std::make_shared<BaseTransform>(_initParams);
-  ecs->addComponent(guid_, std::move(transform));
-
-  // Collidable (optional)
-  spdlog::debug("Making Collidable...");
-  if (const auto it = _initParams.find(flutter::EncodableValue(kCollidable));
-      it != _initParams.end() && !it->second.IsNull()) {
-    // They're requesting a collidable on this object. Make one.
-    auto collidableComp = std::make_shared<Collidable>(_initParams);
-    ecs->addComponent(guid_, std::move(collidableComp));
-  }
-
   // MaterialDefinitions (optional)
-  spdlog::debug("Making MaterialDefinitions...");
-  if (const auto it = _initParams.find(flutter::EncodableValue(kMaterial));
-      it != _initParams.end() && !it->second.IsNull()) {
-    auto materialDefinitions = std::make_shared<MaterialDefinitions>(
-        std::get<flutter::EncodableMap>(it->second));
-    ecs->addComponent(guid_, std::move(materialDefinitions));
+  if(_tmpMaterialDefinitions != nullptr) {
+    spdlog::debug("addComponent MaterialDefinitions");
+    _tmpMaterialDefinitions->DebugPrint("MaterialDefinitions");
+    ecs->addComponent(guid_, std::move(_tmpMaterialDefinitions));
   }
-
-  // CommonRenderable (required)
-  spdlog::debug("Making CommonRenderable...");
-  auto commonRenderable = std::make_shared<CommonRenderable>(_initParams);
-  ecs->addComponent(guid_, std::move(commonRenderable));
 
   // TODO: setup renderable & children, from ShapeSystem::...?
 
@@ -163,30 +143,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 
   /// TODO: ecs->addComponent
 }
-////////////////////////////////////////////////////////////////////////////
-void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
-  const auto materialSystem =
-      ECSManager::GetInstance()->getSystem<MaterialSystem>(
-          "BaseShape::vBuildRenderable");
 
-  if (materialSystem == nullptr) {
-    spdlog::error("Failed to get material system.");
-  } else {
-    // this will also set all the default values of the material instance from
-    // the material param list
-
-    const auto materialDefinitions =
-        GetComponent(Component::StaticGetTypeID<MaterialDefinitions>());
-    if (materialDefinitions != nullptr) {
-      m_poMaterialInstance = materialSystem->getMaterialInstance(
-          dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
-    }
-
-    if (m_poMaterialInstance.getStatus() != Status::Success) {
-      spdlog::error("Failed to get material instance.");
-    }
-  }
-}
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vBuildRenderable(filament::Engine* engine_) {
@@ -243,8 +200,6 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   }
 
   // Get parent entity id
-  checkInitialized();
-
   const auto parentId = transform->GetParentId();
 
   if(parentId != kNullGuid) {

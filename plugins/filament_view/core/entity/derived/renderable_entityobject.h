@@ -72,6 +72,15 @@ class RenderableEntityObject : public EntityObject {
       const MaterialParameter* materialParam,
       const TextureMap& loadedTextures) = 0;
 
+  /// material to be used for the renderable - instantiated from material definition
+  /// Only after a run time request to change has been made.
+  /// This should probably be on the entity level as renderable would use this in
+  /// future as well.
+  Resource<filament::MaterialInstance*> m_poMaterialInstance =
+    Resource<filament::MaterialInstance*>::Error("Unset");
+
+  void vLoadMaterialDefinitionsToMaterialInstance();
+
  private:
   /*
    * Init data (temporary)

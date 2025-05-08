@@ -23,6 +23,7 @@
 #include <math/norm.h>
 #include <math/vec3.h>
 #include <plugins/common/common.h>
+#include <core/include/literals.h>
 #include <vector>
 
 namespace plugin_filament_view::shapes {
@@ -36,20 +37,15 @@ using filament::math::mat3f;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere(const flutter::EncodableMap& params)
-    : BaseShape(params) {
-  SPDLOG_TRACE("+-{}", __FUNCTION__);
 
-  static constexpr char kStacks[] = "stacks";
-  static constexpr char kSlices[] = "slices";
+void Sphere::deserializeFrom(const flutter::EncodableMap& params) {
+  BaseShape::deserializeFrom(params);
 
-  constexpr int defaultStacks = 20;
-  constexpr int defaultSlices = 20;
+  // stacks
+  stacks_ = Deserialize::DecodeParameterWithDefault(kStacks, params, 20);
 
-  Deserialize::DecodeParameterWithDefault(kStacks, &stacks_, params,
-                                          defaultStacks);
-  Deserialize::DecodeParameterWithDefault(kSlices, &slices_, params,
-                                          defaultSlices);
+  // slices
+  slices_ = Deserialize::DecodeParameterWithDefault(kSlices, params, 20);
 }
 
 ////////////////////////////////////////////////////////////////////////////

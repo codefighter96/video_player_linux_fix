@@ -80,7 +80,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     const MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
-    SPDLOG_ERROR(
+    spdlog::error(
         "--Bad MaterialDefinitions Result "
         "MaterialManager::getMaterialInstance");
     return Resource<filament::MaterialInstance*>::Error("Material not found");
@@ -99,12 +99,13 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
       materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
-    SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
+    SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
+    materialDefinitions->DebugPrint("MaterialSystem::getMaterialInstance");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
       spdlog::error(
-          "--Bad Material Result MaterialManager::getMaterialInstance");
+          "--Bad Material Result MaterialSystem::getMaterialInstance");
       return Resource<filament::MaterialInstance*>::Error(
           materialToInstanceFrom.getMessage());
     }

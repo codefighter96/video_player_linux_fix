@@ -33,12 +33,15 @@
 namespace plugin_filament_view {
 
 class CollisionSystem;
+class ShapeSystem;
+
 using ::utils::Entity;
 
 namespace shapes {
 
 class BaseShape : public RenderableEntityObject {
   friend class plugin_filament_view::CollisionSystem;
+  friend class plugin_filament_view::ShapeSystem;
 
  public:
   /// @brief Constructor for BaseShape. Generates a GUID and has an empty
@@ -54,7 +57,6 @@ class BaseShape : public RenderableEntityObject {
   /// @brief Constructor for BaseShape with a name and GUID.
   BaseShape(std::string name, EntityGUID guid) :
       RenderableEntityObject(name, guid) {}
-  explicit BaseShape(const flutter::EncodableMap& params);
 
   ~BaseShape() override;
 
@@ -77,9 +79,10 @@ class BaseShape : public RenderableEntityObject {
   [[nodiscard]] std::shared_ptr<Entity> poGetEntity() { return m_poEntity; }
 
  protected:
-  flutter::EncodableMap _initParams;
   ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
   ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
+
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
   void onInitialize() override;
 
@@ -93,11 +96,6 @@ class BaseShape : public RenderableEntityObject {
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
-  /// material to be used for the shape - instantiated from material definition
-  /// This should probably be on the entity level as model would use this in
-  /// future as well.
-  Resource<filament::MaterialInstance*> m_poMaterialInstance = 
-      Resource<filament::MaterialInstance*>::Error("Unset");
 
   // TODO: deprecate in favor of EntityObject#_fEntity
   std::shared_ptr<utils::Entity> m_poEntity;
@@ -125,7 +123,10 @@ class BaseShape : public RenderableEntityObject {
   // shapes.
   bool m_bIsWireframe = false;
 
-  void vLoadMaterialDefinitionsToMaterialInstance();
+  /*
+   * Init data (temporary)
+   */
+  std::shared_ptr<MaterialDefinitions> _tmpMaterialDefinitions = nullptr;
 };
 
 }  // namespace shapes

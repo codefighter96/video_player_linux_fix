@@ -15,6 +15,7 @@
  */
 #include "renderable_entityobject.h"
 #include <core/systems/ecs.h>
+#include <core/systems/derived/material_system.h>
 #include <core/include/literals.h>
 #include <core/utils/asserts.h>
 #include <plugins/common/common.h>
@@ -68,6 +69,27 @@ void RenderableEntityObject::onInitialize() {
     runtime_assert(_tmpCollidable != nullptr, "Missing Collidable! Did deserialization fail?");
     ecs->addComponent(guid_, std::move(_tmpCollidable));
   } 
+}
+
+////////////////////////////////////////////////////////////////////////////
+void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
+  checkInitialized();
+  const auto materialSystem = ecs->getSystem<MaterialSystem>("RenderableEntityObject::vBuildRenderable");
+
+  // this will also set all the default values of the material instance from
+  // the material param list
+
+  const auto materialDefinitions = GetComponent<MaterialDefinitions>();
+  if (materialDefinitions != nullptr) {
+    m_poMaterialInstance = materialSystem->getMaterialInstance(
+        dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
+  } else {
+    spdlog::error("MaterialDefinitions is null.");
+  }
+
+  if (m_poMaterialInstance.getStatus() != Status::Success) {
+    spdlog::error("Failed to get material instance.");
+  }
 }
 
 } // namespace plugin_filament_view

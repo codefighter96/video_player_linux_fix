@@ -39,11 +39,6 @@ using filament::math::short4;
 using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Plane::Plane(const flutter::EncodableMap& params) : BaseShape(params) {
-  SPDLOG_TRACE("+-{}", __FUNCTION__);
-}
-
-////////////////////////////////////////////////////////////////////////////
 bool Plane::bInitAndCreateShape(filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject) {
   m_poEntity = std::move(entityObject);

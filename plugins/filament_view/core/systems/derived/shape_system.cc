@@ -100,12 +100,18 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
 
   // Based on the type_, create the corresponding shape
   switch (type) {
-    case ShapeType::Plane:
-      return std::make_unique<shapes::Plane>(mapData);
-    case ShapeType::Cube:
-      return std::make_unique<shapes::Cube>(mapData);
-    case ShapeType::Sphere:
-      return std::make_unique<shapes::Sphere>(mapData);
+    case ShapeType::Plane: {
+      auto toReturn = std::make_unique<shapes::Plane>();
+      toReturn->deserializeFrom(mapData);
+      return toReturn; }
+    case ShapeType::Cube: {
+      auto toReturn = std::make_unique<shapes::Cube>();
+      toReturn->deserializeFrom(mapData);
+      return toReturn; }
+    case ShapeType::Sphere: {
+      auto toReturn = std::make_unique<shapes::Sphere>();
+      toReturn->deserializeFrom(mapData);
+      return toReturn; }
     default:
       // Handle unknown shape type
       spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));

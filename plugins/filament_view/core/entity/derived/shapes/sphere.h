@@ -28,8 +28,8 @@ namespace shapes {
 class Sphere : public BaseShape {
  public:
   // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
-  // Sphere() :
-  //   BaseShape() {}
+  Sphere() :
+    BaseShape() {}
   /// @brief Constructor for Sphere with a name. Generates a unique GUID.
   explicit Sphere(std::string name) :
     BaseShape(name) {}
@@ -39,12 +39,13 @@ class Sphere : public BaseShape {
   /// @brief Constructor for Sphere with a name and GUID.
   explicit Sphere(std::string name, EntityGUID guid) :
     BaseShape(name, guid) {}
-  explicit Sphere(const flutter::EncodableMap& params);
   ~Sphere() override = default;
 
   // Disallow copy and assign.
   Sphere(const Sphere&) = delete;
   Sphere& operator=(const Sphere&) = delete;
+
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
   void DebugPrint(const char* tag) const override;
 

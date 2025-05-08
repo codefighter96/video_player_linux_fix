@@ -27,9 +27,9 @@ namespace shapes {
 
 class Plane : public BaseShape {
  public:
-  // /// @brief Constructor for Plane. Generates a GUID and has an empty name.
-  // Plane() :
-  //   BaseShape() {}
+  /// @brief Constructor for Plane. Generates a GUID and has an empty name.
+  Plane() :
+    BaseShape() {}
   /// @brief Constructor for Plane with a name. Generates a unique GUID.
   explicit Plane(std::string name) :
     BaseShape(name) {}
@@ -39,7 +39,6 @@ class Plane : public BaseShape {
   /// @brief Constructor for Plane with a name and GUID.
   explicit Plane(std::string name, EntityGUID guid) :
     BaseShape(name, guid) {}
-  explicit Plane(const flutter::EncodableMap& params);
   ~Plane() override = default;
 
   // Disallow copy and assign.
