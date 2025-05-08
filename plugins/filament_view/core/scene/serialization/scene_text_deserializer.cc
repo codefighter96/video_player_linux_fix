@@ -75,8 +75,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
         }
 
         spdlog::debug("===== Deserializing Multiple Models {} ...", key);
-        auto deserializedModel = Model::Deserialize(
-            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
+        auto deserializedModel = Model::Deserialize(std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model");
           continue;
@@ -270,17 +269,13 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
       return;
     }
 
-    if (dynamic_cast<GlbModel*>(model.get())) {
-      const auto glb_model = dynamic_cast<GlbModel*>(model.get());
-      if (!glb_model->szGetAssetPath().empty()) {
-        modelSystem->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
-      }
+    const Model* glb_model = dynamic_cast<Model*>(model.get());
+    if (!glb_model->szGetAssetPath().empty()) {
+      modelSystem->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
+    }
 
-      if (!glb_model->szGetURLPath().empty()) {
-        throw std::runtime_error("URL loading is not supported for GLB models.");
-      }
-    } else {
-      throw std::runtime_error("GLTF support not implemented yet.");
+    if (!glb_model->szGetURLPath().empty()) {
+      throw std::runtime_error("URL loading is not supported for GLB models.");
     }
   });
 }

@@ -90,14 +90,7 @@ void Model::onInitialize() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-GlbModel::GlbModel(std::string assetPath,
-                   const flutter::EncodableMap& params)
-    : Model(std::move(assetPath), params) {}
-
-////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<Model> Model::Deserialize(
-    const std::string& /*flutterAssetsPath*/,
-    const flutter::EncodableMap& params) {
+std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Model::Model");
   std::unique_ptr<Animation> animation;
   std::optional<std::string> assetPath;
@@ -125,7 +118,7 @@ std::shared_ptr<Model> Model::Deserialize(
 
   if (is_glb) {
     spdlog::debug("Model::Deserialize - is_glb");
-    toReturn = std::make_shared<GlbModel>(
+    toReturn = std::make_shared<Model>(
         std::move(assetPath.value()), params
     );
   } else {

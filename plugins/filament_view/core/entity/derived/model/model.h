@@ -40,9 +40,7 @@ class Model : public RenderableEntityObject {
 
   ~Model() override = default;
 
-  static std::shared_ptr<Model> Deserialize(
-      const std::string& flutterAssetsPath,
-      const flutter::EncodableMap& params);
+  static std::shared_ptr<Model> Deserialize(const flutter::EncodableMap& params);
 
   // Disallow copy and assign.
   Model(const Model&) = delete;
@@ -136,11 +134,4 @@ class Model : public RenderableEntityObject {
       const TextureMap& /*loadedTextures*/) override;
 };
 
-class GlbModel final : public Model {
- public:
-  GlbModel(std::string assetPath,
-           const flutter::EncodableMap& params);
-
-  ~GlbModel() override = default;
-};
 }  // namespace plugin_filament_view
