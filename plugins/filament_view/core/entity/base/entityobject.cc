@@ -43,10 +43,7 @@ EntityObject::EntityObject(const EntityDescriptor& descriptor)
     : guid_(descriptor.guid), name_(descriptor.name) {}
 
 EntityObject::EntityObject(const flutter::EncodableMap& params) {
-  const auto descriptor = DeserializeNameAndGuid(params);
-  guid_ = descriptor.guid;
-  name_ = descriptor.name;
-
+  deserializeFrom(params);
   assert(guid_ != kNullGuid);
 }
 
@@ -100,6 +97,13 @@ void EntityObject::vDebugPrintComponents() const {
   spdlog::debug("EntityObject '{}'({}) has {} components: {}",
                 name_, guid_, componentNames.size(),
                 fmt::join(componentNames, ", "));
+}
+
+void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
+  // Deserialize name and guid
+  auto descriptor = DeserializeNameAndGuid(params);
+  name_ = descriptor.name;
+  guid_ = descriptor.guid;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

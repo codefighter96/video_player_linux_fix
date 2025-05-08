@@ -14,6 +14,60 @@
  * limitations under the License.
  */
 #include "renderable_entityobject.h"
+#include <core/systems/ecs.h>
+#include <core/include/literals.h>
+#include <core/utils/asserts.h>
+#include <plugins/common/common.h>
 
-namespace plugin_filament_view {}
-// namespace plugin_filament_view
+namespace plugin_filament_view {
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params) {
+  EntityObject::deserializeFrom(params);
+
+  // Transform (required)
+  spdlog::debug("Making Transform...");
+  _tmpTransform = std::make_shared<BaseTransform>(params);
+
+  // CommonRenderable (required)
+  spdlog::debug("Making CommonRenderable...");
+  _tmpCommonRenderable = std::make_shared<CommonRenderable>(params);
+
+  // Collidable (optional)
+  spdlog::debug("Making Collidable...");
+  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
+      it != params.end() && !it->second.IsNull()) {
+    // They're requesting a collidable on this object. Make one.
+    _tmpCollidable = std::make_shared<Collidable>(params);
+  } else {
+    spdlog::debug("This entity params has no collidable");
+  }
+  
+} // namespace plugin_filament_view
+
+void RenderableEntityObject::onInitialize() {
+  checkInitialized();
+  spdlog::debug("RenderableEntityObject::onInitialize - transfer components");
+  spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
+
+  // Transform (required)
+  spdlog::debug("addComponent transform");
+  runtime_assert(_tmpTransform != nullptr, "Missing transform! Did deserialization fail?");
+  ecs->addComponent(guid_, std::move(_tmpTransform)); // move clears the pointer, so we're good
+  debug_assert(_tmpTransform == nullptr, "We still have a transform pointer!");
+  debug_assert(ecs->hasComponent<BaseTransform>(guid_), "We should have a transform component!");
+
+  // CommonRenderable (required)
+  spdlog::debug("addComponent CommonRenderable");
+  runtime_assert(_tmpCommonRenderable != nullptr, "Missing CommonRenderable! Did deserialization fail?");
+  ecs->addComponent(guid_, std::move(_tmpCommonRenderable));
+
+  // Collidable (optional)
+  if (_tmpCollidable != nullptr) {
+    spdlog::debug("addComponent Collidable");
+    runtime_assert(_tmpCollidable != nullptr, "Missing Collidable! Did deserialization fail?");
+    ecs->addComponent(guid_, std::move(_tmpCollidable));
+  } 
+}
+
+} // namespace plugin_filament_view

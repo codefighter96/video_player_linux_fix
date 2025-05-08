@@ -198,6 +198,12 @@ class ECSManager {
     TypeID componentTypeId
   );
 
+  /// Returns whether the entity with the given GUID has a component of the given type.
+  template <typename T>
+  [[nodiscard]] inline bool hasComponent(const EntityGUID& entityGuid) {
+    return hasComponent(entityGuid, Component::StaticGetTypeID<T>());
+  }
+
   [[nodiscard]] bool hasComponent(const EntityGUID entityGuid, TypeID componentTypeId);
 
   /// Returns a vector of pointers to all components of the entity with the given GUID.

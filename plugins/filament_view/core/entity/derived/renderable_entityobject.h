@@ -18,6 +18,9 @@
 #include <encodable_value.h>
 
 #include <core/entity/base/entityobject.h>
+#include <core/components/derived/basetransform.h>
+#include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/collidable.h>
 
 namespace plugin_filament_view {
 
@@ -46,7 +49,16 @@ class RenderableEntityObject : public EntityObject {
   explicit RenderableEntityObject(const std::string& name,
                                   const EntityGUID guid)
       : EntityObject(name, guid) {}
-  virtual void DebugPrint() const = 0;
+  virtual void DebugPrint() const override = 0;
+
+
+  void onInitialize() override;
+
+  /*
+   * Deserialization
+   */
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+
 
   // These are expected to have Material instances in base class after we go
   // from Uber shader to <?more interchangeable?> on models. For now these are
@@ -61,5 +73,13 @@ class RenderableEntityObject : public EntityObject {
       const TextureMap& loadedTextures) = 0;
 
  private:
+  /*
+   * Init data (temporary)
+   */
+  /// Temporary storage for components (stored after deserialization, deleted after onInitialize)
+  std::shared_ptr<BaseTransform> _tmpTransform = nullptr;
+  std::shared_ptr<Collidable> _tmpCollidable = nullptr;
+  std::shared_ptr<CommonRenderable> _tmpCommonRenderable = nullptr;
+
 };
 }  // namespace plugin_filament_view

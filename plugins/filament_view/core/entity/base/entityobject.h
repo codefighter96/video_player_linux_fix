@@ -163,6 +163,10 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
   static EntityDescriptor DeserializeNameAndGuid(
       const flutter::EncodableMap& params);
+  
+  /// @brief Deserializes the entity from a map of parameters.
+  virtual void deserializeFrom(const flutter::EncodableMap& params);
+  
 
  private:
   std::mutex _initMutex;
