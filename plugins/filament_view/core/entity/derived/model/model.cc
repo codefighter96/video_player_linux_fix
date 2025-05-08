@@ -30,59 +30,55 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-Model::Model(std::string assetPath,
-             const flutter::EncodableMap& params)
-    : RenderableEntityObject(params),
-      assetPath_(std::move(assetPath)),
+Model::Model()
+    : RenderableEntityObject(),
+      assetPath_(),
       m_poAsset(nullptr),
-      m_poAssetInstance(nullptr) {
-  Deserialize::DecodeParameterWithDefault(kRenderable_KeepAssetInMemory,
-                                          &m_isInstanced,
-                                          params, false);
-
-  Deserialize::DecodeParameterWithDefault(
-      kRenderable_IsPrimaryAssetToInstanceFrom,
-      &m_isInstancePrimary, params, false);
-
-
-  _initParams = params;
-}
+      m_poAssetInstance(nullptr) {}
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::onInitialize() {
-  checkInitialized();
-  spdlog::debug("Model::onInitialize - make components");
+void Model::deserializeFrom(const flutter::EncodableMap& params) {
+  RenderableEntityObject::deserializeFrom(params);
 
-  // Transform (required)
-  spdlog::debug("Making Transform...");
-  auto transform = std::make_shared<BaseTransform>(_initParams);
-  spdlog::debug("addComponent transform");
-  spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
-  ecs->addComponent(guid_, std::move(transform));
-  spdlog::debug("addComponent transform done");
+  // assetPath_
+  assetPath_ = Deserialize::DecodeParameter<std::string>(kAssetPath, params);
 
-  // Collidable (optional)
-  spdlog::debug("Making Collidable...");
-  if (const auto it = _initParams.find(flutter::EncodableValue(kCollidable));
-      it != _initParams.end() && !it->second.IsNull()) {
-    // They're requesting a collidable on this object. Make one.
-    auto collidable = std::make_shared<Collidable>(_initParams);
-    ecs->addComponent(guid_, std::move(collidable));
-  }
+  // is_glb
+  bool is_glb = Deserialize::DecodeParameter<bool>(kIsGlb, params);
+  runtime_assert(is_glb, "Model::deserializeFrom - is_glb must be true for Model");
+
+  // m_isInstanced
+  m_isInstanced = Deserialize::DecodeParameterWithDefault<bool>(
+    kRenderable_KeepAssetInMemory, params, false
+  );
+
+  // m_isInstancePrimary
+  m_isInstancePrimary = Deserialize::DecodeParameterWithDefault<bool>(
+    kRenderable_IsPrimaryAssetToInstanceFrom, params, false
+  );
 
   // Animation (optional)
   spdlog::debug("Making Animation...");
-  if (const auto it = _initParams.find(flutter::EncodableValue(kAnimation));
-      it != _initParams.end() && !it->second.IsNull()) {
-    auto animation = std::make_shared<Animation>(
-        std::get<flutter::EncodableMap>(it->second));
-    ecs->addComponent(guid_, std::move(animation));
+  if (Deserialize::HasKey(params, kAnimation)) {
+    // they're requesting an animation on this object. Make one.
+    _tmpAnimation = std::make_shared<Animation>(params);
+  } else {
+    spdlog::debug("This entity params has no animation");
   }
+}
 
-  // CommonRenderable (required)
-  spdlog::debug("Making CommonRenderable...");
-  auto commonRenderable = std::make_shared<CommonRenderable>(_initParams);
-  ecs->addComponent(guid_, std::move(commonRenderable));
+void Model::onInitialize() {
+  RenderableEntityObject::onInitialize();
+
+  checkInitialized();
+  spdlog::debug("Model::onInitialize - transfer components");
+  spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
+
+  // Animation (optional)
+  if (_tmpAnimation != nullptr) {
+    spdlog::debug("addComponent Animation");
+    ecs->addComponent(guid_, std::move(_tmpAnimation));
+  }
 
   // TODO: Setup renderable & children, from ModelSystem::
 
@@ -91,45 +87,15 @@ void Model::onInitialize() {
 
 ////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
-  SPDLOG_TRACE("++Model::Model");
-  std::unique_ptr<Animation> animation;
-  std::optional<std::string> assetPath;
-  bool is_glb = false;
 
-  for (const auto& [fst, snd] : params) {
-    if (snd.IsNull())
-      continue;
-    if (auto key = std::get<std::string>(fst);
-        key == "assetPath" && std::holds_alternative<std::string>(snd)) {
-      assetPath = std::get<std::string>(snd);
-    } else if (key == "isGlb" && std::holds_alternative<bool>(snd)) {
-      is_glb = std::get<bool>(snd);
-    } else if (key == "scene" &&
-               std::holds_alternative<flutter::EncodableMap>(snd)) {
-      spdlog::warn("Scenes are no longer valid off of a model node.");
-    } /*else if (!it.second.IsNull()) {
-      spdlog::debug("[Model] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
-    }*/
-  }
-
-  std::shared_ptr<Model> toReturn;
-
-  if (is_glb) {
-    spdlog::debug("Model::Deserialize - is_glb");
-    toReturn = std::make_shared<Model>(
-        std::move(assetPath.value()), params
-    );
-  } else {
-    spdlog::debug("Model::Deserialize - is_gltf");
-    throw std::runtime_error("GLTF support not implemented yet.");
-  }
+  std::shared_ptr<Model> toReturn = std::make_shared<Model>();
+  toReturn->deserializeFrom(params);
   
   // TODO: this should NOT be happening here
   spdlog::debug("Adding entity {} from {}", toReturn->GetGuid(), __FUNCTION__);
   auto ecs = ECSManager::GetInstance();
   ecs->addEntity(toReturn); // this now inits components, takes params from constructor
+
   return toReturn;
 }
 

@@ -232,6 +232,7 @@ static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
 
 // Configuration values stored in ecs for easier lookup
 static constexpr char kAssetPath[] = "assetPath";
+static constexpr char kIsGlb[] = "isGlb";
 
 static constexpr char kRenderable_KeepAssetInMemory[] =
     "should_keep_asset_in_memory";
