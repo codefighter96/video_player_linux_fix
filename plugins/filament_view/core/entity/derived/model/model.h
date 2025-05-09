@@ -38,7 +38,6 @@ class Model : public RenderableEntityObject {
   friend class ModelSystem;
  public:
   Model();
-
   ~Model() override = default;
 
   /// @brief Static deserializer - calls the constructor and deserializeFrom under the hood
@@ -81,6 +80,11 @@ class Model : public RenderableEntityObject {
   /// Returns whether the model is a primary instanceable asset
   [[nodiscard]] bool isInstancePrimary() const {
     return _instancingMode == ModelInstancingMode::primary;
+  }
+
+  /// @returns model's instancing mode
+  [[nodiscard]] ModelInstancingMode getInstancingMode() const {
+    return _instancingMode;
   }
 
   /// Returns whether the model is in the scene

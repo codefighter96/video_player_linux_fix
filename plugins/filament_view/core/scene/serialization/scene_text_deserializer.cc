@@ -271,8 +271,13 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
 
     const Model* glb_model = dynamic_cast<Model*>(model.get());
     if (!glb_model->getAssetPath().empty()) {
-      modelSystem->loadGlbFromAsset(std::move(model), glb_model->getAssetPath());
+      modelSystem->queueModelLoad(std::move(model));
+    } else {
+      spdlog::error("Model has no asset path, unable to load");
     }
+
+    spdlog::debug("[loadModel] Model {} queued for loading",
+                  glb_model->getAssetPath());
   });
 }
 
