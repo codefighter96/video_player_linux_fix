@@ -233,19 +233,24 @@ void ModelSystem::setupCollidableChild(
 void ModelSystem::loadModelGlb(std::shared_ptr<Model> model,
                                const std::vector<uint8_t>& buffer
 ) {
-  if (assetLoader_ == nullptr) {
-    // NOTE, this should only be temporary until CustomModelViewer isn't
-    // necessary in implementation.
-    vOnInitSystem();
+  checkInitialized();
+  runtime_assert(
+    assetLoader_ != nullptr,
+    "ModelSystem::loadModelGlb - assetLoader_ is null"
+  );
 
-    if (assetLoader_ == nullptr) {
-      spdlog::error("unable to initialize model system");
-      return;
-    }
-  }
+  const auto assetPath = model->getAssetPath();
+  spdlog::debug("\nModelSystem::loadModelGlb: {}", assetPath);
+  spdlog::debug("instanced: {}, primary: {}",
+                model->isInstanced(), model->isInstancePrimary());
 
-  const auto assetPath = model->szGetAssetPath();
-  spdlog::debug("ModelSystem::loadModelGlb: {}", assetPath);
+  bool hypotheticalIsInstance = model->isInstanced() == true && 
+                                model->isInstancePrimary() == false;
+
+  spdlog::debug("hypotheticalIsInstance: {}", hypotheticalIsInstance);
+
+  spdlog::warn("[loadModelGlb] has called load glb before: {}", model->hasCalledLoadGlb);
+  model->hasCalledLoadGlb = true;
 
   // Note if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
@@ -255,15 +260,19 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> model,
 
   std::vector<Entity> collidableChildren = {};
 
-  // check if instanceable
+  // check if instanceable (primary) is loaded
   const auto instancedModelData = m_mapInstanceableAssets_.find(assetPath);
   if (instancedModelData != m_mapInstanceableAssets_.end()) {
     asset = instancedModelData->second;
+    // if the asset is not instanceable, it will return nullptr
     assetInstance = assetLoader_->createInstance(asset);
+    // if not nullptr, it means it's a valid secondary instance
   }
 
-  // instance-able / primary object.
+  // instanceable / primary object OR non-instanceable
   if (assetInstance == nullptr) {
+    spdlog::debug("HAS NO INSTANCE");
+    // load the asset
     asset = assetLoader_->createAsset(buffer.data(),
                                       static_cast<uint32_t>(buffer.size()));
     if (!asset) {
@@ -275,10 +284,16 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> model,
     resourceLoader_->asyncBeginLoad(asset);
 
     if (model->isInstanced()) {
-      m_mapInstanceableAssets_.insert(
-          std::pair(assetPath, asset));
-    } else {
+      spdlog::debug("[loadModelGlb] Primary loaded: adding to mapInstanceableAssets");
+      m_mapInstanceableAssets_.insert(std::pair(
+        assetPath,
+        asset
+      ));
+    } else if(!model->isInstanced()) {
+      spdlog::debug("[loadModelGlb] Non-instanced loaded: releasing source data");
       asset->releaseSourceData();
+    } else {
+      spdlog::debug("[loadModelGlb] Instance loaded: doing nothing");
     }
     
     // get primary instance
@@ -292,6 +307,8 @@ void ModelSystem::loadModelGlb(std::shared_ptr<Model> model,
   }
   // instance / secondary object.
   else {
+    // asset loaded, 
+    spdlog::debug("HAS INSTANCE");
     model->setAssetInstance(assetInstance);
     addModelToScene(model.get(), true);
   }
@@ -464,13 +481,12 @@ void ModelSystem::addModelToScene(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::updateAsyncAssetLoading() {
-  resourceLoader_->asyncUpdateLoad();
-
   // This does not specify per resource, but a global, best we can do with this
   // information is if we're done loading <everything> that was marked as async
   // load, then load that physics data onto a collidable if required. This gives
   // us visuals without collidables in a scene with <tons> of objects; but would
   // eventually settle
+  resourceLoader_->asyncUpdateLoad();
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
   if (percentComplete != 1.0f) {
     return;
@@ -486,6 +502,10 @@ void ModelSystem::updateAsyncAssetLoading() {
   }
 
   for (const auto& [guid, model] : m_mapszoAssets) { // TODO: use a different list to check loading
+    // Already loaded, can skip
+    if(model->isInScene()) {
+      continue;
+    }
 
     auto assetPath = model->getAssetPath();
 
@@ -494,17 +514,19 @@ void ModelSystem::updateAsyncAssetLoading() {
 
     // once we're done loading our assets; we should be able to load instanced
     // models.
-    if (auto foundAwaitingIter = _entitiesAwaitingLoadInstanced.find(assetPath);
-        model->isInstanced() &&
-        foundAwaitingIter != _entitiesAwaitingLoadInstanced.end()) {
+    if (
+      auto foundAwaitingIter = _entitiesAwaitingLoadInstanced.find(assetPath);
+      model->isInstanced() && foundAwaitingIter != _entitiesAwaitingLoadInstanced.end()
+    ) {
       spdlog::info("Loading additional instanced assets: {}", assetPath);
       for (const auto& itemToLoad : foundAwaitingIter->second) {
         spdlog::info("Loading subset: {}", assetPath);
         std::vector<uint8_t> emptyVec;
 
         // retry loading the model, as we're done loading the instanceable data
-        spdlog::debug("Calling loadModelGlb (instanceable: {}) after async load -> {}",
-                      itemToLoad->isInstanced(), assetPath);
+        spdlog::debug(
+          "Calling loadModelGlb (instanceable: {}, primary: {}) after async load -> {}",
+          itemToLoad->isInstanced(), itemToLoad->isInstancePrimary(), assetPath);
 
         // TODO: this shouldn't be called here! but it's needed
         // Basically this function does two things:
@@ -524,14 +546,12 @@ void ModelSystem::updateAsyncAssetLoading() {
     // else {
     //   spdlog::info("No instanced assets to load: {}", assetPath);
     // }
-
-    // You don't get collision as a primary model instance.
-    if (model->isInstancePrimary()) {
+    else if(!model->isInstancePrimary()) {
+      addModelToScene(model.get(), false);
+    } else /* if(model->isInstancePrimary()) */ {
+      // instance primary - no more work to do;
       continue;
     }
-
-    // Insert models into the scene
-    addModelToScene(model.get(), false);
 
     // if its 'done' loading, we need to create our large AABB collision
     // object if this model it's referencing required one.
@@ -627,14 +647,20 @@ void ModelSystem::handleFile(std::shared_ptr<Model>&& oOurModel,
                              const PromisePtr& promise) {
   spdlog::debug("handleFile");
   if (!buffer.empty()) {
-    spdlog::debug("Calling loadModelGlb (instanceable: {}) instantly -> {}", 
-                  oOurModel->isInstanced(), fileSource);
+    spdlog::debug(
+      "Calling loadModelGlb instantly (instanceable: {}, primary: {}) -> {}", 
+      oOurModel->isInstanced(), oOurModel->isInstancePrimary(), fileSource
+    );
+
     loadModelGlb(std::move(oOurModel), buffer);
+
     promise->set_value(Resource<std::string_view>::Success(
-        "Loaded glb model successfully from " + fileSource));
+      "Loaded glb model successfully from " + fileSource)
+    );
   } else {
     promise->set_value(Resource<std::string_view>::Error(
-        "Couldn't load glb model from " + fileSource));
+      "Couldn't load glb model from " + fileSource)
+    );
   }
 }
 

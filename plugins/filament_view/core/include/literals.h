@@ -235,10 +235,6 @@ static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
 // Configuration values stored in ecs for easier lookup
 static constexpr char kAssetPath[] = "assetPath";
 static constexpr char kIsGlb[] = "isGlb";
-
-static constexpr char kRenderable_KeepAssetInMemory[] =
-    "should_keep_asset_in_memory";
-static constexpr char kRenderable_IsPrimaryAssetToInstanceFrom[] =
-    "is_primary_to_instance_from";
+static constexpr char kModelInstancingMode[] = "instancingMode";
 
 }  // namespace plugin_filament_view

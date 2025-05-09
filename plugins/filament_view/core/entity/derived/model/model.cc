@@ -29,6 +29,19 @@
 
 namespace plugin_filament_view {
 
+const char* modelInstancingModeToString(ModelInstancingMode mode) {
+  switch (mode) {
+    case ModelInstancingMode::none:
+      return "none";
+    case ModelInstancingMode::primary:
+      return "primary";
+    case ModelInstancingMode::secondary:
+      return "secondary";
+    default:
+      return "unknown";
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 Model::Model()
     : RenderableEntityObject(),
@@ -36,7 +49,6 @@ Model::Model()
       m_poAsset(nullptr),
       m_poAssetInstance(nullptr) {}
 
-////////////////////////////////////////////////////////////////////////////
 void Model::deserializeFrom(const flutter::EncodableMap& params) {
   RenderableEntityObject::deserializeFrom(params);
 
@@ -47,15 +59,16 @@ void Model::deserializeFrom(const flutter::EncodableMap& params) {
   bool is_glb = Deserialize::DecodeParameter<bool>(kIsGlb, params);
   runtime_assert(is_glb, "Model::deserializeFrom - is_glb must be true for Model");
 
-  // m_isInstanced
-  m_isInstanced = Deserialize::DecodeParameterWithDefault<bool>(
-    kRenderable_KeepAssetInMemory, params, false
+  // _instancingMode
+  Deserialize::DecodeEnumParameterWithDefault(
+    kModelInstancingMode,
+    &_instancingMode,
+    params,
+    ModelInstancingMode::none
   );
 
-  // m_isInstancePrimary
-  m_isInstancePrimary = Deserialize::DecodeParameterWithDefault<bool>(
-    kRenderable_IsPrimaryAssetToInstanceFrom, params, false
-  );
+  spdlog::debug("Model({}), instanceMode: {}",
+                assetPath_, modelInstancingModeToString(_instancingMode));
 
   // Animation (optional)
   spdlog::debug("Making Animation...");

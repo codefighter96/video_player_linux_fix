@@ -64,6 +64,20 @@ class ECSystem : public IdentifiableType {
     vOnInitSystem();
   }
 
+  /// @deprecated To be replaced by `LifecycleParticipant`
+  [[nodiscard]] inline bool isInitialized() const {
+    return ecs != nullptr;
+  }
+
+  /// @deprecated To be replaced by `LifecycleParticipant`
+  /// @throws std::runtime_error if not initialized
+  void checkInitialized() const {
+    if (!isInitialized()) {
+      throw std::runtime_error(
+          "ECSManager is not initialized. Call vInitSystem() first.");
+    }
+  }
+
   virtual void vOnInitSystem() = 0;
 
   virtual void vUpdate(float /*deltaTime*/) = 0;

@@ -26,6 +26,14 @@
 
 namespace plugin_filament_view {
 
+enum class ModelInstancingMode {
+  none = 0,
+  primary = 1,
+  secondary = 2,
+};
+
+const char* modelInstancingModeToString(ModelInstancingMode mode);
+
 class Model : public RenderableEntityObject {
   friend class ModelSystem;
  public:
@@ -48,10 +56,6 @@ class Model : public RenderableEntityObject {
     m_poAssetInstance = poAssetInstance;
   }
 
-  void SetPrimaryAssetToInstanceFrom(bool bValue) {
-    m_isInstancePrimary = bValue;
-  }
-
   [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const {
     return m_poAsset;
   }
@@ -71,12 +75,12 @@ class Model : public RenderableEntityObject {
 
   /// Returns whether the model is a secondary instance of a model asset
   [[nodiscard]] bool isInstanced() const {
-    return m_isInstanced;
+    return _instancingMode == ModelInstancingMode::secondary;
   }
 
   /// Returns whether the model is a primary instanceable asset
   [[nodiscard]] bool isInstancePrimary() const {
-    return m_isInstancePrimary;
+    return _instancingMode == ModelInstancingMode::primary;
   }
 
   /// Returns whether the model is in the scene
@@ -100,10 +104,7 @@ class Model : public RenderableEntityObject {
   filament::gltfio::FilamentAsset* m_poAsset;
   filament::gltfio::FilamentInstance* m_poAssetInstance;
 
-  /// Whether the model is a secondary instance of a model asset
-  bool m_isInstanced = false;
-  /// Whether the model is a primary instanceable asset
-  bool m_isInstancePrimary = false;
+  ModelInstancingMode _instancingMode = ModelInstancingMode::none;
   /// Whether it's been inserted into the scene
   bool m_isInScene = false;
 
