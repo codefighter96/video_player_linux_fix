@@ -351,7 +351,7 @@ void ModelSystem::vSetupAssetThroughoutECS(
         "on this, but you didn't load an animation component, load one if you "
         "want that "
         "functionality",
-        model->szGetAssetPath(), animatorInstance->getAnimationCount());
+        model->getAssetPath(), animatorInstance->getAnimationCount());
   }
 }
 
@@ -487,7 +487,7 @@ void ModelSystem::updateAsyncAssetLoading() {
 
   for (const auto& [guid, model] : m_mapszoAssets) { // TODO: use a different list to check loading
 
-    auto assetPath = model->szGetAssetPath();
+    auto assetPath = model->getAssetPath();
 
     // mark as loaded.
     _assetsLoading.erase(assetPath);
@@ -543,42 +543,40 @@ void ModelSystem::updateAsyncAssetLoading() {
     //     !collisionSystem->hasEntity(guid)) {
     //   collisionSystem->vAddCollidable(model.get());
     // }
-  }
+  } // for
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
-    std::shared_ptr<Model> model,
-    const std::string& path) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
+  std::shared_ptr<Model> model,
+  const std::string& path
+) {
+  const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto promise_future(promise->get_future());
 
   try {
-    const asio::io_context::strand& strand_(
-        *ecs->GetStrand());
+    const asio::io_context::strand& strand_(*ecs->GetStrand());
 
-    const auto assetPath =
-        ecs->getConfigValue<std::string>(kAssetPath);
+    const auto baseAssetPath = ecs->getConfigValue<std::string>(kAssetPath);
+    const auto modelAssetPath = model->getAssetPath();
 
     const bool bWantsInstancedData = model->isInstanced();
     const bool hasInstancedDataLoaded =
-        m_mapInstanceableAssets_.find(model->szGetAssetPath()) !=
-        m_mapInstanceableAssets_.end();
+      m_mapInstanceableAssets_.find(modelAssetPath) !=
+      m_mapInstanceableAssets_.end();
     const bool isCurrentlyLoadingInstanceableData =
-        _assetsLoading.find(
-            model->szGetAssetPath()) !=
-        _assetsLoading.end();
+      _assetsLoading.find(modelAssetPath) !=
+      _assetsLoading.end();
 
     // if we are loading instanceable data...
     if (bWantsInstancedData) {
-      std::string szAssetPath = model->szGetAssetPath();
+      std::string szAssetPath = modelAssetPath;
       // ... and we're currently loading it or it's already loaded
       // add it to the list of assets to update when we're done loading.
       // see: updateAsyncAssetLoading() (which the calls this again)
       if (isCurrentlyLoadingInstanceableData || hasInstancedDataLoaded) {
         const auto iter =
-            _entitiesAwaitingLoadInstanced.find(model->szGetAssetPath());
+            _entitiesAwaitingLoadInstanced.find(modelAssetPath);
 
         // find/create a list of instances to load
         // and add this model to it.
@@ -604,18 +602,17 @@ std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
       _assetsLoading.insert(szAssetPath);
     }
 
-    post(strand_,
-         [&, model = std::move(model), promise, path, assetPath]() mutable {
-           try {
-             const auto buffer = readBinaryFile(path, assetPath);
-             handleFile(std::move(model), buffer, path, promise);
-           } catch (const std::exception& e) {
-             spdlog::warn("Lambda Exception {}", e.what());
-             promise->set_exception(std::make_exception_ptr(e));
-           } catch (...) {
-             spdlog::warn("Unknown Exception in lambda");
-           }
-         });
+    post(strand_, [&, model = std::move(model), promise, path, baseAssetPath]() mutable {
+      try {
+        const auto buffer = readBinaryFile(path, baseAssetPath);
+        handleFile(std::move(model), buffer, path, promise);
+      } catch (const std::exception& e) {
+        spdlog::warn("Lambda Exception {}", e.what());
+        promise->set_exception(std::make_exception_ptr(e));
+      } catch (...) {
+        spdlog::warn("Unknown Exception in lambda");
+      }
+    });
   } catch (const std::exception& e) {
     std::cerr << "Total Exception: " << e.what() << '\n';
     promise->set_exception(std::make_exception_ptr(e));

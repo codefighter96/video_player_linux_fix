@@ -270,8 +270,8 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
     }
 
     const Model* glb_model = dynamic_cast<Model*>(model.get());
-    if (!glb_model->szGetAssetPath().empty()) {
-      modelSystem->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
+    if (!glb_model->getAssetPath().empty()) {
+      modelSystem->loadGlbFromAsset(std::move(model), glb_model->getAssetPath());
     }
   });
 }
@@ -290,12 +290,12 @@ void SceneTextDeserializer::setUpSkybox() const {
   } else {
     if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
       if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
-          !hdr_skybox->szGetAssetPath().empty()) {
+          !hdr_skybox->getAssetPath().empty()) {
         const auto shouldUpdateLight =
-            hdr_skybox->szGetAssetPath() == indirect_light_->getAssetPath();
+            hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
 
         skyboxSystem->setSkyboxFromHdrAsset(
-            hdr_skybox->szGetAssetPath(), hdr_skybox->getShowSun(),
+            hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         const auto shouldUpdateLight =
@@ -306,8 +306,8 @@ void SceneTextDeserializer::setUpSkybox() const {
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       if (const auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
-          !kxt_skybox->szGetAssetPath().empty()) {
-        skyboxSystem->setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
+          !kxt_skybox->getAssetPath().empty()) {
+        skyboxSystem->setSkyboxFromKTXAsset(kxt_skybox->getAssetPath());
       } else if (!kxt_skybox->szGetURLPath().empty()) {
         skyboxSystem->setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
       }

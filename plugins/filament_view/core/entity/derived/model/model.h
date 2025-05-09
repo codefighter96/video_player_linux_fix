@@ -67,7 +67,7 @@ class Model : public RenderableEntityObject {
     return GetComponent<CommonRenderable>();
   }
 
-  [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
+  [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
 
   /// Returns whether the model is a secondary instance of a model asset
   [[nodiscard]] bool isInstanced() const {
