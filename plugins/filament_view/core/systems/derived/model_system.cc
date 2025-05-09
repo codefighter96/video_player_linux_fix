@@ -815,30 +815,6 @@ void ModelSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
-    const EntityGUID guid,
-    const std::shared_ptr<Model>& model) {
-  const auto collisionSystem =
-      ecs->getSystem<CollisionSystem>(
-          "vRemoveAndReaddModelToCollisionSystem");
-  if (collisionSystem == nullptr) {
-    spdlog::warn(
-        "Failed to get collision system when "
-        "vRemoveAndReaddModelToCollisionSystem");
-    return;
-  }
-
-  // if we are marked for collidable, have one in the scene, remove and readd
-  // if this is a performance issue, we can do the transform move in the future
-  // instead.
-  if (model->HasComponent(Component::StaticGetTypeID<Collidable>()) &&
-      collisionSystem->hasEntity(guid)) {
-    collisionSystem->vRemoveCollidable(model.get());
-    collisionSystem->vAddCollidable(model.get());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vUpdate(float /*fElapsedTime*/) {
   // Make sure all models are loaded
   updateAsyncAssetLoading();
