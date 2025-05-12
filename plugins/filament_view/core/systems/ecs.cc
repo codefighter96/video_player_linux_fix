@@ -55,6 +55,7 @@ void ECSManager::StartMainLoop() {
     return;
   }
 
+  spdlog::info("\n\n\n === Starting ECS main loop ===\n");
   m_bIsRunning = true;
   m_bSpawnedThreadFinished = false;
 

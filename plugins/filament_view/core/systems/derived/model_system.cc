@@ -222,6 +222,7 @@ void ModelSystem::setupCollidableChild(
       // add to collision system
       const auto collisionSystem = ecs->getSystem<CollisionSystem>("setupCollidableChild");
 
+      // TODO: should this be done here?
       // collisionSystem->vAddCollidable(childEntity.get());
 
       spdlog::debug("Collidable added!");
@@ -245,9 +246,10 @@ void ModelSystem::createModelInstance(
                 modelInstancingModeToString(model->getInstancingMode()));
 
 
-  // Note if you're creating a lot of instances, this is better to use at the
+  // NOTE: if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
   // numBytes, FilamentInstance **instances, size_t numInstances)
+  /// NOTE: is it tho?
   filament::gltfio::FilamentAsset* asset = nullptr;
   filament::gltfio::FilamentInstance* assetInstance = nullptr;
 
@@ -282,62 +284,37 @@ void ModelSystem::createModelInstance(
   runtime_assert(assetInstance != nullptr, "This should NEVER be null!");
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vSetupAssetThroughoutECS(std::shared_ptr<Model>& model) {
-  // Add to ECS
-  spdlog::debug("Adding entity {} from {}", model->GetGuid(), __FUNCTION__);
-  ecs->addEntity(model);
-
-  // Get asset data
-  auto asset = model->getAsset();
-  auto assetInstance = model->getAssetInstance();
-  auto instanceEntity = assetInstance->getRoot();
-
-  // Set up transform
-  EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
-
-  // Set up renderable
-
-  // Set up collidable
-
-  // Set up animator
-  filament::gltfio::Animator* animatorInstance = nullptr;
-  if (assetInstance != nullptr) {
-    animatorInstance = assetInstance->getAnimator();
-  } else if (asset != nullptr) {
-    animatorInstance = asset->getInstance()->getAnimator();
-  }
-  if (animatorInstance != nullptr &&
-      model->HasComponent(Component::StaticGetTypeID<Animation>())) {
-    const auto animatorComponent =
-        model->GetComponent(Component::StaticGetTypeID<Animation>());
-    const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
-    animator->vSetAnimator(*animatorInstance);
-
-    // Great if you need help with your animation information!
-    // animationPtr->DebugPrint("From ModelSystem::vSetupAssetThroughoutECS\t");
-  } else if (animatorInstance != nullptr &&
-             animatorInstance->getAnimationCount() > 0) {
-    SPDLOG_DEBUG(
-        "For asset - {} you have a valid set of animations [{}] you can play "
-        "on this, but you didn't load an animation component, load one if you "
-        "want that "
-        "functionality",
-        model->getAssetPath(), animatorInstance->getAnimationCount());
-  }
-}
-
 void ModelSystem::addModelToScene(
-  std::shared_ptr<Model> model,
-  bool isInstanced
+  EntityGUID modelGuid
 ) {
+  checkInitialized();
+
+  // Get model
+  std::shared_ptr<Model> model = _models[modelGuid];
+  runtime_assert(
+    model != nullptr,
+    fmt::format(
+      "[{}] Can't add model({}) to scene, model is null",
+      __FUNCTION__, modelGuid
+    ).c_str()
+  );
+
+  // Expects the model to be already loaded
+  runtime_assert(
+    _assets[model->getAssetPath()].state == AssetLoadingState::loaded,
+    fmt::format(
+      "[{}] Can't add model({}) to scene, asset not loaded (asset state: {})",
+      __FUNCTION__, modelGuid, modelInstancingModeToString(model->getInstancingMode())
+    ).c_str()
+  );
+
   const bool isInScene = model->isInScene();
-  // TODO: get `isInstanced` from the `model` instead. Currently `isInstanced` is UNRELIABLE!
+  const ModelInstancingMode instancingMode = model->getInstancingMode();
 
   if(isInScene) {
     spdlog::warn(
       "[{}] model '{}'({}) is already in scene (asset {}), skipping add",
-      __FUNCTION__, model->GetName(), model->GetGuid(), model->assetPath_
+      __FUNCTION__, model->GetName(), modelGuid, model->assetPath_
     );
     return;
   }
@@ -345,44 +322,61 @@ void ModelSystem::addModelToScene(
   Entity* modelEntities = nullptr;
   size_t modelEntityCount = 0;
 
-  if(isInstanced) {
+  // Get the asset instance
+  const auto asset = model->getAsset();
+  const auto assetInstance = model->getAssetInstance();
+
+  if(instancingMode == ModelInstancingMode::secondary) {
+    // If it's a secondary instance, we need to get the entities from the asset instance
     runtime_assert(
-      model->getAssetInstance() != nullptr,
+      assetInstance != nullptr,
       "ModelSystem::addModelToScene: model asset instance cannot be null"
     );
-    runtime_assert(
-      model->getAsset() == nullptr,
-      "ModelSystem::addModelToScene: model asset should be null"
-    );
-
-    modelEntities = const_cast<utils::Entity*>(model->getAssetInstance()->getEntities());
-    modelEntityCount = model->getAssetInstance()->getEntityCount();
-  } else {
     // runtime_assert(
-    //   model->getAsset() != nullptr,
+    //   asset != nullptr,
     //   "ModelSystem::addModelToScene: model asset cannot be null"
     // );
-    if(model->getAsset() == nullptr) {
+
+    modelEntities = const_cast<utils::Entity*>(assetInstance->getEntities());
+    modelEntityCount = assetInstance->getEntityCount();
+  } else {
+    /// If it's non-instanced, we need to get the entities from the asset`
+    // runtime_assert(
+    //   asset != nullptr,
+    //   "ModelSystem::addModelToScene: model asset cannot be null"
+    // );
+
+    if(asset == nullptr) {
       spdlog::warn(
-        "ModelSystem::addModelToScene: model asset is null ({}), "
-        "deferring load till later",
-        model->assetPath_
+        "[{}] model({}) asset({}) is null, deferring load till later (are we tho?)",
+        __FUNCTION__, modelGuid, model->getAssetPath()
       );
       return;
     }
 
-    modelEntities = const_cast<utils::Entity*>(model->getAsset()->getRenderableEntities());
-    modelEntityCount = model->getAsset()->getRenderableEntityCount();
+    modelEntities = const_cast<utils::Entity*>(asset->getRenderableEntities());
+    modelEntityCount = asset->getRenderableEntityCount();
   }
 
   /*
    *  Renderable setup
    */
+  spdlog::debug("  Setting up renderables...");
+
   utils::Slice const renderables{
     modelEntities,
     modelEntityCount
   };
 
+  if(instancingMode == ModelInstancingMode::primary) {
+    spdlog::debug("  Model({}) is primary, not adding to scene", modelGuid);
+    return;
+  }
+
+  // Add to ECS
+  spdlog::debug("[{}] Adding model({}) to ECS", __FUNCTION__, modelGuid);
+  ecs->addEntity(model);
+  
   for (const auto entity : renderables) {
     // const auto entity = modelEntities[i];
     _filament->getFilamentScene()->addEntity(entity);
@@ -425,17 +419,48 @@ void ModelSystem::addModelToScene(
     model->m_isInScene = true;
   }
 
-  if(model->getInstancingMode() != ModelInstancingMode::primary) {
-    auto assetInstance = model->getAssetInstance();
-    _filament->getFilamentScene()->addEntity(assetInstance->getRoot());
+  // Set up collidable children
+  // for (const auto entity : collidableChildren) {
+  //   setupCollidableChild(entity, sharedPtr.get(), asset);
+  // }
 
-    std::shared_ptr<Model> sharedPtr = std::move(model);
-    vSetupAssetThroughoutECS(sharedPtr);
-  
-    // Set up collidable children
-    // for (const auto entity : collidableChildren) {
-    //   setupCollidableChild(entity, sharedPtr.get(), asset);
-    // }
+  spdlog::debug("  Adding model({}) to Filament scene", modelGuid);
+  auto instanceEntity = assetInstance->getRoot();
+  _filament->getFilamentScene()->addEntity(instanceEntity);
+
+  // Set up transform
+  EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
+
+  // Set up renderable
+  /// TODO: set up renderable (add _fEntity to model, etc)
+
+  // Set up collidable
+  /// TODO: set up collidable
+
+  // Set up animator
+  filament::gltfio::Animator* animatorInstance = nullptr;
+  if (assetInstance != nullptr) {
+    animatorInstance = assetInstance->getAnimator();
+  } else if (asset != nullptr) {
+    animatorInstance = asset->getInstance()->getAnimator();
+  }
+  if (animatorInstance != nullptr &&
+      model->HasComponent(Component::StaticGetTypeID<Animation>())) {
+    const auto animatorComponent =
+        model->GetComponent(Component::StaticGetTypeID<Animation>());
+    const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
+    animator->vSetAnimator(*animatorInstance);
+
+    // Great if you need help with your animation information!
+    // animationPtr->DebugPrint("From ModelSystem::addModelToScene\t");
+  } else if (animatorInstance != nullptr &&
+             animatorInstance->getAnimationCount() > 0) {
+    SPDLOG_DEBUG(
+        "For asset - {} you have a valid set of animations [{}] you can play "
+        "on this, but you didn't load an animation component, load one if you "
+        "want that "
+        "functionality",
+        model->getAssetPath(), animatorInstance->getAnimationCount());
   }
 }
 
@@ -505,7 +530,7 @@ void ModelSystem::updateAsyncAssetLoading() {
             spdlog::debug("Loading model as instance: {}", model->getAssetPath());
             createModelInstance(model.get());
             spdlog::debug("Model instanced, adding to scene...");
-            addModelToScene(model, true);
+            addModelToScene(modelGuid);
             spdlog::debug("Model added to scene! Yay!");
 
             // Set up collidable children
@@ -516,7 +541,7 @@ void ModelSystem::updateAsyncAssetLoading() {
           case ModelInstancingMode::none:
             // load the model as a single object
             spdlog::debug("Loading model as single object: {}", model->getAssetPath());
-            addModelToScene(model, false);
+            addModelToScene(modelGuid);
             break;
         }
       }
@@ -581,6 +606,15 @@ void ModelSystem::queueModelLoad(
         assetData.loadingInstances.emplace_back(modelGuid);
         spdlog::debug("Asset loaded: model queued for instancing.");
         return;
+      /// Error: asset failed to load
+      case AssetLoadingState::error:
+        /// TODO: make sure this state is being set to begin with
+        spdlog::error(
+          "[ModelSystem::queueModelLoad] Asset {} failed to load, cannot queue model({})",
+          modelAssetPath, modelGuid
+        );
+        /// TODO: actuallly handle the error somehow?
+        break;
     }
   } catch (const std::exception& e) {
     throw std::runtime_error(

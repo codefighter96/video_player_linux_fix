@@ -114,21 +114,18 @@ class ModelSystem : public ECSystem {
   smarter_raw_ptr<filament::RenderableManager> _rcm;
   smarter_raw_ptr<utils::EntityManager> _em;
   smarter_raw_ptr<filament::TransformManager> _tm;
-  
+
   /// Map of asset paths to their loading states
   std::map<std::string, AssetDescriptor> _assets {};
   std::map<EntityGUID, std::shared_ptr<Model>> _models {};
 
-  void vSetupAssetThroughoutECS(std::shared_ptr<Model>& sharedPtr);
-
   /// Creates renderables and adds them to the scene
-  void addModelToScene(
-    std::shared_ptr<Model> Model,
-    bool isInstanced
-  );
+  /// Expects the model to have been loaded first
+  void addModelToScene(EntityGUID modelGuid);
 
   /// Asynchronously loads a model from a file and returns a future
   /// that will be set when the model is loaded
+  /// Expects model to have been queued first, via [ModelSystem::queueModelLoad]
   void loadModelFromFile(
     EntityGUID modelGuid,
     const std::string baseAssetPath

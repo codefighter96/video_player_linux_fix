@@ -100,14 +100,8 @@ void Model::onInitialize() {
 
 ////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
-
   std::shared_ptr<Model> toReturn = std::make_shared<Model>();
   toReturn->deserializeFrom(params);
-  
-  // TODO: this should NOT be happening here
-  spdlog::debug("Adding entity {} from {}", toReturn->GetGuid(), __FUNCTION__);
-  auto ecs = ECSManager::GetInstance();
-  ecs->addEntity(toReturn); // this now inits components, takes params from constructor
 
   return toReturn;
 }
