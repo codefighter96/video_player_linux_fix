@@ -85,12 +85,11 @@ void TransformSystem::applyTransform(
   const EntityObject& entity,
   const bool forceRecalculate
 ) {
-  const std::shared_ptr<BaseTransform> transform = std::dynamic_pointer_cast<BaseTransform>(
-    entity.GetComponent(Component::StaticGetTypeID<BaseTransform>())
+  const std::shared_ptr<BaseTransform> transform = entity.getComponent<BaseTransform>();
+  runtime_assert(
+    transform != nullptr,
+    fmt::format("[{}] Entity({}) has no transform component", __FUNCTION__, entity.GetGuid())
   );
-  if (transform == nullptr) {
-    throw std::runtime_error("Transform component not found");
-  }
 
   // Recalculate the transform only if it's dirty or forced
   if(!forceRecalculate || !transform->IsDirty()) {

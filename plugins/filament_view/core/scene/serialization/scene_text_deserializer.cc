@@ -239,7 +239,7 @@ void SceneTextDeserializer::setUpShapes() {
     _ecs->addEntity(shape);
     /// TODO: fix shape collidables
     // spdlog::debug("Adding collidable...");
-    // if (shape->HasComponent<Collidable>()) {
+    // if (shape->hasComponent<Collidable>()) {
     //   spdlog::debug("Shape {} has collidable! Adding to collision system", shape->GetGuid());
     //   if (collisionSystem != nullptr) {
     //     collisionSystem->vAddCollidable(shape.get());

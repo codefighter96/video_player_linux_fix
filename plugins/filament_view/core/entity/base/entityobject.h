@@ -85,21 +85,13 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     }
   }
 
-  template <typename T>
-  [[nodiscard]] inline bool HasComponent() const {
-    return HasComponent(Component::StaticGetTypeID<T>());
-  }
-  // Pass in the Component::StaticGetTypeID<DerivedClass>()
-  // Returns true if valid, false if not found.
-  [[nodiscard]] bool HasComponent(size_t staticTypeID) const;
-
   // TODO: remove this, change guid to const and expose as public
   [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
 
   EntityObject(const EntityObject&) = delete;
   EntityObject& operator=(const EntityObject&) = delete;
 
-  /// 
+  /// Called by [ECSManager] when a component is added to the entity.
   void onAddComponent(std::shared_ptr<Component> component);
 
   virtual void DebugPrint() const = 0;
@@ -145,12 +137,14 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   virtual void onDestroy() {};
 
   template <typename T>
-  [[nodiscard]] inline std::shared_ptr<T> GetComponent() const {
-    return std::dynamic_pointer_cast<T>(GetComponent(Component::StaticGetTypeID<T>()));
+  [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
+    return std::dynamic_pointer_cast<T>(getComponent(Component::StaticGetTypeID<T>()));
   }
-  // Pass in the Component::StaticGetTypeID<DerivedClass>()
-  // Returns component if valid, nullptr if not found.
-  [[nodiscard]] std::shared_ptr<Component> GetComponent(size_t staticTypeID) const;
+
+  template <typename T>
+  [[nodiscard]] inline bool hasComponent() const {
+    return hasComponent(Component::StaticGetTypeID<T>());
+  }
 
   void vDebugPrintComponents() const;
 
@@ -193,5 +187,15 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     ecs = nullptr;
     _isInitialized = false;
   }
+
+  /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
+  /// @returns component if valid, nullptr if not found.
+  [[nodiscard]] std::shared_ptr<Component> getComponent(size_t staticTypeID) const;
+
+  /// @brief Checks if the entity has a component of the given type.
+  /// @param staticTypeID The static type ID of the component -> [Component::StaticGetTypeID<DerivedClass>()]
+  /// @returns true if the entity has the component, false otherwise.
+  [[nodiscard]] bool hasComponent(size_t staticTypeID) const;
+
 };
 }  // namespace plugin_filament_view

@@ -37,10 +37,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<int32_t>(ECSMessageType::AnimationEnqueue);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vEnqueueAnimation(animationIndex);
             spdlog::debug("AnimationEnqueue Complete for GUID: {}", guid);
@@ -57,10 +54,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vClearQueue();
             spdlog::debug("AnimationClearQueue Complete for GUID: {}", guid);
@@ -79,10 +73,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<int32_t>(ECSMessageType::AnimationPlay);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vPlayAnimation(animationIndex);
             spdlog::debug("AnimationPlay Complete for GUID: {}", guid);
@@ -101,10 +92,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<float>(ECSMessageType::AnimationChangeSpeed);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vSetPlaybackSpeedScalar(newSpeed);
             spdlog::debug("AnimationChangeSpeed Complete for GUID: {}", guid);
@@ -121,10 +109,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vPause();
             spdlog::debug("AnimationPause Complete for GUID: {}", guid);
@@ -141,10 +126,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vResume();
             spdlog::debug("AnimationResume Complete for GUID: {}", guid);
@@ -163,10 +145,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<bool>(ECSMessageType::AnimationSetLooping);
 
         if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = dynamic_cast<Animation*>(
-              it->second
-                  ->GetComponent(Component::StaticGetTypeID<Animation>())
-                  .get());
+          const auto animationComponent = it->second->getComponent<Animation>();
           if (animationComponent) {
             animationComponent->vSetLooping(shouldLoop);
             spdlog::debug("AnimationSetLooping Complete for GUID: {}", guid);
@@ -178,8 +157,7 @@ void AnimationSystem::vOnInitSystem() {
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::vUpdate(const float fElapsedTime) {
   for (auto& [fst, snd] : _entities) {
-    const auto animator = dynamic_cast<Animation*>(
-        snd->GetComponent(Component::StaticGetTypeID<Animation>()).get());
+    const auto animator = snd->getComponent<Animation>();
     animator->vUpdate(fElapsedTime);
   }
 }

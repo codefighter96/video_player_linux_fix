@@ -161,7 +161,18 @@ class ECSManager {
   /// Returns the GUID of the parent of the entity with the given GUID.
   [[nodiscard]] std::optional<EntityGUID> getEntityParentGuid(EntityGUID id);
 
-  /// Checks whether the entity with the given GUID exists. Throws a runtime error if it does not.
+  /// Returns all enttities having a component of the given type.
+  template <typename T>
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntitiesWithComponent() {
+    return getEntitiesWithComponent(Component::StaticGetTypeID<T>());
+  }
+
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntitiesWithComponent(
+    TypeID componentTypeId
+  );
+
+  /// Checks whether the entity with the given GUID exists.
+  /// @throws std::runtime_error if the entity does not exist.
   void checkHasEntity(EntityGUID id);
   
 
@@ -174,15 +185,13 @@ class ECSManager {
                             const std::shared_ptr<Component>& component);
 
   /// Removes a component from the entity with the given GUID.
-  void removeComponent(const EntityGUID& entityGuid,
-                                 TypeID componentTypeId) {
-    // Check if the entity exists
-    checkHasEntity(entityGuid);
-
-    std::unique_lock lock(_componentsMutex);
-    auto componentMap = _components[componentTypeId];
-    componentMap.erase(entityGuid);
+  /// If either the entity or the component does not exist, nothing happens.
+  template <typename T>
+  inline void removeComponent(const EntityGUID& entityGuid) {
+    removeComponent(entityGuid, Component::StaticGetTypeID<T>());
   }
+
+  void removeComponent(const EntityGUID& entityGuid, TypeID componentTypeId);
 
   /// Returns the component of the given type from the entity with the given GUID.
   template <typename T>
@@ -207,7 +216,7 @@ class ECSManager {
   [[nodiscard]] bool hasComponent(const EntityGUID entityGuid, TypeID componentTypeId);
 
   /// Returns a vector of pointers to all components of the entity with the given GUID.
-  [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponents(
+  [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponentsOfEntity(
     const EntityGUID& entityGuid
   );
 

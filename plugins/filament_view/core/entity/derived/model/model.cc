@@ -116,9 +116,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponent(Component::StaticGetTypeID<MaterialDefinitions>())) {
-    ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
-  }
+  ecs->removeComponent<MaterialDefinitions>(guid_);
 
   // If you want to inspect the params coming in.
   /*for (const auto& [fst, snd] : params) {
@@ -201,8 +199,7 @@ void Model::vChangeMaterialInstanceProperty(
 
   const auto data = m_poMaterialInstance.getData().value();
 
-  const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponent(Component::StaticGetTypeID<MaterialDefinitions>()).get());
+  const auto matDefs = getComponent<MaterialDefinitions>();
   if (matDefs == nullptr) {
     return;
   }

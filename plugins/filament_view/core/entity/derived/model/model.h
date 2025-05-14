@@ -64,10 +64,10 @@ class Model : public RenderableEntityObject {
   }
 
   [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-    return GetComponent<BaseTransform>();
+    return getComponent<BaseTransform>();
   }
   [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
-    return GetComponent<CommonRenderable>();
+    return getComponent<CommonRenderable>();
   }
 
   [[nodiscard]] std::string getAssetPath() const { return assetPath_; }

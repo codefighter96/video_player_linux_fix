@@ -85,7 +85,7 @@ void EntityObject::vDebugPrintComponents() const {
 
   std::vector<std::string> componentNames;
   // get list of component pointers
-  const auto components = ecs->getComponents(guid_);
+  const auto components = ecs->getComponentsOfEntity(guid_);
   for (const auto& component : components) {
     if (component == nullptr) {
       spdlog::warn("Component is null");
@@ -107,14 +107,11 @@ void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<Component> EntityObject::GetComponent(size_t staticTypeID) const {
-  checkInitialized();
+std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
   return ecs->getComponent(guid_, staticTypeID);
 }
 
-[[nodiscard]] bool EntityObject::HasComponent(size_t staticTypeID) const {
-  checkInitialized();
-  spdlog::debug("EntityObject::HasComponent {} {}", guid_, staticTypeID);
+[[nodiscard]] bool EntityObject::hasComponent(size_t staticTypeID) const {
   return ecs->hasComponent(guid_, staticTypeID);
 }
 
@@ -135,18 +132,14 @@ void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
   checkInitialized();
   component->entityOwner_ = this;
 
-  // TODO: nuh-uh, the components should not need registration
+  /// TODO: nuh-uh, the components should not need registration
   if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
-    const auto lightSystem =
-        ECSManager::GetInstance()->getSystem<LightSystem>(
-            __FUNCTION__);
+    const auto lightSystem = ecs->getSystem<LightSystem>(__FUNCTION__);
 
     lightSystem->vRegisterEntityObject(shared_from_this());
   }
   else if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
-    const auto animationSystem =
-        ECSManager::GetInstance()->getSystem<AnimationSystem>(
-            "loadModelGltf");
+    const auto animationSystem = ecs->getSystem<AnimationSystem>("loadModelGltf");
 
     animationSystem->vRegisterEntityObject(shared_from_this());
   }

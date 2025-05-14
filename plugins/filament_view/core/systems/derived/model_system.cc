@@ -444,11 +444,8 @@ void ModelSystem::addModelToScene(
   } else if (asset != nullptr) {
     animatorInstance = asset->getInstance()->getAnimator();
   }
-  if (animatorInstance != nullptr &&
-      model->HasComponent(Component::StaticGetTypeID<Animation>())) {
-    const auto animatorComponent =
-        model->GetComponent(Component::StaticGetTypeID<Animation>());
-    const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
+  if (animatorInstance != nullptr && model->hasComponent<Animation>()) {
+    const auto animator = model->getComponent<Animation>();
     animator->vSetAnimator(*animatorInstance);
 
     // Great if you need help with your animation information!
@@ -761,10 +758,7 @@ void ModelSystem::vOnInitSystem() {
         if (const auto ourEntity = _models.find(guid);
             ourEntity != _models.end()) {
           const auto model = ourEntity->second;
-          const auto transform = dynamic_cast<BaseTransform*>(
-            model
-                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
-                  .get());
+          const auto transform = model->getComponent<BaseTransform>();
 
           // change stuff.
           transform->SetPosition(position);
@@ -791,10 +785,7 @@ void ModelSystem::vOnInitSystem() {
         if (const auto ourEntity = _models.find(guid);
             ourEntity != _models.end()) {
           const auto model = ourEntity->second;
-          const auto transform = dynamic_cast<BaseTransform*>(
-              model
-                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
-                  .get());
+          const auto transform = model->getComponent<BaseTransform>();
 
           // change stuff.
           transform->SetRotation(rotation);
@@ -820,10 +811,7 @@ void ModelSystem::vOnInitSystem() {
         if (const auto ourEntity = _models.find(guid);
             ourEntity != _models.end()) {
           const auto model = ourEntity->second;
-          const auto transform = dynamic_cast<BaseTransform*>(
-              model
-                  ->GetComponent(Component::StaticGetTypeID<BaseTransform>())
-                  .get());
+          const auto transform = model->getComponent<BaseTransform>();
 
           // change stuff.
           transform->SetScale(values);

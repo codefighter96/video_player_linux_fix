@@ -63,9 +63,7 @@ void LightSystem::vBuildLightAndAddToScene(Light& light) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vBuildLight(Light& light) {
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "vBuildLight");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("vBuildLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (!light.m_poFilamentEntityLight) {
@@ -152,10 +150,7 @@ void LightSystem::vOnInitSystem() {
         // find the entity in our list:
         if (const auto ourEntity = m_mapGuidToEntity.find(guid);
             ourEntity != m_mapGuidToEntity.end()) {
-          const auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponent(Component::StaticGetTypeID<Light>())
-                  .get());
+          const auto theLight = ecs->getComponent<Light>(guid);
           theLight->SetIntensity(intensityValue);
           theLight->SetColor(colorValue);
 
@@ -180,10 +175,7 @@ void LightSystem::vOnInitSystem() {
         // find the entity in our list:
         if (auto ourEntity = m_mapGuidToEntity.find(guid);
             ourEntity != m_mapGuidToEntity.end()) {
-          auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponent(Component::StaticGetTypeID<Light>())
-                  .get());
+          auto theLight = ecs->getComponent<Light>(guid);
           theLight->SetPosition(position);
           theLight->SetDirection(rotation);
 
@@ -201,9 +193,7 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
-    const auto component = dynamic_cast<Light*>(
-        m_poDefaultLight->GetComponent(Component::StaticGetTypeID<Light>())
-            .get());
+    const auto component = ecs->getComponent<Light>(m_poDefaultLight->GetGuid());
     vRemoveLightFromScene(*component);
 
     m_poDefaultLight.reset();

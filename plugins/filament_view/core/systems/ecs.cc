@@ -279,6 +279,23 @@ std::optional<EntityGUID> ECSManager::getEntityParentGuid(EntityGUID id) {
   return parentNode->getKey();
 }
 
+std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntitiesWithComponent(
+  TypeID componentTypeId
+) {
+  std::unique_lock lock(_componentsMutex);
+  std::vector<std::shared_ptr<EntityObject>> entitiesWithComponent;
+
+  auto componentMap = _components[componentTypeId];
+  for (const auto& [entityGuid, component] : componentMap) {
+    auto entity = getEntity(entityGuid);
+    if (entity) {
+      entitiesWithComponent.emplace_back(entity);
+    }
+  }
+
+  return entitiesWithComponent;
+}
+
 
 //
 // Component
@@ -343,7 +360,7 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
 
 }
 
-std::vector<std::shared_ptr<Component>> ECSManager::getComponents(
+std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfEntity(
   const EntityGUID& entityGuid
 ) {
   std::unique_lock lock(_componentsMutex);
@@ -357,6 +374,15 @@ std::vector<std::shared_ptr<Component>> ECSManager::getComponents(
   }
 
   return entityComponents;
+}
+
+void ECSManager::removeComponent(
+  const EntityGUID& entityGuid,
+  TypeID componentTypeId
+) {
+  std::unique_lock lock(_componentsMutex);
+  auto componentMap = _components[componentTypeId];
+  componentMap.erase(entityGuid);
 }
 
 

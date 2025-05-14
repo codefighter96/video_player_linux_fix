@@ -79,7 +79,7 @@ void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   // this will also set all the default values of the material instance from
   // the material param list
 
-  const auto materialDefinitions = GetComponent<MaterialDefinitions>();
+  const auto materialDefinitions = getComponent<MaterialDefinitions>();
   if (materialDefinitions != nullptr) {
     m_poMaterialInstance = materialSystem->getMaterialInstance(
         dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));

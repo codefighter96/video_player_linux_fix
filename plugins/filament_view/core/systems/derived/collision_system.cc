@@ -55,7 +55,7 @@ bool CollisionSystem::hasEntity(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vAddCollidable(EntityObject* collidable) {
-  if (!collidable->HasComponent<Collidable>()) {
+  if (!collidable->hasComponent<Collidable>()) {
     spdlog::error(
         "You tried to add an entityObject that didnt have a collidable on it, "
         "bailing out.");
@@ -63,7 +63,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   }
 
   const auto originalCollidable = dynamic_cast<Collidable*>(
-      collidable->GetComponent<Collidable>().get());
+      collidable->getComponent<Collidable>().get());
 
   if (originalCollidable != nullptr &&
       originalCollidable->GetShouldMatchAttachedObject()) {
@@ -92,15 +92,11 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     ourModelObject->vShallowCopyComponentToOther(
         Component::StaticGetTypeID<CommonRenderable>(), *newShape);
 
-    const std::shared_ptr<Component> componentBT =
-        newShape->GetComponent(Component::StaticGetTypeID<BaseTransform>());
     const std::shared_ptr<BaseTransform> baseTransformPtr =
-        std::dynamic_pointer_cast<BaseTransform>(componentBT);
+      ecs->getComponent<BaseTransform>(newShape->GetGuid());
 
     const std::shared_ptr<Component> componentCR =
-        newShape->GetComponent(Component::StaticGetTypeID<CommonRenderable>());
-    const std::shared_ptr<CommonRenderable> commonRenderablePtr =
-        std::dynamic_pointer_cast<CommonRenderable>(componentCR);
+      ecs->getComponent<CommonRenderable>(newShape->GetGuid());
 
     /// TODO: ecs->addComponent
 
@@ -233,8 +229,7 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   // Iterate over all entities.
   for (const auto& entity : collidables_) {
     // Make sure collidable is still here....
-    auto collidable = std::dynamic_pointer_cast<Collidable>(
-        entity->GetComponent(Component::StaticGetTypeID<Collidable>()));
+    auto collidable = ecs->getComponent<Collidable>(entity->GetGuid());
     if (!collidable) {
       continue;  // No collidable component, skip this entity
     }
@@ -246,8 +241,7 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     // }
 
     // Get the transform of the collidable
-    const auto entityTransform = std::dynamic_pointer_cast<BaseTransform>(
-        entity->GetComponent(Component::StaticGetTypeID<BaseTransform>()));
+    const auto entityTransform = ecs->getComponent<BaseTransform>(entity->GetGuid());
 
     // Perform intersection test with the ray
     if (filament::math::float3 hitLocation;
@@ -350,7 +344,7 @@ void CollisionSystem::vOnInitSystem() {
         for (const auto& entity : collidables_) {
           if (entity->GetGuid() == guid) {
             const auto collidable = std::dynamic_pointer_cast<Collidable>(
-                entity->GetComponent(
+                entity->getComponent(
                     Component::StaticGetTypeID<Collidable>()));
 
             collidable->SetEnabled(value);

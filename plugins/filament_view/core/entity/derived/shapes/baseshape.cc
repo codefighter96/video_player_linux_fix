@@ -131,15 +131,9 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   this->vShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(),
                                      other);
 
-  const std::shared_ptr<Component> componentBT =
-      GetComponent(Component::StaticGetTypeID<BaseTransform>());
-  const std::shared_ptr<BaseTransform> baseTransformPtr =
-      std::dynamic_pointer_cast<BaseTransform>(componentBT);
+  const std::shared_ptr<BaseTransform> baseTransformPtr = ecs->getComponent<BaseTransform>(guid_);
 
-  const std::shared_ptr<Component> componentCR =
-      GetComponent(Component::StaticGetTypeID<CommonRenderable>());
-  const std::shared_ptr<CommonRenderable> commonRenderablePtr =
-      std::dynamic_pointer_cast<CommonRenderable>(componentCR);
+  const std::shared_ptr<CommonRenderable> commonRenderablePtr = ecs->getComponent<CommonRenderable>(guid_);
 
   /// TODO: ecs->addComponent
 }
@@ -154,12 +148,12 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   spdlog::debug("Building shape '{}'({}) with AABB",
                 GetName(), GetGuid());
 
-  const auto transform = GetComponent<BaseTransform>();
+  const auto transform = getComponent<BaseTransform>();
 
   // If we have a collidable, we need to set the AABB to its extent size
   // otherwise we use transform's scale
-  if (HasComponent<Collidable>()) {
-    const auto collidable = GetComponent<Collidable>();
+  if (hasComponent<Collidable>()) {
+    const auto collidable = getComponent<Collidable>();
     aabb = collidable->GetExtentsSize();
     spdlog::debug("Has collidable");
   } else {
@@ -281,7 +275,7 @@ void BaseShape::vChangeMaterialDefinitions(
     const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponent(Component::StaticGetTypeID<MaterialDefinitions>())) {
+  if (hasComponent<MaterialDefinitions>()) {
     ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
@@ -327,7 +321,7 @@ void BaseShape::vChangeMaterialInstanceProperty(
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponent(Component::StaticGetTypeID<MaterialDefinitions>()).get());
+      getComponent<MaterialDefinitions>().get());
   if (matDefs == nullptr) {
     return;
   }
