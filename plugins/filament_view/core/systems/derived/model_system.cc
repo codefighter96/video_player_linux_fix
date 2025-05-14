@@ -66,17 +66,6 @@ void ModelSystem::destroyAsset(
   assetLoader_->destroyAsset(asset);
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
-    const EntityGUID guid) {
-  const auto iter = _models.find(guid);
-  if (iter == _models.end()) {
-    return nullptr;
-  }
-
-  return iter->second->getAsset();
-}
-
 bool ModelSystem::setupRenderable(
   const FilamentEntity entity,
   const Model* model,

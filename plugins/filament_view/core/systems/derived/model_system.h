@@ -69,9 +69,6 @@ class ModelSystem : public ECSystem {
 
   void createModelInstance(Model* model);
 
-
-  filament::gltfio::FilamentAsset* poFindAssetByGuid(const EntityGUID guid);
-
   /// Returns whether has extras
   bool setupRenderable(
       const FilamentEntity entity,
