@@ -165,12 +165,12 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                           *m_poMaterialInstance.getData());
     }
   } else if (getAssetInstance()) {
-    const utils::Entity* instanceEntities = getAssetInstance()->getEntities();
+    const FilamentEntity* instanceEntities = getAssetInstance()->getEntities();
     const size_t instanceEntityCount = getAssetInstance()->getEntityCount();
 
     for (size_t i = 0; i < instanceEntityCount; i++) {
       // Check if this entity has a Renderable component
-      if (const utils::Entity entity = instanceEntities[i];
+      if (const FilamentEntity entity = instanceEntities[i];
           renderManager.hasComponent(entity)) {
         const auto ri = renderManager.getInstance(entity);
 

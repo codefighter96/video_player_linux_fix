@@ -19,6 +19,9 @@
 #include "camera.h"
 #include "touch_pair.h"
 
+#include <filament/Camera.h>
+#include <utils/EntityManager.h>
+
 #include <camutils/Manipulator.h>
 #include <core/include/resource.h>
 #include <core/scene/camera/exposure.h>
@@ -26,8 +29,7 @@
 #include <core/scene/camera/projection.h>
 #include <core/scene/geometry/ray.h>
 #include <core/scene/view_target.h>
-#include <filament/Camera.h>
-#include <utils/EntityManager.h>
+#include <core/utils/filament_types.h>
 
 namespace plugin_filament_view {
 
@@ -156,7 +158,7 @@ class CameraManager {
 
   float cameraFocalLength_{};
 
-  utils::Entity cameraEntity_;
+  FilamentEntity cameraEntity_;
 
   // Main display size, in pixels (generally == GetMainViewport()->Size)
   ImVec2 displaySize_;

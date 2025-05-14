@@ -22,7 +22,6 @@
 
 namespace plugin_filament_view {
 
-using ::utils::Entity;
 
 namespace shapes {
 

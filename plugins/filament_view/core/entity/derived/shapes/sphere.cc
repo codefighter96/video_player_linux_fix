@@ -34,7 +34,6 @@ using filament::VertexAttribute;
 using filament::VertexBuffer;
 using filament::math::float3;
 using filament::math::mat3f;
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 

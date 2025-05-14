@@ -32,7 +32,6 @@
 namespace plugin_filament_view {
 
 using shapes::BaseShape;
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vToggleAllShapesInScene(const bool bValue) const {

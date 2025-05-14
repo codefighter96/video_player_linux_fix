@@ -367,7 +367,7 @@ void ModelSystem::addModelToScene(
 
 
   spdlog::debug("  Adding model({}) to Filament scene", modelGuid);
-  utils::Entity instanceEntity = assetInstance->getRoot();
+  FilamentEntity instanceEntity = assetInstance->getRoot();
   model->_fEntity = instanceEntity;
   _filament->getFilamentScene()->addEntity(instanceEntity);
 

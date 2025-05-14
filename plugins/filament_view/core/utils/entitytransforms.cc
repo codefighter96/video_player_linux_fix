@@ -24,7 +24,6 @@
 
 namespace plugin_filament_view {
 
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::mat3f EntityTransforms::identity3x3() {
