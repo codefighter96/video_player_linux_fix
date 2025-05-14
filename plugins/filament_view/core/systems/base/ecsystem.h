@@ -27,6 +27,7 @@
 #include <core/systems/messages/ecs_message_types.h>
 #include <core/utils/identifiable_type.h>
 #include <core/utils/smarter_pointers.h>
+#include <core/utils/filament_types.h>
 
 namespace flutter {
 class PluginRegistrar;

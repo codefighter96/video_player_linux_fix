@@ -36,11 +36,10 @@ using filament::math::float3;
 using filament::math::mat3f;
 using filament::math::packSnorm16;
 using filament::math::short4;
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 bool Plane::bInitAndCreateShape(filament::Engine* engine_,
-                                std::shared_ptr<Entity> entityObject) {
+                                FilamentEntity entityObject) {
   _fEntity = std::move(entityObject);
 
   if (m_bDoubleSided)

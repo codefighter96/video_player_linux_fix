@@ -38,10 +38,10 @@ namespace plugin_filament_view {
 DebugLine::DebugLine(filament::math::float3 startingPoint,
                      filament::math::float3 endingPoint,
                      filament::Engine* engine,
-                     std::shared_ptr<Entity> entity,
+                     FilamentEntity entity,
                      float fTimeToLive)
     : m_fRemainingTime(fTimeToLive),
-      _fEntity(std::move(entity))  // Create entity
+      _fEntity(entity)  // Create entity
 {
   vertices_.emplace_back(startingPoint);
   vertices_.emplace_back(endingPoint);  //,
@@ -85,7 +85,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       .culling(false)
       .receiveShadows(false)
       .castShadows(false)
-      .build(*engine, *_fEntity);
+      .build(*engine, _fEntity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +113,7 @@ void DebugLinesSystem::vCleanup() {
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    filamentSystem->getFilamentScene()->removeEntities((*it)->_fEntity.get(),
-                                                       1);
+    filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
     // do visual cleanup here
     (*it)->vCleanup(engine);
@@ -134,8 +133,7 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
     (*it)->m_fRemainingTime -= fElapsedTime;
 
     if ((*it)->m_fRemainingTime < 0) {
-      filamentSystem->getFilamentScene()->removeEntities(
-          (*it)->_fEntity.get(), 1);
+      filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
       // do visual cleanup here
       (*it)->vCleanup(engine);
@@ -178,12 +176,12 @@ void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
-  auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
+  auto oEntity = oEntitymanager.create();
 
   auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
                                                   oEntity, secondsTimeout);
 
-  filamentSystem->getFilamentScene()->addEntity(*oEntity);
+  filamentSystem->getFilamentScene()->addEntity(oEntity);
 
   ourLines_.emplace_back(std::move(newDebugLine));
 }

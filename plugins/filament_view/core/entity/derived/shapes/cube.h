@@ -49,7 +49,7 @@ class Cube : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+                           FilamentEntity entityObject) override;
 
  private:
   void createDoubleSidedCube(::filament::Engine* engine_);

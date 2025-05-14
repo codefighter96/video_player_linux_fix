@@ -159,17 +159,17 @@ void ShapeSystem::addShapesToScene(
   for (auto& shape : *shapes) {
     spdlog::debug("addShapesToScene: {}", shape->GetGuid());
 
-    std::shared_ptr<Entity> oEntity = std::make_shared<Entity>(_em->create());
+    FilamentEntity oEntity = _em->create();
 
     shape->bInitAndCreateShape(_engine, oEntity);
 
-    filamentScene->addEntity(*oEntity);
+    filamentScene->addEntity(oEntity);
 
     // Save Filament entity ID to our entity
     shape->_fEntity = oEntity;
 
     spdlog::trace("Adding entity {} with filament entity {}",
-                  shape->GetGuid(), oEntity->getId());
+                  shape->GetGuid(), oEntity.getId());
 
     // To investigate a better system for implementing layer mask
     // across dart to here.
@@ -252,7 +252,7 @@ void ShapeSystem::vOnInitSystem() {
           baseTransform->SetRotation(rotation);
           baseTransform->SetScale(scale);
 
-          EntityTransforms::vApplyTransform(*(entity->_fEntity),
+          EntityTransforms::vApplyTransform(entity->_fEntity,
                                             *baseTransform);
         }
 
@@ -302,7 +302,7 @@ void ShapeSystem::vOnInitSystem() {
           baseTransform->SetPosition(position);
           // collidable->SetCenterPoint(position);
 
-          EntityTransforms::vApplyTransform(*(entity->_fEntity),
+          EntityTransforms::vApplyTransform(entity->_fEntity,
                                             *baseTransform);
         }
 
@@ -333,7 +333,7 @@ void ShapeSystem::vOnInitSystem() {
           // change stuff.
           baseTransform->SetRotation(rotation);
 
-          EntityTransforms::vApplyTransform(*(entity->_fEntity),
+          EntityTransforms::vApplyTransform(entity->_fEntity,
                                             *baseTransform);
         }
 
@@ -370,7 +370,7 @@ void ShapeSystem::vOnInitSystem() {
           collidable->SetExtentsSize(values);
           baseTransform->SetScale(values);
 
-          EntityTransforms::vApplyTransform(*(entity->_fEntity),
+          EntityTransforms::vApplyTransform(entity->_fEntity,
                                             *baseTransform);
         }
 

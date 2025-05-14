@@ -19,6 +19,7 @@
 #include <typeinfo>
 
 #include <core/utils/identifiable_type.h>
+#include <core/utils/filament_types.h>
 
 namespace plugin_filament_view {
 class EntityObject;

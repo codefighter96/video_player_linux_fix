@@ -99,7 +99,7 @@ void TransformSystem::applyTransform(
 
   const filament::math::mat4f localMatrix = calculateTransform(*transform);
 
-  const auto _fInstance = tm->getInstance(*(entity._fEntity.get()));
+  const auto _fInstance = tm->getInstance(entity._fEntity);
   tm->setTransform(_fInstance, localMatrix);
 
   transform->SetDirty(false);
@@ -109,21 +109,21 @@ void TransformSystem::reparentEntity(
   const EntityObject& entity,
   const EntityObject& parent
 ) {
-  const auto fEntity = entity._fEntity.get();
-  const auto fInstance = tm->getInstance(*fEntity);
+  const auto fEntity = entity._fEntity;
+  const auto fInstance = tm->getInstance(fEntity);
   const auto parent_fEntity = parent._fEntity;
 
   // If a parent ID is provided, set the parent transform
   // if (parent != nullptr) {
     // Get instance of parent
-    const auto parent_fInstance = tm->getInstance(*parent_fEntity);
+    const auto parent_fInstance = tm->getInstance(parent_fEntity);
     // Get current parent
     const auto currentParent_fEntity = tm->getParent(fInstance);
 
     // Skip parenting if same as current parent
-    if(currentParent_fEntity == *parent_fEntity) {
+    if(currentParent_fEntity == parent_fEntity) {
       spdlog::debug("[{}] New parent entity is the same as the current Parent entity ({}), skipping reparenting.",
-                    __FUNCTION__, parent_fEntity->getId());
+                    __FUNCTION__, parent_fEntity.getId());
       return;
     }
 
@@ -137,7 +137,7 @@ void TransformSystem::reparentEntity(
     } else {
       throw std::runtime_error(
         fmt::format("[{}] Parent instance ? of {} is not valid.",
-                    __FUNCTION__, fEntity->getId()));
+                    __FUNCTION__, fEntity.getId()));
     }
 
 

@@ -50,7 +50,7 @@ class Sphere : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+                           FilamentEntity entityObject) override;
   void CloneToOther(BaseShape& other) const override;
 
  private:

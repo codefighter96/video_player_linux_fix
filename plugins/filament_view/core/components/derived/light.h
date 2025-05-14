@@ -107,7 +107,7 @@ class Light : public Component {
   static const char* lightTypeToText(::filament::LightManager::Type type);
 
  private:
-  std::shared_ptr<utils::Entity> m_poFilamentEntityLight;
+  FilamentEntity m_poFilamentEntityLight;
 
   filament::LightManager::Type m_Type;
   std::string m_szColor;

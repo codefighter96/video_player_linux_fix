@@ -68,9 +68,8 @@ void LightSystem::vBuildLight(Light& light) {
           "vBuildLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  if (light.m_poFilamentEntityLight == nullptr) {
-    light.m_poFilamentEntityLight =
-        std::make_shared<utils::Entity>(engine->getEntityManager().create());
+  if (!light.m_poFilamentEntityLight) {
+    light.m_poFilamentEntityLight = engine->getEntityManager().create();
   } else {
     vRemoveLightFromScene(light);
   }
@@ -109,7 +108,7 @@ void LightSystem::vBuildLight(Light& light) {
   builder.sunHaloSize(light.GetSunHaloSize());
   builder.sunHaloFalloff(light.GetSunHaloFalloff());
 
-  builder.build(*engine, *light.m_poFilamentEntityLight);
+  builder.build(*engine, light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +119,7 @@ void LightSystem::vRemoveLightFromScene(const Light& light) {
 
   const auto scene = filamentSystem->getFilamentScene();
 
-  scene->removeEntities(light.m_poFilamentEntityLight.get(), 1);
+  scene->remove(light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +130,7 @@ void LightSystem::vAddLightToScene(const Light& light) {
 
   const auto scene = filamentSystem->getFilamentScene();
 
-  scene->addEntity(*light.m_poFilamentEntityLight);
+  scene->addEntity(light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

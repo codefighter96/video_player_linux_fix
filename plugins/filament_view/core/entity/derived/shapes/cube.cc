@@ -36,12 +36,11 @@ using filament::math::float3;
 using filament::math::mat3f;
 using filament::math::packSnorm16;
 using filament::math::short4;
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 bool Cube::bInitAndCreateShape(filament::Engine* engine_,
-                               std::shared_ptr<Entity> entityObject) {
-  _fEntity = std::move(entityObject);
+                               FilamentEntity entityObject) {
+  _fEntity = entityObject;
 
   if (m_bDoubleSided)
     createDoubleSidedCube(engine_);

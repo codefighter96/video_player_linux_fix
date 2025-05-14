@@ -74,13 +74,13 @@ class ModelSystem : public ECSystem {
 
   /// Returns whether has extras
   bool setupRenderable(
-      const Entity entity,
+      const FilamentEntity entity,
       const Model* model,
       filament::gltfio::FilamentAsset* asset
   );
 
   void setupCollidableChild(
-    const Entity entity,
+    const FilamentEntity entity,
     const Model* model,
     filament::gltfio::FilamentAsset* asset
   );

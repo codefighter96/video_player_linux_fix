@@ -15,10 +15,14 @@
  */
 #pragma once
 
-#include <core/components/base/component.h>
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <core/components/base/component.h>
+#include <core/utils/filament_types.h>
+
 namespace plugin_filament_view {
+
+using FilamentRenderableInstance = utils::EntityInstance<filament::RenderableManager>;
 
 class CommonRenderable : public Component {
  public:
@@ -29,6 +33,8 @@ class CommonRenderable : public Component {
         m_bReceiveShadows(false),
         m_bCastShadows(false) {}
   explicit CommonRenderable(const flutter::EncodableMap& params);
+
+  FilamentRenderableInstance _fInstance;
 
   // Getters
   [[nodiscard]] bool IsCullingOfObjectEnabled() const {
@@ -53,7 +59,9 @@ class CommonRenderable : public Component {
   void DebugPrint(const std::string& tabPrefix) const override;
 
   [[nodiscard]] Component* Clone() const override {
-    return new CommonRenderable(*this);  // Copy constructor is called here
+    /// TODO: fix this
+    // return new CommonRenderable(*this);  // Copy constructor is called here
+    return nullptr;
   }
 
  private:

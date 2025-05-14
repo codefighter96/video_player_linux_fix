@@ -48,7 +48,7 @@ class Plane : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+                           FilamentEntity entityObject) override;
 
  private:
   void createDoubleSidedPlane(::filament::Engine* engine_);

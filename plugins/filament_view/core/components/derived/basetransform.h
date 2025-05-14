@@ -17,10 +17,12 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <core/entity/base/entityobject.h>
-#include <core/components/base/component.h>
 #include <filament/math/quat.h>
 #include <filament/math/mat4.h>
+
+#include <core/entity/base/entityobject.h>
+#include <core/components/base/component.h>
+#include <core/utils/filament_types.h>
 
 namespace plugin_filament_view {
 
@@ -79,6 +81,7 @@ class BaseTransform : public Component {
   public:
     TransformVectorData local;
     TransformMatrixData global;
+    FilamentTransformInstance _fInstance;
 
     BaseTransform()
           : Component(std::string(__FUNCTION__)),
@@ -204,7 +207,9 @@ class BaseTransform : public Component {
     void DebugPrint(const std::string& tabPrefix) const override;
     
     [[nodiscard]] Component* Clone() const override {
-      return new BaseTransform(*this);
+      /// TODO: fix this
+      // return new BaseTransform(*this);
+      return nullptr;
     }
 };
 

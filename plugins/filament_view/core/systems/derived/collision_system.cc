@@ -156,11 +156,11 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
   utils::EntityManager& oEntityManager = engine->getEntityManager();
 
-  const auto oEntity = std::make_shared<Entity>(oEntityManager.create());
+  const auto oEntity = oEntityManager.create();
 
   newShape->bInitAndCreateShape(engine, oEntity);
 
-  poFilamentScene->addEntity(*oEntity);
+  poFilamentScene->addEntity(oEntity);
   newShape->_fEntity = oEntity;
 
   // TODO: just no.
@@ -168,9 +168,9 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   // auto& tm = engine->getTransformManager();
   // spdlog::debug("getTransformManager done");
   // spdlog::debug("collidable ({}), _fEntity at mem {}", collidable->GetGuid(),
-  // reinterpret_cast<std::uintptr_t>(collidable->_fEntity.get()));
+  // reinterpret_cast<std::uintptr_t>(collidable->_fEntity));
   // /// TODO: THIS IS THE BUG! Parent has no _fEntity
-  // const auto parentInstance = tm.getInstance(*(collidable->_fEntity.get()));
+  // const auto parentInstance = tm.getInstance(*(collidable->_fEntity));
   // spdlog::debug("parentInstance = getInstance done");
   // const auto childInstance = tm.getInstance(*(oEntity.get()));
   // spdlog::debug("childInstance = getInstance done");

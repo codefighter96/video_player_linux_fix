@@ -78,7 +78,7 @@ filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
 }
 
 bool ModelSystem::setupRenderable(
-  const Entity entity,
+  const FilamentEntity entity,
   const Model* model,
   filament::gltfio::FilamentAsset* asset
 ) {
@@ -98,7 +98,7 @@ bool ModelSystem::setupRenderable(
 
 
 void ModelSystem::setupCollidableChild(
-  const Entity entity,
+  const FilamentEntity entity,
   const Model* model,
   filament::gltfio::FilamentAsset* asset
 ) {
@@ -157,13 +157,13 @@ void ModelSystem::setupCollidableChild(
       std::shared_ptr<EntityObject> childEntity =
           std::make_shared<NonRenderableEntityObject>(childName);
       spdlog::debug("Created child entityobject: {}", childName);
-      childEntity->_fEntity = std::make_shared<utils::Entity>(_em->create());
+      childEntity->_fEntity = _em->create();
 
       spdlog::debug("Created entityobject");
 
       const int rootEntityId = 0;
       // filament::math::mat4f localMatrix = filament::math::mat4f();
-      auto en = *childEntity->_fEntity.get();
+      FilamentEntity en = childEntity->_fEntity;
       while(en.getId() != rootEntityId) {
         spdlog::debug("Getting transform for entity {}", en.getId());
 
@@ -200,11 +200,11 @@ void ModelSystem::setupCollidableChild(
       );
       
       EntityTransforms::vApplyTransform(
-        *(childEntity->_fEntity.get()),
+        childEntity->_fEntity,
         transform->GetRotation(),
         transform->GetScale(),
         transform->GetPosition(),
-        model->_fEntity.get()
+        &(model->_fEntity)
       );
       // childEntity->vRegisterEntity();
       spdlog::debug("Adding entity {} from {}", childEntity->GetGuid(), __FUNCTION__);
@@ -319,7 +319,7 @@ void ModelSystem::addModelToScene(
     return;
   }
 
-  Entity* modelEntities = nullptr;
+  FilamentEntity* modelEntities = nullptr;
   size_t modelEntityCount = 0;
 
   // Get the asset instance
@@ -337,7 +337,7 @@ void ModelSystem::addModelToScene(
     //   "ModelSystem::addModelToScene: model asset cannot be null"
     // );
 
-    modelEntities = const_cast<utils::Entity*>(assetInstance->getEntities());
+    modelEntities = const_cast<FilamentEntity*>(assetInstance->getEntities());
     modelEntityCount = assetInstance->getEntityCount();
   } else {
     /// If it's non-instanced, we need to get the entities from the asset`
@@ -354,7 +354,7 @@ void ModelSystem::addModelToScene(
       return;
     }
 
-    modelEntities = const_cast<utils::Entity*>(asset->getRenderableEntities());
+    modelEntities = const_cast<FilamentEntity*>(asset->getRenderableEntities());
     modelEntityCount = asset->getRenderableEntityCount();
   }
 

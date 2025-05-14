@@ -35,8 +35,6 @@ namespace plugin_filament_view {
 class CollisionSystem;
 class ShapeSystem;
 
-using ::utils::Entity;
-
 namespace shapes {
 
 class BaseShape : public RenderableEntityObject {
@@ -71,7 +69,7 @@ class BaseShape : public RenderableEntityObject {
   virtual void CloneToOther(BaseShape& other) const;
 
   virtual bool bInitAndCreateShape(::filament::Engine* engine_,
-                                   std::shared_ptr<Entity> entityObject) = 0;
+                                   FilamentEntity entityObject) = 0;
 
   void vRemoveEntityFromScene() const;
   void vAddEntityToScene() const;

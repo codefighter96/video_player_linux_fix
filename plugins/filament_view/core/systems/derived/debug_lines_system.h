@@ -16,16 +16,17 @@
 
 #pragma once
 
-#include <core/systems/base/ecsystem.h>
-#include <filament/Box.h>
-#include <filament/Engine.h>
-#include <math/vec3.h>
-#include <utils/EntityManager.h>
 #include <list>
 #include <memory>
 #include <vector>
 
-using ::utils::Entity;
+
+#include <filament/Box.h>
+#include <filament/Engine.h>
+#include <filament/utils/EntityManager.h>
+#include <math/vec3.h>
+
+#include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {
 
@@ -34,13 +35,13 @@ class DebugLine final {
   DebugLine(filament::math::float3 startingPoint,
             filament::math::float3 endingPoint,
             filament::Engine* engine,
-            std::shared_ptr<Entity> entity,
+            FilamentEntity entity,
             float fTimeToLive);
   ~DebugLine() = default;
   void vCleanup(filament::Engine* engine);
 
   float m_fRemainingTime;
-  std::shared_ptr<Entity> _fEntity;
+  FilamentEntity _fEntity;
 
   filament::VertexBuffer* m_poVertexBuffer = nullptr;
   filament::IndexBuffer* m_poIndexBuffer = nullptr;

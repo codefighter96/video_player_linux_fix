@@ -19,17 +19,16 @@
 #include <string>
 #include <vector>
 
-#include <utility>
+#include <core/utils/filament_types.h>
+#include <filament/Scene.h>
 
+#include <utility>
 #include <core/components/base/component.h>
 #include <core/components/derived/material_definitions.h>
 #include <core/utils/smarter_pointers.h>
-#include <filament/Scene.h>
 
 namespace plugin_filament_view {
 class MaterialParameter;
-
-using utils::Entity;
 
 // TODO: refactor to `EntityGUID` to `EntityId`
 /// @brief EntityGUID is a type alias for the GUID of an entity (currently an
@@ -62,8 +61,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   friend class TransformSystem;
 
  public:
-  // Filament entity
-  std::shared_ptr<utils::Entity> _fEntity = nullptr;
+  FilamentEntity _fEntity;
 
 
   // Overloading the == operator to compare based on guid_
