@@ -242,7 +242,6 @@ void ModelSystem::createModelInstance(
   filament::gltfio::FilamentAsset* asset = nullptr;
   filament::gltfio::FilamentInstance* assetInstance = nullptr;
 
-  std::vector<Entity> collidableChildren = {};
 
   // check if instanceable (primary) is loaded
   const auto instancedModelData = _assets[assetPath];
@@ -365,6 +364,15 @@ void ModelSystem::addModelToScene(
   // Add to ECS
   spdlog::debug("[{}] Adding model({}) to ECS", __FUNCTION__, modelGuid);
   ecs->addEntity(model);
+
+
+  spdlog::debug("  Adding model({}) to Filament scene", modelGuid);
+  utils::Entity instanceEntity = assetInstance->getRoot();
+  model->_fEntity = instanceEntity;
+  _filament->getFilamentScene()->addEntity(instanceEntity);
+
+  /// TODO: 
+  std::vector<FilamentEntity> collidableChildren = {};
   
   for (const auto entity : renderables) {
     // const auto entity = modelEntities[i];
@@ -404,8 +412,6 @@ void ModelSystem::addModelToScene(
     // // print parent id
     // const auto parent = _tm->getParent(instance);
     // spdlog::debug("Parent: {}", parent.getId());
-
-    model->m_isInScene = true;
   }
 
   // Set up collidable children
@@ -413,15 +419,15 @@ void ModelSystem::addModelToScene(
   //   setupCollidableChild(entity, sharedPtr.get(), asset);
   // }
 
-  spdlog::debug("  Adding model({}) to Filament scene", modelGuid);
-  auto instanceEntity = assetInstance->getRoot();
-  _filament->getFilamentScene()->addEntity(instanceEntity);
 
   // Set up transform
   EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
+  auto transform = model->getComponent<BaseTransform>();
+  transform->_fInstance = _tm->getInstance(instanceEntity);
 
   // Set up renderable
-  /// TODO: set up renderable (add _fEntity to model, etc)
+  auto renderable = model->getComponent<CommonRenderable>();
+  renderable->_fInstance = _rcm->getInstance(instanceEntity);
 
   // Set up collidable
   /// TODO: set up collidable
@@ -448,6 +454,8 @@ void ModelSystem::addModelToScene(
         "functionality",
         model->getAssetPath(), animatorInstance->getAnimationCount());
   }
+
+  model->m_isInScene = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
