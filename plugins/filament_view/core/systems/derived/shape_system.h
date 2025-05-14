@@ -18,6 +18,11 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+
+#include "filament_system.h"
+#include <filament/Engine.h>
+#include <filament/Scene.h>
+
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/systems/base/ecsystem.h>
 #include <core/systems/derived/material_system.h>
@@ -58,6 +63,13 @@ class ShapeSystem : public ECSystem {
   void DebugPrint() override;
 
  private:
+  // filamentEngine, RenderableManager, EntityManager, TransformManager
+  smarter_shared_ptr<FilamentSystem> _filament;
+  smarter_raw_ptr<filament::Engine> _engine;
+  smarter_raw_ptr<filament::RenderableManager> _rcm;
+  smarter_raw_ptr<utils::EntityManager> _em;
+  smarter_raw_ptr<filament::TransformManager> _tm;
+
   void vRemoveAndReaddShapeToCollisionSystem(
       const EntityGUID guid,
       const std::shared_ptr<shapes::BaseShape>& shape);

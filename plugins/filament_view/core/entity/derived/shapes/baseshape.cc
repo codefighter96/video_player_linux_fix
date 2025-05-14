@@ -184,7 +184,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .culling(renderable->IsCullingOfObjectEnabled())
         .receiveShadows(false)
         .castShadows(false)
-        .build(*engine_, *m_poEntity);
+        .build(*engine_, *_fEntity);
   } else {
     vLoadMaterialDefinitionsToMaterialInstance();
 
@@ -196,7 +196,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .culling(renderable->IsCullingOfObjectEnabled())
         .receiveShadows(renderable->IsReceiveShadowsEnabled())
         .castShadows(renderable->IsCastShadowsEnabled())
-        .build(*engine_, *m_poEntity);
+        .build(*engine_, *_fEntity);
   }
 
   // Get parent entity id
@@ -208,14 +208,14 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     auto parentFilamentEntity = parentEntity->_fEntity;
 
     EntityTransforms::vApplyTransform(
-      *m_poEntity, transform->GetRotation(),
+      *_fEntity, transform->GetRotation(),
       transform->GetScale(),
       transform->GetPosition(),
       parentFilamentEntity.get()
     );
   } else {
     EntityTransforms::vApplyTransform(
-      *m_poEntity, transform->GetRotation(),
+      *_fEntity, transform->GetRotation(),
       transform->GetScale(),
       transform->GetPosition(),
       nullptr
@@ -229,7 +229,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vRemoveEntityFromScene() const {
-  if (m_poEntity == nullptr) {
+  if (_fEntity == nullptr) {
     SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}",
                 __FUNCTION__);
     return;
@@ -239,12 +239,12 @@ void BaseShape::vRemoveEntityFromScene() const {
       ecs->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
 
-  filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
+  filamentSystem->getFilamentScene()->removeEntities(_fEntity.get(), 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vAddEntityToScene() const {
-  if (m_poEntity == nullptr) {
+  if (_fEntity == nullptr) {
     SPDLOG_WARN("Attempt to add uninitialized shape to scene {}", __FUNCTION__);
     return;
   }
@@ -252,7 +252,7 @@ void BaseShape::vAddEntityToScene() const {
   const auto filamentSystem =
       ecs->getSystem<FilamentSystem>(
           "BaseShape::vRemoveEntityFromScene");
-  filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
+  filamentSystem->getFilamentScene()->addEntity(*_fEntity);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -315,7 +315,7 @@ void BaseShape::vChangeMaterialDefinitions(
   // setMaterialInstanceAt for each primitive you want to update.
   auto& renderManager =
       filamentSystem->getFilamentEngine()->getRenderableManager();
-  const auto instanceToChange = renderManager.getInstance(*m_poEntity);
+  const auto instanceToChange = renderManager.getInstance(*_fEntity);
   renderManager.setMaterialInstanceAt(instanceToChange, 0,
                                       *m_poMaterialInstance.getData());
 }

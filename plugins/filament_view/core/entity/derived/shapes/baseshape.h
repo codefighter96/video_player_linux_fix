@@ -76,8 +76,6 @@ class BaseShape : public RenderableEntityObject {
   void vRemoveEntityFromScene() const;
   void vAddEntityToScene() const;
 
-  [[nodiscard]] std::shared_ptr<Entity> poGetEntity() { return m_poEntity; }
-
  protected:
   ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
   ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
@@ -96,9 +94,6 @@ class BaseShape : public RenderableEntityObject {
 
   /// direction of the shape rotation in the world space
   filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
-
-  // TODO: deprecate in favor of EntityObject#_fEntity
-  std::shared_ptr<utils::Entity> m_poEntity;
 
   // Whether we have winding indexes in both directions.
   bool m_bDoubleSided = false;

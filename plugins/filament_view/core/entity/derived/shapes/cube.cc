@@ -41,7 +41,7 @@ using utils::Entity;
 ////////////////////////////////////////////////////////////////////////////
 bool Cube::bInitAndCreateShape(filament::Engine* engine_,
                                std::shared_ptr<Entity> entityObject) {
-  m_poEntity = std::move(entityObject);
+  _fEntity = std::move(entityObject);
 
   if (m_bDoubleSided)
     createDoubleSidedCube(engine_);

@@ -51,7 +51,7 @@ void Sphere::deserializeFrom(const flutter::EncodableMap& params) {
 ////////////////////////////////////////////////////////////////////////////
 bool Sphere::bInitAndCreateShape(filament::Engine* engine_,
                                  std::shared_ptr<Entity> entityObject) {
-  m_poEntity = std::move(entityObject);
+  _fEntity = std::move(entityObject);
 
   m_poVertexBuffer = nullptr;
   m_poIndexBuffer = nullptr;

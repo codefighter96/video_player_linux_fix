@@ -18,7 +18,6 @@
 
 #include <core/components/derived/collidable.h>
 
-#include "filament_system.h"
 
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/entity/derived/shapes/cube.h>
@@ -26,8 +25,6 @@
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
-#include <filament/Engine.h>
-#include <filament/Scene.h>
 #include <plugins/common/common.h>
 
 #include "collision_system.h"
@@ -153,27 +150,20 @@ void ShapeSystem::addShapesToScene(
     shape->DebugPrint("Add shapes to scene");
   }*/
 
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "addShapesToScene");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  filament::Engine* poFilamentEngine = engine;
-  filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
-  utils::EntityManager& oEntityManager = poFilamentEngine->getEntityManager();
+  filament::Scene* filamentScene = _filament->getFilamentScene();
   // Ideally this is changed to create all entities on the first go, then
   // we pass them through, upon use this failed in filament engine, more R&D
   // needed
-  // oEntitymanager.create(shapes.size(), lstEntities);
+  // _em.->create(shapes.size(), lstEntities);
 
   for (auto& shape : *shapes) {
     spdlog::debug("addShapesToScene: {}", shape->GetGuid());
 
-    std::shared_ptr<Entity> oEntity = std::make_shared<Entity>(oEntityManager.create());
+    std::shared_ptr<Entity> oEntity = std::make_shared<Entity>(_em->create());
 
-    shape->bInitAndCreateShape(poFilamentEngine, oEntity);
+    shape->bInitAndCreateShape(_engine, oEntity);
 
-    poFilamentScene->addEntity(*oEntity);
+    filamentScene->addEntity(*oEntity);
 
     // Save Filament entity ID to our entity
     shape->_fEntity = oEntity;
@@ -183,10 +173,9 @@ void ShapeSystem::addShapesToScene(
 
     // To investigate a better system for implementing layer mask
     // across dart to here.
-    // auto& rcm = poFilamentEngine->getRenderableManager();
-    // auto instance = rcm.getInstance(*oEntity.get());
+    // auto instance = _rcm.getInstance(*oEntity.get());
     // To investigate
-    // rcm.setLayerMask(instance, 0xff, 0x00);
+    // _rcm.setLayerMask(instance, 0xff, 0x00);
 
     std::shared_ptr<BaseShape> sharedPtr = std::move(shape);
 
@@ -200,6 +189,23 @@ void ShapeSystem::addShapesToScene(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vOnInitSystem() {
+  // Get filament
+  _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
+  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+
+  _engine = _filament->getFilamentEngine();
+  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+
+  _rcm = _engine->getRenderableManager();
+  _tm = _engine->getTransformManager();
+  _em = _engine->getEntityManager();
+  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+
+  /*
+   * Register message handlers
+   */
   vRegisterMessageHandler(
       ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleShapesInScene");
@@ -246,7 +252,7 @@ void ShapeSystem::vOnInitSystem() {
           baseTransform->SetRotation(rotation);
           baseTransform->SetScale(scale);
 
-          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
+          EntityTransforms::vApplyTransform(*(entity->_fEntity),
                                             *baseTransform);
         }
 
@@ -296,7 +302,7 @@ void ShapeSystem::vOnInitSystem() {
           baseTransform->SetPosition(position);
           // collidable->SetCenterPoint(position);
 
-          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
+          EntityTransforms::vApplyTransform(*(entity->_fEntity),
                                             *baseTransform);
         }
 
@@ -327,7 +333,7 @@ void ShapeSystem::vOnInitSystem() {
           // change stuff.
           baseTransform->SetRotation(rotation);
 
-          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
+          EntityTransforms::vApplyTransform(*(entity->_fEntity),
                                             *baseTransform);
         }
 
@@ -364,7 +370,7 @@ void ShapeSystem::vOnInitSystem() {
           collidable->SetExtentsSize(values);
           baseTransform->SetScale(values);
 
-          EntityTransforms::vApplyTransform(*(entity->poGetEntity()),
+          EntityTransforms::vApplyTransform(*(entity->_fEntity),
                                             *baseTransform);
         }
 

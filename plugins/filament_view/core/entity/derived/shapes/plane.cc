@@ -41,7 +41,7 @@ using utils::Entity;
 ////////////////////////////////////////////////////////////////////////////
 bool Plane::bInitAndCreateShape(filament::Engine* engine_,
                                 std::shared_ptr<Entity> entityObject) {
-  m_poEntity = std::move(entityObject);
+  _fEntity = std::move(entityObject);
 
   if (m_bDoubleSided)
     createDoubleSidedPlane(engine_);

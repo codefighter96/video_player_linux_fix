@@ -41,7 +41,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
                      std::shared_ptr<Entity> entity,
                      float fTimeToLive)
     : m_fRemainingTime(fTimeToLive),
-      m_poEntity(std::move(entity))  // Create entity
+      _fEntity(std::move(entity))  // Create entity
 {
   vertices_.emplace_back(startingPoint);
   vertices_.emplace_back(endingPoint);  //,
@@ -85,7 +85,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       .culling(false)
       .receiveShadows(false)
       .castShadows(false)
-      .build(*engine, *m_poEntity);
+      .build(*engine, *_fEntity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ void DebugLinesSystem::vCleanup() {
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
+    filamentSystem->getFilamentScene()->removeEntities((*it)->_fEntity.get(),
                                                        1);
 
     // do visual cleanup here
@@ -135,7 +135,7 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
 
     if ((*it)->m_fRemainingTime < 0) {
       filamentSystem->getFilamentScene()->removeEntities(
-          (*it)->m_poEntity.get(), 1);
+          (*it)->_fEntity.get(), 1);
 
       // do visual cleanup here
       (*it)->vCleanup(engine);

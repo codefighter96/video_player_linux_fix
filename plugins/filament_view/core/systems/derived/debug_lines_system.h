@@ -40,7 +40,7 @@ class DebugLine final {
   void vCleanup(filament::Engine* engine);
 
   float m_fRemainingTime;
-  std::shared_ptr<Entity> m_poEntity;
+  std::shared_ptr<Entity> _fEntity;
 
   filament::VertexBuffer* m_poVertexBuffer = nullptr;
   filament::IndexBuffer* m_poIndexBuffer = nullptr;
