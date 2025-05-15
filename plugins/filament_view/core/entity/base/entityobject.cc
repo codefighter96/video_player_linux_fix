@@ -15,9 +15,7 @@
  */
 #include "entityobject.h"
 
-#include <core/components/derived/animation.h>
 #include <core/include/literals.h>
-#include <core/systems/derived/animation_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/uuidGenerator.h>
 #include <core/utils/deserialize.h>
@@ -129,12 +127,6 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
 void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
   checkInitialized();
   component->entityOwner_ = this;
-
-  if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
-    const auto animationSystem = ecs->getSystem<AnimationSystem>("loadModelGltf");
-
-    animationSystem->vRegisterEntityObject(shared_from_this());
-  }
 }
 
 }  // namespace plugin_filament_view

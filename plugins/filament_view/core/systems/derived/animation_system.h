@@ -46,13 +46,9 @@ class AnimationSystem : public ECSystem {
   void DebugPrint() override;
 
  private:
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-  void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
 
   void vNotifyOfAnimationEvent(const EntityGUID entityGuid,
                                const AnimationEventType& eType,
                                const std::string& eventData) const;
-
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> _entities;
 };
 }  // namespace plugin_filament_view

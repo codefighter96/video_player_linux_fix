@@ -36,12 +36,10 @@ void AnimationSystem::vOnInitSystem() {
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationEnqueue);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vEnqueueAnimation(animationIndex);
-            spdlog::debug("AnimationEnqueue Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if(animationComponent) {
+          animationComponent->vEnqueueAnimation(animationIndex);
+          spdlog::debug("AnimationEnqueue Complete for GUID: {}", guid);
         }
       });
 
@@ -53,12 +51,10 @@ void AnimationSystem::vOnInitSystem() {
         const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vClearQueue();
-            spdlog::debug("AnimationClearQueue Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if(animationComponent) {
+          animationComponent->vClearQueue();
+          spdlog::debug("AnimationClearQueue Complete for GUID: {}", guid);
         }
       });
 
@@ -72,12 +68,10 @@ void AnimationSystem::vOnInitSystem() {
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationPlay);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vPlayAnimation(animationIndex);
-            spdlog::debug("AnimationPlay Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if (animationComponent) {
+          animationComponent->vPlayAnimation(animationIndex);
+          spdlog::debug("AnimationPlay Complete for GUID: {}", guid);
         }
       });
 
@@ -91,12 +85,10 @@ void AnimationSystem::vOnInitSystem() {
         const auto newSpeed =
             msg.getData<float>(ECSMessageType::AnimationChangeSpeed);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vSetPlaybackSpeedScalar(newSpeed);
-            spdlog::debug("AnimationChangeSpeed Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if (animationComponent) {
+          animationComponent->vSetPlaybackSpeedScalar(newSpeed);
+          spdlog::debug("AnimationChangeSpeed Complete for GUID: {}", guid);
         }
       });
 
@@ -108,12 +100,10 @@ void AnimationSystem::vOnInitSystem() {
         const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vPause();
-            spdlog::debug("AnimationPause Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if (animationComponent) {
+          animationComponent->vPause();
+          spdlog::debug("AnimationPause Complete for GUID: {}", guid);
         }
       });
 
@@ -125,12 +115,10 @@ void AnimationSystem::vOnInitSystem() {
         const EntityGUID guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vResume();
-            spdlog::debug("AnimationResume Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if (animationComponent) {
+          animationComponent->vResume();
+          spdlog::debug("AnimationResume Complete for GUID: {}", guid);
         }
       });
 
@@ -144,40 +132,19 @@ void AnimationSystem::vOnInitSystem() {
         const auto shouldLoop =
             msg.getData<bool>(ECSMessageType::AnimationSetLooping);
 
-        if (const auto it = _entities.find(guid); it != _entities.end()) {
-          const auto animationComponent = it->second->getComponent<Animation>();
-          if (animationComponent) {
-            animationComponent->vSetLooping(shouldLoop);
-            spdlog::debug("AnimationSetLooping Complete for GUID: {}", guid);
-          }
+        const auto animationComponent = ecs->getComponent<Animation>(guid);
+        if (animationComponent) {
+          animationComponent->vSetLooping(shouldLoop);
+          spdlog::debug("AnimationSetLooping Complete for GUID: {}", guid);
         }
       });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::vUpdate(const float fElapsedTime) {
-  for (auto& [fst, snd] : _entities) {
-    const auto animator = snd->getComponent<Animation>();
+  for (auto& animator : ecs->getComponentsOfType<Animation>()) {
     animator->vUpdate(fElapsedTime);
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vRegisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  if (_entities.find(entity->GetGuid()) != _entities.end()) {
-    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGuid());
-    return;
-  }
-
-  _entities.insert(std::pair(entity->GetGuid(), entity));
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vUnregisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  _entities.erase(entity->GetGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

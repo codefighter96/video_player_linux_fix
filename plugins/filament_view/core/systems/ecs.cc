@@ -315,6 +315,21 @@ std::shared_ptr<Component> ECSManager::getComponent(
   }
 }
 
+std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfType(
+  TypeID componentTypeId
+) {
+  std::unique_lock lock(_componentsMutex);
+  std::vector<std::shared_ptr<Component>> componentsOfType;
+
+  /// TODO: this does a memcopy, nuh-uh
+  auto componentMap = _components[componentTypeId];
+  for (const auto& [entityGuid, component] : componentMap) {
+    componentsOfType.push_back(component);
+  }
+
+  return componentsOfType;
+}
+
 bool ECSManager::hasComponent(
   const EntityGUID entityGuid,
   TypeID componentTypeId

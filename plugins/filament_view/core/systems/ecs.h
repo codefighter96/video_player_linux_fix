@@ -207,6 +207,24 @@ class ECSManager {
     TypeID componentTypeId
   );
 
+  /// Returns all the components of the given type
+  template <typename T>
+  [[nodiscard]] inline std::vector<std::shared_ptr<T>> getComponentsOfType() {
+    // cast vector type
+    /// TODO: this does a memcopy, nuh-uh
+    std::vector<std::shared_ptr<T>> components;
+    auto tmp = getComponentsOfType(Component::StaticGetTypeID<T>());
+    components.reserve(tmp.size());
+    for (const auto& component : tmp) {
+      components.push_back(std::dynamic_pointer_cast<T>(component));
+    }
+    return components;
+  }
+
+  [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponentsOfType(
+    TypeID componentTypeId
+  );
+
   /// Returns whether the entity with the given GUID has a component of the given type.
   template <typename T>
   [[nodiscard]] inline bool hasComponent(const EntityGUID& entityGuid) {
