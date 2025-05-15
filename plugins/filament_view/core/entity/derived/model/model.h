@@ -72,16 +72,6 @@ class Model : public RenderableEntityObject {
 
   [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
 
-  /// Returns whether the model is a secondary instance of a model asset
-  [[nodiscard]] bool isInstanced() const {
-    return _instancingMode == ModelInstancingMode::secondary;
-  }
-
-  /// Returns whether the model is a primary instanceable asset
-  [[nodiscard]] bool isInstancePrimary() const {
-    return _instancingMode == ModelInstancingMode::primary;
-  }
-
   /// @returns model's instancing mode
   [[nodiscard]] ModelInstancingMode getInstancingMode() const {
     return _instancingMode;
