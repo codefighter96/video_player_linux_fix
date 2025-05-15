@@ -28,6 +28,7 @@
 #include <plugins/common/common.h>
 #include <utils/EntityManager.h>
 #include <asio/post.hpp>
+#include <core/utils/asserts.h>
 
 namespace plugin_filament_view {
 using filament::math::float3;
@@ -148,15 +149,14 @@ void LightSystem::vOnInitSystem() {
             ECSMessageType::ChangeSceneLightPropertiesIntensity);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          const auto theLight = ecs->getComponent<Light>(guid);
-          theLight->SetIntensity(intensityValue);
-          theLight->SetColor(colorValue);
+        const auto theLight = ecs->getComponent<Light>(guid);
+        runtime_assert(theLight != nullptr, fmt::format("Entity({}): Light not found", guid));
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+        theLight->SetIntensity(intensityValue);
+        theLight->SetColor(colorValue);
+
+        vRemoveLightFromScene(*theLight);
+        vBuildLightAndAddToScene(*theLight);
 
         SPDLOG_TRACE("ChangeSceneLightProperties Complete");
       });
@@ -173,15 +173,13 @@ void LightSystem::vOnInitSystem() {
         const auto rotation = msg.getData<float3>(ECSMessageType::Direction);
 
         // find the entity in our list:
-        if (auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          auto theLight = ecs->getComponent<Light>(guid);
-          theLight->SetPosition(position);
-          theLight->SetDirection(rotation);
+        const auto theLight = ecs->getComponent<Light>(guid);
+        runtime_assert(theLight != nullptr, fmt::format("Entity({}): Light not found", guid));
+        theLight->SetPosition(position);
+        theLight->SetDirection(rotation);
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+        vRemoveLightFromScene(*theLight);
+        vBuildLightAndAddToScene(*theLight);
 
         SPDLOG_TRACE("ChangeSceneLightTransform Complete");
       });
@@ -207,23 +205,4 @@ void LightSystem::DebugPrint() {
   // TODO Update print out list of lights
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vRegisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  if (m_mapGuidToEntity.find(entity->GetGuid()) != m_mapGuidToEntity.end()) {
-    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGuid());
-    return;
-  }
-
-  spdlog::trace("Adding entity with {}", entity->GetGuid());
-
-  m_mapGuidToEntity.insert(std::pair(entity->GetGuid(), entity));
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vUnregisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  m_mapGuidToEntity.erase(entity->GetGuid());
-}
 }  // namespace plugin_filament_view

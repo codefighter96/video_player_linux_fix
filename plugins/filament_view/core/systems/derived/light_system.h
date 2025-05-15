@@ -52,10 +52,6 @@ class LightSystem : public ECSystem {
   void vRemoveLightFromScene(const Light& light);
   void vAddLightToScene(const Light& light);
 
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-  void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-
   std::shared_ptr<NonRenderableEntityObject> m_poDefaultLight;
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> m_mapGuidToEntity;
 };
 }  // namespace plugin_filament_view

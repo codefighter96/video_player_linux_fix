@@ -16,10 +16,8 @@
 #include "entityobject.h"
 
 #include <core/components/derived/animation.h>
-#include <core/components/derived/light.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/animation_system.h>
-#include <core/systems/derived/light_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/uuidGenerator.h>
 #include <core/utils/deserialize.h>
@@ -132,13 +130,7 @@ void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
   checkInitialized();
   component->entityOwner_ = this;
 
-  /// TODO: nuh-uh, the components should not need registration
-  if (component->GetTypeID() == Component::StaticGetTypeID<Light>()) {
-    const auto lightSystem = ecs->getSystem<LightSystem>(__FUNCTION__);
-
-    lightSystem->vRegisterEntityObject(shared_from_this());
-  }
-  else if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
+  if (component->GetTypeID() == Component::StaticGetTypeID<Animation>()) {
     const auto animationSystem = ecs->getSystem<AnimationSystem>("loadModelGltf");
 
     animationSystem->vRegisterEntityObject(shared_from_this());
