@@ -15,6 +15,7 @@
  */
 #include "renderable_entityobject.h"
 #include <core/systems/ecs.h>
+#include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/material_system.h>
 #include <core/include/literals.h>
 #include <core/utils/asserts.h>
@@ -90,6 +91,21 @@ void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   if (m_poMaterialInstance.getStatus() != Status::Success) {
     spdlog::error("Failed to get material instance.");
   }
+}
+
+AABB RenderableEntityObject::getAABB() const {
+  // Get renderable component
+  const auto renderable = getComponent<CommonRenderable>();
+  runtime_assert(!!renderable, "Missing CommonRenderable component");
+  runtime_assert(!!renderable->_fInstance, "CommonRenderable not initialized");
+
+  // Get the FilamentSystem, engine and rcm
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");
+  runtime_assert(!!filamentSystem, "FilamentSystem not initialized");
+  const auto& engine = filamentSystem->getFilamentEngine();
+  const auto& rcm = engine->getRenderableManager();
+
+  return rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
 }
 
 } // namespace plugin_filament_view

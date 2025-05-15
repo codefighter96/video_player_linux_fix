@@ -21,6 +21,7 @@
 #include <core/components/derived/basetransform.h>
 #include <core/components/derived/commonrenderable.h>
 #include <core/components/derived/collidable.h>
+#include <core/utils/bounding_volumes.h>
 
 namespace plugin_filament_view {
 
@@ -35,7 +36,6 @@ namespace plugin_filament_view {
 class RenderableEntityObject : public EntityObject {
   friend class MaterialSystem;
 
- public:
  protected:
   RenderableEntityObject() : EntityObject() {}
   explicit RenderableEntityObject(const flutter::EncodableMap& params)
@@ -81,6 +81,17 @@ class RenderableEntityObject : public EntityObject {
 
   void vLoadMaterialDefinitionsToMaterialInstance();
 
+ public:
+  /// TODO: use those in the addCollidable rewrite
+  /// @returns The AABB of the entity
+  [[nodiscard]] AABB getAABB() const;
+
+  /// The default implementation just returns a sphere with the max radius covering the AABB
+  /// @returns The radius of the bounding sphere
+  [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
+    return BoundingSphere(getAABB());
+  }
+
  private:
   /*
    * Init data (temporary)
@@ -89,6 +100,5 @@ class RenderableEntityObject : public EntityObject {
   std::shared_ptr<BaseTransform> _tmpTransform = nullptr;
   std::shared_ptr<Collidable> _tmpCollidable = nullptr;
   std::shared_ptr<CommonRenderable> _tmpCommonRenderable = nullptr;
-
 };
 }  // namespace plugin_filament_view
