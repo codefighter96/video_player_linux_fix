@@ -91,15 +91,20 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   EntityObject(const EntityObject&) = delete;
   EntityObject& operator=(const EntityObject&) = delete;
 
-  /// Called by [ECSManager] when a component is added to the entity.
-  void onAddComponent(std::shared_ptr<Component> component);
-
   virtual void DebugPrint() const = 0;
 
+  /// TODO: remove this, expose name as public
   [[nodiscard]] inline const std::string& GetName() const { return name_; }
+
+
 
  protected:
   smarter_raw_ptr<ECSManager> ecs = nullptr;
+  /// Temporary storage for components that are being added to the entity
+  /// before it's initialized within ECS.
+  /// After the entity is initialized, these components are moved to the ECS' memory
+  /// and the temporary storage is cleared.
+  std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
 
   /// GUID of the entity.
   /// This is used for identifying the entity, and must be unique.
@@ -131,10 +136,25 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
   /// Called immediately after the entity is registered in the ECSManager.
   /// NOTE: this is a good place to initialize components and children.
-  virtual void onInitialize() {};
+  virtual void onInitialize();
   /// Called immediately before the entity is unregistered in the ECSManager.
   /// NOTE: it doesn't need to deallocate components or children, the ECSManager will do that.
   virtual void onDestroy() {};
+
+ public:
+  /// @brief Adds a component to the entity.
+  /// If called before the entity is initialized, the component is batched
+  /// and added to the entity after initialization.
+  template <typename T>
+  inline void addComponent(const T& component) {
+    addComponent(Component::StaticGetTypeID<T>(), std::make_shared<T>(component));
+  }
+
+  /// Called by [ECSManager] when a component is added to the entity.
+  /// This is called after the entity is initialized.
+  /// If a component is added before the entity is initialized, this will be
+  /// called after the entity is initialized.
+  virtual void onAddComponent(std::shared_ptr<Component> component);
 
   template <typename T>
   [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
@@ -159,7 +179,6 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// @brief Deserializes the entity from a map of parameters.
   virtual void deserializeFrom(const flutter::EncodableMap& params);
   
-
  private:
   std::mutex _initMutex;
   bool _isInitialized = false;
@@ -188,14 +207,16 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     _isInitialized = false;
   }
 
+  void addComponent(TypeID staticTypeID, std::shared_ptr<Component> component);
+
   /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
   /// @returns component if valid, nullptr if not found.
-  [[nodiscard]] std::shared_ptr<Component> getComponent(size_t staticTypeID) const;
+  [[nodiscard]] std::shared_ptr<Component> getComponent(TypeID staticTypeID) const;
 
   /// @brief Checks if the entity has a component of the given type.
   /// @param staticTypeID The static type ID of the component -> [Component::StaticGetTypeID<DerivedClass>()]
   /// @returns true if the entity has the component, false otherwise.
-  [[nodiscard]] bool hasComponent(size_t staticTypeID) const;
+  [[nodiscard]] bool hasComponent(TypeID staticTypeID) const;
 
 };
 }  // namespace plugin_filament_view

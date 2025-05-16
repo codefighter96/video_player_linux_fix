@@ -80,8 +80,6 @@ class BaseShape : public RenderableEntityObject {
 
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  void onInitialize() override;
-
   void DebugPrint() const override;
 
   // uses Vertex and Index buffer to create the material and geometry
@@ -108,18 +106,12 @@ class BaseShape : public RenderableEntityObject {
       const TextureMap& loadedTextures) override;
 
  private:
-
   void vDestroyBuffers();
 
   // This does NOT come over as a property (currently), only used by
   // CollisionManager when created debug wireframe models for seeing collidable
   // shapes.
   bool m_bIsWireframe = false;
-
-  /*
-   * Init data (temporary)
-   */
-  std::shared_ptr<MaterialDefinitions> _tmpMaterialDefinitions = nullptr;
 };
 
 }  // namespace shapes

@@ -74,28 +74,10 @@ void Model::deserializeFrom(const flutter::EncodableMap& params) {
   spdlog::debug("Making Animation...");
   if (Deserialize::HasKey(params, kAnimation)) {
     // they're requesting an animation on this object. Make one.
-    _tmpAnimation = std::make_shared<Animation>(params);
+    addComponent(Animation(params));
   } else {
     spdlog::debug("This entity params has no animation");
   }
-}
-
-void Model::onInitialize() {
-  RenderableEntityObject::onInitialize();
-
-  checkInitialized();
-  spdlog::debug("Model::onInitialize - transfer components");
-  spdlog::debug("ecs addr is 0x{:x}", reinterpret_cast<uintptr_t>(&ecs));
-
-  // Animation (optional)
-  if (_tmpAnimation != nullptr) {
-    spdlog::debug("addComponent Animation");
-    ecs->addComponent(guid_, std::move(_tmpAnimation));
-  }
-
-  // TODO: Setup renderable & children, from ModelSystem::
-
-  spdlog::debug("Model::onInitialize - done!");
 }
 
 ////////////////////////////////////////////////////////////////////////////

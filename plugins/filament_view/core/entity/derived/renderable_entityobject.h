@@ -49,10 +49,10 @@ class RenderableEntityObject : public EntityObject {
   explicit RenderableEntityObject(const std::string& name,
                                   const EntityGUID guid)
       : EntityObject(name, guid) {}
+  
+
+
   virtual void DebugPrint() const override = 0;
-
-
-  void onInitialize() override;
 
   /*
    * Deserialization
@@ -91,14 +91,5 @@ class RenderableEntityObject : public EntityObject {
   [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
     return BoundingSphere(getAABB());
   }
-
- private:
-  /*
-   * Init data (temporary)
-   */
-  /// Temporary storage for components (stored after deserialization, deleted after onInitialize)
-  std::shared_ptr<BaseTransform> _tmpTransform = nullptr;
-  std::shared_ptr<Collidable> _tmpCollidable = nullptr;
-  std::shared_ptr<CommonRenderable> _tmpCommonRenderable = nullptr;
 };
 }  // namespace plugin_filament_view

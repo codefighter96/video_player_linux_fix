@@ -516,8 +516,6 @@ void ModelSystem::updateAsyncAssetLoading() {
         switch(model->getInstancingMode()) {
           case ModelInstancingMode::primary:
             spdlog::debug("Model is primary, updating transform but not adding to scene");
-            // TODO: the below line is temporary, it should be done as a part of addModelToScene
-            // EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *model->_tmpTransform);
             break;
           case ModelInstancingMode::secondary:
             // load the model as an instance

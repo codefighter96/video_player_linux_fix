@@ -104,8 +104,6 @@ class Model : public RenderableEntityObject {
 
   void DebugPrint() const override;
 
-  void onInitialize() override;
-
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
 
@@ -115,12 +113,6 @@ class Model : public RenderableEntityObject {
   void vChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
       const TextureMap& /*loadedTextures*/) override;
-
- private:
-  /*
-   *  Init data (temporary)
-   */
-  std::shared_ptr<Animation> _tmpAnimation = nullptr;
 };
 
 }  // namespace plugin_filament_view

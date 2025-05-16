@@ -43,7 +43,6 @@ EntityObject::EntityObject(const flutter::EncodableMap& params) {
   assert(guid_ != kNullGuid);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
 EntityDescriptor EntityObject::DeserializeNameAndGuid(
     const flutter::EncodableMap& params) {
   EntityDescriptor descriptor;
@@ -72,6 +71,13 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
   return descriptor;
 }
 
+void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
+  // Deserialize name and guid
+  auto descriptor = DeserializeNameAndGuid(params);
+  name_ = descriptor.name;
+  guid_ = descriptor.guid;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
   if(!isInitialized()) {
@@ -95,14 +101,7 @@ void EntityObject::vDebugPrintComponents() const {
                 fmt::join(componentNames, ", "));
 }
 
-void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
-  // Deserialize name and guid
-  auto descriptor = DeserializeNameAndGuid(params);
-  name_ = descriptor.name;
-  guid_ = descriptor.guid;
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
   return ecs->getComponent(guid_, staticTypeID);
 }
@@ -123,10 +122,31 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
   ecs->addComponent(other.guid_, std::shared_ptr<Component>(component->Clone()));
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+void EntityObject::addComponent(
+  size_t staticTypeID,
+  std::shared_ptr<Component> component
+) {
+  if(isInitialized()) {
+    ecs->addComponent(guid_, component);
+  } else {
+    // batch the component to be added after initialization
+    _tmpComponents[staticTypeID] = component;
+  }
+}
+
 void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
   checkInitialized();
   component->entityOwner_ = this;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+void EntityObject::onInitialize() {
+  checkInitialized();
+  // add all components that were added before initialization
+  for (const auto& [staticTypeID, component] : _tmpComponents) {
+    ecs->addComponent(guid_, std::move(component));
+  }
+  _tmpComponents.clear();
 }
 
 }  // namespace plugin_filament_view

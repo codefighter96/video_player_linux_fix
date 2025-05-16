@@ -207,9 +207,7 @@ class BaseTransform : public Component {
     void DebugPrint(const std::string& tabPrefix) const override;
     
     [[nodiscard]] Component* Clone() const override {
-      /// TODO: fix this
-      // return new BaseTransform(*this);
-      return nullptr;
+      return new BaseTransform(*this);
     }
 };
 

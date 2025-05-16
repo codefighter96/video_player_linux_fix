@@ -59,29 +59,10 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
     auto matdefParams = std::get<flutter::EncodableMap>(
       params.find(flutter::EncodableValue(kMaterial))->second
     );
-    _tmpMaterialDefinitions = std::make_shared<MaterialDefinitions>(matdefParams);
+    addComponent(MaterialDefinitions(matdefParams));
   } else {
     spdlog::debug("This entity params has no material definitions");
   }
-}
-
-void BaseShape::onInitialize() {
-  RenderableEntityObject::onInitialize();
-
-  checkInitialized();
-  spdlog::debug("BaseShape::onInitialize");
-  spdlog::debug("BaseShape (id {})", guid_);
-
-  // MaterialDefinitions (optional)
-  if(_tmpMaterialDefinitions != nullptr) {
-    spdlog::debug("addComponent MaterialDefinitions");
-    _tmpMaterialDefinitions->DebugPrint("MaterialDefinitions");
-    ecs->addComponent(guid_, std::move(_tmpMaterialDefinitions));
-  }
-
-  // TODO: setup renderable & children, from ShapeSystem::...?
-
-  SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
