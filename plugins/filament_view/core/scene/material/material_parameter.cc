@@ -83,10 +83,9 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   }
 
   if (!type.has_value()) {
-    spdlog::error(
+    throw std::runtime_error(
         "[MaterialParameter::Deserialize] Unhandled Parameter - no type in arg "
         "list");
-    return {};
   }
 
   switch (type.value()) {
@@ -105,9 +104,12 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
           colorValue.value());
 
     default:
-      spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter {}",
-                    getTextForType(type.value()));
-      return {};
+      throw std::runtime_error(
+        fmt::format(
+          "[MaterialParameter::Deserialize] Unhandled Parameter {}", 
+          getTextForType(type.value())
+        )
+      );
   }
 }
 

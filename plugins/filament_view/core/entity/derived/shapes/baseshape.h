@@ -80,6 +80,8 @@ class BaseShape : public RenderableEntityObject {
 
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
+  void onInitialize() override;
+
   void DebugPrint() const override;
 
   // uses Vertex and Index buffer to create the material and geometry

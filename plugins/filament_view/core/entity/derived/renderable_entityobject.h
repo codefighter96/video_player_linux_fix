@@ -54,6 +54,9 @@ class RenderableEntityObject : public EntityObject {
 
   virtual void DebugPrint() const override = 0;
 
+
+  void onInitialize() override;
+
   /*
    * Deserialization
    */

@@ -41,6 +41,8 @@ class ShapeSystem : public ECSystem {
   void addShapesToScene(
       std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
 
+  void addShapeToScene(std::shared_ptr<shapes::BaseShape> shape);
+
   // Disallow copy and assign.
   ShapeSystem(const ShapeSystem&) = delete;
   ShapeSystem& operator=(const ShapeSystem&) = delete;
@@ -74,7 +76,10 @@ class ShapeSystem : public ECSystem {
       const EntityGUID guid,
       const std::shared_ptr<shapes::BaseShape>& shape);
 
-  std::map<EntityGUID, std::shared_ptr<shapes::BaseShape>>
-      m_mapszoShapes;  // NOLINT
+
+  bool hasShape(const EntityGUID guid) const;
+  shapes::BaseShape* getShape(const EntityGUID guid) const;
+
+  std::vector<EntityGUID> _shapes;
 };
 }  // namespace plugin_filament_view

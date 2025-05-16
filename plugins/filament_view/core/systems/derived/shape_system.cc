@@ -34,30 +34,47 @@ namespace plugin_filament_view {
 using shapes::BaseShape;
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleAllShapesInScene(const bool bValue) const {
-  if (bValue) {
-    for (const auto& [fst, snd] : m_mapszoShapes) {
-      snd->vAddEntityToScene();
+void ShapeSystem::vToggleAllShapesInScene(const bool enable) const {
+  if (enable) {
+    for (const auto& guid : _shapes) {
+      const auto shape = getShape(guid);
+      shape->vAddEntityToScene();
     }
   } else {
-    for (const auto& [fst, snd] : m_mapszoShapes) {
-      snd->vRemoveEntityFromScene();
+    for (const auto& guid : _shapes) {
+      const auto shape = getShape(guid);
+      shape->vRemoveEntityFromScene();
     }
   }
+}
+
+bool ShapeSystem::hasShape(const EntityGUID guid) const {
+  if(std::find(_shapes.begin(), _shapes.end(), guid) != _shapes.end()) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+BaseShape* ShapeSystem::getShape(const EntityGUID guid) const {
+  if (hasShape(guid)) {
+    return dynamic_cast<BaseShape*>(ecs->getEntity(guid).get());
+  }
+  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid,
                                             const bool bValue) const {
-  const auto iter = m_mapszoShapes.find(guid);
-  if (iter == m_mapszoShapes.end()) {
+  if (!hasShape(guid)) {
     return;
   }
 
+  BaseShape* shape = getShape(guid);
   if (bValue) {
-    iter->second->vAddEntityToScene();
+    shape->vAddEntityToScene();
   } else {
-    iter->second->vRemoveEntityFromScene();
+    shape->vRemoveEntityFromScene();
   }
 }
 
@@ -65,11 +82,11 @@ void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid,
 void ShapeSystem::vRemoveAllShapesInScene() {
   vToggleAllShapesInScene(false);
 
-  for (const auto& [fst, snd] : m_mapszoShapes) {
-    ecs->removeEntity(snd->GetGuid());
+  for (const auto& guid : _shapes) {
+    ecs->removeEntity(guid);
   }
 
-  m_mapszoShapes.clear();
+  _shapes.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -149,41 +166,35 @@ void ShapeSystem::addShapesToScene(
     shape->DebugPrint("Add shapes to scene");
   }*/
 
-  filament::Scene* filamentScene = _filament->getFilamentScene();
-  // Ideally this is changed to create all entities on the first go, then
-  // we pass them through, upon use this failed in filament engine, more R&D
-  // needed
-  // _em.->create(shapes.size(), lstEntities);
-
   for (auto& shape : *shapes) {
-    spdlog::debug("addShapesToScene: {}", shape->GetGuid());
-
-    FilamentEntity oEntity = _em->create();
-
-    shape->bInitAndCreateShape(_engine, oEntity);
-
-    filamentScene->addEntity(oEntity);
-
-    // Save Filament entity ID to our entity
-    shape->_fEntity = oEntity;
-
-    spdlog::trace("Adding entity {} with filament entity {}",
-                  shape->GetGuid(), oEntity.getId());
-
-    // To investigate a better system for implementing layer mask
-    // across dart to here.
-    // auto instance = _rcm.getInstance(*oEntity.get());
-    // To investigate
-    // _rcm.setLayerMask(instance, 0xff, 0x00);
-
-    std::shared_ptr<BaseShape> sharedPtr = std::move(shape);
-
-    m_mapszoShapes.insert(std::pair(sharedPtr->GetGuid(), sharedPtr));
-
-    ecs->addEntity(sharedPtr);
+    addShapeToScene(shape);
   }
 
   SPDLOG_TRACE("--{}", __FUNCTION__);
+}
+
+void ShapeSystem::addShapeToScene(std::shared_ptr<shapes::BaseShape> shape) {
+  runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
+
+  filament::Scene* filamentScene = _filament->getFilamentScene();
+
+  spdlog::debug("addShapesToScene: {}", shape->GetGuid());
+  FilamentEntity oEntity = _em->create();
+  filamentScene->addEntity(oEntity);
+  shape->_fEntity = oEntity;
+
+  shape->bInitAndCreateShape(_engine, oEntity);
+
+  spdlog::trace("Adding entity {} with filament entity {}",
+                shape->GetGuid(), oEntity.getId());
+
+  // To investigate a better system for implementing layer mask
+  // across dart to here.
+  // auto instance = _rcm.getInstance(*oEntity.get());
+  // To investigate
+  // _rcm.setLayerMask(instance, 0xff, 0x00);
+
+  _shapes.emplace_back(shape->GetGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -232,9 +243,8 @@ void ShapeSystem::vOnInitSystem() {
             msg.getData<filament::math::float3>(ECSMessageType::Scale);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapszoShapes.find(guid);
-            ourEntity != m_mapszoShapes.end()) {
-          const auto entity = ourEntity->second;
+        if (hasShape(guid)) {
+          const auto entity = getShape(guid);
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 
@@ -276,9 +286,8 @@ void ShapeSystem::vOnInitSystem() {
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapszoShapes.find(guid);
-            ourEntity != m_mapszoShapes.end()) {
-          const auto entity = ourEntity->second;
+        if (hasShape(guid)) {
+          const auto entity = getShape(guid);
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 
@@ -307,9 +316,8 @@ void ShapeSystem::vOnInitSystem() {
         filament::math::quatf rotation(values);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapszoShapes.find(guid);
-            ourEntity != m_mapszoShapes.end()) {
-          const auto entity = ourEntity->second;
+        if (hasShape(guid)) {
+          const auto entity = getShape(guid);
           const auto baseTransform = entity->getComponent<BaseTransform>();
 
           // change stuff.
@@ -334,9 +342,8 @@ void ShapeSystem::vOnInitSystem() {
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapszoShapes.find(guid);
-            ourEntity != m_mapszoShapes.end()) {
-          const auto entity = ourEntity->second;
+        if (hasShape(guid)) {
+          const auto entity = getShape(guid);
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 

@@ -44,6 +44,13 @@ class MaterialDefinitions : public Component {
     }
   }
 
+  MaterialDefinitions(const std::string& assetPath,
+                      const std::map<std::string, std::shared_ptr<MaterialParameter>>&
+                          parameters)
+      : Component(std::string(__FUNCTION__)),
+        assetPath_(assetPath),
+        parameters_(parameters) {}
+
   ~MaterialDefinitions() override;
 
   static void vApplyMaterialParameterToInstance(
@@ -82,6 +89,43 @@ class MaterialDefinitions : public Component {
  private:
   std::string assetPath_;
   std::string url_;
-  std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;
+  std::map<std::string, std::shared_ptr<MaterialParameter>> parameters_;
 };
+
+const std::shared_ptr<MaterialParameter> kDefaultBaseColor = 
+  std::make_unique<MaterialParameter>(
+    "baseColor",
+    MaterialParameter::MaterialType::COLOR,
+    filament::math::float4(1.0f, 1.0f, 1.0f, 1.0f)
+  );
+const std::shared_ptr<MaterialParameter> kDefaultRoughness =
+  std::make_unique<MaterialParameter>(
+    "roughness",
+    MaterialParameter::MaterialType::FLOAT,
+    0.5f
+  );
+const std::shared_ptr<MaterialParameter> kDefaultMetallic =
+  std::make_unique<MaterialParameter>(
+    "metallic",
+    MaterialParameter::MaterialType::FLOAT,
+    0.0f
+  );
+
+const std::map<std::string, std::shared_ptr<MaterialParameter>> kDefaultMaterialParameters {
+  {
+    "baseColor", kDefaultBaseColor
+  },
+  {
+    "roughness", kDefaultRoughness
+  },
+  {
+    "metallic", kDefaultMetallic
+  },
+};
+
+const MaterialDefinitions kDefaultMaterial = MaterialDefinitions(
+  "assets/materials/lit.filamat",
+  kDefaultMaterialParameters
+);
+
 }  // namespace plugin_filament_view

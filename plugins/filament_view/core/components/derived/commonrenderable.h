@@ -30,8 +30,8 @@ class CommonRenderable : public Component {
   CommonRenderable()
       : Component(std::string(__FUNCTION__)),
         m_bCullingOfObjectEnabled(true),
-        m_bReceiveShadows(false),
-        m_bCastShadows(false) {}
+        m_bReceiveShadows(true),
+        m_bCastShadows(true) {}
   explicit CommonRenderable(const flutter::EncodableMap& params);
 
   FilamentRenderableInstance _fInstance;

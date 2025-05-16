@@ -45,6 +45,23 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
   }
 } // namespace plugin_filament_view
 
+void RenderableEntityObject::onInitialize() {
+  // Initialize the base class
+  EntityObject::onInitialize();
+
+  // Make sure it has a Transform component
+  const auto transform = getComponent<BaseTransform>();
+  if(!transform) {
+    addComponent(BaseTransform()); // init with defaults
+  }
+
+  // Make sure it has a CommonRenderable component
+  const auto renderable = getComponent<CommonRenderable>();
+  if(!renderable) {
+    addComponent(CommonRenderable()); // init with defaults
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   checkInitialized();

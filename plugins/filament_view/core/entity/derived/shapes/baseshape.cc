@@ -65,6 +65,17 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
   }
 }
 
+void BaseShape::onInitialize() {
+  RenderableEntityObject::onInitialize();
+
+  // Make sure it has a MaterialDefinitions component
+  const auto materialDefinitions = getComponent<MaterialDefinitions>();
+  if(!materialDefinitions) {
+    spdlog::warn("BaseShape({}) has no material, adding default material", guid_);
+    addComponent(kDefaultMaterial); // init with defaults
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::~BaseShape() {
   vRemoveEntityFromScene();

@@ -88,7 +88,24 @@ class BaseTransform : public Component {
             local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
             global({kMat4fIdentity}) {}
 
+    explicit BaseTransform(const filament::math::float3& position,
+                           const filament::math::float3& scale,
+                           const filament::math::quatf& rotation)
+          : Component(std::string(__FUNCTION__)),
+            local({{position}, {scale}, {rotation}}),
+            global({kMat4fIdentity}) {}
 
+    // explicit BaseTransform(const filament::math::float3& position,
+    //                        const filament::math::float3& scale)
+    //       : Component(std::string(__FUNCTION__)),
+    //         local({position, scale, kQuatfIdentity}),
+    //         global({kMat4fIdentity}) {}
+
+    // explicit BaseTransform(const filament::math::float3& position)
+    //       : Component(std::string(__FUNCTION__)),
+    //         local({position, kFloat3One, kQuatfIdentity}),
+    //         global({kMat4fIdentity}) {}
+            
     explicit BaseTransform(const flutter::EncodableMap& params);
 
     /*
