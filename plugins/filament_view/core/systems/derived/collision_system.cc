@@ -81,7 +81,7 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
   std::string colliderBoxName = collidable->GetName() + " (collider)";
   if (dynamic_cast<Model*>(collidable)) {
     const auto ourModelObject = dynamic_cast<Model*>(collidable);
-    const auto ourAABB = ourModelObject->poGetBoundingBox();
+    const AABB ourAABB = ourModelObject->getAABB();
 
     newShape = new shapes::Cube(colliderBoxName);
     newShape->m_bDoubleSided = false;
@@ -105,16 +105,16 @@ void CollisionSystem::vAddCollidable(EntityObject* collidable) {
     // Note I believe this is correct; more thorough testing is needed; there's
     // a concern around exporting models not centered at 0,0,0 and not being
     // 100% accurate.
-    // ourTransform->SetPosition(ourAABB.center() +
+    // ourTransform->SetPosition(ourAABB.center +
     //                                 ourTransform->GetPosition());
-    // // ourTransform->SetExtentsSize(ourAABB.extent());
-    // ourTransform->SetScale(ourAABB.extent());
+    // // ourTransform->SetExtentsSize(ourAABB.halfExtent * 2);
+    // ourTransform->SetScale(ourAABB.halfExtent * 2);
 
     if (originalCollidable != nullptr &&
         originalCollidable->GetShouldMatchAttachedObject()) {
 
       originalCollidable->SetShapeType(ShapeType::Cube);
-      originalCollidable->SetExtentsSize(ourAABB.extent());
+      originalCollidable->SetExtentsSize(ourAABB.halfExtent * 2);
     }
   } else {
     // if it's a shape

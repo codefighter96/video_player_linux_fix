@@ -87,7 +87,10 @@ AABB RenderableEntityObject::getAABB() const {
   // Get renderable component
   const auto renderable = getComponent<CommonRenderable>();
   runtime_assert(!!renderable, "Missing CommonRenderable component");
-  runtime_assert(!!renderable->_fInstance, "CommonRenderable not initialized");
+  runtime_assert(
+    !!renderable->_fInstance, 
+    fmt::format("CommonRenderable not initialized (is {})", renderable->_fInstance.asValue())
+  );
 
   // Get the FilamentSystem, engine and rcm
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");

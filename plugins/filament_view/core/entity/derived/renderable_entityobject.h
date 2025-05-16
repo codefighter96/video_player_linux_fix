@@ -87,7 +87,7 @@ class RenderableEntityObject : public EntityObject {
  public:
   /// TODO: use those in the addCollidable rewrite
   /// @returns The AABB of the entity
-  [[nodiscard]] AABB getAABB() const;
+  [[nodiscard]] virtual AABB getAABB() const;
 
   /// The default implementation just returns a sphere with the max radius covering the AABB
   /// @returns The radius of the bounding sphere

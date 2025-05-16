@@ -93,6 +93,22 @@ void Model::DebugPrint() const {
   vDebugPrintComponents();
 }
 
+AABB Model::getAABB() const {
+  AABB aabb;
+  filament::Aabb rawBox;
+
+  if (m_poAsset != nullptr) {
+    rawBox = m_poAsset->getBoundingBox();
+  } else if (m_poAssetInstance != nullptr) {
+    rawBox = m_poAssetInstance->getBoundingBox();
+  } else {
+    spdlog::warn("Model::getAABB - asset and asset instance are null");
+  }
+
+  aabb.set(rawBox.min, rawBox.max);
+  return aabb;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {

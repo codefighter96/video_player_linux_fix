@@ -82,15 +82,7 @@ class Model : public RenderableEntityObject {
     return m_isInScene;
   }
 
-  [[nodiscard]] filament::Aabb poGetBoundingBox() {
-    if (m_poAsset != nullptr) {
-      return m_poAsset->getBoundingBox();
-    } else if (m_poAssetInstance != nullptr) {
-      return m_poAssetInstance->getBoundingBox();
-    }
-
-    return {};
-  }
+  [[nodiscard]] virtual AABB getAABB() const override;
 
  protected:
   std::string assetPath_;
