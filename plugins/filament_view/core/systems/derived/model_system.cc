@@ -66,157 +66,6 @@ void ModelSystem::destroyAsset(
   assetLoader_->destroyAsset(asset);
 }
 
-bool ModelSystem::setupRenderable(
-  const FilamentEntity entity,
-  const Model* model,
-  filament::gltfio::FilamentAsset* asset
-) {
-
-  // spdlog::debug("Entity ({}){} has extras: {}", entity.getId(), name, extras);
-
-  const auto ri = _rcm->getInstance(entity);
-  const auto commonRenderable = model->GetCommonRenderable();
-  _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
-  _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
-  _rcm->setScreenSpaceContactShadows(ri, false);
-
-  // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
-  const char* extras = asset->getExtras(entity);
-  return extras != nullptr;
-}
-
-
-void ModelSystem::setupCollidableChild(
-  const FilamentEntity entity,
-  const Model* model,
-  filament::gltfio::FilamentAsset* asset
-) {
-  // Get name
-  const char* name = asset->getName(entity);
-  if(name == nullptr) {
-    name = "(null)";
-  }
-  // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
-  const char* extras = asset->getExtras(entity);
-  if(extras == nullptr) {
-    extras = "{}";
-  }
-
-  // if extras has a "fs_touchEvent" property, get the value
-  if(extras != nullptr) {
-    // parse using RapidJSON
-    rapidjson::Document doc;
-    doc.Parse(extras);
-    if(doc.HasParseError()) {
-      spdlog::error(rapidjson::GetParseError_En(doc.GetParseError()));
-      throw std::runtime_error(
-          "[ModelSystem::setupCollidableChild] Failed to parse extras JSON");
-    }
-
-    constexpr char kTouchEventProp[] = "customDataProp";
-    if(doc.HasMember(kTouchEventProp)) {
-      const auto& touchEvent = doc[kTouchEventProp];
-      // type: string (event name)
-      const auto& type = touchEvent.GetString();
-      spdlog::debug("{} type: {}", kTouchEventProp, type);
-
-      // get aabb
-      const auto ri = _rcm->getInstance(entity);
-      const filament::Box aabb = _rcm->getAxisAlignedBoundingBox(ri);
-
-      // get center
-      const filament::math::float3 center = aabb.center;
-
-      // check if is a perfect cube (with epsilon = 0.01)
-      constexpr float epsilon = 0.01f;
-      const float sizeX = aabb.halfExtent.x * 2;
-      const float sizeY = aabb.halfExtent.y * 2;
-      const float sizeZ = aabb.halfExtent.z * 2;
-      const bool isCube = std::abs(sizeX - sizeY) < epsilon &&
-                          std::abs(sizeY - sizeZ) < epsilon;
-      spdlog::debug("isCube: {}", isCube);
-
-      spdlog::debug("Hello????");
-
-      // create a child entityobject
-      const EntityGUID parentGuid = model->GetGuid();
-      spdlog::debug("Parent entity: {}", parentGuid);
-      const std::string childName = std::string(name);
-      spdlog::debug("Created name");
-      std::shared_ptr<EntityObject> childEntity =
-          std::make_shared<NonRenderableEntityObject>(childName);
-      spdlog::debug("Created child entityobject: {}", childName);
-      childEntity->_fEntity = _em->create();
-
-      spdlog::debug("Created entityobject");
-
-      const int rootEntityId = 0;
-      // filament::math::mat4f localMatrix = filament::math::mat4f();
-      FilamentEntity en = childEntity->_fEntity;
-      while(en.getId() != rootEntityId) {
-        spdlog::debug("Getting transform for entity {}", en.getId());
-
-        const auto instance = _tm->getInstance(en);
-        // localMatrix = filament::math::mat4f::multiply(_tm->getTransform(instance), localMatrix);
-        en = _tm->getParent(instance);
-      }
-
-      spdlog::debug("yayyyyY!");
-
-
-      // attach transform
-      auto transform = std::make_shared<BaseTransform>();
-      transform->SetPosition(center);
-      transform->SetRotation(filament::math::quatf(0, 0, 0, 1));
-      transform->SetScale(filament::math::float3(1, 1, 1));
-      ecs->addComponent(childEntity->GetGuid(), transform);
-
-      spdlog::debug("Added transform");
-
-      // attach collidable
-      auto collidable = std::make_shared<Collidable>();
-      collidable->SetIsStatic(false);
-      collidable->SetExtentsSize(filament::math::float3(sizeX, sizeY, sizeZ));
-      collidable->SetShapeType(isCube ? ShapeType::Cube :
-                                        ShapeType::Sphere);
-      ecs->addComponent(childEntity->GetGuid(), collidable);
-
-      spdlog::debug("Added collidable");
-
-      // insert as child
-      spdlog::debug("Adding child entity {} to model: {}",
-                  childEntity->GetGuid(), parentGuid
-      );
-      
-      EntityTransforms::vApplyTransform(
-        childEntity->_fEntity,
-        transform->GetRotation(),
-        transform->GetScale(),
-        transform->GetPosition(),
-        &(model->_fEntity)
-      );
-      // childEntity->vRegisterEntity();
-      spdlog::debug("Adding entity {} from {}", childEntity->GetGuid(), __FUNCTION__);
-      ecs->addEntity(childEntity
-        // ,parentGuid
-      );
-
-      spdlog::debug("Child object '{}' added to model '{}'",
-                  childEntity->GetName(), model->GetName());
-      transform->DebugPrint("  ");
-      collidable->DebugPrint("  ");
-
-      spdlog::debug("Transform applied!");
-
-      // add to collision system
-      const auto collisionSystem = ecs->getSystem<CollisionSystem>("setupCollidableChild");
-
-      spdlog::debug("Collidable added!");
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::createModelInstance(
   Model* model
 ) {
@@ -375,19 +224,14 @@ void ModelSystem::addModelToScene(
     // const auto entity = modelEntities[i];
     _filament->getFilamentScene()->addEntity(entity);
 
-    // TODO: move this elsewhere to enable creation of proper children
-    // const bool hasCollidableChild = 
-      setupRenderable(
-        entity,
-        model.get(),
-        const_cast<filament::gltfio::FilamentAsset*>(
-          model->getAssetInstance()->getAsset()
-        )
-      );
-
-    // if (hasCollidableChild) {
-    //   collidableChildren.push_back(entity);
-    // }
+    
+    setupRenderable(
+      entity,
+      model.get(),
+      const_cast<filament::gltfio::FilamentAsset*>(
+        model->getAssetInstance()->getAsset()
+      )
+    );
 
     // // print name
     // const char* name = asset->getName(entity);
@@ -410,11 +254,6 @@ void ModelSystem::addModelToScene(
     // const auto parent = _tm->getParent(instance);
     // spdlog::debug("Parent: {}", parent.getId());
   }
-
-  // Set up collidable children
-  // for (const auto entity : collidableChildren) {
-  //   setupCollidableChild(entity, sharedPtr.get(), asset);
-  // }
 
   // Set up transform
   EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
@@ -452,6 +291,107 @@ void ModelSystem::addModelToScene(
   }
 
   model->m_isInScene = true;
+}
+
+void ModelSystem::setupRenderable(
+  const FilamentEntity entity,
+  const Model* model,
+  filament::gltfio::FilamentAsset* asset
+) {
+  const char* name = asset->getName(entity);
+  if(name == nullptr) {
+    name = "(null)";
+  }
+  const char* extras = asset->getExtras(entity);
+
+  if(!!extras) spdlog::debug("  Submesh ({}){} has extras: {}", entity.getId(), name, extras);
+
+  const auto ri = _rcm->getInstance(entity);
+  if(!ri.isValid()) {
+    spdlog::warn("[{}] Skipping fentity {} of model({}), has no renderable",
+      __FUNCTION__, entity.getId(), model->GetGuid());
+    return;
+  }
+
+  const auto commonRenderable = model->GetCommonRenderable();
+  _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
+  _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
+  _rcm->setScreenSpaceContactShadows(ri, false);
+
+  // Create a RenderableEntityObject child
+  AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
+  const auto child = std::make_shared<RenderableEntityObject>();
+  child->_fEntity = entity;
+  child->name_ = asset->getName(entity);
+  spdlog::debug("  Creating child entity '{}'({}) of '{}'({})",
+                child->GetName(), child->GetGuid(),
+                model->GetName(), model->GetGuid());
+
+  // Set up Transform component
+  auto transform = BaseTransform(
+    aabb.center,
+    aabb.halfExtent * 2,
+    kQuatfIdentity
+  );
+  transform._fInstance = _tm->getInstance(entity);
+  child->addComponent(transform);
+  // Set up Renderable component  
+  auto renderable = CommonRenderable();
+  renderable._fInstance = ri;
+  child->addComponent(renderable);
+
+  // (optional) Set up Collidable component
+  // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
+  // If extras present and have "fs_touchEvent" property, parse and setup a Collidable component
+  if(!!extras) try {
+    // Parse using RapidJSON
+    spdlog::debug("  Has extras! Parsing '{}'", extras);
+    rapidjson::Document doc;
+    doc.Parse(extras);
+    if(doc.HasParseError()) {
+      spdlog::error(rapidjson::GetParseError_En(doc.GetParseError()));
+      throw std::runtime_error(
+          "[ModelSystem::setupCollidableChild] Failed to parse extras JSON");
+    }
+
+    // Get the touchEvent property
+    constexpr char kTouchEventProp[] = "fs_touchEvent";
+    if(doc.HasMember(kTouchEventProp)) {
+      const auto& touchEvent = doc[kTouchEventProp];
+      // type: string (event name)
+      const auto& eventName = touchEvent.GetString();
+      spdlog::debug("  Has '{}'! Value: {}", kTouchEventProp, eventName);
+
+      // check if is a perfect cube (with epsilon = 0.01)
+      // constexpr float epsilon = 0.01f;
+      // const AABB aabb = renderable.getAABB();
+      // const float sizeX = aabb.halfExtent.x * 2;
+      // const float sizeY = aabb.halfExtent.y * 2;
+      // const float sizeZ = aabb.halfExtent.z * 2;
+      // const bool isCube = std::abs(sizeX - sizeY) < epsilon &&
+      //                     std::abs(sizeY - sizeZ) < epsilon;
+      // spdlog::debug("isCube: {}", isCube);
+
+      // attach collidable
+      auto collidable = Collidable();
+      collidable.SetIsStatic(false);
+      collidable.eventName = eventName;
+      // NOTE: extents automatically set from AABB by CollisionSystem
+      // collidable.SetShapeType(isCube ? ShapeType::Cube :
+      //                                   ShapeType::Sphere);
+      child->addComponent(collidable);
+
+      spdlog::debug("  Model child collidable setup complete");
+    }
+
+  } catch (const std::exception& e) {
+    spdlog::error(
+      "[{}] Failed to setup collidable child({}) with JSON: {}\nReason: {}",
+      __FUNCTION__, entity.getId(), extras, e.what()
+    );
+  }
+  
+  ecs->addEntity(child);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -657,7 +597,7 @@ void ModelSystem::loadModelFromFile(
         // release source data
         if(model->getInstancingMode() == ModelInstancingMode::none) {
           spdlog::debug("[loadModelFromFile] Non-secondary loaded: releasing source data");
-          asset->releaseSourceData(); // TODO: do we also call this for primaries after instancing?
+          // asset->releaseSourceData(); // TODO: do we also call this for primaries after instancing?
         }
 
         assetInstance = asset->getInstance();

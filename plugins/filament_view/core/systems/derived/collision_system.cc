@@ -116,7 +116,7 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
       // If there is an intersection, create a HitResult
       HitResult hitResult;
       hitResult.guid_ = guid;
-      hitResult.name_ = entity->GetName();
+      hitResult.name_ = collidable->eventName;
       hitResult.hitPosition_ = hitLocation;  // Set the hit location
 
       SPDLOG_INFO("HIT RESULT: {}", hitResult.guid_);
@@ -231,11 +231,11 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
         // Get AABB if it's a RenderableEntityObject
         if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(entity)) {
           aabb = renderableEntity->getAABB();
-          spdlog::debug("Adding AABB to collidable entity({})", entity->GetGuid());
-          spdlog::debug("AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z);
-          spdlog::debug("AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
+          spdlog::debug("  Adding AABB to collidable entity({})", entity->GetGuid());
+          spdlog::debug("  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z);
+          spdlog::debug("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
         } else {
-          spdlog::error("Collidable does not have an AABB");
+          spdlog::error("  Collidable does not have an AABB");
           continue;
         }
       }

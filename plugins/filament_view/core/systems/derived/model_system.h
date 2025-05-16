@@ -69,19 +69,6 @@ class ModelSystem : public ECSystem {
 
   void createModelInstance(Model* model);
 
-  /// Returns whether has extras
-  bool setupRenderable(
-      const FilamentEntity entity,
-      const Model* model,
-      filament::gltfio::FilamentAsset* asset
-  );
-
-  void setupCollidableChild(
-    const FilamentEntity entity,
-    const Model* model,
-    filament::gltfio::FilamentAsset* asset
-  );
-
   void queueModelLoad(
     std::shared_ptr<Model> oOurModel
   );
@@ -119,6 +106,12 @@ class ModelSystem : public ECSystem {
   /// Creates renderables and adds them to the scene
   /// Expects the model to have been loaded first
   void addModelToScene(EntityGUID modelGuid);
+
+  void setupRenderable(
+    const FilamentEntity entity,
+    const Model* model,
+    filament::gltfio::FilamentAsset* asset
+  );
 
   /// Asynchronously loads a model from a file and returns a future
   /// that will be set when the model is loaded

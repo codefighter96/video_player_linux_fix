@@ -45,29 +45,20 @@ class Collidable : public Component {
   // You can turn collision objects on / off during runtime without removing /
   // re-adding from the scene.
   bool enabled = true;
+  /// @brief The name of the event to be triggered on collision.
+  /// This is used to identify the event in the event system.
+  /// The default value is "click".
+  std::string eventName = "click";
  public:
-  Collidable()
-      : Component(std::string(__FUNCTION__)),
-        m_bIsStatic(false),
-        m_f3StaticPosition({0.0f, 0.0f, 0.0f}),
-        m_nCollisionLayer(0),
-        m_nCollisionMask(0xFFFFFFFF),
-        m_bShouldMatchAttachedObject(false),
-        m_eShapeType(),
-        _extentSize({1, 1, 1}) {}
+  Collidable() :
+    Component(std::string(__FUNCTION__)) {}
 
   // TODO: make this a more complete constructor
   Collidable(
     const ShapeType& shapeType
   ) :
     Component(std::string(__FUNCTION__)),
-    m_bIsStatic(false),
-    m_f3StaticPosition({0.0f, 0.0f, 0.0f}),
-    m_nCollisionLayer(0),
-    m_nCollisionMask(0xFFFFFFFF),
-    m_bShouldMatchAttachedObject(true),
-    m_eShapeType(shapeType),
-    _extentSize({1, 1, 1}) {}
+    m_eShapeType(shapeType) {}
 
   explicit Collidable(const flutter::EncodableMap& params);
 
@@ -114,7 +105,7 @@ class Collidable : public Component {
   bool m_bIsStatic = false;
   // if this isStatic, then we need to copy this on creation
   // from basetransform property
-  filament::math::float3 m_f3StaticPosition;
+  filament::math::float3 m_f3StaticPosition = {0, 0, 0};
 
   // Layer for collision filtering
   // Not actively used in first iteration, but should be in future.
@@ -126,12 +117,12 @@ class Collidable : public Component {
   // Native. else it will use shapeType_ and extents;
   //
   // At the time of implementation, models must do their own shapeType_ usage.
-  bool m_bShouldMatchAttachedObject = false;
+  bool m_bShouldMatchAttachedObject = true;
 
-  // if this !shouldMatchAttachedObject, then we need to deserialize these two
-  // vars
-  ShapeType m_eShapeType;
-  filament::math::float3 _extentSize;
+  /// Collider shape type (supported values: Cube)
+  /// TODO: add support for other shapes
+  ShapeType m_eShapeType = ShapeType::Cube; // default
+  filament::math::float3 _extentSize = {1, 1, 1};  // default
 
   /*
    *  Setup stuff

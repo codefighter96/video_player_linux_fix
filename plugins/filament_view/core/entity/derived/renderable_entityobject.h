@@ -25,6 +25,9 @@
 
 namespace plugin_filament_view {
 
+class MaterialSystem;
+class ModelSystem;
+
 /// TODO: remove this and refactor specific methods into the Renderable component (CoI, come on)
 
 // Renderable Entity Objects are intended to have material settings on them
@@ -35,8 +38,9 @@ namespace plugin_filament_view {
 // collision
 class RenderableEntityObject : public EntityObject {
   friend class MaterialSystem;
+  friend class ModelSystem;
 
- protected:
+ public:
   RenderableEntityObject() : EntityObject() {}
   explicit RenderableEntityObject(const flutter::EncodableMap& params)
       : EntityObject(params) {}
@@ -52,8 +56,7 @@ class RenderableEntityObject : public EntityObject {
   
 
 
-  virtual void DebugPrint() const override = 0;
-
+  virtual void DebugPrint() const override {};
 
   void onInitialize() override;
 
@@ -70,10 +73,10 @@ class RenderableEntityObject : public EntityObject {
   // This is a heavy lift function as it will recreate / load a material
   // if it doesn't exist and reset everything from scratch.
   virtual void vChangeMaterialDefinitions(const flutter::EncodableMap& params,
-                                          const TextureMap& loadedTextures) = 0;
+                                          const TextureMap& loadedTextures) {};
   virtual void vChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures) = 0;
+      const TextureMap& loadedTextures) {};
 
   /// material to be used for the renderable - instantiated from material definition
   /// Only after a run time request to change has been made.

@@ -134,7 +134,8 @@ bool Collidable::intersects(const Ray& ray,
   // TODO: implement static colliders
   if(m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
 
-  // Extract relevant data
+  // Get AABB coordinates
+  // NOTE: AABB is in local space, so we need to transform it to world space
   const filament::math::float3& center = (m_bIsStatic
       ? m_f3StaticPosition
       : transform->GetPosition() 
@@ -244,7 +245,7 @@ bool Collidable::intersects(const Ray& ray,
 
   // Intersection found
   if (doesIntersect) {
-    spdlog::debug("== INTERSECTION FOUND ==");
+    spdlog::debug("== INTERSECTION FOUND == ({})", GetOwner()->GetGuid());
     spdlog::debug(
       "AABB.pos: x={}, y={}, z={}",
       center.x, center.y, center.z
