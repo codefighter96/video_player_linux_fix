@@ -136,24 +136,30 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   filament::math::float3 aabb;
+  switch(type_) {
+    case ShapeType::Cube:
+    case ShapeType::Sphere:
+      aabb = {0.5f, 0.5f, 0.5f}; // NOTE: faces forward by default
+      break;
+    case ShapeType::Plane:
+      aabb = {0.5f, 0.5f, 0.005f}; // NOTE: faces sideways by default
+      break;
+    default:
+      aabb = {0, 0, 0};
+      spdlog::error("Unknown shape type: {}", static_cast<int>(type_));
+      break;
+  }
+
+
   spdlog::debug("Building shape '{}'({}) with AABB",
                 GetName(), GetGuid());
 
   const auto transform = getComponent<BaseTransform>();
 
-  // If we have a collidable, we need to set the AABB to its extent size
-  // otherwise we use transform's scale
-  if (hasComponent<Collidable>()) {
-    const auto collidable = getComponent<Collidable>();
-    aabb = collidable->GetExtentsSize();
-    spdlog::debug("Has collidable");
-  } else {
-    aabb = transform->GetScale();
-    spdlog::debug("No collidable, using transform scale");
-  }
-
-  spdlog::debug("AABB: x={}, y={}, z={}", aabb.x, aabb.y, aabb.z);
-
+  spdlog::debug(
+    "[{}] AABB.scale: x={}, y={}, z={}",
+    __FUNCTION__, aabb.x, aabb.y, aabb.z
+  );
 
   const auto renderable = getComponent<CommonRenderable>();
 
@@ -162,7 +168,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
-        .boundingBox({{}, aabb})
+        .boundingBox({{}, aabb}) // center, halfExtent
         //.material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
                   m_poIndexBuffer)
@@ -183,6 +189,8 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .castShadows(renderable->IsCastShadowsEnabled())
         .build(*engine_, _fEntity);
   }
+
+  renderable->_fInstance = engine_->getRenderableManager().getInstance(_fEntity);
 
   // Get parent entity id
   const auto parentId = transform->GetParentId();

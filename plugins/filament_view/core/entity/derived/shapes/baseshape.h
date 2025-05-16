@@ -34,27 +34,33 @@ namespace plugin_filament_view {
 
 class CollisionSystem;
 class ShapeSystem;
+class ModelSystem;
 
 namespace shapes {
 
 class BaseShape : public RenderableEntityObject {
   friend class plugin_filament_view::CollisionSystem;
   friend class plugin_filament_view::ShapeSystem;
+  friend class plugin_filament_view::ModelSystem;
 
  public:
   /// @brief Constructor for BaseShape. Generates a GUID and has an empty
   /// name.
-  BaseShape() :
-    RenderableEntityObject() {}
+  BaseShape(ShapeType type) :
+    RenderableEntityObject(),
+    type_(type) {}
   /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
-  explicit BaseShape(std::string name) :
-      RenderableEntityObject(name) {}
+  explicit BaseShape(std::string name, ShapeType type) :
+    RenderableEntityObject(name),
+    type_(type) {}
   /// @brief Constructor for BaseShape with GUID. Name is empty.
-  explicit BaseShape(EntityGUID guid) :
-      RenderableEntityObject(guid) {}
+  explicit BaseShape(EntityGUID guid, ShapeType type) :
+    RenderableEntityObject(guid),
+    type_(type) {}
   /// @brief Constructor for BaseShape with a name and GUID.
-  BaseShape(std::string name, EntityGUID guid) :
-      RenderableEntityObject(name, guid) {}
+  BaseShape(std::string name, EntityGUID guid, ShapeType type) :
+    RenderableEntityObject(name, guid),
+    type_(type) {}
 
   ~BaseShape() override;
 

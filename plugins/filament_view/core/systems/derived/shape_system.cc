@@ -133,30 +133,6 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vRemoveAndReaddShapeToCollisionSystem(
-    const EntityGUID guid,
-    const std::shared_ptr<BaseShape>& shape) {
-  const auto collisionSystem =
-      ecs->getSystem<CollisionSystem>(
-          "vRemoveAndReaddShapeToCollisionSystem");
-  if (collisionSystem == nullptr) {
-    spdlog::warn(
-        "Failed to get collision system when "
-        "vRemoveAndReaddShapeToCollisionSystem");
-    return;
-  }
-
-  // if we are marked for collidable, have one in the scene, remove and readd
-  // if this is a performance issue, we can do the transform move in the future
-  // instead.
-  if (shape->hasComponent(Component::StaticGetTypeID<Collidable>()) &&
-      collisionSystem->hasEntity(guid)) {
-    collisionSystem->vRemoveCollidable(shape.get());
-    collisionSystem->vAddCollidable(shape.get());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::addShapesToScene(
     std::vector<std::shared_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{}", __FUNCTION__);

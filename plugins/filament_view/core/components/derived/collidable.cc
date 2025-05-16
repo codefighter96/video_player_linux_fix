@@ -29,7 +29,7 @@ Collidable::Collidable(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       m_f3StaticPosition({0}),
       m_eShapeType(ShapeType::Cube),
-      _extentSize({1}) {
+      _extentSize({1, 1, 1}) {
   // Check if the key exists and if the value is an EncodableMap
   if (const auto itCollidableSpecific =
           params.find(flutter::EncodableValue(kCollidable));
@@ -123,11 +123,11 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Collidable::bDoesIntersect(const Ray& ray,
+bool Collidable::intersects(const Ray& ray,
                                 filament::math::float3& hitPosition,
                                 const std::shared_ptr<BaseTransform>& transform
                               ) const {
-  if (!GetIsEnabled()) {
+  if (!enabled) {
     return false;
   }
 
@@ -135,21 +135,23 @@ bool Collidable::bDoesIntersect(const Ray& ray,
   if(m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
 
   // Extract relevant data
-  const filament::math::float3& center = m_bIsStatic ?
-      m_f3StaticPosition : transform->GetPosition();
+  const filament::math::float3& center = (m_bIsStatic
+      ? m_f3StaticPosition
+      : transform->GetPosition() 
+    ) + _aabb.center;
   const filament::math::float3& scale = transform->GetScale();
-  const filament::math::float3& extents = _extentSize * scale;
+  const filament::math::float3 extents = (
+    m_bShouldMatchAttachedObject ? _aabb.halfExtent * 2 : _extentSize
+  ) * scale;
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
 
+  bool doesIntersect = false;
   switch (m_eShapeType) {
     case ShapeType::Sphere: {
       // Sphere-ray intersection
-      float radius =
-          extents
-              .x;  // Assuming the x component of extents represents the radius
-      filament::math::float3 oc =
-          rayOrigin - center;  // Vector from ray origin to sphere center
+      float radius = extents.x;  // Assuming the x component of extents represents the radius
+      filament::math::float3 oc = rayOrigin - center;  // Vector from ray origin to sphere center
       float a = dot(rayDirection, rayDirection);
       float b = 2.0f * dot(oc, rayDirection);
       float c = dot(oc, oc) - radius * radius;
@@ -158,7 +160,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
         if (float t = (-b - sqrt(discriminant)) / (2.0f * a); t > 0) {
           hitPosition = rayOrigin + t * rayDirection;
           SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGuid());
-          return true;  // Ray hits the sphere
+          doesIntersect = true;  // Ray hits the sphere
         }
       }
       break;
@@ -205,7 +207,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       if (tmin > 0) {
         hitPosition = rayOrigin + tmin * rayDirection;
         SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGuid());
-        return true;  // Ray hits the cube
+        doesIntersect = true;  // Ray hits the cube
       }
       break;
     }
@@ -227,7 +229,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
               fabs(localHit.x) <= extents.x * 0.5f &&
               fabs(localHit.z) <= extents.z * 0.5f) {
             SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGuid());
-            return true;  // Ray hits the quad
+            doesIntersect = true;  // Ray hits the quad
           }
         }
       }
@@ -236,7 +238,22 @@ bool Collidable::bDoesIntersect(const Ray& ray,
 
     // Additional cases like Capsule, etc., can be handled here
     default:
+      spdlog::error("Unknown shape type: {}", static_cast<int>(m_eShapeType));
       break;
+  }
+
+  // Intersection found
+  if (doesIntersect) {
+    spdlog::debug("== INTERSECTION FOUND ==");
+    spdlog::debug(
+      "AABB.pos: x={}, y={}, z={}",
+      center.x, center.y, center.z
+    );
+    spdlog::debug(
+      "AABB.size: x={}, y={}, z={}",
+      extents.x, extents.y, extents.z
+    );
+    return true;  
   }
 
   return false;  // No intersection

@@ -21,6 +21,7 @@
 #include <core/components/derived/basetransform.h>
 #include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
+#include <core/utils/bounding_volumes.h>
 
 namespace plugin_filament_view {
 
@@ -30,7 +31,20 @@ namespace plugin_filament_view {
 // from the base transform with on overrides. Expected work TBD for future
 // improvements.
 
+namespace shapes {
+class BaseShape;
+}  // namespace shapes
+
+class CollisionSystem;
+
 class Collidable : public Component {
+  friend class CollisionSystem;
+
+ public:
+
+  // You can turn collision objects on / off during runtime without removing /
+  // re-adding from the scene.
+  bool enabled = true;
  public:
   Collidable()
       : Component(std::string(__FUNCTION__)),
@@ -40,7 +54,20 @@ class Collidable : public Component {
         m_nCollisionMask(0xFFFFFFFF),
         m_bShouldMatchAttachedObject(false),
         m_eShapeType(),
-        _extentSize({0.0f, 0.0f, 0.0f}) {}
+        _extentSize({1, 1, 1}) {}
+
+  // TODO: make this a more complete constructor
+  Collidable(
+    const ShapeType& shapeType
+  ) :
+    Component(std::string(__FUNCTION__)),
+    m_bIsStatic(false),
+    m_f3StaticPosition({0.0f, 0.0f, 0.0f}),
+    m_nCollisionLayer(0),
+    m_nCollisionMask(0xFFFFFFFF),
+    m_bShouldMatchAttachedObject(true),
+    m_eShapeType(shapeType),
+    _extentSize({1, 1, 1}) {}
 
   explicit Collidable(const flutter::EncodableMap& params);
 
@@ -56,8 +83,6 @@ class Collidable : public Component {
     return _extentSize;
   }
 
-  [[nodiscard]] bool GetIsEnabled() const { return m_bIsEnabled; }
-
   // Setters
   void SetIsStatic(bool value) { m_bIsStatic = value; }
   void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
@@ -71,12 +96,10 @@ class Collidable : public Component {
     _extentSize = value;
   }
 
-  void SetEnabled(bool value) { m_bIsEnabled = value; }
-
   void DebugPrint(const std::string& tabPrefix) const override;
 
   [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
-  bool bDoesIntersect(const Ray& ray,
+  bool intersects(const Ray& ray,
                       ::filament::math::float3& hitPosition,
                       const std::shared_ptr<BaseTransform>& transform
                     ) const;
@@ -110,9 +133,13 @@ class Collidable : public Component {
   ShapeType m_eShapeType;
   filament::math::float3 _extentSize;
 
-  // You can turn collision objects on / off during runtime without removing /
-  // re-adding from the scene.
-  bool m_bIsEnabled = true;
+  /*
+   *  Setup stuff
+   */
+  /// Bounding box of the collidable
+  AABB _aabb;
+  /// Collidable's child wireframe object
+  std::shared_ptr<shapes::BaseShape> _wireframe;
 };
 
 }  // namespace plugin_filament_view

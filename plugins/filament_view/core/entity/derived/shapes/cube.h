@@ -29,16 +29,16 @@ class Cube : public BaseShape {
  public:
   /// @brief Constructor for Cube. Generates a GUID and has an empty name.
   Cube() :
-    BaseShape() {}
+    BaseShape(ShapeType::Cube) {}
   /// @brief Constructor for Cube with a name. Generates a unique GUID.
   explicit Cube(std::string name) :
-    BaseShape(name) {}
+    BaseShape(name, ShapeType::Cube) {}
   /// @brief Constructor for Cube with GUID. Name is empty.
   explicit Cube(EntityGUID guid) :
-    BaseShape(guid) {}
+    BaseShape(guid, ShapeType::Cube) {}
   /// @brief Constructor for Cube with a name and GUID.
   explicit Cube(std::string name, EntityGUID guid) :
-    BaseShape(name, guid) {}
+    BaseShape(name, guid, ShapeType::Cube) {}
   ~Cube() override = default;
 
   // Disallow copy and assign.

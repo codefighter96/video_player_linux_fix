@@ -57,9 +57,6 @@ class CollisionSystem : public ECSystem {
   void vOnInitSystem() override;
   void vShutdownSystem() override;
 
-  void vAddCollidable(EntityObject* collidable);
-  void vRemoveCollidable(EntityObject* collidable);
-
   void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
   // send in your ray, get a list of hit results back, collisionLayer not
@@ -73,19 +70,11 @@ class CollisionSystem : public ECSystem {
       std::string sourceQuery,
       CollisionEventType eType) const;
 
-  // Checks to see if we already has this guid in our mapping.
-  [[nodiscard]] bool hasEntity(
-      const EntityGUID guid) const;
-
  private:
   bool currentlyDrawingDebugCollidables = false;
 
   void vMatchCollidablesToRenderingModelsTransforms();
   void vMatchCollidablesToDebugDrawingTransforms();
-
-  std::list<EntityObject*> collidables_;
-  std::map<EntityGUID, shapes::BaseShape*>
-      collidablesDebugDrawingRepresentation_;
 };
 
 }  // namespace plugin_filament_view

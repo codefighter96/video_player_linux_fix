@@ -324,7 +324,7 @@ std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfType(
   /// TODO: this does a memcopy, nuh-uh
   auto componentMap = _components[componentTypeId];
   for (const auto& [entityGuid, component] : componentMap) {
-    componentsOfType.push_back(component);
+    componentsOfType.emplace_back(component);
   }
 
   return componentsOfType;
@@ -346,7 +346,6 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   // Check if the entity exists
   checkHasEntity(entityGuid);
   EntityObject* entity = getEntity(entityGuid).get();
-  entity->checkInitialized();
 
   // Add the component to the map
   const TypeID componentId = component->GetTypeID();

@@ -28,16 +28,16 @@ class Sphere : public BaseShape {
  public:
   // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
   Sphere() :
-    BaseShape() {}
+    BaseShape(ShapeType::Sphere) {}
   /// @brief Constructor for Sphere with a name. Generates a unique GUID.
   explicit Sphere(std::string name) :
-    BaseShape(name) {}
+    BaseShape(name, ShapeType::Sphere) {}
   /// @brief Constructor for Sphere with GUID. Name is empty.
   explicit Sphere(EntityGUID guid) :
-    BaseShape(guid) {}
+    BaseShape(guid, ShapeType::Sphere) {}
   /// @brief Constructor for Sphere with a name and GUID.
   explicit Sphere(std::string name, EntityGUID guid) :
-    BaseShape(name, guid) {}
+    BaseShape(name, guid, ShapeType::Sphere) {}
   ~Sphere() override = default;
 
   // Disallow copy and assign.

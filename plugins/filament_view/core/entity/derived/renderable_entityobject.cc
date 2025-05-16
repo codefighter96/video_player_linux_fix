@@ -98,7 +98,16 @@ AABB RenderableEntityObject::getAABB() const {
   const auto& engine = filamentSystem->getFilamentEngine();
   const auto& rcm = engine->getRenderableManager();
 
-  return rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
+  auto box = rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
+  spdlog::debug(
+    "[{}] Entity({}) has AABB.scale: x={}, y={}, z={}",
+    __FUNCTION__, guid_,
+    box.halfExtent.x * 2,
+    box.halfExtent.y * 2,
+    box.halfExtent.z * 2
+  );
+
+  return box;
 }
 
 } // namespace plugin_filament_view

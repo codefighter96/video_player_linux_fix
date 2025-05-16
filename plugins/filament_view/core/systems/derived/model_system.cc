@@ -211,9 +211,6 @@ void ModelSystem::setupCollidableChild(
       // add to collision system
       const auto collisionSystem = ecs->getSystem<CollisionSystem>("setupCollidableChild");
 
-      // TODO: should this be done here?
-      // collisionSystem->vAddCollidable(childEntity.get());
-
       spdlog::debug("Collidable added!");
     }
   }
@@ -419,7 +416,6 @@ void ModelSystem::addModelToScene(
   //   setupCollidableChild(entity, sharedPtr.get(), asset);
   // }
 
-
   // Set up transform
   EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
   auto transform = model->getComponent<BaseTransform>();
@@ -430,8 +426,8 @@ void ModelSystem::addModelToScene(
   renderable->_fInstance = _rcm->getInstance(instanceEntity);
 
   // Set up collidable
-  /// TODO: set up collidable
-
+  // NOTE: no need - CollisionSystem sets up collidables asynchronously on vUpdate
+  
   // Set up animator
   filament::gltfio::Animator* animatorInstance = nullptr;
   if (assetInstance != nullptr) {

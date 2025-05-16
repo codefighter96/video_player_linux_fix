@@ -72,11 +72,6 @@ class ShapeSystem : public ECSystem {
   smarter_raw_ptr<utils::EntityManager> _em;
   smarter_raw_ptr<filament::TransformManager> _tm;
 
-  void vRemoveAndReaddShapeToCollisionSystem(
-      const EntityGUID guid,
-      const std::shared_ptr<shapes::BaseShape>& shape);
-
-
   bool hasShape(const EntityGUID guid) const;
   shapes::BaseShape* getShape(const EntityGUID guid) const;
 

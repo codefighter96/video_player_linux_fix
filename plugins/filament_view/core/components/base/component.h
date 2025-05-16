@@ -31,7 +31,6 @@ class Component : public IdentifiableType {
   friend class EntityObject;
 
  public:
-
   [[nodiscard]] std::string GetName() { return name_; }
 
   virtual ~Component() = default;
@@ -50,11 +49,11 @@ class Component : public IdentifiableType {
   [[nodiscard]] const EntityObject* GetOwner() const { return entityOwner_; }
 
   [[nodiscard]] virtual Component* Clone() const = 0;
-
+  
  private:
   std::string name_;
-
-  EntityObject* entityOwner_;
+ public: 
+  EntityObject* entityOwner_ = nullptr;
 };
 
 }  // namespace plugin_filament_view
