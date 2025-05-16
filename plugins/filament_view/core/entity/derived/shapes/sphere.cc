@@ -78,8 +78,8 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
     const float stackAngle =
         static_cast<float>(M_PI) / 2.0f -
         static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    const float xy = cosf(stackAngle);      // r * cos(u)
-    float z = sinf(stackAngle);             // r * sin(u)
+    const float xy = cosf(stackAngle) * 0.5f;      // r * cos(u)
+    float z = sinf(stackAngle) * 0.5f;             // r * sin(u)
     float v = static_cast<float>(i) /
               static_cast<float>(stacks);  // Latitude, y-axis UV
 
