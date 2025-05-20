@@ -20,6 +20,7 @@
 #include <core/include/additionalmath.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/view_target_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/entitytransforms.h>
 #include <filament/View.h>
@@ -420,10 +421,8 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
         filament::float3{0.0f, 1.0f, 0.0f},
         primaryCamera_->current_yaw_addition_);
 
-    filament::math::mat4f pitchMatrix =
-        EntityTransforms::QuaternionToMat4f(pitchQuat);
-    filament::math::mat4f yawMatrix =
-        EntityTransforms::QuaternionToMat4f(yawQuat);
+    filament::math::mat4f pitchMatrix = filament::math::mat4f(pitchQuat);
+    filament::math::mat4f yawMatrix = filament::math::mat4f(yawQuat);
 
     modelMatrix = modelMatrix * yawMatrix * pitchMatrix;
     camera_->setModelMatrix(modelMatrix);

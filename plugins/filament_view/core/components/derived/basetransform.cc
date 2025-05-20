@@ -15,7 +15,10 @@
  */
 #include "basetransform.h"
 
+#include <filament/gltfio/math.h>
+
 #include <core/include/literals.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/utils/deserialize.h>
 #include <core/utils/entitytransforms.h>
 #include <plugins/common/common.h>
@@ -52,22 +55,13 @@ void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
                 local.position.z);
   spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x, local.scale.y,
                 local.scale.z);
-  spdlog::debug(tabPrefix + "Rot: x={}, y={}, z={} w={}", local.rotation.x,
-                local.rotation.y, local.rotation.z, local.rotation.w);
-  
-  spdlog::debug(tabPrefix + "Global transform:");
-  filament::math::float3 tmp;
+  spdlog::debug(tabPrefix + "Rot: w={} x={}, y={}, z={}", local.rotation.w,
+                local.rotation.x, local.rotation.y, local.rotation.z);
+}
 
-  tmp = EntityTransforms::oGetTranslationFromTransform(global.matrix);
-  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}", tmp.x, tmp.y, tmp.z);
-
-  // tmp = EntityTransforms::oGetScaleFromTransform(global);
-  // spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", tmp.x, tmp.y, tmp.z);
-  spdlog::debug(tabPrefix + "Scl: TODO");
-
-  // filament::math::quatf rot = EntityTransforms::oGetRotationFromTransform(global);
-  // spdlog::debug(tabPrefix + "Rot: x={}, y={}, z={} w={}", rot.x, rot.y, rot.z, rot.w);
-  spdlog::debug(tabPrefix + "Rot: TODO");
+void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
+  filament::gltfio::decomposeMatrix(localMatrix, &local.position, &local.rotation, &local.scale);
+  _isDirty = true;
 }
 
 }  // namespace plugin_filament_view

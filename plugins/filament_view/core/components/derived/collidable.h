@@ -41,7 +41,6 @@ class Collidable : public Component {
   friend class CollisionSystem;
 
  public:
-
   // You can turn collision objects on / off during runtime without removing /
   // re-adding from the scene.
   bool enabled = true;
@@ -49,6 +48,9 @@ class Collidable : public Component {
   /// This is used to identify the event in the event system.
   /// The default value is "click".
   std::string eventName = "click";
+  /// Bounding box of the collidable
+  AABB _aabb;
+  
  public:
   Collidable() :
     Component(std::string(__FUNCTION__)) {}
@@ -127,8 +129,6 @@ class Collidable : public Component {
   /*
    *  Setup stuff
    */
-  /// Bounding box of the collidable
-  AABB _aabb;
   /// Collidable's child wireframe object
   std::shared_ptr<shapes::BaseShape> _wireframe;
 };

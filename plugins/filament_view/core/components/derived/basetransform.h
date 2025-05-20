@@ -23,6 +23,7 @@
 #include <core/entity/base/entityobject.h>
 #include <core/components/base/component.h>
 #include <core/utils/filament_types.h>
+#include <core/utils/asserts.h>
 
 namespace plugin_filament_view {
 
@@ -32,9 +33,9 @@ struct TransformVectorData {
     filament::math::float3 position;
     float position_data[3];
     struct {
-      float posX;
-      float posY;
-      float posZ;
+      float posX = 0;
+      float posY = 0;
+      float posZ = 0;
     };
   };
 
@@ -42,9 +43,9 @@ struct TransformVectorData {
     filament::math::float3 scale;
     float scale_data[3];
     struct {
-      float scaleX;
-      float scaleY;
-      float scaleZ;
+      float scaleX = 1;
+      float scaleY = 1;
+      float scaleZ = 1;
     };
   };
 
@@ -52,10 +53,10 @@ struct TransformVectorData {
     filament::math::quatf rotation;
     float rotation_data[4];
     struct {
-      float rotX;
-      float rotY;
-      float rotZ;
-      float rotW;
+      float rotX = 0;
+      float rotY = 0;
+      float rotZ = 0;
+      float rotW = 1;
     };
   };
 };
@@ -75,11 +76,18 @@ static constexpr filament::math::mat4f kMat4fIdentity = filament::math::mat4f();
 
 class BaseTransform : public Component {
   private:
-    bool _isDirty = false;
+    /// @brief _isDirty is a flag that indicates if the transform has been modified.
+    /// If true, the transform will be updated by the [TransformSystem] on this frame
+    /// and the flag will be set to false.
+    /// It's set to true whenever the transform is modified.
+    bool _isDirty = true;
     EntityGUID _parentId = kNullGuid;
+    bool _isParentDirty = false;
 
   public:
     TransformVectorData local;
+    /// @brief Computed transform matrix in world space.
+    /// TODO: does this have to be stored as value? Evaluate storing pointer only
     TransformMatrixData global;
     FilamentTransformInstance _fInstance;
 
@@ -93,6 +101,11 @@ class BaseTransform : public Component {
                            const filament::math::quatf& rotation)
           : Component(std::string(__FUNCTION__)),
             local({{position}, {scale}, {rotation}}),
+            global({kMat4fIdentity}) {}
+
+    explicit BaseTransform(const TransformVectorData& localTransform)
+          : Component(std::string(__FUNCTION__)),
+            local(localTransform),
             global({kMat4fIdentity}) {}
 
     // explicit BaseTransform(const filament::math::float3& position,
@@ -135,6 +148,14 @@ class BaseTransform : public Component {
     }
 
     inline void SetScale(const filament::math::float3& scale) {
+      // assert positive scale
+      /// TODO: if interested in supporting e.g. negative scalings and shear 
+      ///       should look at Graphics Gems II §VII.1.
+      runtime_assert(
+        scale.x > 0 && scale.y > 0 && scale.z > 0,
+        "Scale must be positive"
+      );
+
       local.scale = scale;
       _isDirty = true;
     }
@@ -163,6 +184,24 @@ class BaseTransform : public Component {
       _isDirty = true;
     }
 
+    inline void SetTransform(
+      const filament::math::float3& position,
+      const filament::math::float3& scale,
+      const filament::math::quatf& rotation
+    ) {
+      local.position = position;
+      local.scale = scale;
+      local.rotation = rotation;
+      _isDirty = true;
+    }
+
+    void SetTransform(const filament::math::mat4f& localMatrix);
+
+    inline void SetParent(EntityGUID parentId) {
+      _parentId = parentId;
+      _isDirty = true;
+    }
+
     inline void SetDirty(bool dirty) {
       _isDirty = dirty;
     }
@@ -177,6 +216,7 @@ class BaseTransform : public Component {
       return _isDirty;
     }
 
+    /// @returns The transform matrix in world space.    
     [[nodiscard]] inline const filament::math::mat4f& GetGlobalMatrix() const {
       return global.matrix;
     }

@@ -190,6 +190,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
         .build(*engine_, _fEntity);
   }
 
+  transform->_fInstance = engine_->getTransformManager().getInstance(_fEntity);
   renderable->_fInstance = engine_->getRenderableManager().getInstance(_fEntity);
 
   // Get parent entity id

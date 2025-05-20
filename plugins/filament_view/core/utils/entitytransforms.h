@@ -32,11 +32,6 @@ class Model;
 
 class EntityTransforms {
  public:
-  // Utility functions for quaternion to matrix conversion
-  static filament::math::mat3f QuaternionToMat3f(
-      const filament::math::quatf& rotation);
-  static filament::math::mat4f QuaternionToMat4f(
-      const filament::math::quatf& rotation);
 
   // Utility functions to create identity matrices
   static filament::math::mat3f identity3x3();
@@ -103,12 +98,11 @@ class EntityTransforms {
                            const filament::math::float3& target,
                            const filament::math::float3& up,
                            ::filament::Engine* engine);
-
-  static filament::math::float3 oGetTranslationFromTransform(
+  static filament::math::float3 transformPositionVector(
+    const filament::math::float3& vector,
     const filament::math::mat4f& transform);
-  static filament::math::quatf oGetRotationFromTransform(
-    const filament::math::mat4f& transform);
-  static filament::math::float3 oGetScaleFromTransform(
+  static filament::math::float3 transformScaleVector(
+    const filament::math::float3& vector,
     const filament::math::mat4f& transform);
 };
 

@@ -16,9 +16,12 @@
 
 #include "transform_system.h"
 
+#include <spdlog/spdlog.h>
+#include <filament/gltfio/math.h>
+
 #include <core/systems/ecs.h>
 #include <core/systems/derived/filament_system.h>
-#include <spdlog/spdlog.h>
+#include <core/utils/asserts.h>
 
 
 namespace plugin_filament_view {
@@ -56,12 +59,14 @@ void TransformSystem::DebugPrint() {
 
 void TransformSystem::updateTransforms() {
   // Update transforms
-  // spdlog::debug("TransformSystem updating transforms");
+  const auto transforms = ecs->getComponentsOfType<BaseTransform>();
+  for (const auto& transform : transforms) {
+    applyTransform(*(transform.get()), false);
+  }
 }
 
 void TransformSystem::updateFilamentParentTree() {
   // Update Filament parent tree
-  // spdlog::debug("TransformSystem updating Filament parent tree");
 }
 
 //
@@ -73,35 +78,40 @@ void TransformSystem::applyTransform(
   const bool forceRecalculate
 ) {
   // Get the entity and its transform
-  const auto entity = ecs->getEntity(entityId);
-  if (entity == nullptr) {
+  const auto transform = ecs->getComponent<BaseTransform>(entityId);
+  if (transform == nullptr) {
     throw std::runtime_error("Entity not found");
   }
 
-  applyTransform(*(entity.get()), forceRecalculate);
+  applyTransform(*(transform.get()), forceRecalculate);
 }
 
 void TransformSystem::applyTransform(
-  const EntityObject& entity,
+  BaseTransform& transform,
   const bool forceRecalculate
 ) {
-  const std::shared_ptr<BaseTransform> transform = entity.getComponent<BaseTransform>();
-  runtime_assert(
-    transform != nullptr,
-    fmt::format("[{}] Entity({}) has no transform component", __FUNCTION__, entity.GetGuid())
-  );
-
   // Recalculate the transform only if it's dirty or forced
-  if(!forceRecalculate || !transform->IsDirty()) {
+  if(!forceRecalculate && !transform.IsDirty()) {
     return;
   }
 
-  const filament::math::mat4f localMatrix = calculateTransform(*transform);
+  const EntityGUID entityId = transform.GetOwner()->GetGuid();
+  filament::math::mat4f localMatrix = filament::gltfio::composeMatrix(
+    transform.local.position,
+    transform.local.rotation,
+    transform.local.scale
+  );
 
-  const auto _fInstance = tm->getInstance(entity._fEntity);
+  const auto _fInstance = transform._fInstance;
+  runtime_assert(_fInstance.isValid(), fmt::format(
+    "[{}] Transform({}) instance({}) is not valid",
+    __FUNCTION__, entityId, _fInstance.asValue()
+  ));
+
+  // Set the transform
   tm->setTransform(_fInstance, localMatrix);
-
-  transform->SetDirty(false);
+  transform.global.matrix = tm->getWorldTransform(_fInstance);
+  transform.SetDirty(false); // reset
 }
 
 void TransformSystem::reparentEntity(

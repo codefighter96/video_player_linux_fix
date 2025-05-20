@@ -232,33 +232,13 @@ void ModelSystem::addModelToScene(
         model->getAssetInstance()->getAsset()
       )
     );
-
-    // // print name
-    // const char* name = asset->getName(entity);
-    // if(name == nullptr) {
-    //   name = "(null)";
-    // }
-    // spdlog::debug("Entity ({}){}", entity.getId(), name);
-
-    // // print position, scale, rotation
-    // const auto instance = _tm->getInstance(entity);
-    // const auto transform = _tm->getWorldTransform(instance);
-    // const auto position = EntityTransforms::oGetTranslationFromTransform(transform);
-    // const auto scale = EntityTransforms::oGetScaleFromTransform(transform);
-    // // const auto rotation = EntityTransforms::oGetRotationFromTransform(transform);
-    // spdlog::debug("Position: ({}, {}, {})", position.x, position.y, position.z);
-    // spdlog::debug("Scale: ({}, {}, {})", scale.x, scale.y, scale.z);
-    // // spdlog::debug("Rotation: ({}, {}, {}, {})", rotation.x, rotation.y, rotation.z, rotation.w);
-
-    // // print parent id
-    // const auto parent = _tm->getParent(instance);
-    // spdlog::debug("Parent: {}", parent.getId());
   }
 
   // Set up transform
   EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
   auto transform = model->getComponent<BaseTransform>();
   transform->_fInstance = _tm->getInstance(instanceEntity);
+  transform->SetDirty(true);
 
   // Set up renderable
   auto renderable = model->getComponent<CommonRenderable>();
@@ -302,14 +282,43 @@ void ModelSystem::setupRenderable(
   if(name == nullptr) {
     name = "(null)";
   }
-  const char* extras = asset->getExtras(entity);
 
-  if(!!extras) spdlog::debug("  Submesh ({}){} has extras: {}", entity.getId(), name, extras);
+
+  // Create a RenderableEntityObject child
+  const auto child = std::make_shared<RenderableEntityObject>();
+  child->_fEntity = entity;
+  child->name_ = asset->getName(entity);
+  spdlog::debug("  Creating child entity '{}'({})->[{}] of '{}'({})",
+                child->GetName(), child->GetGuid(), entity.getId(),
+                model->GetName(), model->GetGuid());
+
+  /*
+   * Transform
+   */
+  /// NOTE: we set up transform first, even if it might not have a renderable
+  ///       because it's still valid for parenting reasons.
+  const auto ti = _tm->getInstance(entity);
+  if(!ti.isValid()) {
+    spdlog::warn("[{}] Skipping fentity {} of model({}), has no transform",
+      __FUNCTION__, entity.getId(), model->GetGuid());
+    return;
+  }
+
+  // Set up Transform component
+  auto transform = BaseTransform();
+  transform._fInstance = ti;
+  transform.SetTransform(_tm->getTransform(ti));
+  transform.DebugPrint("  ");
+  auto parent = _tm->getParent(ti);
+  spdlog::debug("  Parent entity: [{}]", parent.getId());
+  child->addComponent(transform);
 
   const auto ri = _rcm->getInstance(entity);
   if(!ri.isValid()) {
     spdlog::warn("[{}] Skipping fentity {} of model({}), has no renderable",
       __FUNCTION__, entity.getId(), model->GetGuid());
+
+    ecs->addEntity(child);
     return;
   }
 
@@ -318,23 +327,6 @@ void ModelSystem::setupRenderable(
   _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
   _rcm->setScreenSpaceContactShadows(ri, false);
 
-  // Create a RenderableEntityObject child
-  AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
-  const auto child = std::make_shared<RenderableEntityObject>();
-  child->_fEntity = entity;
-  child->name_ = asset->getName(entity);
-  spdlog::debug("  Creating child entity '{}'({}) of '{}'({})",
-                child->GetName(), child->GetGuid(),
-                model->GetName(), model->GetGuid());
-
-  // Set up Transform component
-  auto transform = BaseTransform(
-    aabb.center,
-    aabb.halfExtent * 2,
-    kQuatfIdentity
-  );
-  transform._fInstance = _tm->getInstance(entity);
-  child->addComponent(transform);
   // Set up Renderable component  
   auto renderable = CommonRenderable();
   renderable._fInstance = ri;
@@ -343,7 +335,10 @@ void ModelSystem::setupRenderable(
   // (optional) Set up Collidable component
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
   // If extras present and have "fs_touchEvent" property, parse and setup a Collidable component
-  if(!!extras) try {
+  if(
+    const char* extras = asset->getExtras(entity);
+    !!extras
+  ) try {
     // Parse using RapidJSON
     spdlog::debug("  Has extras! Parsing '{}'", extras);
     rapidjson::Document doc;
@@ -372,10 +367,13 @@ void ModelSystem::setupRenderable(
       //                     std::abs(sizeY - sizeZ) < epsilon;
       // spdlog::debug("isCube: {}", isCube);
 
+      AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
+
       // attach collidable
       auto collidable = Collidable();
       collidable.SetIsStatic(false);
       collidable.eventName = eventName;
+      // collidable._aabb = aabb;
       // NOTE: extents automatically set from AABB by CollisionSystem
       // collidable.SetShapeType(isCube ? ShapeType::Cube :
       //                                   ShapeType::Sphere);

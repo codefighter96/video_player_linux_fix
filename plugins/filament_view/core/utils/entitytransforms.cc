@@ -15,11 +15,15 @@
  */
 #include "entitytransforms.h"
 
-#include <core/entity/derived/model/model.h>
-#include <core/systems/derived/filament_system.h>
-#include <core/systems/ecs.h>
+
 #include <filament/TransformManager.h>
 #include <filament/math/TMatHelpers.h>
+#include <filament/gltfio/math.h>
+
+#include <core/entity/derived/model/model.h>
+#include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/transform_system.h>
+#include <core/systems/ecs.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -55,45 +59,6 @@ filament::math::mat4f EntityTransforms::oApplyShear(
 
   // Multiply the original matrix by the shear matrix
   return matrix * shearMatrix;
-}
-
-////////////////////////////////////////////////////////////////////////////
-filament::math::mat3f EntityTransforms::QuaternionToMat3f(
-    const filament::math::quatf& rotation) {
-  // Extract quaternion components
-  const float x = rotation.x;
-  const float y = rotation.y;
-  const float z = rotation.z;
-  const float w = rotation.w;
-
-  // Calculate coefficients
-  const float xx = x * x;
-  const float yy = y * y;
-  const float zz = z * z;
-  const float xy = x * y;
-  const float xz = x * z;
-  const float yz = y * z;
-  const float wx = w * x;
-  const float wy = w * y;
-  const float wz = w * z;
-
-  // Create the 3x3 rotation matrix
-  return {filament::math::float3(1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz),
-                                 2.0f * (xz - wy)),
-          filament::math::float3(2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz),
-                                 2.0f * (yz + wx)),
-          filament::math::float3(2.0f * (xz + wy), 2.0f * (yz - wx),
-                                 1.0f - 2.0f * (xx + yy))};
-}
-
-////////////////////////////////////////////////////////////////////////////
-filament::math::mat4f EntityTransforms::QuaternionToMat4f(
-    const filament::math::quatf& rotation) {
-  // Use the QuaternionToMat3f function to get the 3x3 matrix
-  const filament::math::mat3f rotationMatrix = QuaternionToMat3f(rotation);
-
-  // Embed the 3x3 rotation matrix into a 4x4 matrix
-  return filament::math::mat4f(rotationMatrix);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -208,7 +173,7 @@ void EntityTransforms::vApplyRotation(const FilamentEntity& poEntity,
   const auto currentTransform = transformManager.getTransform(instance);
 
   // Convert the quaternion to a 4x4 rotation matrix
-  const filament::math::mat4f rotationMat4 = QuaternionToMat4f(rotation);
+  const filament::math::mat4f rotationMat4 = filament::math::mat4f(rotation);
 
   // Combine the current transform with the rotation matrix
   const auto combinedTransform = currentTransform * rotationMat4;
@@ -272,15 +237,11 @@ void EntityTransforms::vApplyTransform(
   if (!poEntity)
     return;
 
-  // Create the rotation, scaling, and translation matrices
-  const auto rotationMatrix = QuaternionToMat4f(rotation);
-  const auto scalingMatrix = filament::math::mat4f::scaling(scale);
-  const auto translationMatrix =
-      filament::math::mat4f::translation(translation);
-
-  // Combine the transformations: translate * rotate * scale
-  const auto combinedTransform =
-      translationMatrix * rotationMatrix * scalingMatrix;
+  const auto combinedTransform = filament::gltfio::composeMatrix(
+    translation,
+    rotation,
+    scale
+  );
 
   
   // Set the combined transform back to the entity
@@ -307,9 +268,6 @@ void EntityTransforms::vApplyTransform(const FilamentEntity& poEntity,
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(poEntity);
-
-  // Set the provided transform matrix directly to the entity
-  transformManager.setTransform(instance, transform);
 
   // If a parent ID is provided, set the parent transform
   if (parent != nullptr) {
@@ -352,6 +310,11 @@ void EntityTransforms::vApplyTransform(const FilamentEntity& poEntity,
       spdlog::error("[{}] Unknown error setting parent", __FUNCTION__);
     }
   }
+
+
+
+  // Set the provided transform matrix directly to the entity
+  transformManager.setTransform(instance, transform);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -427,42 +390,37 @@ void EntityTransforms::vApplyLookAt(const FilamentEntity& poEntity,
   transformManager.setTransform(instance, lookAtMatrix);
 }
 
-////////////////////////////////////////////////////////////////////////////
-filament::math::float3 EntityTransforms::oGetTranslationFromTransform(
+
+filament::math::float3 EntityTransforms::transformPositionVector(
+    const filament::math::float3& position,
     const filament::math::mat4f& transform) {
-  // The last column is the translation vector.
-  return transform[3].xyz;
+  // Apply the transformation matrix to the position vector
+  return filament::math::float3(
+      transform[0].x * position.x + transform[1].x * position.y +
+          transform[2].x * position.z + transform[3].x,
+      transform[0].y * position.x + transform[1].y * position.y +
+          transform[2].y * position.z + transform[3].y,
+      transform[0].z * position.x + transform[1].z * position.y +
+          transform[2].z * position.z + transform[3].z);
 }
 
-float lengthhh(const filament::math::float3& v) {
-  // Vector3 length is calculated as the square root of the sum of squares of its components.
-  return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
+filament::math::float3 EntityTransforms::transformScaleVector(
+  const filament::math::float3& scale,
+  const filament::math::mat4f& transform
+) {
+  // Extract the scaling factors from the transformation matrix
+  filament::math::float3 scaleFactors = {
+    length(transform[0].xyz),
+    length(transform[1].xyz),
+    length(transform[2].xyz),
+  };
 
-////////////////////////////////////////////////////////////////////////////
-filament::math::float3 EntityTransforms::oGetScaleFromTransform(
-    const filament::math::mat4f& transform) {
-  // Extract the scale from the transformation matrix:
-  // The scale is the length of the basis vectors
-  // (the first three columns of the matrix).
-  const filament::math::float3 scale = {
-      lengthhh(transform[0].xyz),
-      lengthhh(transform[1].xyz),
-      lengthhh(transform[2].xyz)};
-
-  // Normalize the scale vector
-  const float length = lengthhh(scale);
-  if (length > 0.0f) {
-    return scale;
-  } else {
-    return filament::math::float3(1.0f, 1.0f, 1.0f);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////
-filament::math::quatf EntityTransforms::oGetRotationFromTransform(
-    const filament::math::mat4f& transform) {
-  throw std::runtime_error("Not implemented");
+  // Apply the scaling factors to the scale vector
+  return filament::math::float3(
+      scale.x * scaleFactors.x,
+      scale.y * scaleFactors.y,
+      scale.z * scaleFactors.z
+  );
 }
 
 }  // namespace plugin_filament_view

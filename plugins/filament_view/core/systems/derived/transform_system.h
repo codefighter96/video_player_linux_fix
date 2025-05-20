@@ -16,10 +16,13 @@
 
 #pragma once
 
+#include <filament/TransformManager.h>
+#include <filament/math/TMatHelpers.h>
+
 #include <core/systems/base/ecsystem.h>
 #include <core/components/derived/basetransform.h>
 #include <core/utils/entitytransforms.h>
-#include <filament/TransformManager.h>
+#include <core/utils/filament_types.h>
 
 
 namespace plugin_filament_view {
@@ -70,14 +73,14 @@ class TransformSystem : public ECSystem {
       * to the Filament engine. This includes updating the local transforms
       * and updating the global ones wherever needed.
       */
-    inline void updateTransforms();
+    void updateTransforms();
     /**
       * Performs reparenting of the Filament parent tree.
       *
       * Iterates on all transforms, updating the Filament parent tree
       * in event of hierarchy changes.
       */
-    inline void updateFilamentParentTree();
+    void updateFilamentParentTree();
 
     /**
       * TODO: implement this
@@ -86,12 +89,9 @@ class TransformSystem : public ECSystem {
       * For each transform marked as "animating", it performs a lerp step
       * towards the target transform.
       */
-    // inline void interpolateTransforms(float deltaTime);
+    // void interpolateTransforms(float deltaTime);
 
   public:
-    //
-    // Utility functions
-    //
     
     /// Applies the transform to the entity with the given ID.
     ///
@@ -104,7 +104,7 @@ class TransformSystem : public ECSystem {
     );
 
     void applyTransform(
-      const EntityObject& entity,
+      BaseTransform& transform,
       const bool forceRecalculate = false
     );
 
@@ -112,23 +112,6 @@ class TransformSystem : public ECSystem {
       const EntityObject& entity,
       const EntityObject& parent
     );
-
-    //    (global)
-    static inline filament::math::mat4f calculateTransform(
-      const BaseTransform& transform
-    ) {
-      return calculateTransform(
-        transform.GetPosition(),
-        transform.GetRotation(),
-        transform.GetScale()
-      );
-    }
-    static inline filament::math::mat4f calculateTransform(
-      const filament::math::float3& position,
-      const filament::math::quatf& rotation,
-      const filament::math::float3& scale
-    );
-    
 };
 
 }

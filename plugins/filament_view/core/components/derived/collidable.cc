@@ -18,6 +18,7 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/utils/deserialize.h>
+#include <core/utils/entitytransforms.h>
 #include <plugins/common/common.h>
 #include <algorithm>
 #include <list>
@@ -134,18 +135,25 @@ bool Collidable::intersects(const Ray& ray,
   // TODO: implement static colliders
   if(m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
 
-  // Get AABB coordinates
-  // NOTE: AABB is in local space, so we need to transform it to world space
-  const filament::math::float3& center = (m_bIsStatic
-      ? m_f3StaticPosition
-      : transform->GetPosition() 
-    ) + _aabb.center;
-  const filament::math::float3& scale = transform->GetScale();
-  const filament::math::float3 extents = (
-    m_bShouldMatchAttachedObject ? _aabb.halfExtent * 2 : _extentSize
-  ) * scale;
+  // Get AABB coordinates (local space!)
+  filament::math::float3 center = (
+    m_bIsStatic
+    ? m_f3StaticPosition
+    : _aabb.center 
+  );
+  filament::math::float3 extents = (
+    m_bShouldMatchAttachedObject
+    ? _aabb.halfExtent * 2
+    : _extentSize
+  ); 
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
+
+  // Transform AABB to global space
+  // TODO: skip if transform has no parent (local = global)
+  filament::math::mat4f globalMatrix = transform->GetGlobalMatrix();
+  center = EntityTransforms::transformPositionVector(center, globalMatrix);
+  extents = EntityTransforms::transformScaleVector(extents, globalMatrix);
 
   bool doesIntersect = false;
   switch (m_eShapeType) {
@@ -247,11 +255,11 @@ bool Collidable::intersects(const Ray& ray,
   if (doesIntersect) {
     spdlog::debug("== INTERSECTION FOUND == ({})", GetOwner()->GetGuid());
     spdlog::debug(
-      "AABB.pos: x={}, y={}, z={}",
+      "AABB.pos: x={}, y={}, z={} (global)",
       center.x, center.y, center.z
     );
     spdlog::debug(
-      "AABB.size: x={}, y={}, z={}",
+      "AABB.size: x={}, y={}, z={} (global)",
       extents.x, extents.y, extents.z
     );
     return true;  

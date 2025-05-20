@@ -33,22 +33,21 @@ class Component : public IdentifiableType {
  public:
   [[nodiscard]] std::string GetName() { return name_; }
 
-  virtual ~Component() = default;
+  [[nodiscard]] const EntityObject* GetOwner() const { return entityOwner_; }
 
- protected:
-  explicit Component(std::string name)
-      : name_(std::move(name)), entityOwner_(nullptr) {}
-
-  
   [[nodiscard]] virtual const std::type_info& GetType() const {
     return typeid(*this);
   }
 
   virtual void DebugPrint(const std::string& tabPrefix) const = 0;
 
-  [[nodiscard]] const EntityObject* GetOwner() const { return entityOwner_; }
-
   [[nodiscard]] virtual Component* Clone() const = 0;
+
+  virtual ~Component() = default;
+
+ protected:
+  explicit Component(std::string name)
+      : name_(std::move(name)), entityOwner_(nullptr) {}
   
  private:
   std::string name_;
