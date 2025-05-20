@@ -18,7 +18,7 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/utils/deserialize.h>
-#include <core/utils/entitytransforms.h>
+#include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 #include <algorithm>
 #include <list>
@@ -152,8 +152,8 @@ bool Collidable::intersects(const Ray& ray,
   // Transform AABB to global space
   // TODO: skip if transform has no parent (local = global)
   filament::math::mat4f globalMatrix = transform->GetGlobalMatrix();
-  center = EntityTransforms::transformPositionVector(center, globalMatrix);
-  extents = EntityTransforms::transformScaleVector(extents, globalMatrix);
+  center = VectorUtils::transformPositionVector(center, globalMatrix);
+  extents = VectorUtils::transformScaleVector(extents, globalMatrix);
 
   bool doesIntersect = false;
   switch (m_eShapeType) {

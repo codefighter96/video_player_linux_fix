@@ -24,7 +24,6 @@
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/ecs.h>
-#include <core/utils/entitytransforms.h>
 #include <plugins/common/common.h>
 
 #include "collision_system.h"

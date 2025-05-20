@@ -15,12 +15,10 @@
  */
 #include "basetransform.h"
 
-#include <filament/gltfio/math.h>
-
 #include <core/include/literals.h>
 #include <core/systems/derived/transform_system.h>
 #include <core/utils/deserialize.h>
-#include <core/utils/entitytransforms.h>
+#include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {

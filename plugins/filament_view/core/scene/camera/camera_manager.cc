@@ -22,7 +22,6 @@
 #include <core/systems/derived/view_target_system.h>
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
-#include <core/utils/entitytransforms.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
 #include <filament/math/TMatHelpers.h>

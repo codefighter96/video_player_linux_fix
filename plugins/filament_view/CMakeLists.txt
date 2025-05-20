@@ -101,7 +101,7 @@ add_library(plugin_filament_view STATIC
         core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
         core/systems/derived/indirect_light_system.cc
-        core/utils/entitytransforms.cc
+        core/utils/vectorutils.cc
         core/utils/hdr_loader.cc
         core/systems/derived/light_system.cc
         core/scene/material/loader/material_loader.cc

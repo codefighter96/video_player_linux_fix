@@ -21,7 +21,6 @@
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
-#include <core/utils/entitytransforms.h>
 #include <filament/RenderableManager.h>
 #include <filament/Scene.h>
 #include <math/norm.h>

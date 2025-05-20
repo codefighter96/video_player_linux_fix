@@ -17,11 +17,11 @@
 #include "transform_system.h"
 
 #include <spdlog/spdlog.h>
-#include <filament/gltfio/math.h>
 
 #include <core/systems/ecs.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/utils/asserts.h>
+#include <core/utils/vectorutils.h>
 
 
 namespace plugin_filament_view {

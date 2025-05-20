@@ -23,7 +23,6 @@
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/transform_system.h>
-#include <core/utils/entitytransforms.h>
 #include <core/utils/asserts.h>
 #include <core/systems/ecs.h>
 #include <filament/Scene.h>

@@ -19,7 +19,6 @@
 
 #include <core/scene/geometry/ray.h>
 #include <core/systems/ecs.h>
-#include <core/utils/entitytransforms.h>
 #include <filament/Engine.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>

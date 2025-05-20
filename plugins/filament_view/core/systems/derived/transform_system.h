@@ -16,13 +16,9 @@
 
 #pragma once
 
-#include <filament/TransformManager.h>
-#include <filament/math/TMatHelpers.h>
-
 #include <core/systems/base/ecsystem.h>
 #include <core/components/derived/basetransform.h>
-#include <core/utils/entitytransforms.h>
-#include <core/utils/filament_types.h>
+#include <core/utils/vectorutils.h>
 
 
 namespace plugin_filament_view {

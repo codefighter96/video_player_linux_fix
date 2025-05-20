@@ -21,7 +21,6 @@
 #include <core/include/file_utils.h>
 #include <core/systems/ecs.h>
 #include <core/systems/derived/transform_system.h>
-#include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
 #include <filament/Scene.h>
 #include <filament/gltfio/ResourceLoader.h>
