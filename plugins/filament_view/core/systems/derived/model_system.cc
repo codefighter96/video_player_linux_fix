@@ -20,6 +20,7 @@
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/file_utils.h>
 #include <core/systems/ecs.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/utils/entitytransforms.h>
 #include <curl_client/curl_client.h>
 #include <filament/Scene.h>
@@ -235,10 +236,14 @@ void ModelSystem::addModelToScene(
   }
 
   // Set up transform
-  EntityTransforms::vApplyTransform(instanceEntity, *model->GetBaseTransform());
   auto transform = model->getComponent<BaseTransform>();
   transform->_fInstance = _tm->getInstance(instanceEntity);
   transform->SetDirty(true);
+  /// NOTE: why is this needed? if this is not called the collider doesn't work,
+  //        even though it's visible
+  ecs->getSystem<TransformSystem>("ModelSystem::addModelToScene")->applyTransform(
+    model->GetGuid(), true
+  );
 
   // Set up renderable
   auto renderable = model->getComponent<CommonRenderable>();
@@ -691,7 +696,6 @@ void ModelSystem::vOnInitSystem() {
 
           // change stuff.
           transform->SetPosition(position);
-          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
@@ -716,9 +720,7 @@ void ModelSystem::vOnInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = model->getComponent<BaseTransform>();
 
-          // change stuff.
           transform->SetRotation(rotation);
-          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
@@ -742,9 +744,7 @@ void ModelSystem::vOnInitSystem() {
           const auto model = ourEntity->second;
           const auto transform = model->getComponent<BaseTransform>();
 
-          // change stuff.
           transform->SetScale(values);
-          EntityTransforms::vApplyTransform(model->getAssetInstance()->getRoot(), *transform);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");

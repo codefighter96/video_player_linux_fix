@@ -224,14 +224,7 @@ void ShapeSystem::vOnInitSystem() {
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 
-          // this ideally checks for SetShouldMatchAttachedObject in the future
-          // - todo
-          baseTransform->SetPosition(position);
-          baseTransform->SetRotation(rotation);
-          baseTransform->SetScale(scale);
-
-          EntityTransforms::vApplyTransform(entity->_fEntity,
-                                            *baseTransform);
+          baseTransform->SetTransform(position, scale, rotation);
         }
 
         SPDLOG_TRACE("SetShapeTransform Complete");
@@ -267,13 +260,7 @@ void ShapeSystem::vOnInitSystem() {
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 
-          // this ideally checks for SetShouldMatchAttachedObject in the future
-          // - todo
           baseTransform->SetPosition(position);
-          // collidable->SetCenterPoint(position);
-
-          EntityTransforms::vApplyTransform(entity->_fEntity,
-                                            *baseTransform);
         }
 
         SPDLOG_TRACE("ChangeTranslationByGUID Complete");
@@ -296,11 +283,7 @@ void ShapeSystem::vOnInitSystem() {
           const auto entity = getShape(guid);
           const auto baseTransform = entity->getComponent<BaseTransform>();
 
-          // change stuff.
           baseTransform->SetRotation(rotation);
-
-          EntityTransforms::vApplyTransform(entity->_fEntity,
-                                            *baseTransform);
         }
 
         SPDLOG_TRACE("ChangeRotationByGUID Complete");
@@ -323,13 +306,7 @@ void ShapeSystem::vOnInitSystem() {
           const auto baseTransform = entity->getComponent<BaseTransform>();
           const auto collidable = entity->getComponent<Collidable>();
 
-          // this ideally checks for SetShouldMatchAttachedObject in the future
-          // - todo
-          collidable->SetExtentsSize(values);
           baseTransform->SetScale(values);
-
-          EntityTransforms::vApplyTransform(entity->_fEntity,
-                                            *baseTransform);
         }
 
         SPDLOG_TRACE("ChangeScaleByGUID Complete");

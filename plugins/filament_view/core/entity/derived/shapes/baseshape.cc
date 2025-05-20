@@ -18,6 +18,7 @@
 
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <core/utils/entitytransforms.h>
@@ -151,10 +152,13 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   }
 
 
-  spdlog::debug("Building shape '{}'({}) with AABB",
-                GetName(), GetGuid());
+  spdlog::debug("[{}] Building shape '{}'({}) with AABB",
+    __FUNCTION__, GetName(), GetGuid()
+  );
 
   const auto transform = getComponent<BaseTransform>();
+  transform->DebugPrint("  ");
+
 
   spdlog::debug(
     "[{}] AABB.scale: x={}, y={}, z={}",
@@ -196,25 +200,23 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // Get parent entity id
   const auto parentId = transform->GetParentId();
 
+  const auto transformSystem = ecs->getSystem<TransformSystem>("BaseShape::vBuildRenderable");
   if(parentId != kNullGuid) {
     // Get the parent entity object
     auto parentEntity = ecs->getEntity(parentId);
     auto parentFilamentEntity = parentEntity->_fEntity;
 
-    EntityTransforms::vApplyTransform(
-      _fEntity, transform->GetRotation(),
-      transform->GetScale(),
-      transform->GetPosition(),
+    transformSystem->setParent(
+      _fEntity,
       &parentFilamentEntity
     );
-  } else {
-    EntityTransforms::vApplyTransform(
-      _fEntity, transform->GetRotation(),
-      transform->GetScale(),
-      transform->GetPosition(),
-      nullptr
-    );
   }
+
+  /// NOTE: why is this needed? if this is not called the collider doesn't work,
+  ///       even though it's visible
+  transformSystem->applyTransform(
+    guid_, true
+  );
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal

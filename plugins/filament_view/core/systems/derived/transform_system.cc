@@ -114,7 +114,7 @@ void TransformSystem::applyTransform(
   transform.SetDirty(false); // reset
 }
 
-void TransformSystem::reparentEntity(
+void TransformSystem::setParent(
   const EntityObject& entity,
   const EntityObject& parent
 ) {
@@ -131,24 +131,26 @@ void TransformSystem::reparentEntity(
 
     // Skip parenting if same as current parent
     if(currentParent_fEntity == parent_fEntity) {
-      spdlog::debug("[{}] New parent entity is the same as the current Parent entity ({}), skipping reparenting.",
+      spdlog::warn("[{}] New parent entity is the same as the current Parent entity ({}), skipping reparenting.",
                     __FUNCTION__, parent_fEntity.getId());
       return;
     }
 
-    // Check if the parent instance is valid
-    if(parent_fInstance.isValid()) {
-      if(fInstance.asValue() == parent_fInstance.asValue()) {
-        throw std::runtime_error(
-          fmt::format("[{}] New parent instance is the same as the current instance ({}), skipping parenting.",
-                      __FUNCTION__, fInstance.asValue()));
-      }
-    } else {
-      throw std::runtime_error(
-        fmt::format("[{}] Parent instance ? of {} is not valid.",
-                    __FUNCTION__, fEntity.getId()));
+    // Skip parenting if parent and child are the same
+    if(fEntity == parent_fEntity) {
+      spdlog::warn("[{}] New parent entity is the same as the child entity ({}), skipping reparenting.",
+                    __FUNCTION__, fEntity.getId());
+      return;
     }
 
+    // Check if the parent instance is valid
+    runtime_assert(
+      parent_fInstance.isValid(),
+      fmt::format(
+        "[{}] Parent instance {} of {} is not valid.",
+        __FUNCTION__, parent_fEntity.getId(), fEntity.getId()
+      )
+    );
 
     // Set the parent transform
     try {
@@ -165,6 +167,42 @@ void TransformSystem::reparentEntity(
   // } else {
   //   // TODO: set parent to null/root, how?
   // }
+}
+
+void TransformSystem::setParent(
+  const FilamentEntity& child,
+  const FilamentEntity* parent
+) {
+  // Get the instance of the child and parent
+  const auto childInstance = tm->getInstance(child);
+  const auto parentInstance = !!parent ? tm->getInstance(*parent) : FilamentTransformInstance();
+
+  // Check if the child instance is valid
+  runtime_assert(
+    childInstance.isValid(),
+    fmt::format(
+      "[{}] Child instance {} of {} is not valid.",
+      __FUNCTION__, child.getId(), parent->getId()
+    )
+  );
+  // Check if the parent instance is valid (or if null for deparenting)
+  runtime_assert(
+    parentInstance.isValid() || parentInstance.asValue() == 0,
+    fmt::format(
+      "[{}] Parent instance {} of {} is not valid.",
+      __FUNCTION__, parent->getId(), child.getId()
+    )
+  );
+  // Check if the parent and child are the same
+  if (child == *parent) {
+    spdlog::warn("[{}] New parent entity is the same as the child entity ({}), skipping reparenting.",
+                  __FUNCTION__, child.getId());
+    return;
+  }
+
+  // Set the parent transform
+  tm->setParent(childInstance, parentInstance);
+  
 }
 
 }  // namespace plugin_filament_view

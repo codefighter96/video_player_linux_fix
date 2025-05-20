@@ -108,9 +108,14 @@ class TransformSystem : public ECSystem {
       const bool forceRecalculate = false
     );
 
-    void reparentEntity(
+    void setParent(
       const EntityObject& entity,
       const EntityObject& parent
+    );
+
+    void setParent(
+      const FilamentEntity& child,
+      const FilamentEntity* parent = nullptr
     );
 };
 

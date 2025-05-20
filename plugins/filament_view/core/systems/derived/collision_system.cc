@@ -22,6 +22,7 @@
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/derived/shape_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/utils/entitytransforms.h>
 #include <core/utils/asserts.h>
 #include <core/systems/ecs.h>
@@ -216,6 +217,8 @@ void CollisionSystem::vOnInitSystem() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
+  TransformSystem* transformSystem = ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
+
   // Iterate over all collidables
   const auto colliders = ecs->getComponentsOfType<Collidable>();
   for (const auto& collidable : colliders) {
@@ -257,13 +260,12 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
           aabb.halfExtent * 2,
           kQuatfIdentity
         );
-        EntityTransforms::vApplyTransform(
+
+        transformSystem->setParent(
           cubeChild->_fEntity,
-          kQuatfIdentity,
-          aabb.halfExtent * 2,
-          aabb.center,
           &(entity->_fEntity)
         );
+        
 
         collidable->_wireframe = cubeChild;
       }
