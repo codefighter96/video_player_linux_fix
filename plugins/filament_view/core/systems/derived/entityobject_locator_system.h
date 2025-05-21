@@ -23,35 +23,33 @@
 namespace plugin_filament_view {
 
 class EntityObjectLocatorSystem : public ECSystem {
-  friend class EntityObject;
+    friend class EntityObject;
 
- public:
-  EntityObjectLocatorSystem() = default;
+  public:
+    EntityObjectLocatorSystem() = default;
 
-  // Disallow copy and assign.
-  EntityObjectLocatorSystem(const EntityObjectLocatorSystem&) = delete;
-  EntityObjectLocatorSystem& operator=(const EntityObjectLocatorSystem&) =
-      delete;
+    // Disallow copy and assign.
+    EntityObjectLocatorSystem(const EntityObjectLocatorSystem&) = delete;
+    EntityObjectLocatorSystem& operator=(const EntityObjectLocatorSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(EntityObjectLocatorSystem).hash_code();
-  }
+    [[nodiscard]] static size_t StaticGetTypeID() {
+      return typeid(EntityObjectLocatorSystem).hash_code();
+    }
 
-  void vInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
-  [[nodiscard]] std::shared_ptr<EntityObject> poGetEntityObjectById(
-      EntityGUID id) const;
+    [[nodiscard]] std::shared_ptr<EntityObject> poGetEntityObjectById(EntityGUID id) const;
 
- private:
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> _entities;
+  private:
+    std::map<EntityGUID, std::shared_ptr<EntityObject>> _entities;
 
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-  void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
+    void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
+    void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

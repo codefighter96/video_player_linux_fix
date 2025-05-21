@@ -16,15 +16,15 @@
 
 #pragma once
 
+#include <asio/io_context_strand.hpp>
 #include <core/scene/camera/camera.h>
 #include <core/scene/camera/camera_manager.h>
+#include <cstdint>
 #include <event_channel.h>
 #include <filament/Engine.h>
 #include <flutter_desktop_plugin_registrar.h>
 #include <gltfio/AssetLoader.h>
 #include <viewer/Settings.h>
-#include <asio/io_context_strand.hpp>
-#include <cstdint>
 
 namespace plugin_filament_view {
 
@@ -32,109 +32,105 @@ class Camera;
 class CameraManager;
 
 class ViewTarget {
- public:
-  ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
+  public:
+    ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
-  ~ViewTarget();
+    ~ViewTarget();
 
-  enum ePredefinedQualitySettings { Lowest, Low, Medium, High, Ultra };
+    enum ePredefinedQualitySettings { Lowest, Low, Medium, High, Ultra };
 
-  // Disallow copy and assign.
-  ViewTarget(const ViewTarget&) = delete;
-  ViewTarget& operator=(const ViewTarget&) = delete;
+    // Disallow copy and assign.
+    ViewTarget(const ViewTarget&) = delete;
+    ViewTarget& operator=(const ViewTarget&) = delete;
 
-  void setAnimator(filament::gltfio::Animator* animator) {
-    fanimator_ = animator;
-  }
+    void setAnimator(filament::gltfio::Animator* animator) { fanimator_ = animator; }
 
-  void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
-  filament::viewer::Settings& getSettings() { return settings_; }
+    filament::viewer::Settings& getSettings() { return settings_; }
 
-  filament::gltfio::FilamentAsset* getAsset() { return asset_; }
+    filament::gltfio::FilamentAsset* getAsset() { return asset_; }
 
-  void setInitialized() {
-    if (initialized_)
-      return;
+    void setInitialized() {
+      if (initialized_) return;
 
-    initialized_ = true;
-    OnFrame(this, nullptr, 0);
-  }
+      initialized_ = true;
+      OnFrame(this, nullptr, 0);
+    }
 
-  [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
+    [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
 
-  void setOffset(double left, double top);
+    void setOffset(double left, double top);
 
-  void resize(double width, double height);
+    void resize(double width, double height);
 
-  void InitializeFilamentInternals(uint32_t width, uint32_t height);
+    void InitializeFilamentInternals(uint32_t width, uint32_t height);
 
-  void vSetupCameraManagerWithDeserializedCamera(
-      std::unique_ptr<Camera> camera) const;
+    void vSetupCameraManagerWithDeserializedCamera(std::unique_ptr<Camera> camera) const;
 
-  void vOnTouch(int32_t action,
-                int32_t point_count,
-                size_t point_data_size,
-                const double* point_data) const;
+    void vOnTouch(
+      int32_t action,
+      int32_t point_count,
+      size_t point_data_size,
+      const double* point_data
+    ) const;
 
-  [[nodiscard]] CameraManager* getCameraManager() const {
-    return cameraManager_.get();
-  }
+    [[nodiscard]] CameraManager* getCameraManager() const { return cameraManager_.get(); }
 
-  void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
+    void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
 
-  void vSetFogOptions(const filament::View::FogOptions& fogOptions) const;
+    void vSetFogOptions(const filament::View::FogOptions& fogOptions) const;
 
- private:
-  void setupWaylandSubsurface();
+  private:
+    void setupWaylandSubsurface();
 
-  FlutterDesktopEngineState* state_;
-  filament::viewer::Settings settings_;
-  filament::gltfio::FilamentAsset* asset_{};
-  int32_t left_;
-  int32_t top_;
+    FlutterDesktopEngineState* state_;
+    filament::viewer::Settings settings_;
+    filament::gltfio::FilamentAsset* asset_{};
+    int32_t left_;
+    int32_t top_;
 
-  bool initialized_{};
+    bool initialized_{};
 
-  wl_display* display_{};
-  wl_surface* surface_{};
-  wl_surface* parent_surface_{};
-  wl_callback* callback_;
-  wl_subsurface* subsurface_{};
+    wl_display* display_{};
+    wl_surface* surface_{};
+    wl_surface* parent_surface_{};
+    wl_callback* callback_;
+    wl_subsurface* subsurface_{};
 
-  struct _native_window {
-    struct wl_display* display;
-    struct wl_surface* surface;
-    uint32_t width;
-    uint32_t height;
-  } native_window_{};
+    struct _native_window {
+        struct wl_display* display;
+        struct wl_surface* surface;
+        uint32_t width;
+        uint32_t height;
+    } native_window_{};
 
-  ::filament::SwapChain* fswapChain_{};
-  ::filament::View* fview_{};
+    ::filament::SwapChain* fswapChain_{};
+    ::filament::View* fview_{};
 
-  // todo to be moved
-  ::filament::gltfio::Animator* fanimator_;
+    // todo to be moved
+    ::filament::gltfio::Animator* fanimator_;
 
-  static void SendFrameViewCallback(
+    static void SendFrameViewCallback(
       const std::string& methodName,
-      std::initializer_list<std::pair<const char*, flutter::EncodableValue>>
-          args);
+      std::initializer_list<std::pair<const char*, flutter::EncodableValue>> args
+    );
 
-  static void OnFrame(void* data, wl_callback* callback, uint32_t time);
+    static void OnFrame(void* data, wl_callback* callback, uint32_t time);
 
-  static const wl_callback_listener frame_listener;
+    static const wl_callback_listener frame_listener;
 
-  void DrawFrame(uint32_t time);
+    void DrawFrame(uint32_t time);
 
-  void setupView(uint32_t width, uint32_t height);
+    void setupView(uint32_t width, uint32_t height);
 
-  // elapsed time / deltatime needs to be moved to its own global namespace like
-  // class similar to unitys, elapsedtime/total time etc.
-  void doCameraFeatures(float fDeltaTime) const;
+    // elapsed time / deltatime needs to be moved to its own global namespace like
+    // class similar to unitys, elapsedtime/total time etc.
+    void doCameraFeatures(float fDeltaTime) const;
 
-  uint32_t m_LastTime = 0;
+    uint32_t m_LastTime = 0;
 
-  std::unique_ptr<CameraManager> cameraManager_;
+    std::unique_ptr<CameraManager> cameraManager_;
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

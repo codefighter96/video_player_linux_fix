@@ -16,6 +16,7 @@
 
 #include "light_system.h"
 
+#include <asio/post.hpp>
 #include <core/components/derived/light.h>
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/color.h>
@@ -26,7 +27,6 @@
 #include <filament/Scene.h>
 #include <plugins/common/common.h>
 #include <utils/EntityManager.h>
-#include <asio/post.hpp>
 
 namespace plugin_filament_view {
 using filament::math::float3;
@@ -36,8 +36,7 @@ using filament::math::mat4f;
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vCreateDefaultLight() {
   SPDLOG_DEBUG("{}", __FUNCTION__);
-  m_poDefaultLight =
-      std::make_shared<NonRenderableEntityObject>("DefaultLight");
+  m_poDefaultLight = std::make_shared<NonRenderableEntityObject>("DefaultLight");
   const auto oLightComp = std::make_shared<Light>();
   m_poDefaultLight->vAddComponent(oLightComp);
 
@@ -61,14 +60,14 @@ void LightSystem::vBuildLightAndAddToScene(Light& light) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vBuildLight(Light& light) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "vBuildLight");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "vBuildLight"
+  );
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (light.m_poFilamentEntityLight == nullptr) {
     light.m_poFilamentEntityLight =
-        std::make_shared<utils::Entity>(engine->getEntityManager().create());
+      std::make_shared<utils::Entity>(engine->getEntityManager().create());
   } else {
     vRemoveLightFromScene(light);
   }
@@ -100,8 +99,7 @@ void LightSystem::vBuildLight(Light& light) {
   builder.castShadows(light.GetCastShadows());
   builder.falloff(light.GetFalloffRadius());
 
-  builder.spotLightCone(light.GetSpotLightConeInner(),
-                        light.GetSpotLightConeOuter());
+  builder.spotLightCone(light.GetSpotLightConeInner(), light.GetSpotLightConeOuter());
 
   builder.sunAngularRadius(light.GetSunAngularRadius());
   builder.sunHaloSize(light.GetSunHaloSize());
@@ -112,10 +110,9 @@ void LightSystem::vBuildLight(Light& light) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRemoveLightFromScene(const Light& light) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
-          "lightManager::vRemoveLightFromScene");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "lightManager::vRemoveLightFromScene"
+  );
 
   const auto scene = filamentSystem->getFilamentScene();
 
@@ -124,9 +121,9 @@ void LightSystem::vRemoveLightFromScene(const Light& light) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vAddLightToScene(const Light& light) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "lightManager::vAddLightToScene");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "lightManager::vAddLightToScene"
+  );
 
   const auto scene = filamentSystem->getFilamentScene();
 
@@ -136,63 +133,58 @@ void LightSystem::vAddLightToScene(const Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vInitSystem() {
   vRegisterMessageHandler(
-      ECSMessageType::ChangeSceneLightProperties,
-      [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("ChangeSceneLightProperties");
+    ECSMessageType::ChangeSceneLightProperties,
+    [this](const ECSMessage& msg) {
+      SPDLOG_TRACE("ChangeSceneLightProperties");
 
-        const auto guid = msg.getData<std::string>(
-            ECSMessageType::ChangeSceneLightProperties);
+      const auto guid = msg.getData<std::string>(ECSMessageType::ChangeSceneLightProperties);
 
-        const auto colorValue = msg.getData<std::string>(
-            ECSMessageType::ChangeSceneLightPropertiesColorValue);
+      const auto colorValue =
+        msg.getData<std::string>(ECSMessageType::ChangeSceneLightPropertiesColorValue);
 
-        const auto intensityValue = msg.getData<float>(
-            ECSMessageType::ChangeSceneLightPropertiesIntensity);
+      const auto intensityValue =
+        msg.getData<float>(ECSMessageType::ChangeSceneLightPropertiesIntensity);
 
-        // find the entity in our list:
-        if (const auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          const auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-                  .get());
-          theLight->SetIntensity(intensityValue);
-          theLight->SetColor(colorValue);
+      // find the entity in our list:
+      if (const auto ourEntity = m_mapGuidToEntity.find(guid);
+          ourEntity != m_mapGuidToEntity.end()) {
+        const auto theLight = dynamic_cast<Light*>(
+          ourEntity->second->GetComponentByStaticTypeID(Light::StaticGetTypeID()).get()
+        );
+        theLight->SetIntensity(intensityValue);
+        theLight->SetColor(colorValue);
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+        vRemoveLightFromScene(*theLight);
+        vBuildLightAndAddToScene(*theLight);
+      }
 
-        SPDLOG_TRACE("ChangeSceneLightProperties Complete");
-      });
+      SPDLOG_TRACE("ChangeSceneLightProperties Complete");
+    }
+  );
 
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeSceneLightTransform, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("ChangeSceneLightTransform");
+  vRegisterMessageHandler(ECSMessageType::ChangeSceneLightTransform, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("ChangeSceneLightTransform");
 
-        const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeSceneLightTransform);
+    const auto guid = msg.getData<std::string>(ECSMessageType::ChangeSceneLightTransform);
 
-        const auto position = msg.getData<float3>(ECSMessageType::Position);
+    const auto position = msg.getData<float3>(ECSMessageType::Position);
 
-        const auto rotation = msg.getData<float3>(ECSMessageType::Direction);
+    const auto rotation = msg.getData<float3>(ECSMessageType::Direction);
 
-        // find the entity in our list:
-        if (auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-                  .get());
-          theLight->SetPosition(position);
-          theLight->SetDirection(rotation);
+    // find the entity in our list:
+    if (auto ourEntity = m_mapGuidToEntity.find(guid); ourEntity != m_mapGuidToEntity.end()) {
+      auto theLight = dynamic_cast<Light*>(
+        ourEntity->second->GetComponentByStaticTypeID(Light::StaticGetTypeID()).get()
+      );
+      theLight->SetPosition(position);
+      theLight->SetDirection(rotation);
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+      vRemoveLightFromScene(*theLight);
+      vBuildLightAndAddToScene(*theLight);
+    }
 
-        SPDLOG_TRACE("ChangeSceneLightTransform Complete");
-      });
+    SPDLOG_TRACE("ChangeSceneLightTransform Complete");
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -202,8 +194,8 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
     const auto component = dynamic_cast<Light*>(
-        m_poDefaultLight->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-            .get());
+      m_poDefaultLight->GetComponentByStaticTypeID(Light::StaticGetTypeID()).get()
+    );
     vRemoveLightFromScene(*component);
 
     m_poDefaultLight.reset();
@@ -218,12 +210,9 @@ void LightSystem::DebugPrint() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vRegisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  if (m_mapGuidToEntity.find(entity->GetGlobalGuid()) !=
-      m_mapGuidToEntity.end()) {
-    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
+void LightSystem::vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity) {
+  if (m_mapGuidToEntity.find(entity->GetGlobalGuid()) != m_mapGuidToEntity.end()) {
+    spdlog::error("{}: Entity {} already registered", __FUNCTION__, entity->GetGlobalGuid());
     return;
   }
 
@@ -233,8 +222,7 @@ void LightSystem::vRegisterEntityObject(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vUnregisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
+void LightSystem::vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity) {
   m_mapGuidToEntity.erase(entity->GetGlobalGuid());
 }
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

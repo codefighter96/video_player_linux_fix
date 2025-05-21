@@ -16,8 +16,8 @@
 
 #include "texture_definitions.h"
 
-#include <plugins/common/common.h>
 #include <optional>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
@@ -26,14 +26,16 @@ static constexpr char kTypeNormal[] = "NORMAL";
 static constexpr char kTypeData[] = "DATA";
 
 ////////////////////////////////////////////////////////////////////////////
-TextureDefinitions::TextureDefinitions(const TextureType type,
-                                       std::string assetPath,
-                                       std::string url,
-                                       TextureSampler* sampler)
-    : assetPath_(std::move(assetPath)),
-      url_(std::move(url)),
-      type_(type),
-      sampler_(sampler) {}
+TextureDefinitions::TextureDefinitions(
+  const TextureType type,
+  std::string assetPath,
+  std::string url,
+  TextureSampler* sampler
+)
+  : assetPath_(std::move(assetPath)),
+    url_(std::move(url)),
+    type_(type),
+    sampler_(sampler) {}
 
 ////////////////////////////////////////////////////////////////////////////
 std::string TextureDefinitions::szGetTextureDefinitionLookupName() const {
@@ -48,7 +50,8 @@ std::string TextureDefinitions::szGetTextureDefinitionLookupName() const {
 
 ////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
-    const flutter::EncodableMap& params) {
+  const flutter::EncodableMap& params
+) {
   SPDLOG_TRACE("++Texture::Texture");
   std::optional<std::string> assetPath;
   std::optional<std::string> url;
@@ -56,8 +59,7 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
   std::optional<std::unique_ptr<TextureSampler>> sampler;
 
   for (const auto& [fst, snd] : params) {
-    if (snd.IsNull())
-      continue;
+    if (snd.IsNull()) continue;
 
     auto key = std::get<std::string>(fst);
     if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
@@ -65,14 +67,11 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
     } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
       url = std::get<std::string>(snd);
     } else if (key == "type" && std::holds_alternative<std::string>(snd)) {
-      if (auto decodedType = getType(std::get<std::string>(snd));
-          decodedType != UNKNOWN) {
+      if (auto decodedType = getType(std::get<std::string>(snd)); decodedType != UNKNOWN) {
         type = decodedType;
       }
-    } else if (key == "sampler" &&
-               std::holds_alternative<flutter::EncodableMap>(snd)) {
-      sampler = std::make_unique<TextureSampler>(
-          std::get<flutter::EncodableMap>(snd));
+    } else if (key == "sampler" && std::holds_alternative<flutter::EncodableMap>(snd)) {
+      sampler = std::make_unique<TextureSampler>(std::get<flutter::EncodableMap>(snd));
     } else if (!snd.IsNull()) {
       spdlog::debug("[Texture] Unhandled Parameter");
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
@@ -85,9 +84,11 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
 
   SPDLOG_TRACE("--Texture::Texture");
   return std::make_unique<TextureDefinitions>(
-      type.value(), assetPath.has_value() ? std::move(assetPath.value()) : "",
-      url.has_value() ? std::move(url.value()) : "",
-      sampler.has_value() ? sampler.value().get() : nullptr);
+    type.value(),
+    assetPath.has_value() ? std::move(assetPath.value()) : "",
+    url.has_value() ? std::move(url.value()) : "",
+    sampler.has_value() ? sampler.value().get() : nullptr
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -109,8 +110,7 @@ void TextureDefinitions::DebugPrint(const char* tag) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-TextureDefinitions::TextureType TextureDefinitions::getType(
-    const std::string& type) {
+TextureDefinitions::TextureType TextureDefinitions::getType(const std::string& type) {
   if (type == kTypeColor) {
     return COLOR;
   }
@@ -121,18 +121,17 @@ TextureDefinitions::TextureType TextureDefinitions::getType(
     return DATA;
   }
 
-  spdlog::warn("{}::{} - unknown type {}", __FUNCTION__, __LINE__,
-               type.c_str());
+  spdlog::warn("{}::{} - unknown type {}", __FUNCTION__, __LINE__, type.c_str());
   return UNKNOWN;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 const char* TextureDefinitions::getTextForType(const TextureType type) {
   return (const char*[]){
-      kTypeColor,
-      kTypeNormal,
-      kTypeData,
+    kTypeColor,
+    kTypeNormal,
+    kTypeData,
   }[type];
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

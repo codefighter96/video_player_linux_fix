@@ -15,59 +15,61 @@
  */
 #include "collidable.h"
 
+#include <algorithm>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/utils/deserialize.h>
-#include <plugins/common/common.h>
-#include <algorithm>
 #include <list>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 Collidable::Collidable(const flutter::EncodableMap& params)
-    : Component(std::string(__FUNCTION__)),
-      m_f3CenterPosition({0}),
-      m_eShapeType(ShapeType::Cube),
-      m_f3ExtentsSize({1}) {
+  : Component(std::string(__FUNCTION__)),
+    m_f3CenterPosition({0}),
+    m_eShapeType(ShapeType::Cube),
+    m_f3ExtentsSize({1}) {
   // Check if the key exists and if the value is an EncodableMap
-  if (const auto itCollidableSpecific =
-          params.find(flutter::EncodableValue(kCollidable));
+  if (const auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
       itCollidableSpecific != params.end()) {
     try {
       const auto collidableSpecificParams =
-          std::get<flutter::EncodableMap>(itCollidableSpecific->second);
+        std::get<flutter::EncodableMap>(itCollidableSpecific->second);
 
       // Deserialize the collision layer, defaulting to 0
       Deserialize::DecodeParameterWithDefaultInt64(
-          kCollidableLayer, &m_nCollisionLayer, collidableSpecificParams, 0);
+        kCollidableLayer, &m_nCollisionLayer, collidableSpecificParams, 0
+      );
 
       // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
       Deserialize::DecodeParameterWithDefaultInt64(
-          kCollidableMask, &m_nCollisionMask, collidableSpecificParams,
-          0xFFFFFFFFu);
+        kCollidableMask, &m_nCollisionMask, collidableSpecificParams, 0xFFFFFFFFu
+      );
 
       // Deserialize the flag for matching attached objects, defaulting to
       // 'false'
       Deserialize::DecodeParameterWithDefault(
-          kCollidableShouldMatchAttachedObject, &m_bShouldMatchAttachedObject,
-          collidableSpecificParams, false);
+        kCollidableShouldMatchAttachedObject,
+        &m_bShouldMatchAttachedObject,
+        collidableSpecificParams,
+        false
+      );
 
       Deserialize::DecodeParameterWithDefault(
-          kCollidableExtents, &m_f3ExtentsSize, params,
-          filament::math::float3(1.0f, 1.0f, 1.0f));
+        kCollidableExtents, &m_f3ExtentsSize, params, filament::math::float3(1.0f, 1.0f, 1.0f)
+      );
 
       // Deserialize the static flag, defaulting to 'true'
-      Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic,
-                                              params, true);
+      Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic, params, true);
 
       if (!m_bShouldMatchAttachedObject) {
         // Deserialize the shape type, defaulting to some default ShapeType
         // (replace ShapeType::Default with your actual default)
         Deserialize::DecodeEnumParameterWithDefault(
-            kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube);
+          kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube
+        );
       }
-
     } catch (const std::bad_variant_access&) {
       // Handle the case where the cast to EncodableMap fails
       // Log error, throw an exception, or handle gracefully
@@ -79,15 +81,15 @@ Collidable::Collidable(const flutter::EncodableMap& params)
   }
 
   if (m_bIsStatic) {
-    Deserialize::DecodeParameterWithDefault(kCenterPosition,
-                                            &m_f3CenterPosition, params,
-                                            filament::math::float3(0, 0, 0));
+    Deserialize::DecodeParameterWithDefault(
+      kCenterPosition, &m_f3CenterPosition, params, filament::math::float3(0, 0, 0)
+    );
   }
 
   if (!m_bShouldMatchAttachedObject) {
-    Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3ExtentsSize,
-                                            params,
-                                            filament::math::float3(1, 1, 1));
+    Deserialize::DecodeParameterWithDefault(
+      kCenterPosition, &m_f3ExtentsSize, params, filament::math::float3(1, 1, 1)
+    );
   }
 }
 
@@ -99,9 +101,12 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Is Static: {}", m_bIsStatic);
 
   if (m_bIsStatic) {
-    spdlog::debug(tabPrefix + "Center Point: x={}, y={}, z={}",
-                  m_f3CenterPosition.x, m_f3CenterPosition.y,
-                  m_f3CenterPosition.z);
+    spdlog::debug(
+      tabPrefix + "Center Point: x={}, y={}, z={}",
+      m_f3CenterPosition.x,
+      m_f3CenterPosition.y,
+      m_f3CenterPosition.z
+    );
   }
 
   // Log the collision layer and mask
@@ -109,22 +114,25 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Collision Mask: 0x{:X}", m_nCollisionMask);
 
   // Log the flag for whether it should match the attached object
-  spdlog::debug(tabPrefix + "Should Match Attached Object: {}",
-                m_bShouldMatchAttachedObject);
+  spdlog::debug(tabPrefix + "Should Match Attached Object: {}", m_bShouldMatchAttachedObject);
 
   // Log the shape type (you can modify this to log the enum name if needed)
   spdlog::debug(
-      tabPrefix + "Shape Type: {}",
-      static_cast<int>(m_eShapeType));  // assuming ShapeType is an enum
+    tabPrefix + "Shape Type: {}",
+    static_cast<int>(m_eShapeType)
+  ); // assuming ShapeType is an enum
 
   // Log the extents size (x, y, z)
-  spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
-                m_f3ExtentsSize.y, m_f3ExtentsSize.z);
+  spdlog::debug(
+    tabPrefix + "Extents Size: x={}, y={}, z={}",
+    m_f3ExtentsSize.x,
+    m_f3ExtentsSize.y,
+    m_f3ExtentsSize.z
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Collidable::bDoesIntersect(const Ray& ray,
-                                filament::math::float3& hitPosition) const {
+bool Collidable::bDoesIntersect(const Ray& ray, filament::math::float3& hitPosition) const {
   if (!GetIsEnabled()) {
     return false;
   }
@@ -138,11 +146,8 @@ bool Collidable::bDoesIntersect(const Ray& ray,
   switch (m_eShapeType) {
     case ShapeType::Sphere: {
       // Sphere-ray intersection
-      float radius =
-          extents
-              .x;  // Assuming the x component of extents represents the radius
-      filament::math::float3 oc =
-          rayOrigin - center;  // Vector from ray origin to sphere center
+      float radius = extents.x; // Assuming the x component of extents represents the radius
+      filament::math::float3 oc = rayOrigin - center; // Vector from ray origin to sphere center
       float a = dot(rayDirection, rayDirection);
       float b = 2.0f * dot(oc, rayDirection);
       float c = dot(oc, oc) - radius * radius;
@@ -151,7 +156,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
         if (float t = (-b - sqrt(discriminant)) / (2.0f * a); t > 0) {
           hitPosition = rayOrigin + t * rayDirection;
           SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGlobalGuid());
-          return true;  // Ray hits the sphere
+          return true; // Ray hits the sphere
         }
       }
       break;
@@ -164,41 +169,35 @@ bool Collidable::bDoesIntersect(const Ray& ray,
 
       float tmin = (minBound.x - rayOrigin.x) / rayDirection.x;
       float tmax = (maxBound.x - rayOrigin.x) / rayDirection.x;
-      if (tmin > tmax)
-        std::swap(tmin, tmax);
+      if (tmin > tmax) std::swap(tmin, tmax);
 
       float tymin = (minBound.y - rayOrigin.y) / rayDirection.y;
       float tymax = (maxBound.y - rayOrigin.y) / rayDirection.y;
-      if (tymin > tymax)
-        std::swap(tymin, tymax);
+      if (tymin > tymax) std::swap(tymin, tymax);
 
       if (tmin > tymax || tymin > tmax) {
         return false;
       }
 
-      if (tymin > tmin)
-        tmin = tymin;
-      if (tymax < tmax)
-        tmax = tymax;
+      if (tymin > tmin) tmin = tymin;
+      if (tymax < tmax) tmax = tymax;
 
       float tzmin = (minBound.z - rayOrigin.z) / rayDirection.z;
       float tzmax = (maxBound.z - rayOrigin.z) / rayDirection.z;
-      if (tzmin > tzmax)
-        std::swap(tzmin, tzmax);
+      if (tzmin > tzmax) std::swap(tzmin, tzmax);
 
       if (tmin > tzmax || tzmin > tmax) {
         return false;
       }
 
-      if (tzmin > tmin)
-        tmin = tzmin;
+      if (tzmin > tmin) tmin = tzmin;
       /*if (tzmax < tmax)
         tmax = tzmax;*/
 
       if (tmin > 0) {
         hitPosition = rayOrigin + tmin * rayDirection;
         SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGlobalGuid());
-        return true;  // Ray hits the cube
+        return true; // Ray hits the cube
       }
       break;
     }
@@ -206,7 +205,8 @@ bool Collidable::bDoesIntersect(const Ray& ray,
     case ShapeType::Plane: {
       // Quad-ray intersection
       filament::math::float3 planeNormal = {
-          0.0f, 1.0f, 0.0f};  // Assuming quad is aligned with the Y-axis
+        0.0f, 1.0f, 0.0f
+      }; // Assuming quad is aligned with the Y-axis
       if (float denom = dot(rayDirection, planeNormal); fabs(denom) > 1e-6) {
         // Check if ray is not parallel to the plane
         if (float t = dot(center - rayOrigin, planeNormal) / denom; t >= 0) {
@@ -217,10 +217,9 @@ bool Collidable::bDoesIntersect(const Ray& ray,
           // Assuming the quad is axis-aligned and centered at `center` with
           // extents `extents`
           if (filament::math::float3 localHit = hitPosition - center;
-              fabs(localHit.x) <= extents.x * 0.5f &&
-              fabs(localHit.z) <= extents.z * 0.5f) {
+              fabs(localHit.x) <= extents.x * 0.5f && fabs(localHit.z) <= extents.z * 0.5f) {
             SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGlobalGuid());
-            return true;  // Ray hits the quad
+            return true; // Ray hits the quad
           }
         }
       }
@@ -232,7 +231,7 @@ bool Collidable::bDoesIntersect(const Ray& ray,
       break;
   }
 
-  return false;  // No intersection
+  return false; // No intersection
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

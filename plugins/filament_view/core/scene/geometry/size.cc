@@ -24,8 +24,7 @@ namespace plugin_filament_view {
 Size::Size(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Size::Size");
   for (const auto& [fst, snd] : params) {
-    if (snd.IsNull() || !std::holds_alternative<double>(snd))
-      continue;
+    if (snd.IsNull() || !std::holds_alternative<double>(snd)) continue;
 
     auto key = std::get<std::string>(fst);
     auto value = std::get<double>(snd);
@@ -66,4 +65,4 @@ void Size::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

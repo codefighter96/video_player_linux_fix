@@ -35,131 +35,117 @@ using MaterialFloatValue = float;
 using MaterialColorValue = ::filament::math::vec4<float>;
 
 class MaterialParameter {
- public:
-  enum class MaterialType {
-    // color can be presented by int or Color like Colors.white
-    COLOR,
-    BOOL,
-    BOOL_VECTOR,
-    FLOAT,
-    FLOAT_VECTOR,
-    INT,
-    INT_VECTOR,
-    MAT3,
-    MAT4,
-    TEXTURE,
-  };
+  public:
+    enum class MaterialType {
+      // color can be presented by int or Color like Colors.white
+      COLOR,
+      BOOL,
+      BOOL_VECTOR,
+      FLOAT,
+      FLOAT_VECTOR,
+      INT,
+      INT_VECTOR,
+      MAT3,
+      MAT4,
+      TEXTURE,
+    };
 
-  MaterialParameter(std::string name,
-                    MaterialType type,
-                    MaterialTextureValue value);
-  MaterialParameter(std::string name,
-                    MaterialType type,
-                    MaterialFloatValue value);
-  MaterialParameter(std::string name,
-                    MaterialType type,
-                    MaterialColorValue value);
+    MaterialParameter(std::string name, MaterialType type, MaterialTextureValue value);
+    MaterialParameter(std::string name, MaterialType type, MaterialFloatValue value);
+    MaterialParameter(std::string name, MaterialType type, MaterialColorValue value);
 
-  static std::unique_ptr<MaterialParameter> Deserialize(
-      const std::string& flutter_assets_path,
-      const flutter::EncodableMap& params);
+    static std::unique_ptr<MaterialParameter>
+    Deserialize(const std::string& flutter_assets_path, const flutter::EncodableMap& params);
 
-  ~MaterialParameter();
+    ~MaterialParameter();
 
-  void DebugPrint(const char* tag);
+    void DebugPrint(const char* tag);
 
-  [[nodiscard]] std::string szGetParameterName() const { return name_; }
+    [[nodiscard]] std::string szGetParameterName() const { return name_; }
 
-  friend class Material;
-  friend class MaterialDefinitions;
+    friend class Material;
+    friend class MaterialDefinitions;
 
-  [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
-    if (textureValue_.has_value()) {
-      return textureValue_.value();
-    } else {
-      throw std::runtime_error(
-          "MaterialParameter does not contain a texture value.");
-    }
-  }
-
-  [[nodiscard]] TextureSampler* getTextureSampler() const {
-    const auto& textureValue = getTextureValue();
-    const auto& texturePtr =
-        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
-
-    if (!texturePtr) {
-      return nullptr;
+    [[nodiscard]] const MaterialTextureValue& getTextureValue() const {
+      if (textureValue_.has_value()) {
+        return textureValue_.value();
+      } else {
+        throw std::runtime_error("MaterialParameter does not contain a texture value.");
+      }
     }
 
-    return texturePtr->getSampler();
-  }
+    [[nodiscard]] TextureSampler* getTextureSampler() const {
+      const auto& textureValue = getTextureValue();
+      const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
 
-  [[nodiscard]] std::string getTextureValueAssetPath() const {
-    const auto& textureValue = getTextureValue();
-    const auto& texturePtr =
-        std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+      if (!texturePtr) {
+        return nullptr;
+      }
 
-    if (!texturePtr) {
-      return "";
+      return texturePtr->getSampler();
     }
 
-    return texturePtr->szGetTextureDefinitionLookupName();
-  }
+    [[nodiscard]] std::string getTextureValueAssetPath() const {
+      const auto& textureValue = getTextureValue();
+      const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
 
-  [[nodiscard]] std::unique_ptr<MaterialParameter> clone() const {
-    switch (type_) {
-      case MaterialType::COLOR:
-        return std::make_unique<MaterialParameter>(name_, type_,
-                                                   colorValue_.value());
-      case MaterialType::FLOAT:
-        return std::make_unique<MaterialParameter>(name_, type_,
-                                                   fValue_.value());
-      case MaterialType::TEXTURE:
-        if (textureValue_.has_value()) {
-          const auto& textureValue = textureValue_.value();
-          const auto& texturePtr =
-              std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
-          if (texturePtr) {
-            // Assuming TextureDefinitions has a clone method
-            return std::make_unique<MaterialParameter>(name_, type_,
-                                                       texturePtr->clone());
+      if (!texturePtr) {
+        return "";
+      }
+
+      return texturePtr->szGetTextureDefinitionLookupName();
+    }
+
+    [[nodiscard]] std::unique_ptr<MaterialParameter> clone() const {
+      switch (type_) {
+        case MaterialType::COLOR:
+          return std::make_unique<MaterialParameter>(name_, type_, colorValue_.value());
+        case MaterialType::FLOAT:
+          return std::make_unique<MaterialParameter>(name_, type_, fValue_.value());
+        case MaterialType::TEXTURE:
+          if (textureValue_.has_value()) {
+            const auto& textureValue = textureValue_.value();
+            const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+            if (texturePtr) {
+              // Assuming TextureDefinitions has a clone method
+              return std::make_unique<MaterialParameter>(name_, type_, texturePtr->clone());
+            }
           }
-        }
-        break;
-      // Handle other types (BOOL, BOOL_VECTOR, INT, etc.)
-      case MaterialType::BOOL:
-      case MaterialType::INT:
-        // Add cloning logic for these types
-        break;
-      default:
-        throw std::runtime_error("Unsupported MaterialType in clone.");
+          break;
+        // Handle other types (BOOL, BOOL_VECTOR, INT, etc.)
+        case MaterialType::BOOL:
+        case MaterialType::INT:
+          // Add cloning logic for these types
+          break;
+        default:
+          throw std::runtime_error("Unsupported MaterialType in clone.");
+      }
+      return nullptr; // In case of unsupported type or missing value.
     }
-    return nullptr;  // In case of unsupported type or missing value.
-  }
 
- private:
-  static constexpr char kColor[] = "COLOR";
-  static constexpr char kBool[] = "BOOL";
-  static constexpr char kBoolVector[] = "BOOL_VECTOR";
-  static constexpr char kFloat[] = "FLOAT";
-  static constexpr char kFloatVector[] = "FLOAT_VECTOR";
-  static constexpr char kInt[] = "INT";
-  static constexpr char kIntVector[] = "INT_VECTOR";
-  static constexpr char kMat3[] = "MAT3";
-  static constexpr char kMat4[] = "MAT4";
-  static constexpr char kTexture[] = "TEXTURE";
+  private:
+    static constexpr char kColor[] = "COLOR";
+    static constexpr char kBool[] = "BOOL";
+    static constexpr char kBoolVector[] = "BOOL_VECTOR";
+    static constexpr char kFloat[] = "FLOAT";
+    static constexpr char kFloatVector[] = "FLOAT_VECTOR";
+    static constexpr char kInt[] = "INT";
+    static constexpr char kIntVector[] = "INT_VECTOR";
+    static constexpr char kMat3[] = "MAT3";
+    static constexpr char kMat4[] = "MAT4";
+    static constexpr char kTexture[] = "TEXTURE";
 
-  std::string name_;
-  MaterialType type_;
-  std::optional<MaterialTextureValue> textureValue_;
-  std::optional<MaterialFloatValue> fValue_;
-  std::optional<MaterialColorValue> colorValue_;
+    std::string name_;
+    MaterialType type_;
+    std::optional<MaterialTextureValue> textureValue_;
+    std::optional<MaterialFloatValue> fValue_;
+    std::optional<MaterialColorValue> colorValue_;
 
-  // TODO delete this, colorOf functionality exists in base filament.
-  static MaterialColorValue HexToColorFloat4(const std::string& hex);
+    // TODO delete this, colorOf functionality exists in base filament.
+    static MaterialColorValue HexToColorFloat4(const std::string& hex);
 
-  static const char* getTextForType(MaterialType type);
+    static const char* getTextForType(MaterialType type);
 
-  static MaterialType getTypeForText(const std::string& type);
+    static MaterialType getTypeForText(const std::string& type);
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

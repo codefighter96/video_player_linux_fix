@@ -15,57 +15,50 @@
  */
 #pragma once
 
-#include <core/components/base/component.h>
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
+#include <core/components/base/component.h>
 
 namespace plugin_filament_view {
 
 class CommonRenderable : public Component {
- public:
-  // Constructor
-  CommonRenderable()
+  public:
+    // Constructor
+    CommonRenderable()
       : Component(std::string(__FUNCTION__)),
         m_bCullingOfObjectEnabled(true),
         m_bReceiveShadows(false),
         m_bCastShadows(false) {}
-  explicit CommonRenderable(const flutter::EncodableMap& params);
 
-  // Getters
-  [[nodiscard]] bool IsCullingOfObjectEnabled() const {
-    return m_bCullingOfObjectEnabled;
-  }
+    explicit CommonRenderable(const flutter::EncodableMap& params);
 
-  [[nodiscard]] bool IsReceiveShadowsEnabled() const {
-    return m_bReceiveShadows;
-  }
+    // Getters
+    [[nodiscard]] bool IsCullingOfObjectEnabled() const { return m_bCullingOfObjectEnabled; }
 
-  [[nodiscard]] bool IsCastShadowsEnabled() const { return m_bCastShadows; }
+    [[nodiscard]] bool IsReceiveShadowsEnabled() const { return m_bReceiveShadows; }
 
-  // Setters
-  void SetCullingOfObjectEnabled(bool enabled) {
-    m_bCullingOfObjectEnabled = enabled;
-  }
+    [[nodiscard]] bool IsCastShadowsEnabled() const { return m_bCastShadows; }
 
-  void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
+    // Setters
+    void SetCullingOfObjectEnabled(bool enabled) { m_bCullingOfObjectEnabled = enabled; }
 
-  void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
+    void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
 
-  void DebugPrint(const std::string& tabPrefix) const override;
+    void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-  static size_t StaticGetTypeID() {
-    return typeid(CommonRenderable).hash_code();
-  }
+    void DebugPrint(const std::string& tabPrefix) const override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    static size_t StaticGetTypeID() { return typeid(CommonRenderable).hash_code(); }
 
-  [[nodiscard]] Component* Clone() const override {
-    return new CommonRenderable(*this);  // Copy constructor is called here
-  }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- private:
-  bool m_bCullingOfObjectEnabled;
-  bool m_bReceiveShadows;
-  bool m_bCastShadows;
+    [[nodiscard]] Component* Clone() const override {
+      return new CommonRenderable(*this); // Copy constructor is called here
+    }
+
+  private:
+    bool m_bCullingOfObjectEnabled;
+    bool m_bReceiveShadows;
+    bool m_bCastShadows;
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

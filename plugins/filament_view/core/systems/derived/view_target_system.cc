@@ -30,225 +30,205 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vInitSystem() {
-  vRegisterMessageHandler(
-      ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
-        spdlog::debug("ViewTargetCreateRequest");
+  vRegisterMessageHandler(ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
+    spdlog::debug("ViewTargetCreateRequest");
 
-        const auto state = msg.getData<FlutterDesktopEngineState*>(
-            ECSMessageType::ViewTargetCreateRequest);
-        const auto top =
-            msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
-        const auto left =
-            msg.getData<int>(ECSMessageType::ViewTargetCreateRequestLeft);
-        const auto width =
-            msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestWidth);
-        const auto heigth = msg.getData<uint32_t>(
-            ECSMessageType::ViewTargetCreateRequestHeight);
+    const auto state =
+      msg.getData<FlutterDesktopEngineState*>(ECSMessageType::ViewTargetCreateRequest);
+    const auto top = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
+    const auto left = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestLeft);
+    const auto width = msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestWidth);
+    const auto heigth = msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestHeight);
 
-        const auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
-        vInitializeFilamentInternalsWithViewTargets(nWhich, width, heigth);
+    const auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
+    vInitializeFilamentInternalsWithViewTargets(nWhich, width, heigth);
 
-        if (m_poCamera != nullptr) {
-          vSetCameraFromSerializedData();
-        }
+    if (m_poCamera != nullptr) {
+      vSetCameraFromSerializedData();
+    }
 
-        spdlog::debug("ViewTargetCreateRequest Complete");
-      });
+    spdlog::debug("ViewTargetCreateRequest Complete");
+  });
 
   vRegisterMessageHandler(
-      ECSMessageType::ViewTargetStartRenderingLoops,
-      [this](const ECSMessage& /*msg*/) {
-        spdlog::debug("ViewTargetStartRenderingLoops");
-        vKickOffFrameRenderingLoops();
-        spdlog::debug("ViewTargetStartRenderingLoops Complete");
-      });
+    ECSMessageType::ViewTargetStartRenderingLoops,
+    [this](const ECSMessage& /*msg*/) {
+      spdlog::debug("ViewTargetStartRenderingLoops");
+      vKickOffFrameRenderingLoops();
+      spdlog::debug("ViewTargetStartRenderingLoops Complete");
+    }
+  );
 
   vRegisterMessageHandler(
-      ECSMessageType::ChangeCameraOrbitHomePosition,
-      [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeCameraOrbitHomePosition");
+    ECSMessageType::ChangeCameraOrbitHomePosition,
+    [this](const ECSMessage& msg) {
+      spdlog::debug("ChangeCameraOrbitHomePosition");
 
-        const auto values = msg.getData<filament::math::float3>(
-            ECSMessageType::ChangeCameraOrbitHomePosition);
+      const auto values =
+        msg.getData<filament::math::float3>(ECSMessageType::ChangeCameraOrbitHomePosition);
 
-        if (m_poCamera != nullptr) {
-          m_poCamera->orbitHomePosition_ =
-              std::make_unique<filament::math::float3>(values);
+      if (m_poCamera != nullptr) {
+        m_poCamera->orbitHomePosition_ = std::make_unique<filament::math::float3>(values);
 
-          const auto camera =
-              m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
-          camera->orbitHomePosition_ =
-              std::make_unique<filament::math::float3>(values);
-          camera->forceSingleFrameUpdate_ = true;
-        }
+        const auto camera = m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
+        camera->orbitHomePosition_ = std::make_unique<filament::math::float3>(values);
+        camera->forceSingleFrameUpdate_ = true;
+      }
 
-        spdlog::debug("ChangeCameraOrbitHomePosition Complete");
-      });
+      spdlog::debug("ChangeCameraOrbitHomePosition Complete");
+    }
+  );
 
   vRegisterMessageHandler(
-      ECSMessageType::ChangeCameraTargetPosition,
-      [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeCameraTargetPosition");
+    ECSMessageType::ChangeCameraTargetPosition,
+    [this](const ECSMessage& msg) {
+      spdlog::debug("ChangeCameraTargetPosition");
 
-        const auto values = msg.getData<filament::math::float3>(
-            ECSMessageType::ChangeCameraTargetPosition);
+      const auto values =
+        msg.getData<filament::math::float3>(ECSMessageType::ChangeCameraTargetPosition);
 
-        if (m_poCamera != nullptr) {
-          m_poCamera->targetPosition_ =
-              std::make_unique<filament::math::float3>(values);
+      if (m_poCamera != nullptr) {
+        m_poCamera->targetPosition_ = std::make_unique<filament::math::float3>(values);
 
-          const auto camera =
-              m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
-          camera->targetPosition_ =
-              std::make_unique<filament::math::float3>(values);
-          camera->forceSingleFrameUpdate_ = true;
-        }
+        const auto camera = m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
+        camera->targetPosition_ = std::make_unique<filament::math::float3>(values);
+        camera->forceSingleFrameUpdate_ = true;
+      }
 
-        spdlog::debug("ChangeCameraTargetPosition Complete");
-      });
+      spdlog::debug("ChangeCameraTargetPosition Complete");
+    }
+  );
 
   vRegisterMessageHandler(
-      ECSMessageType::ChangeCameraFlightStartPosition,
-      [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeCameraFlightStartPosition");
+    ECSMessageType::ChangeCameraFlightStartPosition,
+    [this](const ECSMessage& msg) {
+      spdlog::debug("ChangeCameraFlightStartPosition");
 
-        const auto values = msg.getData<filament::math::float3>(
-            ECSMessageType::ChangeCameraFlightStartPosition);
+      const auto values =
+        msg.getData<filament::math::float3>(ECSMessageType::ChangeCameraFlightStartPosition);
 
-        if (m_poCamera != nullptr) {
-          m_poCamera->flightStartPosition_ =
-              std::make_unique<filament::math::float3>(values);
+      if (m_poCamera != nullptr) {
+        m_poCamera->flightStartPosition_ = std::make_unique<filament::math::float3>(values);
 
-          const auto camera =
-              m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
-          camera->flightStartPosition_ =
-              std::make_unique<filament::math::float3>(values);
-          camera->forceSingleFrameUpdate_ = true;
-        }
+        const auto camera = m_lstViewTargets[0]->getCameraManager()->poGetPrimaryCamera();
+        camera->flightStartPosition_ = std::make_unique<filament::math::float3>(values);
+        camera->forceSingleFrameUpdate_ = true;
+      }
 
-        spdlog::debug("ChangeCameraFlightStartPosition Complete");
-      });
+      spdlog::debug("ChangeCameraFlightStartPosition Complete");
+    }
+  );
 
   vRegisterMessageHandler(
-      ECSMessageType::SetCameraFromDeserializedLoad,
-      [this](const ECSMessage& msg) {
-        spdlog::debug("SetCameraFromDeserializedLoad");
-        const auto deserializedCamera =
-            msg.getData<Camera*>(ECSMessageType::SetCameraFromDeserializedLoad);
-        m_poCamera = deserializedCamera->clone();
-        delete deserializedCamera;
-        spdlog::debug("SetCameraFromDeserializedLoad Complete");
+    ECSMessageType::SetCameraFromDeserializedLoad,
+    [this](const ECSMessage& msg) {
+      spdlog::debug("SetCameraFromDeserializedLoad");
+      const auto deserializedCamera =
+        msg.getData<Camera*>(ECSMessageType::SetCameraFromDeserializedLoad);
+      m_poCamera = deserializedCamera->clone();
+      delete deserializedCamera;
+      spdlog::debug("SetCameraFromDeserializedLoad Complete");
 
-        vSetCameraFromSerializedData();
-      });
+      vSetCameraFromSerializedData();
+    }
+  );
 
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeViewQualitySettings, [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeViewQualitySettings");
+  vRegisterMessageHandler(ECSMessageType::ChangeViewQualitySettings, [this](const ECSMessage& msg) {
+    spdlog::debug("ChangeViewQualitySettings");
 
-        // Not Currently Implemented -- currently will change all view targes.
-        // ChangeViewQualitySettingsWhichView
-        auto settings =
-            msg.getData<int>(ECSMessageType::ChangeViewQualitySettings);
-        for (size_t i = 0; i < m_lstViewTargets.size(); ++i) {
-          vChangeViewQualitySettings(
-              i, static_cast<ViewTarget::ePredefinedQualitySettings>(settings));
-        }
+    // Not Currently Implemented -- currently will change all view targes.
+    // ChangeViewQualitySettingsWhichView
+    auto settings = msg.getData<int>(ECSMessageType::ChangeViewQualitySettings);
+    for (size_t i = 0; i < m_lstViewTargets.size(); ++i) {
+      vChangeViewQualitySettings(i, static_cast<ViewTarget::ePredefinedQualitySettings>(settings));
+    }
 
-        spdlog::debug("ChangeViewQualitySettings Complete");
+    spdlog::debug("ChangeViewQualitySettings Complete");
 
-        vSetCameraFromSerializedData();
-      });
+    vSetCameraFromSerializedData();
+  });
 
   // set fog options
-  vRegisterMessageHandler(
-      ECSMessageType::SetFogOptions, [this](const ECSMessage& msg) {
-        spdlog::debug("SetFogOptions");
+  vRegisterMessageHandler(ECSMessageType::SetFogOptions, [this](const ECSMessage& msg) {
+    spdlog::debug("SetFogOptions");
 
-        const bool enabled = msg.getData<bool>(ECSMessageType::SetFogOptions);
+    const bool enabled = msg.getData<bool>(ECSMessageType::SetFogOptions);
 
-        // default values
-        const filament::View::FogOptions enabledFogOptions = {
-            .distance = 20.0f,
-            // .cutOffDistance = 0.0f,
-            .maximumOpacity = 1.0f,
-            .height = 0.0f,
-            .heightFalloff = 1.0f,
-            .color = filament::math::float3(1.0f, 1.0f, 1.0f),
-            .density = 1.5f,
-            .inScatteringStart = 0.0f,
-            .inScatteringSize = -1.0f,
-            .enabled = true,
-        };
+    // default values
+    const filament::View::FogOptions enabledFogOptions = {
+      .distance = 20.0f,
+      // .cutOffDistance = 0.0f,
+      .maximumOpacity = 1.0f,
+      .height = 0.0f,
+      .heightFalloff = 1.0f,
+      .color = filament::math::float3(1.0f, 1.0f, 1.0f),
+      .density = 1.5f,
+      .inScatteringStart = 0.0f,
+      .inScatteringSize = -1.0f,
+      .enabled = true,
+    };
 
-        const filament::View::FogOptions disabledFogOptions = {
-            .enabled = false,
-        };
+    const filament::View::FogOptions disabledFogOptions = {
+      .enabled = false,
+    };
 
-        // Set the fog options
-        for (const auto& viewTarget : m_lstViewTargets) {
-          viewTarget->vSetFogOptions(enabled ? enabledFogOptions
-                                             : disabledFogOptions);
-        }
+    // Set the fog options
+    for (const auto& viewTarget : m_lstViewTargets) {
+      viewTarget->vSetFogOptions(enabled ? enabledFogOptions : disabledFogOptions);
+    }
 
-        spdlog::debug("SetFogOptions Complete");
-      });
+    spdlog::debug("SetFogOptions Complete");
+  });
 
-  vRegisterMessageHandler(
-      ECSMessageType::ResizeWindow, [this](const ECSMessage& msg) {
-        spdlog::debug("ResizeWindow");
-        const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
-        const auto fWidth =
-            msg.getData<double>(ECSMessageType::ResizeWindowWidth);
-        const auto fHeight =
-            msg.getData<double>(ECSMessageType::ResizeWindowHeight);
+  vRegisterMessageHandler(ECSMessageType::ResizeWindow, [this](const ECSMessage& msg) {
+    spdlog::debug("ResizeWindow");
+    const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
+    const auto fWidth = msg.getData<double>(ECSMessageType::ResizeWindowWidth);
+    const auto fHeight = msg.getData<double>(ECSMessageType::ResizeWindowHeight);
 
-        vResizeViewTarget(nWhich, fWidth, fHeight);
+    vResizeViewTarget(nWhich, fWidth, fHeight);
 
-        spdlog::debug("ResizeWindow Complete");
+    spdlog::debug("ResizeWindow Complete");
 
-        vSetCameraFromSerializedData();
-      });
+    vSetCameraFromSerializedData();
+  });
 
-  vRegisterMessageHandler(
-      ECSMessageType::MoveWindow, [this](const ECSMessage& msg) {
-        spdlog::debug("MoveWindow");
-        const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
-        const auto fLeft = msg.getData<double>(ECSMessageType::MoveWindowLeft);
-        const auto fTop = msg.getData<double>(ECSMessageType::MoveWindowTop);
+  vRegisterMessageHandler(ECSMessageType::MoveWindow, [this](const ECSMessage& msg) {
+    spdlog::debug("MoveWindow");
+    const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
+    const auto fLeft = msg.getData<double>(ECSMessageType::MoveWindowLeft);
+    const auto fTop = msg.getData<double>(ECSMessageType::MoveWindowTop);
 
-        vSetViewTargetOffSet(nWhich, fLeft, fTop);
+    vSetViewTargetOffSet(nWhich, fLeft, fTop);
 
-        spdlog::debug("MoveWindow Complete");
+    spdlog::debug("MoveWindow Complete");
 
-        vSetCameraFromSerializedData();
-      });
+    vSetCameraFromSerializedData();
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vShutdownSystem() {
-  m_poCamera.reset();
-}
+void ViewTargetSystem::vShutdownSystem() { m_poCamera.reset(); }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::DebugPrint() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 filament::View* ViewTargetSystem::getFilamentView(const size_t nWhich) const {
-  if (nWhich >= m_lstViewTargets.size())
-    return nullptr;
+  if (nWhich >= m_lstViewTargets.size()) return nullptr;
 
   return m_lstViewTargets[nWhich]->getFilamentView();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vInitializeFilamentInternalsWithViewTargets(
-    const size_t nWhich,
-    const uint32_t width,
-    const uint32_t height) const {
+  const size_t nWhich,
+  const uint32_t width,
+  const uint32_t height
+) const {
   m_lstViewTargets[nWhich]->InitializeFilamentInternals(width, height);
 }
 
@@ -261,8 +241,9 @@ void ViewTargetSystem::vKickOffFrameRenderingLoops() const {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vChangeViewQualitySettings(
-    const size_t nWhich,
-    const ViewTarget::ePredefinedQualitySettings settings) const {
+  const size_t nWhich,
+  const ViewTarget::ePredefinedQualitySettings settings
+) const {
   m_lstViewTargets[nWhich]->vChangeQualitySettings(settings);
 }
 
@@ -271,71 +252,68 @@ void ViewTargetSystem::vSetCameraFromSerializedData() const {
   for (const auto& viewTarget : m_lstViewTargets) {
     // we might get request to add new view targets as they come online
     // make sure we're not resetting older ones.
-    if (viewTarget->getCameraManager()->poGetPrimaryCamera() != nullptr)
-      continue;
+    if (viewTarget->getCameraManager()->poGetPrimaryCamera() != nullptr) continue;
 
     std::unique_ptr<Camera> clonedCamera = m_poCamera->clone();
 
-    viewTarget->vSetupCameraManagerWithDeserializedCamera(
-        std::move(clonedCamera));
+    viewTarget->vSetupCameraManagerWithDeserializedCamera(std::move(clonedCamera));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 size_t ViewTargetSystem::nSetupViewTargetFromDesktopState(
-    int32_t top,
-    int32_t left,
-    FlutterDesktopEngineState* state) {
+  int32_t top,
+  int32_t left,
+  FlutterDesktopEngineState* state
+) {
   m_lstViewTargets.emplace_back(std::make_unique<ViewTarget>(top, left, state));
   return m_lstViewTargets.size() - 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vResizeViewTarget(const size_t nWhich,
-                                         const double width,
-                                         const double height) const {
+void ViewTargetSystem::vResizeViewTarget(
+  const size_t nWhich,
+  const double width,
+  const double height
+) const {
   m_lstViewTargets[nWhich]->resize(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetViewTargetOffSet(const size_t nWhich,
-                                            const double left,
-                                            const double top) const {
+void ViewTargetSystem::vSetViewTargetOffSet(
+  const size_t nWhich,
+  const double left,
+  const double top
+) const {
   m_lstViewTargets[nWhich]->setOffset(left, top);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vOnTouch(const size_t nWhich,
-                                const int32_t action,
-                                const int32_t point_count,
-                                const size_t point_data_size,
-                                const double* point_data) const {
-  m_lstViewTargets[nWhich]->vOnTouch(action, point_count, point_data_size,
-                                     point_data);
+void ViewTargetSystem::vOnTouch(
+  const size_t nWhich,
+  const int32_t action,
+  const int32_t point_count,
+  const size_t point_data_size,
+  const double* point_data
+) const {
+  m_lstViewTargets[nWhich]->vOnTouch(action, point_count, point_data_size, point_data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vChangePrimaryCameraMode(
-    const size_t nWhich,
-    const std::string& szValue) const {
-  m_lstViewTargets[nWhich]->getCameraManager()->ChangePrimaryCameraMode(
-      szValue);
+void ViewTargetSystem::vChangePrimaryCameraMode(const size_t nWhich, const std::string& szValue)
+  const {
+  m_lstViewTargets[nWhich]->getCameraManager()->ChangePrimaryCameraMode(szValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vResetInertiaCameraToDefaultValues(
-    const size_t nWhich) const {
-  m_lstViewTargets[nWhich]
-      ->getCameraManager()
-      ->vResetInertiaCameraToDefaultValues();
+void ViewTargetSystem::vResetInertiaCameraToDefaultValues(const size_t nWhich) const {
+  m_lstViewTargets[nWhich]->getCameraManager()->vResetInertiaCameraToDefaultValues();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vSetCurrentCameraOrbitAngle(const size_t nWhich,
-                                                   const float fValue) const {
-  const auto camera =
-      m_lstViewTargets[nWhich]->getCameraManager()->poGetPrimaryCamera();
+void ViewTargetSystem::vSetCurrentCameraOrbitAngle(const size_t nWhich, const float fValue) const {
+  const auto camera = m_lstViewTargets[nWhich]->getCameraManager()->poGetPrimaryCamera();
   camera->vSetCurrentCameraOrbitAngle(fValue);
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

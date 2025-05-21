@@ -27,21 +27,15 @@ void EntityObjectLocatorSystem::vInitSystem() {}
 void EntityObjectLocatorSystem::vUpdate(float /*fElapsedTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void EntityObjectLocatorSystem::vShutdownSystem() {
-  _entities.clear();
-}
+void EntityObjectLocatorSystem::vShutdownSystem() { _entities.clear(); }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void EntityObjectLocatorSystem::DebugPrint() {
-  spdlog::debug("{}", __FUNCTION__);
-}
+void EntityObjectLocatorSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void EntityObjectLocatorSystem::vRegisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
+void EntityObjectLocatorSystem::vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity) {
   if (_entities.find(entity->GetGlobalGuid()) != _entities.end()) {
-    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
+    spdlog::error("{}: Entity {} already registered", __FUNCTION__, entity->GetGlobalGuid());
     return;
   }
 
@@ -49,14 +43,14 @@ void EntityObjectLocatorSystem::vRegisterEntityObject(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void EntityObjectLocatorSystem::vUnregisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
+void EntityObjectLocatorSystem::vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity
+) {
   _entities.erase(entity->GetGlobalGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<EntityObject> EntityObjectLocatorSystem::poGetEntityObjectById(
-    EntityGUID id) const {
+std::shared_ptr<EntityObject> EntityObjectLocatorSystem::poGetEntityObjectById(EntityGUID id
+) const {
   const auto it = _entities.find(id);
   if (it == _entities.end()) {
     spdlog::debug("Unable to find entity with id {}", id);
@@ -65,4 +59,4 @@ std::shared_ptr<EntityObject> EntityObjectLocatorSystem::poGetEntityObjectById(
   return it->second;
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

@@ -22,4 +22,4 @@ namespace plugin_filament_view {
 
 typedef ::filament::math::float3 Position;
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

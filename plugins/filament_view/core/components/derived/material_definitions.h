@@ -30,64 +30,61 @@ using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 namespace plugin_filament_view {
 
 class MaterialDefinitions : public Component {
- public:
-  explicit MaterialDefinitions(const flutter::EncodableMap& params);
+  public:
+    explicit MaterialDefinitions(const flutter::EncodableMap& params);
 
-  MaterialDefinitions(const MaterialDefinitions& other)
+    MaterialDefinitions(const MaterialDefinitions& other)
       : Component(std::string(__FUNCTION__)),
         assetPath_(other.assetPath_),
         url_(other.url_) {
-    for (const auto& [key, value] : other.parameters_) {
-      if (value) {
-        parameters_.emplace(key, value->clone());
+      for (const auto& [key, value] : other.parameters_) {
+        if (value) {
+          parameters_.emplace(key, value->clone());
+        }
       }
     }
-  }
 
-  ~MaterialDefinitions() override;
+    ~MaterialDefinitions() override;
 
-  static void vApplyMaterialParameterToInstance(
+    static void vApplyMaterialParameterToInstance(
       filament::MaterialInstance* materialInstance,
       const MaterialParameter* param,
-      const TextureMap& loadedTextures);
+      const TextureMap& loadedTextures
+    );
 
-  void vSetMaterialInstancePropertiesFromMyPropertyMap(
+    void vSetMaterialInstancePropertiesFromMyPropertyMap(
       const ::filament::Material* materialResult,
       filament::MaterialInstance* materialInstance,
-      const TextureMap& loadedTextures) const;
+      const TextureMap& loadedTextures
+    ) const;
 
-  // this will either get the assetPath or the url, priority of assetPath
-  // looking for which is valid. Used to see if we have this loaded in cache.
-  [[nodiscard]] std::string szGetMaterialDefinitionLookupName() const;
+    // this will either get the assetPath or the url, priority of assetPath
+    // looking for which is valid. Used to see if we have this loaded in cache.
+    [[nodiscard]] std::string szGetMaterialDefinitionLookupName() const;
 
-  // This will go through each of the parameters and return only the
-  // texture_(definitions) so the material manager can load what's not already
-  // loaded.
-  [[nodiscard]] std::vector<MaterialParameter*>
-  vecGetTextureMaterialParameters() const;
+    // This will go through each of the parameters and return only the
+    // texture_(definitions) so the material manager can load what's not already
+    // loaded.
+    [[nodiscard]] std::vector<MaterialParameter*> vecGetTextureMaterialParameters() const;
 
-  [[nodiscard]] std::string szGetMaterialAssetPath() const {
-    return assetPath_;
-  }
-  [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
+    [[nodiscard]] std::string szGetMaterialAssetPath() const { return assetPath_; }
 
-  void DebugPrint(const std::string& tabPrefix) const override;
+    [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
 
-  static size_t StaticGetTypeID() {
-    return typeid(MaterialDefinitions).hash_code();
-  }
+    void DebugPrint(const std::string& tabPrefix) const override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    static size_t StaticGetTypeID() { return typeid(MaterialDefinitions).hash_code(); }
 
-  [[nodiscard]] Component* Clone() const override {
-    auto* cloned =
-        new MaterialDefinitions(*this);  // Copy constructor is called here
-    return cloned;
-  }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- private:
-  std::string assetPath_;
-  std::string url_;
-  std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;
+    [[nodiscard]] Component* Clone() const override {
+      auto* cloned = new MaterialDefinitions(*this); // Copy constructor is called here
+      return cloned;
+    }
+
+  private:
+    std::string assetPath_;
+    std::string url_;
+    std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view
