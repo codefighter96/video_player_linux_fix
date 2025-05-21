@@ -205,10 +205,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     auto parentEntity = ecs->getEntity(parentId);
     auto parentFilamentEntity = parentEntity->_fEntity;
 
-    transformSystem->setParent(
-      _fEntity,
-      &parentFilamentEntity
-    );
+    transform->setParent(parentEntity->GetGuid());
   }
 
   /// NOTE: why is this needed? if this is not called the collider doesn't work,

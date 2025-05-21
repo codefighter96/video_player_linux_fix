@@ -212,13 +212,11 @@ void ModelSystem::addModelToScene(
   ecs->addEntity(model);
 
 
-  spdlog::debug("  Adding model({}) to Filament scene", modelGuid);
   FilamentEntity instanceEntity = assetInstance->getRoot();
   model->_fEntity = instanceEntity;
+  spdlog::debug("  Adding model[{}]->({}) to Filament scene", instanceEntity.getId(), modelGuid);
   _filament->getFilamentScene()->addEntity(instanceEntity);
-
-  /// TODO: 
-  std::vector<FilamentEntity> collidableChildren = {};
+  model->_childrenEntities[instanceEntity] = modelGuid;
   
   for (const auto entity : renderables) {
     // const auto entity = modelEntities[i];
@@ -232,6 +230,33 @@ void ModelSystem::addModelToScene(
         model->getAssetInstance()->getAsset()
       )
     );
+  }
+
+  // Set up transform parenting (needs to be done after renderable setup)
+  spdlog::debug("Setting up transform parenting for model({})", modelGuid);
+  for (auto& [childEntity, childGuid] : model->_childrenEntities) {
+    spdlog::debug(
+      "  child[{}]->({}) {}",
+      childEntity.getId(), childGuid, childGuid == modelGuid ? "(is model!)" : ""
+    );
+
+    // Skip the model itself
+    if(childGuid == kNullGuid || childGuid == modelGuid) continue;
+
+    const auto childTransform = ecs->getComponent<BaseTransform>(childGuid);
+    const FilamentTransformInstance childInstance = _tm->getInstance(childEntity);
+    const FilamentEntity parentEntity = _tm->getParent(childInstance);
+    const EntityGUID parentGuid = model->_childrenEntities[parentEntity];
+    
+    spdlog::debug(
+      "    has parent[{}]->({})",
+      parentEntity.getId(), parentGuid
+    );
+
+    if(parentGuid != kNullGuid) // safeguard, shouldn't be necessary
+      childTransform->setParent(
+        parentGuid
+      );
   }
 
   // Set up transform
@@ -278,11 +303,11 @@ void ModelSystem::addModelToScene(
 }
 
 void ModelSystem::setupRenderable(
-  const FilamentEntity entity,
-  const Model* model,
+  const FilamentEntity fEntity,
+  Model* model,
   filament::gltfio::FilamentAsset* asset
 ) {
-  const char* name = asset->getName(entity);
+  const char* name = asset->getName(fEntity);
   if(name == nullptr) {
     name = "(null)";
   }
@@ -290,21 +315,22 @@ void ModelSystem::setupRenderable(
 
   // Create a RenderableEntityObject child
   const auto child = std::make_shared<RenderableEntityObject>();
-  child->_fEntity = entity;
-  child->name_ = asset->getName(entity);
+  child->_fEntity = fEntity;
+  child->name_ = asset->getName(fEntity);
   spdlog::debug("  Creating child entity '{}'({})->[{}] of '{}'({})",
-                child->GetName(), child->GetGuid(), entity.getId(),
+                child->GetName(), child->GetGuid(), fEntity.getId(),
                 model->GetName(), model->GetGuid());
+  model->_childrenEntities[fEntity] = child->GetGuid();
 
   /*
    * Transform
    */
   /// NOTE: we set up transform first, even if it might not have a renderable
   ///       because it's still valid for parenting reasons.
-  const auto ti = _tm->getInstance(entity);
+  const auto ti = _tm->getInstance(fEntity);
   if(!ti.isValid()) {
     spdlog::warn("[{}] Skipping fentity {} of model({}), has no transform",
-      __FUNCTION__, entity.getId(), model->GetGuid());
+      __FUNCTION__, fEntity.getId(), model->GetGuid());
     return;
   }
 
@@ -312,15 +338,15 @@ void ModelSystem::setupRenderable(
   auto transform = BaseTransform();
   transform._fInstance = ti;
   transform.SetTransform(_tm->getTransform(ti));
+  auto parentEntity = _tm->getParent(ti);
+  spdlog::debug("  Parent entity: [{}]", parentEntity.getId());
   transform.DebugPrint("  ");
-  auto parent = _tm->getParent(ti);
-  spdlog::debug("  Parent entity: [{}]", parent.getId());
   child->addComponent(transform);
 
-  const auto ri = _rcm->getInstance(entity);
+  const auto ri = _rcm->getInstance(fEntity);
   if(!ri.isValid()) {
     spdlog::warn("[{}] Skipping fentity {} of model({}), has no renderable",
-      __FUNCTION__, entity.getId(), model->GetGuid());
+      __FUNCTION__, fEntity.getId(), model->GetGuid());
 
     ecs->addEntity(child);
     return;
@@ -340,7 +366,7 @@ void ModelSystem::setupRenderable(
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string containing JSON
   // If extras present and have "fs_touchEvent" property, parse and setup a Collidable component
   if(
-    const char* extras = asset->getExtras(entity);
+    const char* extras = asset->getExtras(fEntity);
     !!extras
   ) try {
     // Parse using RapidJSON
@@ -389,7 +415,7 @@ void ModelSystem::setupRenderable(
   } catch (const std::exception& e) {
     spdlog::error(
       "[{}] Failed to setup collidable child({}) with JSON: {}\nReason: {}",
-      __FUNCTION__, entity.getId(), extras, e.what()
+      __FUNCTION__, fEntity.getId(), extras, e.what()
     );
   }
   
@@ -631,6 +657,8 @@ void ModelSystem::vOnInitSystem() {
   if (materialProvider_ != nullptr) {
     return;
   }
+
+  _transforms = ecs->getSystem<TransformSystem>(__FUNCTION__);
 
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);

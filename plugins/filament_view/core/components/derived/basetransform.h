@@ -197,13 +197,17 @@ class BaseTransform : public Component {
 
     void SetTransform(const filament::math::mat4f& localMatrix);
 
-    inline void SetParent(EntityGUID parentId) {
+    inline void setParent(EntityGUID parentId) {
       _parentId = parentId;
-      _isDirty = true;
+      _isParentDirty = true;
     }
 
     inline void SetDirty(bool dirty) {
       _isDirty = dirty;
+    }
+
+    inline void SetParentDirty(bool dirty) {
+      _isParentDirty = dirty;
     }
 
 
@@ -214,6 +218,10 @@ class BaseTransform : public Component {
     // Getters
     [[nodiscard]] inline bool IsDirty() const {
       return _isDirty;
+    }
+
+    [[nodiscard]] inline bool IsParentDirty() const {
+      return _isParentDirty;
     }
 
     /// @returns The transform matrix in world space.    

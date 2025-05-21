@@ -104,14 +104,19 @@ class TransformSystem : public ECSystem {
       const bool forceRecalculate = false
     );
 
-    void setParent(
-      const EntityObject& entity,
-      const EntityObject& parent
+    void applyParent(
+      BaseTransform& child,
+      const BaseTransform* parent = nullptr
     );
 
-    void setParent(
+    void applyParent(
       const FilamentEntity& child,
       const FilamentEntity* parent = nullptr
+    );
+
+    void applyParent(
+      const FilamentTransformInstance& child,
+      const FilamentTransformInstance& parent
     );
 };
 

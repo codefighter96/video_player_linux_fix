@@ -59,6 +59,7 @@ struct AssetDescriptor {
 };
 
 class Model;
+class TransformSystem;
 
 class ModelSystem : public ECSystem {
  public:
@@ -93,6 +94,7 @@ class ModelSystem : public ECSystem {
   ::utils::NameComponentManager* names_{};
 
   // filamentEngine, RenderableManager, EntityManager, TransformManager
+  smarter_shared_ptr<TransformSystem> _transforms;
   smarter_shared_ptr<FilamentSystem> _filament;
   smarter_raw_ptr<filament::Engine> _engine;
   smarter_raw_ptr<filament::RenderableManager> _rcm;
@@ -109,7 +111,7 @@ class ModelSystem : public ECSystem {
 
   void setupRenderable(
     const FilamentEntity entity,
-    const Model* model,
+    Model* model,
     filament::gltfio::FilamentAsset* asset
   );
 

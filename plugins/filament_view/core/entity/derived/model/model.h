@@ -89,6 +89,7 @@ class Model : public RenderableEntityObject {
 
   filament::gltfio::FilamentAsset* m_poAsset;
   filament::gltfio::FilamentInstance* m_poAssetInstance;
+  std::map<FilamentEntity, EntityGUID> _childrenEntities;
 
   ModelInstancingMode _instancingMode = ModelInstancingMode::none;
   /// Whether it's been inserted into the scene
@@ -98,7 +99,7 @@ class Model : public RenderableEntityObject {
 
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-
+  /// TODO: move to CommonRenderable
   void vChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,
       const TextureMap& /*loadedTextures*/) override;

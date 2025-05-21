@@ -260,11 +260,7 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
           kQuatfIdentity
         );
 
-        transformSystem->setParent(
-          cubeChild->_fEntity,
-          &(entity->_fEntity)
-        );
-        
+        childTransform->setParent(entity->GetGuid());
 
         collidable->_wireframe = cubeChild;
       }
