@@ -21,4 +21,4 @@ namespace plugin_filament_view {
 static constexpr char kMagFilterNearest[] = "NEAREST";
 static constexpr char kMagFilterLinear[] = "LINEAR";
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

@@ -13,7 +13,6 @@ BreakBeforeBinaryOperators: NonAssignment
 
 SpacesInParens: Custom
 SpacesInParensOptions:
-  ExceptDoubleParentheses: true
   InConditionalStatements: false
   Other: false
 SpacesInAngles: Never
@@ -34,7 +33,6 @@ PackConstructorInitializers: Never
 # AlignAfterControlStatement: true # waiting for llvm/llvm-project#67738
 
 BreakAfterAttributes: Never
-BreakAfterReturnType: Automatic
 PenaltyReturnTypeOnItsOwnLine: 200 # default: 60
 
 PenaltyBreakOpenParenthesis: 0

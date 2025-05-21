@@ -22,22 +22,20 @@
 namespace plugin_filament_view {
 
 class MaterialLoader {
- public:
-  MaterialLoader();
-  ~MaterialLoader() = default;
+  public:
+    MaterialLoader();
+    ~MaterialLoader() = default;
 
-  static Resource<::filament::Material*> loadMaterialFromAsset(
-      const std::string& path);
+    static Resource<::filament::Material*> loadMaterialFromAsset(const std::string& path);
 
-  static Resource<::filament::Material*> loadMaterialFromUrl(
-      const std::string& url);
+    static Resource<::filament::Material*> loadMaterialFromUrl(const std::string& url);
 
-  // Disallow copy and assign.
-  MaterialLoader(const MaterialLoader&) = delete;
-  MaterialLoader& operator=(const MaterialLoader&) = delete;
+    // Disallow copy and assign.
+    MaterialLoader(const MaterialLoader&) = delete;
+    MaterialLoader& operator=(const MaterialLoader&) = delete;
 
-  static void PrintMaterialInformation(const ::filament::Material* material);
+    static void PrintMaterialInformation(const ::filament::Material* material);
 
- private:
+  private:
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

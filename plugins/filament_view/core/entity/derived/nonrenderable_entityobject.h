@@ -28,14 +28,15 @@ namespace plugin_filament_view {
 // NonRenderables are great for items like 'Global Light', Camera, hidden
 // collision
 class NonRenderableEntityObject : public EntityObject {
- public:
-  explicit NonRenderableEntityObject(const flutter::EncodableMap& params);
-  explicit NonRenderableEntityObject(const std::string& szName)
+  public:
+    explicit NonRenderableEntityObject(const flutter::EncodableMap& params);
+
+    explicit NonRenderableEntityObject(const std::string& szName)
       : EntityObject(szName) {}
 
- protected:
-  void DebugPrint() const override;
+  protected:
+    void DebugPrint() const override;
 
- private:
+  private:
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

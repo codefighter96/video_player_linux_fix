@@ -29,112 +29,108 @@
 
 namespace plugin_filament_view {
 
-class FilamentViewPlugin : public flutter::Plugin,
-                           public FilamentViewApi,
-                           public PlatformView {
- public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar,
-                                    int32_t id,
-                                    std::string viewType,
-                                    int32_t direction,
-                                    double top,
-                                    double left,
-                                    double width,
-                                    double height,
-                                    const std::vector<uint8_t>& params,
-                                    const std::string& assetDirectory,
-                                    FlutterDesktopEngineRef engine,
-                                    PlatformViewAddListener addListener,
-                                    PlatformViewRemoveListener removeListener,
-                                    void* platform_view_context);
+class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, public PlatformView {
+  public:
+    static void RegisterWithRegistrar(
+      flutter::PluginRegistrar* registrar,
+      int32_t id,
+      std::string viewType,
+      int32_t direction,
+      double top,
+      double left,
+      double width,
+      double height,
+      const std::vector<uint8_t>& params,
+      const std::string& assetDirectory,
+      FlutterDesktopEngineRef engine,
+      PlatformViewAddListener addListener,
+      PlatformViewRemoveListener removeListener,
+      void* platform_view_context
+    );
 
-  FilamentViewPlugin(int32_t id,
-                     std::string viewType,
-                     int32_t direction,
-                     double top,
-                     double left,
-                     double width,
-                     double height,
-                     const std::vector<uint8_t>& params,
-                     const std::string& assetDirectory,
-                     PlatformViewAddListener addListener,
-                     PlatformViewRemoveListener removeListener,
-                     void* platform_view_context);
+    FilamentViewPlugin(
+      int32_t id,
+      std::string viewType,
+      int32_t direction,
+      double top,
+      double left,
+      double width,
+      double height,
+      const std::vector<uint8_t>& params,
+      const std::string& assetDirectory,
+      PlatformViewAddListener addListener,
+      PlatformViewRemoveListener removeListener,
+      void* platform_view_context
+    );
 
-  ~FilamentViewPlugin() override;
+    ~FilamentViewPlugin() override;
 
-  static void setupMessageChannels(flutter::PluginRegistrar* registrar);
-  static void sendReadyEvent();
+    static void setupMessageChannels(flutter::PluginRegistrar* registrar);
+    static void sendReadyEvent();
 
-  std::optional<FlutterError> ChangeMaterialParameter(
-      const flutter::EncodableMap& params,
-      const std::string& guid) override;
-  // Change material definition for the given entity.
-  std::optional<FlutterError> ChangeMaterialDefinition(
-      const flutter::EncodableMap& params,
-      const std::string& guid) override;
-  // Toggle shapes visibility in the scene.
-  std::optional<FlutterError> ToggleShapesInScene(bool value) override;
-  // Set shape transform
-  std::optional<FlutterError> SetShapeTransform(const std::string& guid,
-                                                double posx,
-                                                double posy,
-                                                double posz,
-                                                double rotx,
-                                                double roty,
-                                                double rotz,
-                                                double rotw,
-                                                double sclx,
-                                                double scly,
-                                                double sclz) override;
-  // Toggle debug collidable visuals in the scene.
-  std::optional<FlutterError> ToggleDebugCollidableViewsInScene(
-      bool value) override;
-  // Change the camera mode by name.
-  std::optional<FlutterError> ChangeCameraMode(
-      const std::string& mode) override;
-  std::optional<FlutterError> ChangeCameraOrbitHomePosition(double x,
-                                                            double y,
-                                                            double z) override;
-  std::optional<FlutterError> ChangeCameraTargetPosition(double x,
-                                                         double y,
-                                                         double z) override;
-  std::optional<FlutterError>
-  ChangeCameraFlightStartPosition(double x, double y, double z) override;
-  // Reset inertia camera to default values.
-  std::optional<FlutterError> ResetInertiaCameraToDefaultValues() override;
-  // Change view quality settings.
-  std::optional<FlutterError> ChangeViewQualitySettings() override;
-  // Set fog options
-  std::optional<FlutterError> SetFogOptions(const bool enabled) override;
-  // Set camera rotation by a float value.
-  std::optional<FlutterError> SetCameraRotation(double value) override;
-  std::optional<FlutterError> ChangeLightTransformByGUID(
+    std::optional<FlutterError>
+    ChangeMaterialParameter(const flutter::EncodableMap& params, const std::string& guid) override;
+    // Change material definition for the given entity.
+    std::optional<FlutterError>
+    ChangeMaterialDefinition(const flutter::EncodableMap& params, const std::string& guid) override;
+    // Toggle shapes visibility in the scene.
+    std::optional<FlutterError> ToggleShapesInScene(bool value) override;
+    // Set shape transform
+    std::optional<FlutterError> SetShapeTransform(
+      const std::string& guid,
+      double posx,
+      double posy,
+      double posz,
+      double rotx,
+      double roty,
+      double rotz,
+      double rotw,
+      double sclx,
+      double scly,
+      double sclz
+    ) override;
+    // Toggle debug collidable visuals in the scene.
+    std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) override;
+    // Change the camera mode by name.
+    std::optional<FlutterError> ChangeCameraMode(const std::string& mode) override;
+    std::optional<FlutterError> ChangeCameraOrbitHomePosition(double x, double y, double z)
+      override;
+    std::optional<FlutterError> ChangeCameraTargetPosition(double x, double y, double z) override;
+    std::optional<FlutterError> ChangeCameraFlightStartPosition(double x, double y, double z)
+      override;
+    // Reset inertia camera to default values.
+    std::optional<FlutterError> ResetInertiaCameraToDefaultValues() override;
+    // Change view quality settings.
+    std::optional<FlutterError> ChangeViewQualitySettings() override;
+    // Set fog options
+    std::optional<FlutterError> SetFogOptions(const bool enabled) override;
+    // Set camera rotation by a float value.
+    std::optional<FlutterError> SetCameraRotation(double value) override;
+    std::optional<FlutterError> ChangeLightTransformByGUID(
       const std::string& guid,
       double posx,
       double posy,
       double posz,
       double dirx,
       double diry,
-      double dirz) override;
-  std::optional<FlutterError> ChangeLightColorByGUID(
+      double dirz
+    ) override;
+    std::optional<FlutterError> ChangeLightColorByGUID(
       const std::string& guid,
       const std::string& color,
-      int64_t intensity) override;
-  std::optional<FlutterError> EnqueueAnimation(
-      const std::string& guid,
-      int64_t animation_index) override;
-  std::optional<FlutterError> ClearAnimationQueue(
-      const std::string& guid) override;
-  std::optional<FlutterError> PlayAnimation(const std::string& guid,
-                                            int64_t animation_index) override;
-  std::optional<FlutterError> ChangeAnimationSpeed(const std::string& guid,
-                                                   double speed) override;
-  std::optional<FlutterError> PauseAnimation(const std::string& guid) override;
-  std::optional<FlutterError> ResumeAnimation(const std::string& guid) override;
-  std::optional<FlutterError> SetAnimationLooping(const std::string& guid,
-                                                  bool looping) override;
-  std::optional<FlutterError> RequestCollisionCheckFromRay(
+      int64_t intensity
+    ) override;
+    std::optional<FlutterError> EnqueueAnimation(const std::string& guid, int64_t animation_index)
+      override;
+    std::optional<FlutterError> ClearAnimationQueue(const std::string& guid) override;
+    std::optional<FlutterError> PlayAnimation(const std::string& guid, int64_t animation_index)
+      override;
+    std::optional<FlutterError> ChangeAnimationSpeed(const std::string& guid, double speed)
+      override;
+    std::optional<FlutterError> PauseAnimation(const std::string& guid) override;
+    std::optional<FlutterError> ResumeAnimation(const std::string& guid) override;
+    std::optional<FlutterError> SetAnimationLooping(const std::string& guid, bool looping) override;
+    std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_id,
       double origin_x,
       double origin_y,
@@ -142,54 +138,46 @@ class FilamentViewPlugin : public flutter::Plugin,
       double direction_x,
       double direction_y,
       double direction_z,
-      double length) override;
+      double length
+    ) override;
 
-  std::optional<FlutterError> ChangeScaleByGUID(const std::string& guid,
-                                                double x,
-                                                double y,
-                                                double z) override;
-  std::optional<FlutterError> ChangeTranslationByGUID(const std::string& guid,
-                                                      double x,
-                                                      double y,
-                                                      double z) override;
-  std::optional<FlutterError> ChangeRotationByGUID(const std::string& guid,
-                                                   double x,
-                                                   double y,
-                                                   double z,
-                                                   double w) override;
+    std::optional<FlutterError>
+    ChangeScaleByGUID(const std::string& guid, double x, double y, double z) override;
+    std::optional<FlutterError>
+    ChangeTranslationByGUID(const std::string& guid, double x, double y, double z) override;
+    std::optional<FlutterError>
+    ChangeRotationByGUID(const std::string& guid, double x, double y, double z, double w) override;
 
-  std::optional<FlutterError> TurnOffVisualForEntity(
-      const std::string& guid) override;
-  std::optional<FlutterError> TurnOnVisualForEntity(
-      const std::string& guid) override;
-  std::optional<FlutterError> TurnOffCollisionChecksForEntity(
-      const std::string& guid) override;
-  std::optional<FlutterError> TurnOnCollisionChecksForEntity(
-      const std::string& guid) override;
+    std::optional<FlutterError> TurnOffVisualForEntity(const std::string& guid) override;
+    std::optional<FlutterError> TurnOnVisualForEntity(const std::string& guid) override;
+    std::optional<FlutterError> TurnOffCollisionChecksForEntity(const std::string& guid) override;
+    std::optional<FlutterError> TurnOnCollisionChecksForEntity(const std::string& guid) override;
 
-  // Disallow copy and assign.
-  FilamentViewPlugin(const FilamentViewPlugin&) = delete;
+    // Disallow copy and assign.
+    FilamentViewPlugin(const FilamentViewPlugin&) = delete;
 
-  FilamentViewPlugin& operator=(const FilamentViewPlugin&) = delete;
+    FilamentViewPlugin& operator=(const FilamentViewPlugin&) = delete;
 
- private:
-  int32_t id_;
-  void* platformViewsContext_;
-  PlatformViewRemoveListener removeListener_;
+  private:
+    int32_t id_;
+    void* platformViewsContext_;
+    PlatformViewRemoveListener removeListener_;
 
-  static void on_resize(double width, double height, void* data);
-  static void on_set_direction(int32_t direction, void* data);
-  static void on_set_offset(double left, double top, void* data);
-  static void on_touch(int32_t action,
-                       int32_t point_count,
-                       size_t point_data_size,
-                       const double* point_data,
-                       void* data);
-  static void on_dispose(bool hybrid, void* data);
+    static void on_resize(double width, double height, void* data);
+    static void on_set_direction(int32_t direction, void* data);
+    static void on_set_offset(double left, double top, void* data);
+    static void on_touch(
+      int32_t action,
+      int32_t point_count,
+      size_t point_data_size,
+      const double* point_data,
+      void* data
+    );
+    static void on_dispose(bool hybrid, void* data);
 
-  static const struct platform_view_listener platform_view_listener_;
+    static const struct platform_view_listener platform_view_listener_;
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view
 
-#endif  // FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_H_
+#endif // FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_H_

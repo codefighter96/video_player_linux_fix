@@ -20,10 +20,9 @@ namespace plugin_filament_view {
 
 static constexpr char kMinFilterNearest[] = "NEAREST";
 static constexpr char kMinFilterLinear[] = "LINEAR";
-static constexpr char kMinFilterNearestMipmapNearest[] =
-    "NEAREST_MIPMAP_NEAREST";
+static constexpr char kMinFilterNearestMipmapNearest[] = "NEAREST_MIPMAP_NEAREST";
 static constexpr char kMinFilterLinearMipmapNearest[] = "LINEAR_MIPMAP_NEAREST";
 static constexpr char kMinFilterNearestMipmapLinear[] = "NEAREST_MIPMAP_LINEAR";
 static constexpr char kMinFilterLinearMipmapLinear[] = "LINEAR_MIPMAP_LINEAR";
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

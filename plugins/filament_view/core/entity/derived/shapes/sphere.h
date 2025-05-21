@@ -26,34 +26,34 @@ using ::utils::Entity;
 namespace shapes {
 
 class Sphere : public BaseShape {
- public:
-  explicit Sphere(const flutter::EncodableMap& params);
-  Sphere();
-  ~Sphere() override = default;
+  public:
+    explicit Sphere(const flutter::EncodableMap& params);
+    Sphere();
+    ~Sphere() override = default;
 
-  // Disallow copy and assign.
-  Sphere(const Sphere&) = delete;
-  Sphere& operator=(const Sphere&) = delete;
+    // Disallow copy and assign.
+    Sphere(const Sphere&) = delete;
+    Sphere& operator=(const Sphere&) = delete;
 
-  void DebugPrint(const char* tag) const override;
+    void DebugPrint(const char* tag) const override;
 
-  bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
-  void CloneToOther(BaseShape& other) const override;
+    bool bInitAndCreateShape(::filament::Engine* engine_, std::shared_ptr<Entity> entityObject)
+      override;
+    void CloneToOther(BaseShape& other) const override;
 
- private:
-  static void createDoubleSidedSphere(::filament::Engine* engine_);
+  private:
+    static void createDoubleSidedSphere(::filament::Engine* engine_);
 
-  void createSingleSidedSphere(::filament::Engine* engine_);
+    void createSingleSidedSphere(::filament::Engine* engine_);
 
-  int stacks_;
-  int slices_;
+    int stacks_;
+    int slices_;
 
-  std::vector<::filament::math::float3> vertices_;
-  std::vector<::filament::math::float3> normals_;
-  std::vector<unsigned short> indices_;
-  std::vector<::filament::math::float2> uvs_;
+    std::vector<::filament::math::float3> vertices_;
+    std::vector<::filament::math::float3> normals_;
+    std::vector<unsigned short> indices_;
+    std::vector<::filament::math::float2> uvs_;
 };
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+} // namespace shapes
+} // namespace plugin_filament_view

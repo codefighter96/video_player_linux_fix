@@ -23,43 +23,35 @@
 namespace plugin_filament_view {
 
 class FilamentSystem : public ECSystem {
- public:
-  FilamentSystem() = default;
+  public:
+    FilamentSystem() = default;
 
-  // Disallow copy and assign.
-  FilamentSystem(const FilamentSystem&) = delete;
-  FilamentSystem& operator=(const FilamentSystem&) = delete;
+    // Disallow copy and assign.
+    FilamentSystem(const FilamentSystem&) = delete;
+    FilamentSystem& operator=(const FilamentSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(FilamentSystem).hash_code();
-  }
+    [[nodiscard]] static size_t StaticGetTypeID() { return typeid(FilamentSystem).hash_code(); }
 
-  void vInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
-  [[nodiscard]] ::filament::Engine* getFilamentEngine() const {
-    return fengine_;
-  }
+    [[nodiscard]] ::filament::Engine* getFilamentEngine() const { return fengine_; }
 
-  [[nodiscard]] IBLProfiler* getIBLProfiler() const {
-    return iblProfiler_.get();
-  }
+    [[nodiscard]] IBLProfiler* getIBLProfiler() const { return iblProfiler_.get(); }
 
-  [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
+    [[nodiscard]] ::filament::Scene* getFilamentScene() const { return fscene_; }
 
-  [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const {
-    return frenderer_;
-  }
+    [[nodiscard]] ::filament::Renderer* getFilamentRenderer() const { return frenderer_; }
 
- private:
-  ::filament::Engine* fengine_{};
-  ::filament::Renderer* frenderer_{};
-  ::filament::Scene* fscene_{};
+  private:
+    ::filament::Engine* fengine_{};
+    ::filament::Renderer* frenderer_{};
+    ::filament::Scene* fscene_{};
 
-  std::unique_ptr<IBLProfiler> iblProfiler_{};
+    std::unique_ptr<IBLProfiler> iblProfiler_{};
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

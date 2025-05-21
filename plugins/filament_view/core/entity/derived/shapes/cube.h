@@ -27,25 +27,25 @@ using ::utils::Entity;
 namespace shapes {
 
 class Cube : public BaseShape {
- public:
-  explicit Cube(const flutter::EncodableMap& params);
-  Cube() = default;
-  ~Cube() override = default;
+  public:
+    explicit Cube(const flutter::EncodableMap& params);
+    Cube() = default;
+    ~Cube() override = default;
 
-  // Disallow copy and assign.
-  Cube(const Cube&) = delete;
-  Cube& operator=(const Cube&) = delete;
+    // Disallow copy and assign.
+    Cube(const Cube&) = delete;
+    Cube& operator=(const Cube&) = delete;
 
-  void DebugPrint(const char* tag) const override;
+    void DebugPrint(const char* tag) const override;
 
-  bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+    bool bInitAndCreateShape(::filament::Engine* engine_, std::shared_ptr<Entity> entityObject)
+      override;
 
- private:
-  void createDoubleSidedCube(::filament::Engine* engine_);
+  private:
+    void createDoubleSidedCube(::filament::Engine* engine_);
 
-  void createSingleSidedCube(::filament::Engine* engine_);
+    void createSingleSidedCube(::filament::Engine* engine_);
 };
 
-}  // namespace shapes
-}  // namespace plugin_filament_view
+} // namespace shapes
+} // namespace plugin_filament_view

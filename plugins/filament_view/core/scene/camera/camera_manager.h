@@ -40,148 +40,148 @@ class ViewTarget;
 
 // CameraManager is a per 'view target' system
 class CameraManager {
- public:
-  explicit CameraManager(ViewTarget* poOwner);
+  public:
+    explicit CameraManager(ViewTarget* poOwner);
 
-  void setDefaultFilamentCamera();
+    void setDefaultFilamentCamera();
 
-  void lookAtDefaultPosition() const;
-  void setCameraLookat(filament::math::float3 eye,
-                       filament::math::float3 center,
-                       filament::math::float3 up) const;
+    void lookAtDefaultPosition() const;
+    void setCameraLookat(
+      filament::math::float3 eye,
+      filament::math::float3 center,
+      filament::math::float3 up
+    ) const;
 
-  void destroyCamera() const;
+    void destroyCamera() const;
 
-  // Camera control
-  void onAction(int32_t action,
-                int32_t point_count,
-                size_t point_data_size,
-                const double* point_data);
+    // Camera control
+    void
+    onAction(int32_t action, int32_t point_count, size_t point_data_size, const double* point_data);
 
-  [[nodiscard]] float calculateAspectRatio() const;
+    [[nodiscard]] float calculateAspectRatio() const;
 
-  void updateCameraManipulator(const Camera* cameraInfo);
+    void updateCameraManipulator(const Camera* cameraInfo);
 
-  // for cameras flagged for auto-orbit, will auto orbit
-  // with their properties. Auto-screenshot, render-to-texture
-  // would also use this in the future.
-  void updateCamerasFeatures(float fElapsedTime);
+    // for cameras flagged for auto-orbit, will auto orbit
+    // with their properties. Auto-screenshot, render-to-texture
+    // would also use this in the future.
+    void updateCamerasFeatures(float fElapsedTime);
 
-  void updateCameraOnResize(uint32_t width, uint32_t height);
+    void updateCameraOnResize(uint32_t width, uint32_t height);
 
-  void updateCamera(const Camera* cameraInfo);
+    void updateCamera(const Camera* cameraInfo);
 
-  std::string updateExposure(Exposure* exposure) const;
+    std::string updateExposure(Exposure* exposure) const;
 
-  bool updateProjection(const Projection* projection) const;
+    bool updateProjection(const Projection* projection) const;
 
-  std::string updateLensProjection(const LensProjection* lensProjection);
+    std::string updateLensProjection(const LensProjection* lensProjection);
 
-  void updateCameraProjection();
+    void updateCameraProjection();
 
-  std::string updateCameraShift(std::vector<double>* shift) const;
+    std::string updateCameraShift(std::vector<double>* shift) const;
 
-  std::string updateCameraScaling(std::vector<double>* scaling) const;
+    std::string updateCameraScaling(std::vector<double>* scaling) const;
 
-  void setPrimaryCamera(std::unique_ptr<Camera> camera);
-  void ChangePrimaryCameraMode(const std::string& szValue) const;
-  // Passes weak ptr, dont keep a copy of this.
-  Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
+    void setPrimaryCamera(std::unique_ptr<Camera> camera);
+    void ChangePrimaryCameraMode(const std::string& szValue) const;
 
-  // Disallow copy and assign.
-  CameraManager(const CameraManager&) = delete;
+    // Passes weak ptr, dont keep a copy of this.
+    Camera* poGetPrimaryCamera() { return primaryCamera_.get(); }
 
-  CameraManager& operator=(const CameraManager&) = delete;
+    // Disallow copy and assign.
+    CameraManager(const CameraManager&) = delete;
 
-  [[nodiscard]] std::pair<filament::math::float3, filament::math::float3>
-  aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
+    CameraManager& operator=(const CameraManager&) = delete;
 
-  [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(
-      TouchPair touch) const;
+    [[nodiscard]] std::pair<filament::math::float3, filament::math::float3>
+    aGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
-  void vResetInertiaCameraToDefaultValues();
+    [[nodiscard]] Ray oGetRayInformationFromOnTouchPosition(TouchPair touch) const;
 
- private:
-  static constexpr float kNearPlane = 0.05f;   // 5 cm
-  static constexpr float kFarPlane = 1000.0f;  // 1 km
-  static constexpr float kAperture = 16.0f;
-  static constexpr float kShutterSpeed = 1.0f / 125;
-  static constexpr float kSensitivity = 100.0f;
-  static constexpr float kDefaultFocalLength = 28.0f;
+    void vResetInertiaCameraToDefaultValues();
 
-  enum class Gesture { NONE, ORBIT, PAN, ZOOM };
+  private:
+    static constexpr float kNearPlane = 0.05f;  // 5 cm
+    static constexpr float kFarPlane = 1000.0f; // 1 km
+    static constexpr float kAperture = 16.0f;
+    static constexpr float kShutterSpeed = 1.0f / 125;
+    static constexpr float kSensitivity = 100.0f;
+    static constexpr float kDefaultFocalLength = 28.0f;
 
-  static constexpr int kGestureConfidenceCount = 2;
-  static constexpr int kPanConfidenceDistance = 4;
-  static constexpr int kZoomConfidenceDistance = 10;
-  static constexpr float kZoomSpeed = 1.0f / 10.0f;
+    enum class Gesture { NONE, ORBIT, PAN, ZOOM };
 
-  static constexpr ::filament::math::float3 kDefaultObjectPosition = {
-      0.0f, 0.0f, -4.0f};
-  static constexpr ::filament::math::float3 kCameraCenter = {0.0f, 0.0f, 0.0f};
-  static constexpr ::filament::math::float3 kCameraUp = {0.0f, 1.0f, 0.0f};
-  static constexpr float kCameraDist = 3.0f;
+    static constexpr int kGestureConfidenceCount = 2;
+    static constexpr int kPanConfidenceDistance = 4;
+    static constexpr int kZoomConfidenceDistance = 10;
+    static constexpr float kZoomSpeed = 1.0f / 10.0f;
 
-  static constexpr int ACTION_DOWN = 0;
-  static constexpr int ACTION_UP = 1;
-  static constexpr int ACTION_MOVE = 2;
-  static constexpr int ACTION_CANCEL = 3;
+    static constexpr ::filament::math::float3 kDefaultObjectPosition = {0.0f, 0.0f, -4.0f};
+    static constexpr ::filament::math::float3 kCameraCenter = {0.0f, 0.0f, 0.0f};
+    static constexpr ::filament::math::float3 kCameraUp = {0.0f, 1.0f, 0.0f};
+    static constexpr float kCameraDist = 3.0f;
 
-  // ImVec2: 2D vector used to store positions, sizes etc. [Compile-time
-  // configurable type] This is a frequently used type in the API. Consider
-  // using IM_VEC2_CLASS_EXTRA to create implicit cast from/to our preferred
-  // type.
-  struct ImVec2 {
-    float x, y;
+    static constexpr int ACTION_DOWN = 0;
+    static constexpr int ACTION_UP = 1;
+    static constexpr int ACTION_MOVE = 2;
+    static constexpr int ACTION_CANCEL = 3;
 
-    ImVec2() { x = y = 0.0f; }
+    // ImVec2: 2D vector used to store positions, sizes etc. [Compile-time
+    // configurable type] This is a frequently used type in the API. Consider
+    // using IM_VEC2_CLASS_EXTRA to create implicit cast from/to our preferred
+    // type.
+    struct ImVec2 {
+        float x, y;
 
-    ImVec2(float _x, float _y) {
-      x = _x;
-      y = _y;
-    }
+        ImVec2() { x = y = 0.0f; }
 
-    float operator[](size_t idx) const {
-      assert(idx <= 1);
-      return (&x)[idx];
-    }  // We very rarely use this [] operator, assert overhead is fine.
-    float& operator[](size_t idx) {
-      assert(idx <= 1);
-      return (&x)[idx];
-    }  // We very rarely use this [] operator, assert overhead is fine.
-  };
+        ImVec2(float _x, float _y) {
+          x = _x;
+          y = _y;
+        }
 
-  ::filament::Camera* camera_{};
-  CameraManipulator* cameraManipulator_{};
+        float operator[](size_t idx) const {
+          assert(idx <= 1);
+          return (&x)[idx];
+        } // We very rarely use this [] operator, assert overhead is fine.
 
-  float cameraFocalLength_{};
+        float& operator[](size_t idx) {
+          assert(idx <= 1);
+          return (&x)[idx];
+        } // We very rarely use this [] operator, assert overhead is fine.
+    };
 
-  utils::Entity cameraEntity_;
+    ::filament::Camera* camera_{};
+    CameraManipulator* cameraManipulator_{};
 
-  // Main display size, in pixels (generally == GetMainViewport()->Size)
-  ImVec2 displaySize_;
-  // Amount of pixels for each unit of DisplaySize. Based on
-  // displayFramebufferScale_. Generally (1,1) on normal display, (2,2) on OSX
-  // with Retina display.
-  ImVec2 displayFramebufferScale_;
+    float cameraFocalLength_{};
 
-  Gesture currentGesture_ = Gesture::NONE;
-  TouchPair previousTouch_;
-  std::vector<TouchPair> tentativePanEvents_;
-  std::vector<TouchPair> tentativeOrbitEvents_;
-  std::vector<TouchPair> tentativeZoomEvents_;
+    utils::Entity cameraEntity_;
 
-  std::shared_ptr<Camera> primaryCamera_;
+    // Main display size, in pixels (generally == GetMainViewport()->Size)
+    ImVec2 displaySize_;
+    // Amount of pixels for each unit of DisplaySize. Based on
+    // displayFramebufferScale_. Generally (1,1) on normal display, (2,2) on OSX
+    // with Retina display.
+    ImVec2 displayFramebufferScale_;
 
-  // Used with Camera Inertia / zoom
-  filament::math::float3 currentVelocity_;
-  filament::math::float2 initialTouchPosition_;
+    Gesture currentGesture_ = Gesture::NONE;
+    TouchPair previousTouch_;
+    std::vector<TouchPair> tentativePanEvents_;
+    std::vector<TouchPair> tentativeOrbitEvents_;
+    std::vector<TouchPair> tentativeZoomEvents_;
 
-  ViewTarget* m_poOwner;
+    std::shared_ptr<Camera> primaryCamera_;
 
-  void endGesture();
-  [[nodiscard]] bool isOrbitGesture() const;
-  [[nodiscard]] bool isPanGesture() const;
-  [[nodiscard]] bool isZoomGesture();
+    // Used with Camera Inertia / zoom
+    filament::math::float3 currentVelocity_;
+    filament::math::float2 initialTouchPosition_;
+
+    ViewTarget* m_poOwner;
+
+    void endGesture();
+    [[nodiscard]] bool isOrbitGesture() const;
+    [[nodiscard]] bool isPanGesture() const;
+    [[nodiscard]] bool isZoomGesture();
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

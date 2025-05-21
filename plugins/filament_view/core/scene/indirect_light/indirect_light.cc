@@ -21,19 +21,16 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-IndirectLight::IndirectLight(std::string assetPath,
-                             std::string url,
-                             const float intensity)
-    : assetPath_(std::move(assetPath)),
-      url_(std::move(url)),
-      intensity_(intensity) {}
+IndirectLight::IndirectLight(std::string assetPath, std::string url, const float intensity)
+  : assetPath_(std::move(assetPath)),
+    url_(std::move(url)),
+    intensity_(intensity) {}
 
 ////////////////////////////////////////////////////////////////////////////
 IndirectLight::~IndirectLight() = default;
 
 ////////////////////////////////////////////////////////////////////////////
-std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
-    const flutter::EncodableMap& params) {
+std::unique_ptr<IndirectLight> IndirectLight::Deserialize(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++IndirectLight::Deserialize");
 
   std::optional<int32_t> type;
@@ -42,8 +39,7 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
   std::optional<double> intensity;
 
   for (const auto& [fst, snd] : params) {
-    if (snd.IsNull())
-      continue;
+    if (snd.IsNull()) continue;
 
     if (auto key = std::get<std::string>(fst);
         key == "assetPath" && std::holds_alternative<std::string>(snd)) {
@@ -65,13 +61,11 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(
     switch (type.value()) {
       case 1:
         spdlog::debug("[IndirectLight] Type: KtxIndirectLight");
-        return std::make_unique<KtxIndirectLight>(std::move(assetPath),
-                                                  std::move(url), intensity);
+        return std::make_unique<KtxIndirectLight>(std::move(assetPath), std::move(url), intensity);
 
       case 2:
         spdlog::debug("[IndirectLight] Type: HdrIndirectLight");
-        return std::make_unique<HdrIndirectLight>(std::move(assetPath),
-                                                  std::move(url), intensity);
+        return std::make_unique<HdrIndirectLight>(std::move(assetPath), std::move(url), intensity);
 
       case 3:
         spdlog::debug("[IndirectLight] Type: DefaultIndirectLight");
@@ -103,4 +97,4 @@ void DefaultIndirectLight::DebugPrint(const char* tag) {
   spdlog::debug("\tintensity: {}", intensity_);
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

@@ -22,4 +22,4 @@ static constexpr char KWrapModeClampToEdge[] = "CLAMP_TO_EDGE";
 static constexpr char KWrapModeRepeat[] = "REPEAT";
 static constexpr char KWrapModeMirroredRepeat[] = "MIRRORED_REPEAT";
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

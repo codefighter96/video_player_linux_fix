@@ -64,8 +64,6 @@ void FilamentSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::DebugPrint() {
-  spdlog::debug("{}", __FUNCTION__);
-}
+void FilamentSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

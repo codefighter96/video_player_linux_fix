@@ -114,24 +114,22 @@ void Projection::DebugPrint(const char* tag) {
 ////////////////////////////////////////////////////////////////////////////
 const char* Projection::getTextForType(filament::Camera::Projection type) {
   return (const char*[]){
-      kTypePerspective,
-      kTypeOrtho,
+    kTypePerspective,
+    kTypeOrtho,
   }[static_cast<int>(type)];
 }
 
 ////////////////////////////////////////////////////////////////////////////
-filament::Camera::Projection Projection::getTypeForText(
-    const std::string& type) {
-  if (type == kTypePerspective)
-    return filament::Camera::Projection::PERSPECTIVE;
+filament::Camera::Projection Projection::getTypeForText(const std::string& type) {
+  if (type == kTypePerspective) return filament::Camera::Projection::PERSPECTIVE;
   return filament::Camera::Projection::ORTHO;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 const char* Projection::getTextForFov(filament::Camera::Fov fov) {
   return (const char*[]){
-      kFovVertical,
-      kFovHorizontal,
+    kFovVertical,
+    kFovHorizontal,
   }[static_cast<int>(fov)];
 }
 
@@ -146,4 +144,4 @@ filament::Camera::Fov Projection::getFovForText(const std::string& fov) {
   return filament::Camera::Fov::HORIZONTAL;
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

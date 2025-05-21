@@ -44,22 +44,20 @@ using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape()
-    : m_poVertexBuffer(nullptr),
-      m_poIndexBuffer(nullptr),
-      type_(ShapeType::Unset),
-      m_f3Normal(0, 0, 0),
-      m_poMaterialInstance(
-          Resource<filament::MaterialInstance*>::Error("Unset")) {}
+  : m_poVertexBuffer(nullptr),
+    m_poIndexBuffer(nullptr),
+    type_(ShapeType::Unset),
+    m_f3Normal(0, 0, 0),
+    m_poMaterialInstance(Resource<filament::MaterialInstance*>::Error("Unset")) {}
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::BaseShape(const flutter::EncodableMap& params)
-    : RenderableEntityObject(params),
-      m_poVertexBuffer(nullptr),
-      m_poIndexBuffer(nullptr),
-      type_(ShapeType::Unset),
-      m_f3Normal(0, 0, 0),
-      m_poMaterialInstance(
-          Resource<filament::MaterialInstance*>::Error("Unset")) {
+  : RenderableEntityObject(params),
+    m_poVertexBuffer(nullptr),
+    m_poIndexBuffer(nullptr),
+    type_(ShapeType::Unset),
+    m_f3Normal(0, 0, 0),
+    m_poMaterialInstance(Resource<filament::MaterialInstance*>::Error("Unset")) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
   DeserializeNameAndGlobalGuid(params);
@@ -73,12 +71,9 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
   vAddComponent(std::move(oTransform));
   vAddComponent(std::move(oCommonRenderable));
 
-  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
-                                              ShapeType::Unset);
-  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
-                                          float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params,
-                                          false);
+  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params, ShapeType::Unset);
+  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kDoubleSided, &m_bDoubleSided, params, false);
 
   // if we have collidable data request, we need to build that component, as its
   // optional
@@ -93,8 +88,8 @@ BaseShape::BaseShape(const flutter::EncodableMap& params)
   // (optional)
   if (const auto it = params.find(flutter::EncodableValue(kMaterial));
       it != params.end() && !it->second.IsNull()) {
-    auto materialDefinitions = std::make_shared<MaterialDefinitions>(
-        std::get<flutter::EncodableMap>(it->second));
+    auto materialDefinitions =
+      std::make_shared<MaterialDefinitions>(std::get<flutter::EncodableMap>(it->second));
     vAddComponent(std::move(materialDefinitions));
   }
 
@@ -109,16 +104,15 @@ BaseShape::~BaseShape() {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "BaseShape::vDestroyBuffers"
+  );
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
-  if (m_poMaterialInstance.getStatus() == Status::Success &&
-      m_poMaterialInstance.getData() != nullptr) {
+  if (m_poMaterialInstance.getStatus() == Status::Success
+      && m_poMaterialInstance.getData() != nullptr) {
     filamentEngine->destroy(m_poMaterialInstance.getData().value());
-    m_poMaterialInstance =
-        Resource<filament::MaterialInstance*>::Error("Unset");
+    m_poMaterialInstance = Resource<filament::MaterialInstance*>::Error("Unset");
   }
 
   if (m_poVertexBuffer) {
@@ -144,28 +138,27 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 
   // and now components.
   this->vShallowCopyComponentToOther(BaseTransform::StaticGetTypeID(), other);
-  this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(),
-                                     other);
+  this->vShallowCopyComponentToOther(CommonRenderable::StaticGetTypeID(), other);
 
   const std::shared_ptr<Component> componentBT =
-      GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
+    GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
   const std::shared_ptr<BaseTransform> baseTransformPtr =
-      std::dynamic_pointer_cast<BaseTransform>(componentBT);
+    std::dynamic_pointer_cast<BaseTransform>(componentBT);
 
   const std::shared_ptr<Component> componentCR =
-      GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
+    GetComponentByStaticTypeID(CommonRenderable::StaticGetTypeID());
   const std::shared_ptr<CommonRenderable> commonRenderablePtr =
-      std::dynamic_pointer_cast<CommonRenderable>(componentCR);
+    std::dynamic_pointer_cast<CommonRenderable>(componentCR);
 
   other.m_poBaseTransform = std::weak_ptr<BaseTransform>(baseTransformPtr);
-  other.m_poCommonRenderable =
-      std::weak_ptr<CommonRenderable>(commonRenderablePtr);
+  other.m_poCommonRenderable = std::weak_ptr<CommonRenderable>(commonRenderablePtr);
 }
+
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
-  const auto materialSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
-          MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+  const auto materialSystem = ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
+    MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable"
+  );
 
   if (materialSystem == nullptr) {
     spdlog::error("Failed to get material system.");
@@ -174,10 +167,11 @@ void BaseShape::vLoadMaterialDefinitionsToMaterialInstance() {
     // the material param list
 
     const auto materialDefinitions =
-        GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
+      GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
     if (materialDefinitions != nullptr) {
       m_poMaterialInstance = materialSystem->getMaterialInstance(
-          dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
+        dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get())
+      );
     }
 
     if (m_poMaterialInstance.getStatus() != Status::Success) {
@@ -195,32 +189,32 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
-        //.material(0, m_poMaterialInstance.getData().value())
-        .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
-                  m_poIndexBuffer)
-        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
-        .receiveShadows(false)
-        .castShadows(false)
-        .build(*engine_, *m_poEntity);
+      .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
+      //.material(0, m_poMaterialInstance.getData().value())
+      .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer, m_poIndexBuffer)
+      .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
+      .receiveShadows(false)
+      .castShadows(false)
+      .build(*engine_, *m_poEntity);
   } else {
     vLoadMaterialDefinitionsToMaterialInstance();
 
     RenderableManager::Builder(1)
-        .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
-        .material(0, m_poMaterialInstance.getData().value())
-        .geometry(0, RenderableManager::PrimitiveType::TRIANGLES,
-                  m_poVertexBuffer, m_poIndexBuffer)
-        .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
-        .receiveShadows(m_poCommonRenderable.lock()->IsReceiveShadowsEnabled())
-        .castShadows(m_poCommonRenderable.lock()->IsCastShadowsEnabled())
-        .build(*engine_, *m_poEntity);
+      .boundingBox({{}, m_poBaseTransform.lock()->GetExtentsSize()})
+      .material(0, m_poMaterialInstance.getData().value())
+      .geometry(0, RenderableManager::PrimitiveType::TRIANGLES, m_poVertexBuffer, m_poIndexBuffer)
+      .culling(m_poCommonRenderable.lock()->IsCullingOfObjectEnabled())
+      .receiveShadows(m_poCommonRenderable.lock()->IsReceiveShadowsEnabled())
+      .castShadows(m_poCommonRenderable.lock()->IsCastShadowsEnabled())
+      .build(*engine_, *m_poEntity);
   }
 
   EntityTransforms::vApplyTransform(
-      m_poEntity, m_poBaseTransform.lock()->GetRotation(),
-      m_poBaseTransform.lock()->GetScale(),
-      m_poBaseTransform.lock()->GetCenterPosition());
+    m_poEntity,
+    m_poBaseTransform.lock()->GetRotation(),
+    m_poBaseTransform.lock()->GetScale(),
+    m_poBaseTransform.lock()->GetCenterPosition()
+  );
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal
@@ -230,15 +224,13 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vRemoveEntityFromScene() const {
   if (m_poEntity == nullptr) {
-    SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}",
-                __FUNCTION__);
+    SPDLOG_WARN("Attempt to remove uninitialized shape from scene {}", __FUNCTION__);
     return;
   }
 
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
-          "BaseShape::vRemoveEntityFromScene");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene"
+  );
 
   filamentSystem->getFilamentScene()->removeEntities(m_poEntity.get(), 1);
 }
@@ -250,25 +242,20 @@ void BaseShape::vAddEntityToScene() const {
     return;
   }
 
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
-          "BaseShape::vRemoveEntityFromScene");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "BaseShape::vRemoveEntityFromScene"
+  );
   filamentSystem->getFilamentScene()->addEntity(*m_poEntity);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::DebugPrint() const {
-  vDebugPrintComponents();
-}
+void BaseShape::DebugPrint() const { vDebugPrintComponents(); }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::DebugPrint(const char* tag) const {
   spdlog::debug("++++++++ (Shape) ++++++++");
-  spdlog::debug("Tag {} Type {} Wireframe {}", tag, static_cast<int>(type_),
-                m_bIsWireframe);
-  spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y,
-                m_f3Normal.z);
+  spdlog::debug("Tag {} Type {} Wireframe {}", tag, static_cast<int>(type_), m_bIsWireframe);
+  spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y, m_f3Normal.z);
 
   spdlog::debug("Double Sided: {}", m_bDoubleSided);
 
@@ -279,8 +266,9 @@ void BaseShape::DebugPrint(const char* tag) const {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vChangeMaterialDefinitions(
-    const flutter::EncodableMap& params,
-    const TextureMap& /*loadedTextures*/) {
+  const flutter::EncodableMap& params,
+  const TextureMap& /*loadedTextures*/
+) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
   if (HasComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID())) {
@@ -303,40 +291,37 @@ void BaseShape::vChangeMaterialDefinitions(
   vLoadMaterialDefinitionsToMaterialInstance();
 
   if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error(
-        "Unable to load material definition to instance, bailing out.");
+    spdlog::error("Unable to load material definition to instance, bailing out.");
     return;
   }
 
   // now, reload / rebuild the material?
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
-          "BaseShape::vChangeMaterialDefinitions");
+  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+    FilamentSystem::StaticGetTypeID(), "BaseShape::vChangeMaterialDefinitions"
+  );
 
   // If your entity has multiple primitives, you’ll need to call
   // setMaterialInstanceAt for each primitive you want to update.
-  auto& renderManager =
-      filamentSystem->getFilamentEngine()->getRenderableManager();
+  auto& renderManager = filamentSystem->getFilamentEngine()->getRenderableManager();
   const auto instanceToChange = renderManager.getInstance(*m_poEntity);
-  renderManager.setMaterialInstanceAt(instanceToChange, 0,
-                                      *m_poMaterialInstance.getData());
+  renderManager.setMaterialInstanceAt(instanceToChange, 0, *m_poMaterialInstance.getData());
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vChangeMaterialInstanceProperty(
-    const MaterialParameter* materialParam,
-    const TextureMap& loadedTextures) {
+  const MaterialParameter* materialParam,
+  const TextureMap& loadedTextures
+) {
   const auto data = m_poMaterialInstance.getData().value();
 
   const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID()).get());
+    GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID()).get()
+  );
   if (matDefs == nullptr) {
     return;
   }
 
-  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam,
-                                                         loadedTextures);
+  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
 }
 
-}  // namespace plugin_filament_view::shapes
+} // namespace plugin_filament_view::shapes

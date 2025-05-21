@@ -25,75 +25,85 @@
 namespace plugin_filament_view {
 
 class Skybox {
- public:
-  Skybox(std::string assetPath, std::string url, std::string color);
+  public:
+    Skybox(std::string assetPath, std::string url, std::string color);
 
-  virtual ~Skybox() = default;
+    virtual ~Skybox() = default;
 
-  static std::unique_ptr<Skybox> Deserialize(
-      const flutter::EncodableMap& params);
+    static std::unique_ptr<Skybox> Deserialize(const flutter::EncodableMap& params);
 
-  [[nodiscard]] const std::string& getAssetPath() const { return assetPath_; }
+    [[nodiscard]] const std::string& getAssetPath() const { return assetPath_; }
 
-  [[nodiscard]] const std::string& getUrl() const { return url_; }
+    [[nodiscard]] const std::string& getUrl() const { return url_; }
 
-  [[nodiscard]] const std::string& getColor() const { return color_; }
+    [[nodiscard]] const std::string& getColor() const { return color_; }
 
-  [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
-  [[nodiscard]] std::string szGetURLPath() const { return url_; }
-  [[nodiscard]] std::string szGetColor() const { return color_; }
+    [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
 
- protected:
-  std::string assetPath_;
-  std::string url_;
-  std::string color_;
+    [[nodiscard]] std::string szGetURLPath() const { return url_; }
+
+    [[nodiscard]] std::string szGetColor() const { return color_; }
+
+  protected:
+    std::string assetPath_;
+    std::string url_;
+    std::string color_;
 };
 
 class HdrSkybox final : public Skybox {
- public:
-  explicit HdrSkybox(std::optional<std::string> assetPath,
-                     std::optional<std::string> url,
-                     std::optional<bool> showSun)
-      : Skybox(assetPath.has_value() ? std::move(assetPath.value()) : "",
-               url.has_value() ? std::move(url.value()) : "",
-               ""),
+  public:
+    explicit HdrSkybox(
+      std::optional<std::string> assetPath,
+      std::optional<std::string> url,
+      std::optional<bool> showSun
+    )
+      : Skybox(
+          assetPath.has_value() ? std::move(assetPath.value()) : "",
+          url.has_value() ? std::move(url.value()) : "",
+          ""
+        ),
         showSun_(showSun.has_value() ? showSun.value() : false) {}
 
-  ~HdrSkybox() override = default;
+    ~HdrSkybox() override = default;
 
-  [[nodiscard]] bool getShowSun() const { return showSun_; };
+    [[nodiscard]] bool getShowSun() const { return showSun_; };
 
-  friend class SceneController;
+    friend class SceneController;
 
- private:
-  bool showSun_;
+  private:
+    bool showSun_;
 };
 
 class KxtSkybox final : public Skybox {
- public:
-  explicit KxtSkybox(std::optional<std::string> assetPath,
-                     std::optional<std::string> url)
-      : Skybox(assetPath.has_value() ? std::move(assetPath.value()) : "",
-               url.has_value() ? std::move(url.value()) : "",
-               "") {}
+  public:
+    explicit KxtSkybox(std::optional<std::string> assetPath, std::optional<std::string> url)
+      : Skybox(
+          assetPath.has_value() ? std::move(assetPath.value()) : "",
+          url.has_value() ? std::move(url.value()) : "",
+          ""
+        ) {}
 
-  ~KxtSkybox() override = default;
+    ~KxtSkybox() override = default;
 
-  friend class SceneController;
+    friend class SceneController;
 };
 
 class ColorSkybox final : public Skybox {
- public:
-  explicit ColorSkybox(std::optional<std::string> assetPath,
-                       std::optional<std::string> url,
-                       std::optional<std::string> color)
-      : Skybox(assetPath.has_value() ? std::move(assetPath.value()) : "",
-               url.has_value() ? std::move(url.value()) : "",
-               color.has_value() ? std::move(color.value()) : "") {}
+  public:
+    explicit ColorSkybox(
+      std::optional<std::string> assetPath,
+      std::optional<std::string> url,
+      std::optional<std::string> color
+    )
+      : Skybox(
+          assetPath.has_value() ? std::move(assetPath.value()) : "",
+          url.has_value() ? std::move(url.value()) : "",
+          color.has_value() ? std::move(color.value()) : ""
+        ) {}
 
-  ~ColorSkybox() override = default;
+    ~ColorSkybox() override = default;
 
-  friend class SceneController;
+    friend class SceneController;
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

@@ -27,8 +27,7 @@ namespace plugin_filament_view {
 TextureSampler::TextureSampler(const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++TextureSampler::TextureSampler");
   for (const auto& [fst, snd] : params) {
-    if (snd.IsNull())
-      continue;
+    if (snd.IsNull()) continue;
 
     auto key = std::get<std::string>(fst);
     if (key == "min" && std::holds_alternative<std::string>(snd)) {
@@ -153,4 +152,4 @@ void TextureSampler::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
 }
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

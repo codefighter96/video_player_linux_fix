@@ -23,63 +23,54 @@
 namespace plugin_filament_view {
 
 class BaseTransform : public Component {
- public:
-  // Constructor
-  BaseTransform()
+  public:
+    // Constructor
+    BaseTransform()
       : Component(std::string(__FUNCTION__)),
         m_f3CenterPosition(0, 0, 0),
         m_f3ExtentsSize(0, 0, 0),
         m_f3Scale(1, 1, 1),
         m_quatRotation(0, 0, 0, 1) {}
-  explicit BaseTransform(const flutter::EncodableMap& params);
 
-  // Getters
-  [[nodiscard]] const filament::math::float3& GetCenterPosition() const {
-    return m_f3CenterPosition;
-  }
+    explicit BaseTransform(const flutter::EncodableMap& params);
 
-  [[nodiscard]] const filament::math::float3& GetExtentsSize() const {
-    return m_f3ExtentsSize;
-  }
+    // Getters
+    [[nodiscard]] const filament::math::float3& GetCenterPosition() const {
+      return m_f3CenterPosition;
+    }
 
-  [[nodiscard]] const filament::math::float3& GetScale() const {
-    return m_f3Scale;
-  }
+    [[nodiscard]] const filament::math::float3& GetExtentsSize() const { return m_f3ExtentsSize; }
 
-  [[nodiscard]] const filament::math::quatf& GetRotation() const {
-    return m_quatRotation;
-  }
+    [[nodiscard]] const filament::math::float3& GetScale() const { return m_f3Scale; }
 
-  // Setters
-  void SetCenterPosition(const filament::math::float3& centerPosition) {
-    m_f3CenterPosition = centerPosition;
-  }
+    [[nodiscard]] const filament::math::quatf& GetRotation() const { return m_quatRotation; }
 
-  void SetExtentsSize(const filament::math::float3& extentsSize) {
-    m_f3ExtentsSize = extentsSize;
-  }
+    // Setters
+    void SetCenterPosition(const filament::math::float3& centerPosition) {
+      m_f3CenterPosition = centerPosition;
+    }
 
-  void SetScale(const filament::math::float3& scale) { m_f3Scale = scale; }
+    void SetExtentsSize(const filament::math::float3& extentsSize) {
+      m_f3ExtentsSize = extentsSize;
+    }
 
-  void SetRotation(const filament::math::quatf& rotation) {
-    m_quatRotation = rotation;
-  }
+    void SetScale(const filament::math::float3& scale) { m_f3Scale = scale; }
 
-  void DebugPrint(const std::string& tabPrefix) const override;
+    void SetRotation(const filament::math::quatf& rotation) { m_quatRotation = rotation; }
 
-  static size_t StaticGetTypeID() { return typeid(BaseTransform).hash_code(); }
+    void DebugPrint(const std::string& tabPrefix) const override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    static size_t StaticGetTypeID() { return typeid(BaseTransform).hash_code(); }
 
-  [[nodiscard]] Component* Clone() const override {
-    return new BaseTransform(*this);
-  }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
- private:
-  filament::math::float3 m_f3CenterPosition;
-  filament::math::float3 m_f3ExtentsSize;
-  filament::math::float3 m_f3Scale;
-  filament::math::quatf m_quatRotation;
+    [[nodiscard]] Component* Clone() const override { return new BaseTransform(*this); }
+
+  private:
+    filament::math::float3 m_f3CenterPosition;
+    filament::math::float3 m_f3ExtentsSize;
+    filament::math::float3 m_f3Scale;
+    filament::math::quatf m_quatRotation;
 };
 
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view

@@ -30,45 +30,43 @@ class BaseShape;
 }
 
 class ShapeSystem : public ECSystem {
- public:
-  ShapeSystem() = default;
+  public:
+    ShapeSystem() = default;
 
-  void addShapesToScene(
-      std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
+    void addShapesToScene(std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
 
-  // Disallow copy and assign.
-  ShapeSystem(const ShapeSystem&) = delete;
-  ShapeSystem& operator=(const ShapeSystem&) = delete;
+    // Disallow copy and assign.
+    ShapeSystem(const ShapeSystem&) = delete;
+    ShapeSystem& operator=(const ShapeSystem&) = delete;
 
-  // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(bool bValue) const;
-  void vToggleSingleShapeInScene(const std::string& szGUID, bool bValue) const;
+    // will add/remove already made entities to/from the scene
+    void vToggleAllShapesInScene(bool bValue) const;
+    void vToggleSingleShapeInScene(const std::string& szGUID, bool bValue) const;
 
-  void vRemoveAllShapesInScene();
+    void vRemoveAllShapesInScene();
 
-  // Creates the derived class of BaseShape based on the map data sent in, does
-  // not add it to any list only returns the shape for you, Also does not build
-  // the data out, only stores it for building when ready.
-  static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
-      const flutter::EncodableMap& mapData);
+    // Creates the derived class of BaseShape based on the map data sent in, does
+    // not add it to any list only returns the shape for you, Also does not build
+    // the data out, only stores it for building when ready.
+    static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
+      const flutter::EncodableMap& mapData
+    );
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ShapeSystem).hash_code();
-  }
+    [[nodiscard]] static size_t StaticGetTypeID() { return typeid(ShapeSystem).hash_code(); }
 
-  void vInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  static void vRemoveAndReaddShapeToCollisionSystem(
+  private:
+    static void vRemoveAndReaddShapeToCollisionSystem(
       const EntityGUID& guid,
-      const std::shared_ptr<shapes::BaseShape>& shape);
+      const std::shared_ptr<shapes::BaseShape>& shape
+    );
 
-  std::map<EntityGUID, std::shared_ptr<shapes::BaseShape>>
-      m_mapszoShapes;  // NOLINT
+    std::map<EntityGUID, std::shared_ptr<shapes::BaseShape>> m_mapszoShapes; // NOLINT
 };
-}  // namespace plugin_filament_view
+} // namespace plugin_filament_view
