@@ -11,3 +11,4 @@ docs/source/_static/*
 docs/source/_templates/*
 
 plugins/webview_flutter_view/third_party
+clang-format-files
