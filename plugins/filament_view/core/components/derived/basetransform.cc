@@ -29,7 +29,7 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
       local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
       global({kMat4fIdentity}) {
 
-  spdlog::debug("BaseTransform::BaseTransform");
+  spdlog::trace("BaseTransform::BaseTransform");
   Deserialize::DecodeParameterWithDefault(kPosition, &(local.position),
                                           params,
                                           kFloat3Zero);
@@ -39,9 +39,6 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
                                           kQuatfIdentity);
   Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params,
                                                kNullGuid);
-
-  spdlog::debug("we done");
-  DebugPrint("BT -> ");
 }
 
 ////////////////////////////////////////////////////////////////////////////

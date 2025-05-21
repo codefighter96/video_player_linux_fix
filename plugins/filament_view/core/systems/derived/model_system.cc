@@ -76,8 +76,8 @@ void ModelSystem::createModelInstance(
   );
 
   const auto assetPath = model->getAssetPath();
-  spdlog::debug("\nModelSystem::createModelInstance: {}", assetPath);
-  spdlog::debug("instance mode: {}",
+  spdlog::trace("\nModelSystem::createModelInstance: {}", assetPath);
+  spdlog::trace("instance mode: {}",
                 modelInstancingModeToString(model->getInstancingMode()));
 
 
@@ -92,7 +92,7 @@ void ModelSystem::createModelInstance(
   // check if instanceable (primary) is loaded
   const auto instancedModelData = _assets[assetPath];
   if (instancedModelData.state != AssetLoadingState::unset) {
-    spdlog::debug("Primary confirmed loaded");
+    spdlog::trace("Primary confirmed loaded");
     asset = instancedModelData.asset;
     runtime_assert(
       asset != nullptr,
@@ -101,7 +101,7 @@ void ModelSystem::createModelInstance(
 
     // if the asset is not instanceable, it will return nullptr
     assetInstance = assetLoader_->createInstance(asset);
-    spdlog::debug("Asset instance created!");
+    spdlog::trace("Asset instance created!");
     // if not nullptr, it means it's a valid secondary instance
   } else {
     throw std::runtime_error(
@@ -111,7 +111,7 @@ void ModelSystem::createModelInstance(
 
   // instance / secondary object.
   // asset loaded, 
-  spdlog::debug("HAS INSTANCE");
+  spdlog::trace("HAS INSTANCE");
   model->setAssetInstance(assetInstance);
 
   // by this point we should either have a subinstance, or THE primary instance
@@ -195,7 +195,7 @@ void ModelSystem::addModelToScene(
   /*
    *  Renderable setup
    */
-  spdlog::debug("  Setting up renderables...");
+  spdlog::trace("  Setting up renderables...");
 
   utils::Slice const renderables{
     modelEntities,
@@ -203,18 +203,18 @@ void ModelSystem::addModelToScene(
   };
 
   if(instancingMode == ModelInstancingMode::primary) {
-    spdlog::debug("  Model({}) is primary, not adding to scene", modelGuid);
+    spdlog::trace("  Model({}) is primary, not adding to scene", modelGuid);
     return;
   }
 
   // Add to ECS
-  spdlog::debug("[{}] Adding model({}) to ECS", __FUNCTION__, modelGuid);
+  spdlog::trace("  Adding model({}) to ECS", __FUNCTION__, modelGuid);
   ecs->addEntity(model);
 
 
   FilamentEntity instanceEntity = assetInstance->getRoot();
   model->_fEntity = instanceEntity;
-  spdlog::debug("  Adding model[{}]->({}) to Filament scene", instanceEntity.getId(), modelGuid);
+  spdlog::trace("  Adding model[{}]->({}) to Filament scene", instanceEntity.getId(), modelGuid);
   _filament->getFilamentScene()->addEntity(instanceEntity);
   model->_childrenEntities[instanceEntity] = modelGuid;
   
@@ -233,9 +233,9 @@ void ModelSystem::addModelToScene(
   }
 
   // Set up transform parenting (needs to be done after renderable setup)
-  spdlog::debug("Setting up transform parenting for model({})", modelGuid);
+  spdlog::trace("  Setting up transform parenting for model({})", modelGuid);
   for (auto& [childEntity, childGuid] : model->_childrenEntities) {
-    spdlog::debug(
+    spdlog::trace(
       "  child[{}]->({}) {}",
       childEntity.getId(), childGuid, childGuid == modelGuid ? "(is model!)" : ""
     );
@@ -248,7 +248,7 @@ void ModelSystem::addModelToScene(
     const FilamentEntity parentEntity = _tm->getParent(childInstance);
     const EntityGUID parentGuid = model->_childrenEntities[parentEntity];
     
-    spdlog::debug(
+    spdlog::trace(
       "    has parent[{}]->({})",
       parentEntity.getId(), parentGuid
     );
@@ -317,7 +317,7 @@ void ModelSystem::setupRenderable(
   const auto child = std::make_shared<RenderableEntityObject>();
   child->_fEntity = fEntity;
   child->name_ = asset->getName(fEntity);
-  spdlog::debug("  Creating child entity '{}'({})->[{}] of '{}'({})",
+  spdlog::trace("  Creating child entity '{}'({})->[{}] of '{}'({})",
                 child->GetName(), child->GetGuid(), fEntity.getId(),
                 model->GetName(), model->GetGuid());
   model->_childrenEntities[fEntity] = child->GetGuid();
@@ -329,7 +329,7 @@ void ModelSystem::setupRenderable(
   ///       because it's still valid for parenting reasons.
   const auto ti = _tm->getInstance(fEntity);
   if(!ti.isValid()) {
-    spdlog::warn("[{}] Skipping fentity {} of model({}), has no transform",
+    spdlog::trace("[{}] Skipping fentity {} of model({}), has no transform",
       __FUNCTION__, fEntity.getId(), model->GetGuid());
     return;
   }
@@ -339,13 +339,17 @@ void ModelSystem::setupRenderable(
   transform._fInstance = ti;
   transform.SetTransform(_tm->getTransform(ti));
   auto parentEntity = _tm->getParent(ti);
-  spdlog::debug("  Parent entity: [{}]", parentEntity.getId());
-  transform.DebugPrint("  ");
+
+  spdlog::trace("  Parent entity: [{}]", parentEntity.getId());
+  #if SPDLOG_LEVEL == trace
+  // transform.DebugPrint("  ");
+  #endif
+
   child->addComponent(transform);
 
   const auto ri = _rcm->getInstance(fEntity);
   if(!ri.isValid()) {
-    spdlog::warn("[{}] Skipping fentity {} of model({}), has no renderable",
+    spdlog::trace("[{}] Skipping fentity {} of model({}), has no renderable",
       __FUNCTION__, fEntity.getId(), model->GetGuid());
 
     ecs->addEntity(child);
@@ -385,7 +389,7 @@ void ModelSystem::setupRenderable(
       const auto& touchEvent = doc[kTouchEventProp];
       // type: string (event name)
       const auto& eventName = touchEvent.GetString();
-      spdlog::debug("  Has '{}'! Value: {}", kTouchEventProp, eventName);
+      spdlog::trace("  Has '{}'! Value: {}", kTouchEventProp, eventName);
 
       // check if is a perfect cube (with epsilon = 0.01)
       // constexpr float epsilon = 0.01f;
@@ -395,7 +399,7 @@ void ModelSystem::setupRenderable(
       // const float sizeZ = aabb.halfExtent.z * 2;
       // const bool isCube = std::abs(sizeX - sizeY) < epsilon &&
       //                     std::abs(sizeY - sizeZ) < epsilon;
-      // spdlog::debug("isCube: {}", isCube);
+      // spdlog::trace("isCube: {}", isCube);
 
       AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
 
@@ -409,7 +413,7 @@ void ModelSystem::setupRenderable(
       //                                   ShapeType::Sphere);
       child->addComponent(collidable);
 
-      spdlog::debug("  Model child collidable setup complete");
+      spdlog::trace("  Model child collidable setup complete");
     }
 
   } catch (const std::exception& e) {
@@ -437,7 +441,7 @@ void ModelSystem::updateAsyncAssetLoading() {
   resourceLoader_->asyncUpdateLoad();
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
   if (percentComplete != 1.0f) {
-    spdlog::debug(
+    spdlog::trace(
       "[{}] Model async loading progress: {}%",
       __FUNCTION__, percentComplete * 100.0f
     );
@@ -474,20 +478,20 @@ void ModelSystem::updateAsyncAssetLoading() {
           continue;
         }
 
-        // load the model
-        spdlog::debug("Loading model: {}", model->getAssetPath());
+        // Add model to scene
+        spdlog::debug("Loaded, adding model to scene: '{}'({})", model->getAssetPath(), modelGuid);
 
         switch(model->getInstancingMode()) {
           case ModelInstancingMode::primary:
-            spdlog::debug("Model is primary, updating transform but not adding to scene");
+            spdlog::trace("Model is primary, updating transform but not adding to scene");
             break;
           case ModelInstancingMode::secondary:
             // load the model as an instance
-            spdlog::debug("Loading model as instance: {}", model->getAssetPath());
+            spdlog::trace("Loading model as instance: {}", model->getAssetPath());
             createModelInstance(model.get());
-            spdlog::debug("Model instanced, adding to scene...");
+            spdlog::trace("Model instanced, adding to scene...");
             addModelToScene(modelGuid);
-            spdlog::debug("Model added to scene! Yay!");
+            spdlog::trace("Model added to scene! Yay!");
 
             // Set up collidable children
             // for (const auto entity : collidableChildren) {
@@ -496,7 +500,7 @@ void ModelSystem::updateAsyncAssetLoading() {
             break;
           case ModelInstancingMode::none:
             // load the model as a single object
-            spdlog::debug("Loading model as single object: {}", model->getAssetPath());
+            spdlog::trace("Loading model as single object: {}", model->getAssetPath());
             addModelToScene(modelGuid);
             break;
         }
@@ -512,7 +516,7 @@ void ModelSystem::updateAsyncAssetLoading() {
 void ModelSystem::queueModelLoad(
   std::shared_ptr<Model> model
 ) {
-  spdlog::debug("Queueing model({}) load (instance mode: {}) -> {}", 
+  spdlog::trace("Queueing model({}) load (instance mode: {}) -> {}", 
     model->GetGuid(),
     modelInstancingModeToString(model->getInstancingMode()),
     model->getAssetPath()
@@ -535,7 +539,7 @@ void ModelSystem::queueModelLoad(
         _models[modelGuid] = std::move(model);
         assetData.loadingInstances.emplace_back(modelGuid);
 
-        spdlog::debug("Asset unset: queued for loading.");
+        spdlog::trace("  Asset unset: queued for loading.");
         loadModelFromFile(
           modelGuid,
           baseAssetPath
@@ -553,14 +557,14 @@ void ModelSystem::queueModelLoad(
         } else {
           assetData.loadingInstances.emplace_back(modelGuid);
         }
-        spdlog::debug("Asset loading: model queued for loading.");
+        spdlog::trace("  Asset loading: model queued for loading.");
         return;
       /// Loaded: asset in memory, can instance
       case AssetLoadingState::loaded:
         // add model to asset's loading queue
         _models[modelGuid] = std::move(model);
         assetData.loadingInstances.emplace_back(modelGuid);
-        spdlog::debug("Asset loaded: model queued for instancing.");
+        spdlog::trace("  Asset loaded: model queued for instancing.");
         return;
       /// Error: asset failed to load
       case AssetLoadingState::error:
@@ -583,11 +587,11 @@ void ModelSystem::loadModelFromFile(
   EntityGUID modelGuid,
   const std::string baseAssetPath
 ) {
-  spdlog::debug("++ loadModelFromFile");
+  spdlog::trace("++ loadModelFromFile");
 
   const auto& strand = *ecs->GetStrand();
   post(strand, [&, modelGuid, baseAssetPath]() mutable {
-    spdlog::debug("++ loadModelFromFile (lambda), model guid: {}", modelGuid);
+    spdlog::trace("++ loadModelFromFile (lambda), model guid: {}", modelGuid);
     // Get model
     std::shared_ptr<Model> model = _models[modelGuid];
     if (model == nullptr) {
@@ -598,11 +602,11 @@ void ModelSystem::loadModelFromFile(
 
     try {
       const auto assetPath = model->getAssetPath();
-      spdlog::debug("Loading model from assetPath: {}", assetPath);
+      spdlog::trace("Loading model from assetPath: {}", assetPath);
 
       // Read the file and handle buffer
       const auto buffer = readBinaryFile(assetPath, baseAssetPath);
-      spdlog::debug("handleFile");
+      spdlog::trace("handleFile");
       if (!buffer.empty()) {
         // Load GLB asset
 
@@ -617,15 +621,15 @@ void ModelSystem::loadModelFromFile(
           buffer.data(),
           static_cast<uint32_t>(buffer.size())
         );
-        spdlog::debug("[loadModelFromFile] asyncBeginLoad");
+        spdlog::trace("[loadModelFromFile] asyncBeginLoad");
         resourceLoader_->asyncBeginLoad(asset);
         model->setAsset(asset);
         _assets[assetPath].asset = asset; // important! if not set, secondaries cannot be created
 
         // release source data
         if(model->getInstancingMode() == ModelInstancingMode::none) {
-          spdlog::debug("[loadModelFromFile] Non-secondary loaded: releasing source data");
-          // asset->releaseSourceData(); // TODO: do we also call this for primaries after instancing?
+          spdlog::trace("[loadModelFromFile] Non-secondary loaded: releasing source data");
+          asset->releaseSourceData(); // TODO: do we also call this for primaries after instancing?
         }
 
         assetInstance = asset->getInstance();
@@ -636,7 +640,7 @@ void ModelSystem::loadModelFromFile(
 
         model->setAssetInstance(assetInstance);
     
-        spdlog::info("Loaded glb model successfully from {}", assetPath);
+        spdlog::debug("Loaded glb model successfully from {}", assetPath);
       } else {
         spdlog::error("Couldn't load glb model from {}", assetPath);
       }
@@ -675,7 +679,7 @@ void ModelSystem::vOnInitSystem() {
   runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
   runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
 
-  spdlog::debug("[{}] loaded filament systems", __FUNCTION__);
+  spdlog::trace("[{}] loaded filament systems", __FUNCTION__);
 
   materialProvider_ = filament::gltfio::createUbershaderProvider(
       _engine, UBERARCHIVE_DEFAULT_DATA,
@@ -725,7 +729,7 @@ void ModelSystem::vOnInitSystem() {
           transform->SetPosition(position);
         }
 
-        SPDLOG_TRACE("ChangeTranslationByGUID Complete");
+        spdlog::trace("ChangeTranslationByGUID Complete");
       });
 
   // ChangeRotationByGUID
@@ -750,7 +754,7 @@ void ModelSystem::vOnInitSystem() {
           transform->SetRotation(rotation);
         }
 
-        SPDLOG_TRACE("ChangeRotationByGUID Complete");
+        spdlog::trace("ChangeRotationByGUID Complete");
       });
 
   // ChangeScaleByGUID
@@ -774,7 +778,7 @@ void ModelSystem::vOnInitSystem() {
           transform->SetScale(values);
         }
 
-        SPDLOG_TRACE("ChangeScaleByGUID Complete");
+        spdlog::trace("ChangeScaleByGUID Complete");
       });
 
   vRegisterMessageHandler(
@@ -812,7 +816,7 @@ void ModelSystem::vOnInitSystem() {
           }
         }
 
-        spdlog::debug("ToggleVisualForEntity Complete");
+        spdlog::trace("ToggleVisualForEntity Complete");
       });
 }
 

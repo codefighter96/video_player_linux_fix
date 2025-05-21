@@ -65,7 +65,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       key == kModels &&
       std::holds_alternative<flutter::EncodableList>(snd)
     ) {
-      SPDLOG_TRACE("Loading Multiple Models {}", key);
+      spdlog::debug("===== Deserializing Multiple Models {} ...", key);
 
       auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& iter : list) {
@@ -73,8 +73,6 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           spdlog::warn("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-
-        spdlog::debug("===== Deserializing Multiple Models {} ...", key);
         auto deserializedModel = Model::Deserialize(std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model");
@@ -90,13 +88,13 @@ void SceneTextDeserializer::vDeserializeRootLevel(
                std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
 
+      spdlog::debug("===== Deserializing multiple Shapes {} ...", key);
       for (const auto& iter : list) {
         if (iter.IsNull()) {
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
 
-        spdlog::debug("===== Deserializing Shape {} ...", key);
         auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
             std::get<flutter::EncodableMap>(iter));
 
@@ -179,18 +177,18 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vRunPostSetupLoad() {
-  spdlog::debug("setUpLoadingModels");
+  spdlog::trace("setUpLoadingModels");
   setUpLoadingModels();
-  spdlog::debug("setUpSkybox");
+  spdlog::trace("setUpSkybox");
   setUpSkybox();
-  spdlog::debug("setUpLights");
+  spdlog::trace("setUpLights");
   setUpLights();
-  spdlog::debug("setUpIndirectLight");
+  spdlog::trace("setUpIndirectLight");
   setUpIndirectLight();
-  spdlog::debug("setUpShapes");
+  spdlog::trace("setUpShapes");
   setUpShapes();
 
-  spdlog::debug("setups done!");
+  spdlog::trace("setups done!");
 
   // note Camera* is deleted on the other side, freeing up the memory.
   ECSMessage viewTargetCameraSet;
@@ -221,7 +219,7 @@ void SceneTextDeserializer::setUpLoadingModels() {
 void SceneTextDeserializer::setUpShapes() {
   spdlog::debug("{} {}", __FUNCTION__, __LINE__);
 
-  spdlog::debug("getting systems");
+  spdlog::trace("getting systems");
   const auto shapeSystem =
       _ecs->getSystem<ShapeSystem>(
           "setUpShapes");
@@ -235,17 +233,17 @@ void SceneTextDeserializer::setUpShapes() {
   }
 
   for (const auto& shape : shapes_) {
-    spdlog::debug("Adding shape to scene {}", shape->GetGuid());
+    spdlog::trace("Adding shape to scene {}", shape->GetGuid());
     _ecs->addEntity(shape);
     /// TODO: fix shape collidables
-    // spdlog::debug("Adding collidable...");
+    // spdlog::trace("Adding collidable...");
     // if (shape->hasComponent<Collidable>()) {
-    //   spdlog::debug("Shape {} has collidable! Adding to collision system", shape->GetGuid());
+    //   spdlog::trace("Shape {} has collidable! Adding to collision system", shape->GetGuid());
     //   if (collisionSystem != nullptr) {
     //     collisionSystem->vAddCollidable(shape.get());
     //   }
     // }
-    // spdlog::debug("Collidable added!");
+    // spdlog::trace("Collidable added!");
   }
 
   spdlog::debug("Shape setup done, adding to scene");
@@ -276,7 +274,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
       spdlog::error("Model has no asset path, unable to load");
     }
 
-    spdlog::debug("[loadModel] Model {} queued for loading",
+    spdlog::trace("[loadModel] Model {} queued for loading",
                   glb_model->getAssetPath());
   });
 }

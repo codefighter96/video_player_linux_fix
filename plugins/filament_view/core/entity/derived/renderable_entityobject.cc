@@ -28,20 +28,20 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
   EntityObject::deserializeFrom(params);
 
   // Transform (required)
-  spdlog::debug("Making Transform...");
+  spdlog::trace("Making Transform...");
   addComponent(BaseTransform(params));
 
   // CommonRenderable (required)
-  spdlog::debug("Making CommonRenderable...");
+  spdlog::trace("Making CommonRenderable...");
   addComponent(CommonRenderable(params));
 
   // Collidable (optional)
-  spdlog::debug("Making Collidable...");
+  spdlog::trace("Making Collidable...");
   if (const auto it = params.find(flutter::EncodableValue(kCollidable));
       it != params.end() && !it->second.IsNull()) {
     addComponent(Collidable(params));
   } else {
-    spdlog::debug("This entity params has no collidable");
+    spdlog::trace("  This entity params has no collidable");
   }
 } // namespace plugin_filament_view
 
@@ -99,7 +99,7 @@ AABB RenderableEntityObject::getAABB() const {
   const auto& rcm = engine->getRenderableManager();
 
   auto box = rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
-  spdlog::debug(
+  spdlog::trace(
     "[{}] Entity({}) has AABB.scale: x={}, y={}, z={}",
     __FUNCTION__, guid_,
     box.halfExtent.x * 2,

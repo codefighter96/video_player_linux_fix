@@ -81,7 +81,7 @@ void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
   if(!isInitialized()) {
-    spdlog::debug("EntityObject '{}'({}) is not initialized 0 components", name_, guid_);
+    spdlog::debug("EntityObject '{}'({}) is not initialized", name_, guid_);
     return;
   }
 

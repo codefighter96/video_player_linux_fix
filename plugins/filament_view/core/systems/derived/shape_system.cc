@@ -153,7 +153,7 @@ void ShapeSystem::addShapeToScene(std::shared_ptr<shapes::BaseShape> shape) {
 
   filament::Scene* filamentScene = _filament->getFilamentScene();
 
-  spdlog::debug("addShapesToScene: {}", shape->GetGuid());
+  spdlog::trace("addShapesToScene: {}", shape->GetGuid());
   FilamentEntity oEntity = _em->create();
   filamentScene->addEntity(oEntity);
   shape->_fEntity = oEntity;
@@ -200,7 +200,7 @@ void ShapeSystem::vOnInitSystem() {
 
         vToggleAllShapesInScene(value);
 
-        spdlog::debug("ToggleShapesInScene Complete");
+        spdlog::trace("ToggleShapesInScene Complete");
       });
 
   vRegisterMessageHandler(
@@ -239,7 +239,7 @@ void ShapeSystem::vOnInitSystem() {
 
         vToggleSingleShapeInScene(guid, value);
 
-        spdlog::debug("ToggleVisualForEntity Complete");
+        spdlog::trace("ToggleVisualForEntity Complete");
       });
 
   // ChangeTranslationByGUID

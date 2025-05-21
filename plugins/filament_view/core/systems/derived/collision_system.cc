@@ -229,14 +229,16 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
       // Make sure it has an AABB
       if(aabb.isEmpty()) {
         const auto entity = collidable->entityOwner_;
-        spdlog::debug("Collidable entity({}) has no AABB", entity->GetGuid());
+        spdlog::trace("Collidable entity({}) has no AABB", entity->GetGuid());
         // Get AABB if it's a RenderableEntityObject
         if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(entity)) {
           aabb = renderableEntity->getAABB();
-          spdlog::debug("  Adding AABB to collidable entity({})", entity->GetGuid());
-          spdlog::debug("  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z);
-          spdlog::debug("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
-          renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
+          spdlog::trace("  Adding AABB to collidable entity({})", entity->GetGuid());
+          spdlog::trace("  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z);
+          spdlog::trace("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
+          #if SPDLOG_LEVEL == trace
+          // renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
+          #endif
         } else {
           spdlog::error("  Collidable does not have an AABB");
           continue;

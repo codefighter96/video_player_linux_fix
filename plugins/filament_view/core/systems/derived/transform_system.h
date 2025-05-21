@@ -109,6 +109,7 @@ class TransformSystem : public ECSystem {
       const BaseTransform* parent = nullptr
     );
 
+  protected:
     void applyParent(
       const FilamentEntity& child,
       const FilamentEntity* parent = nullptr

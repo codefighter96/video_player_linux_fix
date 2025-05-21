@@ -100,7 +100,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
     SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
-    materialDefinitions->DebugPrint("MaterialSystem::getMaterialInstance");
+    materialDefinitions->DebugPrint("  ");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {

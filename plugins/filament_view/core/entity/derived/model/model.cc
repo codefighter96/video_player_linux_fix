@@ -67,16 +67,16 @@ void Model::deserializeFrom(const flutter::EncodableMap& params) {
     ModelInstancingMode::none
   );
 
-  spdlog::debug("Model({}), instanceMode: {}",
+  spdlog::trace("Model({}), instanceMode: {}",
                 assetPath_, modelInstancingModeToString(_instancingMode));
 
   // Animation (optional)
-  spdlog::debug("Making Animation...");
+  spdlog::trace("Making Animation...");
   if (Deserialize::HasKey(params, kAnimation)) {
     // they're requesting an animation on this object. Make one.
     addComponent(Animation(params));
   } else {
-    spdlog::debug("This entity params has no animation");
+    spdlog::trace("This entity params has no animation");
   }
 }
 

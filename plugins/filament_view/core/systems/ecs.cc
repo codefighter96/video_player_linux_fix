@@ -30,7 +30,7 @@ ECSManager* ECSManager::m_poInstance = nullptr;
 
 ////////////////////////////////////////////////////////////////////////////
 ECSManager::~ECSManager() {
-  spdlog::debug("ECSManager~");
+  spdlog::trace("ECSManager~");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ ECSManager::ECSManager()
       work_(make_work_guard(io_context_->get_executor())),
       strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
       m_eCurrentState(NotInitialized) {
-  spdlog::debug("++ECSManager++");
+  spdlog::trace("++ECSManager++");
   vSetupThreadingInternals();
 }
 
@@ -150,7 +150,7 @@ void ECSManager::StopMainLoop() {
 void ECSManager::checkHasEntity(EntityGUID id) {
   std::lock_guard lock(_entitiesMutex);
   
-  spdlog::debug(
+  spdlog::trace(
       "[{}] Checking if entity with id {} exists", __FUNCTION__, id);
   if (_entities.get(id) == nullptr) {
     throw std::runtime_error(
@@ -368,7 +368,7 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   // Add the component to the entity
   componentMap[entityGuid] = std::move(component);
   entity->onAddComponent(component);
-  spdlog::debug("[{}] Added component {} to entity with id {}",
+  spdlog::trace("[{}] Added component {} to entity with id {}",
     __FUNCTION__, component->GetTypeName(), entityGuid
   );
 
@@ -478,7 +478,7 @@ void ECSManager::vAddSystem(std::shared_ptr<ECSystem> system) {
                     systemId));
   }
 
-  spdlog::debug("Adding system {} ({}) at address {}",
+  spdlog::trace("Adding system {} ({}) at address {}",
     system->GetTypeName(), systemId, static_cast<void*>(system.get()));
 
   _systems[systemId] = system;
@@ -490,7 +490,7 @@ void ECSManager::vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
   const TypeID systemId = system->GetTypeID();
   
   _systems.erase(systemId);
-  spdlog::debug("Removed system {} ({}) at address {}",
+  spdlog::trace("Removed system {} ({}) at address {}",
     system->GetTypeName(), systemId, static_cast<void*>(system.get()));
 }
 
@@ -544,7 +544,7 @@ void ECSManager::vShutdownSystems() {
     for (auto it = _systems.rbegin(); it != _systems.rend(); ++it) {
       const auto& system = it->second;
       if (system) {
-        spdlog::debug("Shutting down system {} ({}) at address {}",
+        spdlog::trace("Shutting down system {} ({}) at address {}",
                       system->GetTypeName(), it->first,
                       static_cast<void*>(system.get()));
         system->vShutdownSystem();

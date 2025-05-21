@@ -151,15 +151,17 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   }
 
 
-  spdlog::debug("[{}] Building shape '{}'({}) with AABB",
+  spdlog::trace("[{}] Building shape '{}'({})",
     __FUNCTION__, GetName(), GetGuid()
   );
 
   const auto transform = getComponent<BaseTransform>();
-  transform->DebugPrint("  ");
+  #if SPDLOG_LEVEL == trace
+  // transform->DebugPrint("  ");
+  #endif
 
 
-  spdlog::debug(
+  spdlog::trace(
     "[{}] AABB.scale: x={}, y={}, z={}",
     __FUNCTION__, aabb.x, aabb.y, aabb.z
   );

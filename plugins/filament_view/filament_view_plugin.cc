@@ -109,7 +109,7 @@ void DeserializeDataAndSetupMessageChannels(
   // called.
   if (postSetupDeserializer == nullptr) {
     post(strand, [=, &initPromise]() mutable {
-      spdlog::debug("running SceneTextDeserializer");
+      spdlog::trace("running SceneTextDeserializer");
       sceneTextDeserializer = std::make_unique<SceneTextDeserializer>(params);
       postSetupDeserializer = sceneTextDeserializer.get();
 
@@ -123,7 +123,7 @@ void DeserializeDataAndSetupMessageChannels(
   }
 
 
-  spdlog::debug("getting systems");
+  spdlog::trace("getting systems");
   const auto animationSystem = ecs->getSystem<AnimationSystem>(__FUNCTION__);
 
   const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(__FUNCTION__);
