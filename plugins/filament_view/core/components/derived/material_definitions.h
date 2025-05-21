@@ -73,17 +73,15 @@ class MaterialDefinitions : public Component {
   [[nodiscard]] std::vector<MaterialParameter*>
   vecGetTextureMaterialParameters() const;
 
-  [[nodiscard]] std::string szGetMaterialAssetPath() const {
+  [[nodiscard]] inline std::string szGetMaterialAssetPath() const {
     return assetPath_;
   }
-  [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
+  [[nodiscard]] inline std::string szGetMaterialURLPath() const { return url_; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
   
-  [[nodiscard]] Component* Clone() const override {
-    auto* cloned =
-        new MaterialDefinitions(*this);  // Copy constructor is called here
-    return cloned;
+  [[nodiscard]] inline Component* Clone() const override {
+    return new MaterialDefinitions(*this);  // Copy constructor is called here
   }
 
  private:

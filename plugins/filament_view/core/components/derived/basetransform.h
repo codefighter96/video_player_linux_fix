@@ -271,7 +271,7 @@ class BaseTransform : public Component {
      */
     void DebugPrint(const std::string& tabPrefix) const override;
     
-    [[nodiscard]] Component* Clone() const override {
+    [[nodiscard]] inline Component* Clone() const override {
       return new BaseTransform(*this);
     }
 };

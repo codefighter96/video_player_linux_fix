@@ -87,7 +87,7 @@ void AnimationSystem::vOnInitSystem() {
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
         if (animationComponent) {
-          animationComponent->vSetPlaybackSpeedScalar(newSpeed);
+          animationComponent->setSpeed(newSpeed);
           spdlog::debug("AnimationChangeSpeed Complete for GUID: {}", guid);
         }
       });

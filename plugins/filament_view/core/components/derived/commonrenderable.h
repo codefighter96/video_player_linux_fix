@@ -37,28 +37,28 @@ class CommonRenderable : public Component {
   FilamentRenderableInstance _fInstance;
 
   // Getters
-  [[nodiscard]] bool IsCullingOfObjectEnabled() const {
+  [[nodiscard]] inline bool IsCullingOfObjectEnabled() const {
     return m_bCullingOfObjectEnabled;
   }
 
-  [[nodiscard]] bool IsReceiveShadowsEnabled() const {
+  [[nodiscard]] inline bool IsReceiveShadowsEnabled() const {
     return m_bReceiveShadows;
   }
 
-  [[nodiscard]] bool IsCastShadowsEnabled() const { return m_bCastShadows; }
+  [[nodiscard]] inline bool IsCastShadowsEnabled() const { return m_bCastShadows; }
 
   // Setters
-  void SetCullingOfObjectEnabled(bool enabled) {
+  inline void SetCullingOfObjectEnabled(bool enabled) {
     m_bCullingOfObjectEnabled = enabled;
   }
 
-  void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
+  inline void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
 
-  void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
+  inline void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
 
-  [[nodiscard]] Component* Clone() const override {
+  [[nodiscard]] inline Component* Clone() const override {
     /// TODO: fix this
     // return new CommonRenderable(*this);  // Copy constructor is called here
     return nullptr;

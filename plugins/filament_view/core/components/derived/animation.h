@@ -33,7 +33,7 @@ class Animation final : public Component {
 
   void DebugPrint(const std::string& tabPrefix) const override;
   
-  [[nodiscard]] Component* Clone() const override {
+  [[nodiscard]] inline Component* Clone() const override {
     return new Animation(*this);
   }
 
@@ -43,26 +43,26 @@ class Animation final : public Component {
 
   void vUpdate(float fElapsedTime);
 
-  [[nodiscard]] float fGetPlaybackSpeedScalar() const {
+  [[nodiscard]] inline float getSpeed() const {
     return m_fPlaybackSpeedScalar;
   }
 
   // Setter for m_fPlaybackSpeedScalar
-  void vSetPlaybackSpeedScalar(float playbackSpeedScalar) {
+  inline void setSpeed(float playbackSpeedScalar) {
     m_fPlaybackSpeedScalar = playbackSpeedScalar;
   }
 
-  void vSetPaused(bool paused) { m_bPaused = paused; }
+  inline void vSetPaused(bool paused) { m_bPaused = paused; }
 
-  void vPause() { m_bPaused = true; }
+  inline void vPause() { m_bPaused = true; }
 
-  void vResume() { m_bPaused = false; }
+  inline void vResume() { m_bPaused = false; }
 
   // Queue management
   void vEnqueueAnimation(int32_t index);
   void vClearQueue();
 
-  void vSetLooping(bool bValue) { m_bLoop = bValue; }
+  inline void vSetLooping(bool bValue) { m_bLoop = bValue; }
 
  private:
   int32_t m_nCurrentPlayingIndex{};

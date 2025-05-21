@@ -278,15 +278,15 @@ class ECSManager {
   //  Threading
   //
 
-  [[nodiscard]] pthread_t GetFilamentAPIThreadID() const {
+  [[nodiscard]] inline pthread_t GetFilamentAPIThreadID() const {
     return filament_api_thread_id_;
   }
 
-  [[nodiscard]] const std::thread& GetFilamentAPIThread() const {
+  [[nodiscard]] inline const std::thread& GetFilamentAPIThread() const {
     return filament_api_thread_;
   }
 
-  [[nodiscard]] std::unique_ptr<asio::io_context::strand>& GetStrand() {
+  [[nodiscard]] inline std::unique_ptr<asio::io_context::strand>& GetStrand() {
     return strand_;
   }
 

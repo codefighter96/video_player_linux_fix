@@ -31,9 +31,7 @@ class Component : public IdentifiableType {
   friend class EntityObject;
 
  public:
-  [[nodiscard]] std::string GetName() { return name_; }
-
-  [[nodiscard]] const EntityObject* GetOwner() const { return entityOwner_; }
+  [[nodiscard]] inline const EntityObject* GetOwner() const { return entityOwner_; }
 
   [[nodiscard]] virtual const std::type_info& GetType() const {
     return typeid(*this);
@@ -50,6 +48,7 @@ class Component : public IdentifiableType {
       : name_(std::move(name)), entityOwner_(nullptr) {}
   
  private:
+  /// @deprecated Instead use GetTypeName()
   std::string name_;
  public: 
   EntityObject* entityOwner_ = nullptr;

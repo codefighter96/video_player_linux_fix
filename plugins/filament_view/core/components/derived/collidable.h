@@ -65,26 +65,26 @@ class Collidable : public Component {
   explicit Collidable(const flutter::EncodableMap& params);
 
   // Getters
-  [[nodiscard]] bool GetIsStatic() const { return m_bIsStatic; }
-  [[nodiscard]] int64_t GetCollisionLayer() const { return m_nCollisionLayer; }
-  [[nodiscard]] int64_t GetCollisionMask() const { return m_nCollisionMask; }
-  [[nodiscard]] bool GetShouldMatchAttachedObject() const {
+  [[nodiscard]] inline bool GetIsStatic() const { return m_bIsStatic; }
+  [[nodiscard]] inline int64_t GetCollisionLayer() const { return m_nCollisionLayer; }
+  [[nodiscard]] inline int64_t GetCollisionMask() const { return m_nCollisionMask; }
+  [[nodiscard]] inline bool GetShouldMatchAttachedObject() const {
     return m_bShouldMatchAttachedObject;
   }
-  [[nodiscard]] ShapeType GetShapeType() const { return m_eShapeType; }
-  [[nodiscard]] filament::math::float3 GetExtentsSize() const {
+  [[nodiscard]] inline ShapeType GetShapeType() const { return m_eShapeType; }
+  [[nodiscard]] inline filament::math::float3 GetExtentsSize() const {
     return _extentSize;
   }
 
   // Setters
-  void SetIsStatic(bool value) { m_bIsStatic = value; }
-  void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
-  void SetCollisionMask(int64_t value) { m_nCollisionMask = value; }
-  void SetShouldMatchAttachedObject(bool value) {
+  inline void SetIsStatic(bool value) { m_bIsStatic = value; }
+  inline void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
+  inline void SetCollisionMask(int64_t value) { m_nCollisionMask = value; }
+  inline void SetShouldMatchAttachedObject(bool value) {
     m_bShouldMatchAttachedObject = value;
   }
-  void SetShapeType(ShapeType value) { m_eShapeType = value; }
-  void SetExtentsSize(const filament::math::float3& value) {
+  inline void SetShapeType(ShapeType value) { m_eShapeType = value; }
+  inline void SetExtentsSize(const filament::math::float3& value) {
     if(m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collidable");
     _extentSize = value;
   }
@@ -97,7 +97,7 @@ class Collidable : public Component {
                       const std::shared_ptr<BaseTransform>& transform
                     ) const;
   
-  [[nodiscard]] Component* Clone() const override {
+  [[nodiscard]] inline Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
   }
 
