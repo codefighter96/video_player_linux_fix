@@ -33,7 +33,7 @@ EntityObject::EntityObject(EntityGUID guid)
     : guid_(guid), name_(std::string()) {}
 
 EntityObject::EntityObject(std::string name, EntityGUID guid)
-    : guid_(std::move(guid)), name_(std::move(name)) {}
+    : guid_(guid), name_(std::move(name)) {}
 
 EntityObject::EntityObject(const EntityDescriptor& descriptor)
     : guid_(descriptor.guid), name_(descriptor.name) {}
@@ -124,7 +124,7 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
 
 void EntityObject::addComponent(
   size_t staticTypeID,
-  std::shared_ptr<Component> component
+  const std::shared_ptr<Component>& component
 ) {
   if(isInitialized()) {
     ecs->addComponent(guid_, component);
@@ -134,7 +134,7 @@ void EntityObject::addComponent(
   }
 }
 
-void EntityObject::onAddComponent(std::shared_ptr<Component> component) {
+void EntityObject::onAddComponent(const std::shared_ptr<Component>& component) {
   checkInitialized();
   component->entityOwner_ = this;
 }
@@ -144,7 +144,7 @@ void EntityObject::onInitialize() {
   checkInitialized();
   // add all components that were added before initialization
   for (const auto& [staticTypeID, component] : _tmpComponents) {
-    ecs->addComponent(guid_, std::move(component));
+    ecs->addComponent(guid_, component);
   }
   _tmpComponents.clear();
 }

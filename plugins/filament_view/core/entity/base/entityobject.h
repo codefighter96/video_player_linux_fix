@@ -154,7 +154,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// This is called after the entity is initialized.
   /// If a component is added before the entity is initialized, this will be
   /// called after the entity is initialized.
-  virtual void onAddComponent(std::shared_ptr<Component> component);
+  virtual void onAddComponent(const std::shared_ptr<Component>& component);
 
   template <typename T>
   [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
@@ -207,7 +207,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     _isInitialized = false;
   }
 
-  void addComponent(TypeID staticTypeID, std::shared_ptr<Component> component);
+  void addComponent(TypeID staticTypeID, const std::shared_ptr<Component>& component);
 
   /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
   /// @returns component if valid, nullptr if not found.

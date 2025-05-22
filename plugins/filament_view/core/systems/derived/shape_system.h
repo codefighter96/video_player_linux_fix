@@ -41,15 +41,15 @@ class ShapeSystem : public ECSystem {
   void addShapesToScene(
       std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
 
-  void addShapeToScene(std::shared_ptr<shapes::BaseShape> shape);
+  void addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape);
 
   // Disallow copy and assign.
   ShapeSystem(const ShapeSystem&) = delete;
   ShapeSystem& operator=(const ShapeSystem&) = delete;
 
   // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(bool bValue) const;
-  void vToggleSingleShapeInScene(const EntityGUID guid, bool bValue) const;
+  void vToggleAllShapesInScene(bool enable) const;
+  void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
   void vRemoveAllShapesInScene();
 

@@ -420,8 +420,8 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
         filament::float3{0.0f, 1.0f, 0.0f},
         primaryCamera_->current_yaw_addition_);
 
-    filament::math::mat4f pitchMatrix = filament::math::mat4f(pitchQuat);
-    filament::math::mat4f yawMatrix = filament::math::mat4f(yawQuat);
+    filament::math::mat4f pitchMatrix(pitchQuat);
+    filament::math::mat4f yawMatrix(yawQuat);
 
     modelMatrix = modelMatrix * yawMatrix * pitchMatrix;
     camera_->setModelMatrix(modelMatrix);

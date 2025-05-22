@@ -40,7 +40,7 @@ using filament::math::short4;
 ////////////////////////////////////////////////////////////////////////////
 bool Plane::bInitAndCreateShape(filament::Engine* engine_,
                                 FilamentEntity entityObject) {
-  _fEntity = std::move(entityObject);
+  _fEntity = entityObject;
 
   if (m_bDoubleSided)
     createDoubleSidedPlane(engine_);

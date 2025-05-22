@@ -50,7 +50,7 @@ void Sphere::deserializeFrom(const flutter::EncodableMap& params) {
 ////////////////////////////////////////////////////////////////////////////
 bool Sphere::bInitAndCreateShape(filament::Engine* engine_,
                                  FilamentEntity entityObject) {
-  _fEntity = std::move(entityObject);
+  _fEntity = entityObject;
 
   m_poVertexBuffer = nullptr;
   m_poIndexBuffer = nullptr;

@@ -366,7 +366,7 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   }
 
   // Add the component to the entity
-  componentMap[entityGuid] = std::move(component);
+  componentMap[entityGuid] = component;
   entity->onAddComponent(component);
   spdlog::trace("[{}] Added component {} to entity with id {}",
     __FUNCTION__, component->GetTypeName(), entityGuid
@@ -467,7 +467,7 @@ std::shared_ptr<ECSystem> ECSManager::getSystem(
   }
 }
 
-void ECSManager::vAddSystem(std::shared_ptr<ECSystem> system) {
+void ECSManager::vAddSystem(const std::shared_ptr<ECSystem>& system) {
   std::unique_lock lock(_systemsMutex);
   const TypeID systemId = system->GetTypeID();
 

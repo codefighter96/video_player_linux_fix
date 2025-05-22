@@ -585,7 +585,7 @@ void ModelSystem::queueModelLoad(
 
 void ModelSystem::loadModelFromFile(
   EntityGUID modelGuid,
-  const std::string baseAssetPath
+  const std::string& baseAssetPath
 ) {
   spdlog::trace("++ loadModelFromFile");
 
@@ -646,9 +646,9 @@ void ModelSystem::loadModelFromFile(
       }
       
     } catch (const std::exception& e) {
-      spdlog::error("[{}] Failed to load: {}", __FUNCTION__, e.what());
+      spdlog::error("[ModelSystem::loadModelFromFile] Failed to load: {}", e.what());
     } catch (...) {
-      spdlog::error("[{}] Unknown Exception in lambda", __FUNCTION__);
+      spdlog::error("[ModelSystem::loadModelFromFile] Unknown Exception in lambda");
     }
   });
 }

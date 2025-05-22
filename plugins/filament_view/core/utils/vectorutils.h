@@ -35,10 +35,10 @@ class VectorUtils {
   static filament::math::mat4f identity4x4();
 
   static filament::math::float3 transformPositionVector(
-    const filament::math::float3& vector,
+    const filament::math::float3& pos,
     const filament::math::mat4f& transform);
   static filament::math::float3 transformScaleVector(
-    const filament::math::float3& vector,
+    const filament::math::float3& scale,
     const filament::math::mat4f& transform);
 };
 

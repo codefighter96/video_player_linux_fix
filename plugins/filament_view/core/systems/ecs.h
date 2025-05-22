@@ -241,7 +241,7 @@ class ECSManager {
   //
   //  System
   //
-  void vAddSystem(std::shared_ptr<ECSystem> system);
+  void vAddSystem(const std::shared_ptr<ECSystem>& system);
   void vRemoveSystem(const std::shared_ptr<ECSystem>& system);
   void vRemoveAllSystems();
 

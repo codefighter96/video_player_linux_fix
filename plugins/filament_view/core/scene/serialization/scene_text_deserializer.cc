@@ -34,7 +34,8 @@ namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 SceneTextDeserializer::SceneTextDeserializer(
-    const std::vector<uint8_t>& params) {
+    const std::vector<uint8_t>& params
+) : _ecs(nullptr) {
   _ecs = ECSManager::GetInstance();
   const std::string& flutterAssetsPath = _ecs->getConfigValue<std::string>(kAssetPath);
 

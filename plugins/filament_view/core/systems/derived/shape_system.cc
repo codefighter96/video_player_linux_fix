@@ -148,7 +148,7 @@ void ShapeSystem::addShapesToScene(
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
-void ShapeSystem::addShapeToScene(std::shared_ptr<shapes::BaseShape> shape) {
+void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape) {
   runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
 
   filament::Scene* filamentScene = _filament->getFilamentScene();

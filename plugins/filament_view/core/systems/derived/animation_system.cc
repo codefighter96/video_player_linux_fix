@@ -31,7 +31,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationEnqueue");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationEnqueue);
@@ -48,7 +48,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationClearQueue, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationClearQueue");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
@@ -63,7 +63,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationPlay, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationPlay");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto animationIndex =
             msg.getData<int32_t>(ECSMessageType::AnimationPlay);
@@ -80,7 +80,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationChangeSpeed, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationChangeSpeed");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto newSpeed =
             msg.getData<float>(ECSMessageType::AnimationChangeSpeed);
@@ -97,7 +97,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationPause, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationPause");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
@@ -112,7 +112,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationResume, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationResume");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
@@ -127,7 +127,7 @@ void AnimationSystem::vOnInitSystem() {
       ECSMessageType::AnimationSetLooping, [this](const ECSMessage& msg) {
         spdlog::debug("AnimationSetLooping");
 
-        const EntityGUID guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
         const auto shouldLoop =
             msg.getData<bool>(ECSMessageType::AnimationSetLooping);

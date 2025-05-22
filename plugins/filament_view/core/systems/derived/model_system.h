@@ -120,7 +120,7 @@ class ModelSystem : public ECSystem {
   /// Expects model to have been queued first, via [ModelSystem::queueModelLoad]
   void loadModelFromFile(
     EntityGUID modelGuid,
-    const std::string baseAssetPath
+    const std::string& baseAssetPath
   );
 
 };

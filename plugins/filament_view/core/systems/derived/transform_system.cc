@@ -62,7 +62,7 @@ void TransformSystem::updateTransforms() {
   const auto transforms = ecs->getComponentsOfType<BaseTransform>();
   for (const auto& transform : transforms) {
     if(!transform->IsDirty()) continue;
-    applyTransform(*(transform.get()), false);
+    applyTransform(*transform, false);
   }
 }
 
@@ -94,7 +94,7 @@ void TransformSystem::applyTransform(
     throw std::runtime_error("Entity not found");
   }
 
-  applyTransform(*(transform.get()), forceRecalculate);
+  applyTransform(*transform, forceRecalculate);
 }
 
 void TransformSystem::applyTransform(
