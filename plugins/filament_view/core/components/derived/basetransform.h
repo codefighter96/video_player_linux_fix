@@ -152,7 +152,7 @@ class BaseTransform : public Component {
       /// TODO: if interested in supporting e.g. negative scalings and shear 
       ///       should look at Graphics Gems II §VII.1.
       runtime_assert(
-        scale.x > 0 && scale.y > 0 && scale.z > 0,
+        scale.x >= 0 && scale.y >= 0 && scale.z >= 0,
         "Scale must be positive"
       );
 
