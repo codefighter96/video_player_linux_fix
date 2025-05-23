@@ -22,12 +22,13 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 Skybox::Skybox(std::string assetPath, std::string url, std::string color)
-  : assetPath_(std::move(assetPath)),
-    url_(std::move(url)),
-    color_(std::move(color)) {}
+    : assetPath_(std::move(assetPath)),
+      url_(std::move(url)),
+      color_(std::move(color)) {}
 
 ////////////////////////////////////////////////////////////////////////////
-std::unique_ptr<Skybox> Skybox::Deserialize(const flutter::EncodableMap& params) {
+std::unique_ptr<Skybox> Skybox::Deserialize(
+    const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++Skybox::Skybox");
   std::optional<std::string> assetPath;
   std::optional<std::string> url;
@@ -36,7 +37,8 @@ std::unique_ptr<Skybox> Skybox::Deserialize(const flutter::EncodableMap& params)
   std::optional<int32_t> skyboxType;
 
   for (const auto& [fst, snd] : params) {
-    if (snd.IsNull()) continue;
+    if (snd.IsNull())
+      continue;
 
     auto key = std::get<std::string>(fst);
     if (key == "assetPath" && std::holds_alternative<std::string>(snd)) {
@@ -77,4 +79,4 @@ std::unique_ptr<Skybox> Skybox::Deserialize(const flutter::EncodableMap& params)
   return nullptr;
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

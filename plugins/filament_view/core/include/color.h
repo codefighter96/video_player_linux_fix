@@ -20,31 +20,34 @@
 namespace plugin_filament_view {
 using Color = ::filament::math::float4;
 
-inline Color colorOf(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f) {
+inline Color colorOf(float r = 0.0f,
+                     float g = 0.0f,
+                     float b = 0.0f,
+                     float a = 1.0f) {
   return {r, g, b, a};
 }
 
-inline Color colorOf(float rgb = 0.0f, float a = 1.0f) { return colorOf(rgb, rgb, rgb, a); }
+inline Color colorOf(float rgb = 0.0f, float a = 1.0f) {
+  return colorOf(rgb, rgb, rgb, a);
+}
 
 inline Color colorOf(unsigned long color) {
-  unsigned long a = (color >> 24) & 0xff; // or color >>> 24
+  unsigned long a = (color >> 24) & 0xff;  // or color >>> 24
   unsigned long r = (color >> 16) & 0xff;
   unsigned long g = (color >> 8) & 0xff;
   unsigned long b = (color) & 0xff;
 
-  return {
-    static_cast<float>(r) / 255.0f,
-    static_cast<float>(g) / 255.0f,
-    static_cast<float>(b) / 255.0f,
-    static_cast<float>(a) / 255.0f
-  };
+  return {static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f,
+          static_cast<float>(b) / 255.0f, static_cast<float>(a) / 255.0f};
 };
 
 inline Color colorOf(const std::string& hexColorStr) {
   // remove '#' if present at the start
-  const char* hexCode = hexColorStr[0] == '#' ? hexColorStr.c_str() + 1 : hexColorStr.c_str();
+  const char* hexCode =
+      hexColorStr[0] == '#' ? hexColorStr.c_str() + 1 : hexColorStr.c_str();
 
-  unsigned long color = std::strtoul(hexCode, nullptr, 16); // convert hex to decimal
+  unsigned long color =
+      std::strtoul(hexCode, nullptr, 16);  // convert hex to decimal
   return colorOf(color);
 }
 
@@ -57,7 +60,7 @@ inline Color toLinearSpace(const Color& inputColor) {
   outputColor.r = std::pow(inputColor.r, 2.2f);
   outputColor.g = std::pow(inputColor.g, 2.2f);
   outputColor.b = std::pow(inputColor.b, 2.2f);
-  outputColor.a = inputColor.a; // alpha remains the same
+  outputColor.a = inputColor.a;  // alpha remains the same
   return outputColor;
 }
 
@@ -94,4 +97,4 @@ inline Color toColor(::filament::math::float4 inputColor) {
   return outputColor;
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

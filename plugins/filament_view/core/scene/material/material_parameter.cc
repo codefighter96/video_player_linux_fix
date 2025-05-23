@@ -28,36 +28,27 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-MaterialParameter::MaterialParameter(
-  std::string name,
-  const MaterialType type,
-  MaterialTextureValue value
-)
-  : name_(std::move(name)),
-    type_(type),
-    textureValue_(std::move(value)) {}
+MaterialParameter::MaterialParameter(std::string name,
+                                     const MaterialType type,
+                                     MaterialTextureValue value)
+    : name_(std::move(name)), type_(type), textureValue_(std::move(value)) {}
 
 ////////////////////////////////////////////////////////////////////////////
-MaterialParameter::MaterialParameter(
-  std::string name,
-  const MaterialType type,
-  MaterialFloatValue value
-)
-  : name_(std::move(name)),
-    type_(type),
-    fValue_(value) {}
+MaterialParameter::MaterialParameter(std::string name,
+                                     const MaterialType type,
+                                     MaterialFloatValue value)
+    : name_(std::move(name)), type_(type), fValue_(value) {}
 
 ////////////////////////////////////////////////////////////////////////////
-MaterialParameter::MaterialParameter(std::string name, MaterialType type, MaterialColorValue value)
-  : name_(std::move(name)),
-    type_(type),
-    colorValue_(value) {}
+MaterialParameter::MaterialParameter(std::string name,
+                                     MaterialType type,
+                                     MaterialColorValue value)
+    : name_(std::move(name)), type_(type), colorValue_(value) {}
 
 ////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
-  const std::string& /* flutter_assets_path */,
-  const flutter::EncodableMap& params
-) {
+    const std::string& /* flutter_assets_path */,
+    const flutter::EncodableMap& params) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
   std::optional<std::string> name;
@@ -69,7 +60,8 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   for (const auto& [fst, snd] : params) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {}", key, __FUNCTION__);
+      SPDLOG_DEBUG("MaterialParameter Param Second mapping is null {} {}", key,
+                   __FUNCTION__);
       continue;
     }
 
@@ -91,33 +83,30 @@ std::unique_ptr<MaterialParameter> MaterialParameter::Deserialize(
   }
 
   if (!type.has_value()) {
-    spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter - no type in arg "
-                  "list");
+    spdlog::error(
+        "[MaterialParameter::Deserialize] Unhandled Parameter - no type in arg "
+        "list");
     return {};
   }
 
   switch (type.value()) {
     case MaterialType::TEXTURE:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "",
-        type.value(),
-        TextureDefinitions::Deserialize(encodMapValue.value())
-      );
+          name.has_value() ? name.value() : "", type.value(),
+          TextureDefinitions::Deserialize(encodMapValue.value()));
 
     case MaterialType::FLOAT:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "", type.value(), fValue.value()
-      );
+          name.has_value() ? name.value() : "", type.value(), fValue.value());
 
     case MaterialType::COLOR:
       return std::make_unique<MaterialParameter>(
-        name.has_value() ? name.value() : "", type.value(), colorValue.value()
-      );
+          name.has_value() ? name.value() : "", type.value(),
+          colorValue.value());
 
     default:
-      spdlog::error(
-        "[MaterialParameter::Deserialize] Unhandled Parameter {}", getTextForType(type.value())
-      );
+      spdlog::error("[MaterialParameter::Deserialize] Unhandled Parameter {}",
+                    getTextForType(type.value()));
       return {};
   }
 }
@@ -132,7 +121,8 @@ void MaterialParameter::DebugPrint(const char* tag) {
   if (type_ == MaterialType::TEXTURE) {
     if (textureValue_.has_value()) {
       const auto texture =
-        std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value()).get();
+          std::get<std::unique_ptr<TextureDefinitions>>(textureValue_.value())
+              .get();
       if (texture) {
         texture->DebugPrint("texture");
       } else {
@@ -146,21 +136,14 @@ void MaterialParameter::DebugPrint(const char* tag) {
 ////////////////////////////////////////////////////////////////////////////
 const char* MaterialParameter::getTextForType(MaterialType type) {
   return (const char*[]){
-    kColor,
-    kBool,
-    kBoolVector,
-    kFloat,
-    kFloatVector,
-    kInt,
-    kIntVector,
-    kMat3,
-    kMat4,
-    kTexture,
+      kColor, kBool,      kBoolVector, kFloat, kFloatVector,
+      kInt,   kIntVector, kMat3,       kMat4,  kTexture,
   }[static_cast<int>(type)];
 }
 
 ////////////////////////////////////////////////////////////////////////////
-MaterialParameter::MaterialType MaterialParameter::getTypeForText(const std::string& type) {
+MaterialParameter::MaterialType MaterialParameter::getTypeForText(
+    const std::string& type) {
   // TODO Change to map for faster lookup
   if (type == kColor) {
     return MaterialType::COLOR;
@@ -229,4 +212,4 @@ MaterialColorValue MaterialParameter::HexToColorFloat4(const std::string& hex) {
   return color;
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

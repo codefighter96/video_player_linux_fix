@@ -26,67 +26,71 @@
 namespace plugin_filament_view {
 
 class HitResult {
-  public:
-    EntityGUID guid_;
-    std::string name_;
-    ::filament::math::float3 hitPosition_;
+ public:
+  EntityGUID guid_;
+  std::string name_;
+  ::filament::math::float3 hitPosition_;
 
-    [[nodiscard]] flutter::EncodableValue Encode() const;
+  [[nodiscard]] flutter::EncodableValue Encode() const;
 };
 
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
 class CollisionSystem : public ECSystem {
-  public:
-    CollisionSystem() = default;
+ public:
+  CollisionSystem() = default;
 
-    void vCleanup();
-    void DebugPrint() override;
+  void vCleanup();
+  void DebugPrint() override;
 
-    // Disallow copy and assign.
-    CollisionSystem(const CollisionSystem&) = delete;
-    CollisionSystem& operator=(const CollisionSystem&) = delete;
+  // Disallow copy and assign.
+  CollisionSystem(const CollisionSystem&) = delete;
+  CollisionSystem& operator=(const CollisionSystem&) = delete;
 
-    void vTurnOnRenderingOfCollidables() const;
-    void vTurnOffRenderingOfCollidables() const;
+  void vTurnOnRenderingOfCollidables() const;
+  void vTurnOffRenderingOfCollidables() const;
 
-    void vUpdate(float fElapsedTime) override;
+  void vUpdate(float fElapsedTime) override;
 
-    void vInitSystem() override;
-    void vShutdownSystem() override;
+  void vInitSystem() override;
+  void vShutdownSystem() override;
 
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-    [[nodiscard]] static size_t StaticGetTypeID() { return typeid(CollisionSystem).hash_code(); }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(CollisionSystem).hash_code();
+  }
 
-    void vAddCollidable(EntityObject* collidable);
-    void vRemoveCollidable(EntityObject* collidable);
+  void vAddCollidable(EntityObject* collidable);
+  void vRemoveCollidable(EntityObject* collidable);
 
-    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+  void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
-    // send in your ray, get a list of hit results back, collisionLayer not
-    // actively used - future work.
-    std::list<HitResult> lstCheckForCollidable(Ray& rayCast, int64_t collisionLayer = 0) const;
+  // send in your ray, get a list of hit results back, collisionLayer not
+  // actively used - future work.
+  std::list<HitResult> lstCheckForCollidable(Ray& rayCast,
+                                             int64_t collisionLayer = 0) const;
 
-    // this will send the hit information sent in to non-native (Dart) code.
-    void SendCollisionInformationCallback(
+  // this will send the hit information sent in to non-native (Dart) code.
+  void SendCollisionInformationCallback(
       const std::list<HitResult>& lstHitResults,
       std::string sourceQuery,
-      CollisionEventType eType
-    ) const;
+      CollisionEventType eType) const;
 
-    // Checks to see if we already has this guid in our mapping.
-    [[nodiscard]] bool bHasEntityObjectRepresentation(const EntityGUID& guid) const;
+  // Checks to see if we already has this guid in our mapping.
+  [[nodiscard]] bool bHasEntityObjectRepresentation(
+      const EntityGUID& guid) const;
 
-  private:
-    bool currentlyDrawingDebugCollidables = false;
+ private:
+  bool currentlyDrawingDebugCollidables = false;
 
-    void vMatchCollidablesToRenderingModelsTransforms();
-    void vMatchCollidablesToDebugDrawingTransforms();
+  void vMatchCollidablesToRenderingModelsTransforms();
+  void vMatchCollidablesToDebugDrawingTransforms();
 
-    std::list<EntityObject*> collidables_;
-    std::map<EntityGUID, shapes::BaseShape*> collidablesDebugDrawingRepresentation_;
+  std::list<EntityObject*> collidables_;
+  std::map<EntityGUID, shapes::BaseShape*>
+      collidablesDebugDrawingRepresentation_;
 };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

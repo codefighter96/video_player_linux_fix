@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
+#include <plugins/common/common.h>
 #include <filesystem>
 #include <fstream>
 #include <optional>
-#include <plugins/common/common.h>
 #include <vector>
 
 namespace plugin_filament_view {
 
-inline std::filesystem::path
-getAbsolutePath(const std::string& dependent_path, const std::string& main_path) {
+inline std::filesystem::path getAbsolutePath(const std::string& dependent_path,
+                                             const std::string& main_path) {
   std::filesystem::path path(main_path);
   path /= dependent_path;
   return path;
@@ -37,15 +37,18 @@ inline bool isValidFilePath(const std::filesystem::path& path) {
   return true;
 }
 
-inline std::vector<uint8_t> createBuffer(std::ifstream& file, const std::size_t size) {
+inline std::vector<uint8_t> createBuffer(std::ifstream& file,
+                                         const std::size_t size) {
   std::vector<uint8_t> buffer(size);
-  if (!file.read(reinterpret_cast<char*>(buffer.data()), static_cast<long>(buffer.size()))) {
+  if (!file.read(reinterpret_cast<char*>(buffer.data()),
+                 static_cast<long>(buffer.size()))) {
     buffer.clear();
   }
   return buffer;
 }
 
-inline std::optional<std::ifstream> readFileContent(const std::filesystem::path& path) {
+inline std::optional<std::ifstream> readFileContent(
+    const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary | std::ios::ate);
   if (!file.is_open()) {
     spdlog::error("[{}] Failed to open", path.c_str());
@@ -54,15 +57,17 @@ inline std::optional<std::ifstream> readFileContent(const std::filesystem::path&
   return file;
 }
 
-inline std::vector<uint8_t>
-returnErrorMessageAndBuffer(const std::filesystem::path& path, const std::string& message) {
+inline std::vector<uint8_t> returnErrorMessageAndBuffer(
+    const std::filesystem::path& path,
+    const std::string& message) {
   spdlog::error("[{}] {}", path.c_str(), message);
   return {};
 }
 
-inline std::vector<uint8_t>
-readBinaryFile(const std::string& dependent_path, const std::string& main_path) {
-  const std::filesystem::path filePath = getAbsolutePath(dependent_path, main_path);
+inline std::vector<uint8_t> readBinaryFile(const std::string& dependent_path,
+                                           const std::string& main_path) {
+  const std::filesystem::path filePath =
+      getAbsolutePath(dependent_path, main_path);
 
   if (!isValidFilePath(filePath)) {
     return returnErrorMessageAndBuffer(filePath, "Invalid path");
@@ -94,4 +99,4 @@ readBinaryFile(const std::string& dependent_path, const std::string& main_path) 
   return buffer;
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

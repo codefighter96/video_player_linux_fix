@@ -24,32 +24,31 @@
 namespace plugin_filament_view {
 
 class TextureSampler {
-  public:
-    explicit TextureSampler(const flutter::EncodableMap& params);
+ public:
+  explicit TextureSampler(const flutter::EncodableMap& params);
 
-    void DebugPrint(const char* tag);
+  void DebugPrint(const char* tag);
 
-    // Disallow copy and assign.
-    TextureSampler(const TextureSampler&) = delete;
+  // Disallow copy and assign.
+  TextureSampler(const TextureSampler&) = delete;
 
-    TextureSampler& operator=(const TextureSampler&) = delete;
+  TextureSampler& operator=(const TextureSampler&) = delete;
 
-    [[nodiscard]] ::filament::TextureSampler::MagFilter getMagFilter() const;
-    [[nodiscard]] ::filament::TextureSampler::MinFilter getMinFilter() const;
-    [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeR() const;
-    [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeS() const;
-    [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeT() const;
+  [[nodiscard]] ::filament::TextureSampler::MagFilter getMagFilter() const;
+  [[nodiscard]] ::filament::TextureSampler::MinFilter getMinFilter() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeR() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeS() const;
+  [[nodiscard]] ::filament::TextureSampler::WrapMode getWrapModeT() const;
+  [[nodiscard]] double getAnisotropy() const {
+    return anisotropy_.has_value() ? anisotropy_.value() : 1;
+  }
 
-    [[nodiscard]] double getAnisotropy() const {
-      return anisotropy_.has_value() ? anisotropy_.value() : 1;
-    }
-
-  private:
-    std::string min_;
-    std::string mag_;
-    std::string wrapR_;
-    std::string wrapS_;
-    std::string wrapT_;
-    std::optional<double> anisotropy_{};
+ private:
+  std::string min_;
+  std::string mag_;
+  std::string wrapR_;
+  std::string wrapS_;
+  std::string wrapT_;
+  std::optional<double> anisotropy_{};
 };
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

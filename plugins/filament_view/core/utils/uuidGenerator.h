@@ -32,11 +32,11 @@ inline std::string generateUUID() {
   ss << "-";
   for (int i = 0; i < 4; ++i)
     ss << dist(rd);
-  ss << "-4"; // UUID version 4
+  ss << "-4";  // UUID version 4
   for (int i = 0; i < 3; ++i)
     ss << dist(rd);
   ss << "-";
-  ss << dist2(rd); // UUID variant
+  ss << dist2(rd);  // UUID variant
   for (int i = 0; i < 3; ++i)
     ss << dist(rd);
   ss << "-";
@@ -45,4 +45,4 @@ inline std::string generateUUID() {
   return ss.str();
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

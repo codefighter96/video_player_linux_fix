@@ -28,29 +28,26 @@ namespace plugin_filament_view {
 // NonRenderables are great for items like 'Global Light', Camera, hidden
 // collision
 class RenderableEntityObject : public EntityObject {
-    friend class MaterialSystem;
+  friend class MaterialSystem;
 
-  public:
-  protected:
-    explicit RenderableEntityObject(const flutter::EncodableMap& params);
-    RenderableEntityObject();
-    virtual void DebugPrint() const = 0;
+ public:
+ protected:
+  explicit RenderableEntityObject(const flutter::EncodableMap& params);
+  RenderableEntityObject();
+  virtual void DebugPrint() const = 0;
 
-    // These are expected to have Material instances in base class after we go
-    // from Uber shader to <?more interchangeable?> on models. For now these are
-    // not implemented on Models, but are on BaseShapes.
+  // These are expected to have Material instances in base class after we go
+  // from Uber shader to <?more interchangeable?> on models. For now these are
+  // not implemented on Models, but are on BaseShapes.
 
-    // This is a heavy lift function as it will recreate / load a material
-    // if it doesn't exist and reset everything from scratch.
-    virtual void vChangeMaterialDefinitions(
-      const flutter::EncodableMap& params,
-      const TextureMap& loadedTextures
-    ) = 0;
-    virtual void vChangeMaterialInstanceProperty(
+  // This is a heavy lift function as it will recreate / load a material
+  // if it doesn't exist and reset everything from scratch.
+  virtual void vChangeMaterialDefinitions(const flutter::EncodableMap& params,
+                                          const TextureMap& loadedTextures) = 0;
+  virtual void vChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures
-    ) = 0;
+      const TextureMap& loadedTextures) = 0;
 
-  private:
+ private:
 };
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

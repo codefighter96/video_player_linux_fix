@@ -27,61 +27,65 @@
 namespace plugin_filament_view {
 
 class Animation final : public Component {
-  public:
-    // Constructor
-    explicit Animation(const flutter::EncodableMap& params);
+ public:
+  // Constructor
+  explicit Animation(const flutter::EncodableMap& params);
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+  void DebugPrint(const std::string& tabPrefix) const override;
 
-    static size_t StaticGetTypeID() { return typeid(Animation).hash_code(); }
+  static size_t StaticGetTypeID() { return typeid(Animation).hash_code(); }
 
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-    [[nodiscard]] Component* Clone() const override { return new Animation(*this); }
+  [[nodiscard]] Component* Clone() const override {
+    return new Animation(*this);
+  }
 
-    void vSetAnimator(filament::gltfio::Animator& animator);
-    void vPlayAnimation(int32_t index);
-    [[maybe_unused]] bool bPlayAnimation(const std::string& szName);
+  void vSetAnimator(filament::gltfio::Animator& animator);
+  void vPlayAnimation(int32_t index);
+  [[maybe_unused]] bool bPlayAnimation(const std::string& szName);
 
-    void vUpdate(float fElapsedTime);
+  void vUpdate(float fElapsedTime);
 
-    [[nodiscard]] float fGetPlaybackSpeedScalar() const { return m_fPlaybackSpeedScalar; }
+  [[nodiscard]] float fGetPlaybackSpeedScalar() const {
+    return m_fPlaybackSpeedScalar;
+  }
 
-    // Setter for m_fPlaybackSpeedScalar
-    void vSetPlaybackSpeedScalar(float playbackSpeedScalar) {
-      m_fPlaybackSpeedScalar = playbackSpeedScalar;
-    }
+  // Setter for m_fPlaybackSpeedScalar
+  void vSetPlaybackSpeedScalar(float playbackSpeedScalar) {
+    m_fPlaybackSpeedScalar = playbackSpeedScalar;
+  }
 
-    void vSetPaused(bool paused) { m_bPaused = paused; }
+  void vSetPaused(bool paused) { m_bPaused = paused; }
 
-    void vPause() { m_bPaused = true; }
+  void vPause() { m_bPaused = true; }
 
-    void vResume() { m_bPaused = false; }
+  void vResume() { m_bPaused = false; }
 
-    // Queue management
-    void vEnqueueAnimation(int32_t index);
-    void vClearQueue();
+  // Queue management
+  void vEnqueueAnimation(int32_t index);
+  void vClearQueue();
 
-    void vSetLooping(bool bValue) { m_bLoop = bValue; }
+  void vSetLooping(bool bValue) { m_bLoop = bValue; }
 
-  private:
-    int32_t m_nCurrentPlayingIndex{};
-    bool m_bPaused;
-    bool m_bAutoPlay{};
-    bool m_bLoop{};
-    bool m_bResetToTPoseOnReset{};
-    float m_fPlaybackSpeedScalar{};
-    bool m_bNotifyOfAnimationEvents{};
+ private:
+  int32_t m_nCurrentPlayingIndex{};
+  bool m_bPaused;
+  bool m_bAutoPlay{};
+  bool m_bLoop{};
+  bool m_bResetToTPoseOnReset{};
+  float m_fPlaybackSpeedScalar{};
+  bool m_bNotifyOfAnimationEvents{};
 
-    float m_fTimeSinceStart{};
+  float m_fTimeSinceStart{};
 
-    filament::gltfio::Animator* m_poAnimator{};
+  filament::gltfio::Animator* m_poAnimator{};
 
-    // Setup when the animator is set.
-    std::map<std::string, size_t> m_mapAnimationNamesToIndex;
-    void vSetupAnimationNameMapping();
+  // Setup when the animator is set.
+  std::map<std::string, size_t> m_mapAnimationNamesToIndex;
+  void vSetupAnimationNameMapping();
 
-    std::queue<int32_t> m_queAnimationQueue;
+  std::queue<int32_t> m_queAnimationQueue;
 };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

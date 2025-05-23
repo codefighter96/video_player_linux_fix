@@ -23,10 +23,10 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const float cameraFocalLength, float aspect)
-  : focalLength_(cameraFocalLength),
-    aspect_(aspect),
-    near_(0.0f),
-    far_(0.0f) {}
+    : focalLength_(cameraFocalLength),
+      aspect_(aspect),
+      near_(0.0f),
+      far_(0.0f) {}
 
 ////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const flutter::EncodableMap& params) {
@@ -47,13 +47,13 @@ LensProjection::LensProjection(const flutter::EncodableMap& params) {
       if (std::holds_alternative<double>(snd)) {
         near_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
-        near_ = 0.05; // 5 cm
+        near_ = 0.05;  // 5 cm
       }
     } else if (key == kFar) {
       if (std::holds_alternative<double>(snd)) {
         far_ = std::get<double>(snd);
       } else if (std::holds_alternative<std::monostate>(snd)) {
-        far_ = 1000.0; // 1 km
+        far_ = 1000.0;  // 1 km
       }
     } else if (!snd.IsNull()) {
       spdlog::debug("[LensProjection] Unhandled Parameter");
@@ -81,4 +81,4 @@ void LensProjection::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

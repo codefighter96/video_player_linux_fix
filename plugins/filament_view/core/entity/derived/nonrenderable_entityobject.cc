@@ -18,12 +18,13 @@
 namespace plugin_filament_view {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-NonRenderableEntityObject::NonRenderableEntityObject(const flutter::EncodableMap& params)
-  : EntityObject("NonRenderableEntityObject::TBD") {
+NonRenderableEntityObject::NonRenderableEntityObject(
+    const flutter::EncodableMap& params)
+    : EntityObject("NonRenderableEntityObject::TBD") {
   DeserializeNameAndGlobalGuid(params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void NonRenderableEntityObject::DebugPrint() const {}
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

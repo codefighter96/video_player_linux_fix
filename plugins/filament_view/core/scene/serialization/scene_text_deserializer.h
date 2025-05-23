@@ -30,38 +30,38 @@ namespace plugin_filament_view {
 class Light;
 
 class SceneTextDeserializer {
-  public:
-    explicit SceneTextDeserializer(const std::vector<uint8_t>& params);
-    void vRunPostSetupLoad();
+ public:
+  explicit SceneTextDeserializer(const std::vector<uint8_t>& params);
+  void vRunPostSetupLoad();
 
-    virtual ~SceneTextDeserializer() = default;
+  virtual ~SceneTextDeserializer() = default;
 
-  private:
-    // These get released to the Model_system / obj locator
-    std::vector<std::shared_ptr<Model>> models_;
-    // These get released to the Shape_System / obj locator
-    std::vector<std::shared_ptr<shapes::BaseShape>> shapes_;
+ private:
+  // These get released to the Model_system / obj locator
+  std::vector<std::shared_ptr<Model>> models_;
+  // These get released to the Shape_System / obj locator
+  std::vector<std::shared_ptr<shapes::BaseShape>> shapes_;
 
-    void
-    vDeserializeRootLevel(const std::vector<uint8_t>& params, const std::string& flutterAssetsPath);
-    // This is called from vDeserializeRootLevel function when it hits a 'scene'
-    // tag
-    void vDeserializeSceneLevel(const flutter::EncodableValue& params);
+  void vDeserializeRootLevel(const std::vector<uint8_t>& params,
+                             const std::string& flutterAssetsPath);
+  // This is called from vDeserializeRootLevel function when it hits a 'scene'
+  // tag
+  void vDeserializeSceneLevel(const flutter::EncodableValue& params);
 
-    void setUpLoadingModels();
-    void setUpSkybox() const;
-    void setUpLights();
-    void setUpIndirectLight() const;
-    void setUpShapes();
+  void setUpLoadingModels();
+  void setUpSkybox() const;
+  void setUpLights();
+  void setUpIndirectLight() const;
+  void setUpShapes();
 
-    static void loadModel(std::shared_ptr<Model>& model);
+  static void loadModel(std::shared_ptr<Model>& model);
 
-    std::unique_ptr<Skybox> skybox_;
-    std::unique_ptr<IndirectLight> indirect_light_;
-    std::map<EntityGUID, std::shared_ptr<Light>> lights_;
-    Camera* camera_{};
+  std::unique_ptr<Skybox> skybox_;
+  std::unique_ptr<IndirectLight> indirect_light_;
+  std::map<EntityGUID, std::shared_ptr<Light>> lights_;
+  Camera* camera_{};
 };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view
 
-#endif // SCENE_TEXT_DESERIALIZER_H
+#endif  // SCENE_TEXT_DESERIALIZER_H

@@ -15,5 +15,5 @@
  */
 
 namespace plugin_filament_view {
-constexpr float degreesToRadians = 3.14159265359f / 180.0f; // π/180
+constexpr float degreesToRadians = 3.14159265359f / 180.0f;  // π/180
 }

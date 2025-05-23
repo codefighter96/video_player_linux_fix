@@ -15,16 +15,15 @@
  */
 #include "ecsystems_manager.h"
 
+#include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
-#include <spdlog/spdlog.h>
 #include <thread>
 
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 ECSystemManager* ECSystemManager::m_poInstance = nullptr;
-
 ECSystemManager* ECSystemManager::GetInstance() {
   if (m_poInstance == nullptr) {
     m_poInstance = new ECSystemManager();
@@ -34,14 +33,16 @@ ECSystemManager* ECSystemManager::GetInstance() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-ECSystemManager::~ECSystemManager() { spdlog::debug("ECSystemManager~"); }
+ECSystemManager::~ECSystemManager() {
+  spdlog::debug("ECSystemManager~");
+}
 
 ////////////////////////////////////////////////////////////////////////////
 ECSystemManager::ECSystemManager()
-  : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
-    work_(make_work_guard(io_context_->get_executor())),
-    strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
-    m_eCurrentState(NotInitialized) {
+    : io_context_(std::make_unique<asio::io_context>(ASIO_CONCURRENCY_HINT_1)),
+      work_(make_work_guard(io_context_->get_executor())),
+      strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
+      m_eCurrentState(NotInitialized) {
   vSetupThreadingInternals();
 }
 
@@ -67,7 +68,8 @@ void ECSystemManager::vSetupThreadingInternals() {
     // Optionally set the thread name
     pthread_setname_np(filament_api_thread_id_, "ECSystemManagerThreadRunner");
 
-    spdlog::debug("ECSystemManager Filament API thread started: 0x{:x}", filament_api_thread_id_);
+    spdlog::debug("ECSystemManager Filament API thread started: 0x{:x}",
+                  filament_api_thread_id_);
 
     io_context_->run();
   });
@@ -75,7 +77,7 @@ void ECSystemManager::vSetupThreadingInternals() {
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::RunLoop() {
-  constexpr std::chrono::milliseconds frameTime(16); // ~1/60 second
+  constexpr std::chrono::milliseconds frameTime(16);  // ~1/60 second
 
   // Initialize lastFrameTime to the current time
   auto lastFrameTime = std::chrono::steady_clock::now();
@@ -92,10 +94,11 @@ void ECSystemManager::RunLoop() {
       post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
-          ExecuteOnMainThread(elapsedTime); // Pass elapsed time to the main thread
+          ExecuteOnMainThread(
+              elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
-          throw; // Rethrow the exception after resetting the flag
+          throw;  // Rethrow the exception after resetting the flag
         }
         isHandlerExecuting.store(false);
       });
@@ -107,7 +110,8 @@ void ECSystemManager::RunLoop() {
     auto end = std::chrono::steady_clock::now();
 
     // Sleep for the remaining time in the frame
-    if (std::chrono::duration<double> elapsed = end - start; elapsed < frameTime) {
+    if (std::chrono::duration<double> elapsed = end - start;
+        elapsed < frameTime) {
       std::this_thread::sleep_for(frameTime - elapsed);
     }
   }
@@ -136,7 +140,9 @@ void ECSystemManager::StopRunLoop() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSystemManager::ExecuteOnMainThread(const float elapsedTime) { vUpdate(elapsedTime); }
+void ECSystemManager::ExecuteOnMainThread(const float elapsedTime) {
+  vUpdate(elapsedTime);
+}
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vInitSystems() {
@@ -155,22 +161,23 @@ void ECSystemManager::vInitSystems() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<ECSystem>
-ECSystemManager::poGetSystem(const size_t systemTypeID, const std::string& where) {
-  if (const auto callingThread = pthread_self(); callingThread != filament_api_thread_id_) {
+std::shared_ptr<ECSystem> ECSystemManager::poGetSystem(
+    const size_t systemTypeID,
+    const std::string& where) {
+  if (const auto callingThread = pthread_self();
+      callingThread != filament_api_thread_id_) {
     // Note we should have a 'log once' base functionality in common
     // creating this inline for now.
     if (const auto foundIter = m_mapOffThreadCallers.find(where);
         foundIter == m_mapOffThreadCallers.end()) {
       spdlog::info(
-        "From {} "
-        "You're calling to get a system from an off thread, undefined "
-        "experience!"
-        " Use a message to do your work or grab the ecsystemmanager strand "
-        "and "
-        "do your work.",
-        where
-      );
+          "From {} "
+          "You're calling to get a system from an off thread, undefined "
+          "experience!"
+          " Use a message to do your work or grab the ecsystemmanager strand "
+          "and "
+          "do your work.",
+          where);
 
       m_mapOffThreadCallers.insert(std::pair(where, 0));
     }
@@ -182,13 +189,14 @@ ECSystemManager::poGetSystem(const size_t systemTypeID, const std::string& where
       return system;
     }
   }
-  return nullptr; // If no matching system found
+  return nullptr;  // If no matching system found
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSystemManager::vAddSystem(std::shared_ptr<ECSystem> system) {
   std::unique_lock lock(vecSystemsMutex);
-  spdlog::debug("Adding system at address {}", static_cast<void*>(system.get()));
+  spdlog::debug("Adding system at address {}",
+                static_cast<void*>(system.get()));
   m_vecSystems.push_back(std::move(system));
 }
 
@@ -201,7 +209,7 @@ void ECSystemManager::vUpdate(const float deltaTime) {
 
     // Copy the systems vector
     systemsCopy = m_vecSystems;
-  } // Mutex is unlocked here
+  }  // Mutex is unlocked here
 
   // Iterate over the copy without holding the mutex
   for (const auto& system : systemsCopy) {
@@ -218,11 +226,9 @@ void ECSystemManager::vUpdate(const float deltaTime) {
 void ECSystemManager::DebugPrint() const {
   for (const auto& system : m_vecSystems) {
     spdlog::debug(
-      "ECSystemManager:: DebugPrintProcessing system at address {}, "
-      "use_count={}",
-      static_cast<void*>(system.get()),
-      system.use_count()
-    );
+        "ECSystemManager:: DebugPrintProcessing system at address {}, "
+        "use_count={}",
+        static_cast<void*>(system.get()), system.use_count());
   }
 }
 
@@ -241,4 +247,4 @@ void ECSystemManager::vShutdownSystems() {
   });
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

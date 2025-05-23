@@ -19,22 +19,23 @@
 #include <core/systems/derived/animation_system.h>
 #include <core/systems/ecsystems_manager.h>
 #include <core/utils/deserialize.h>
-#include <filesystem>
 #include <plugins/common/common.h>
+#include <filesystem>
 
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 Animation::Animation(const flutter::EncodableMap& params)
-  : Component(std::string(__FUNCTION__)) {
-  Deserialize::DecodeParameterWithDefault(kAutoPlay, &m_bAutoPlay, params, false);
-  Deserialize::DecodeParameterWithDefault(kIndex, &m_nCurrentPlayingIndex, params, 0);
+    : Component(std::string(__FUNCTION__)) {
+  Deserialize::DecodeParameterWithDefault(kAutoPlay, &m_bAutoPlay, params,
+                                          false);
+  Deserialize::DecodeParameterWithDefault(kIndex, &m_nCurrentPlayingIndex,
+                                          params, 0);
 
   Deserialize::DecodeParameterWithDefault(kLoop, &m_bLoop, params, true);
 
   Deserialize::DecodeParameterWithDefault(
-    kResetToTPoseOnReset, &m_bResetToTPoseOnReset, params, false
-  );
+      kResetToTPoseOnReset, &m_bResetToTPoseOnReset, params, false);
 
   double speed;
   Deserialize::DecodeParameterWithDefault(kPlaybackSpeed, &speed, params, 1.0f);
@@ -42,8 +43,7 @@ Animation::Animation(const flutter::EncodableMap& params)
   m_fPlaybackSpeedScalar = static_cast<float>(speed);
 
   Deserialize::DecodeParameterWithDefault(
-    kNotifyOfAnimationEvents, &m_bNotifyOfAnimationEvents, params, false
-  );
+      kNotifyOfAnimationEvents, &m_bNotifyOfAnimationEvents, params, false);
 
   m_bPaused = false;
 }
@@ -61,12 +61,12 @@ void Animation::vUpdate(const float fElapsedTime) {
     m_fTimeSinceStart = 0.0f;
 
     if (m_bNotifyOfAnimationEvents) {
-      const auto animationSystem = ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-        AnimationSystem::StaticGetTypeID(), "Animation::vUpdate"
-      );
+      const auto animationSystem =
+          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
+              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
       animationSystem->vNotifyOfAnimationEvent(
-        GetOwner()->GetGlobalGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
-      );
+          GetOwner()->GetGlobalGuid(), eAnimationStarted,
+          std::to_string(m_nCurrentPlayingIndex));
     }
   }
 
@@ -76,21 +76,22 @@ void Animation::vUpdate(const float fElapsedTime) {
 
   m_fTimeSinceStart += fElapsedTime * m_fPlaybackSpeedScalar;
 
-  m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex), m_fTimeSinceStart);
+  m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex),
+                               m_fTimeSinceStart);
   m_poAnimator->updateBoneMatrices();
 
-  const auto currentAnimDuration =
-    m_poAnimator->getAnimationDuration(static_cast<size_t>(m_nCurrentPlayingIndex));
+  const auto currentAnimDuration = m_poAnimator->getAnimationDuration(
+      static_cast<size_t>(m_nCurrentPlayingIndex));
   if (m_fTimeSinceStart > currentAnimDuration) {
     if (m_bNotifyOfAnimationEvents) {
       // send message here to dart
-      const auto animationSystem = ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-        AnimationSystem::StaticGetTypeID(), "Animation::vUpdate"
-      );
+      const auto animationSystem =
+          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
+              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
 
       animationSystem->vNotifyOfAnimationEvent(
-        GetOwner()->GetGlobalGuid(), eAnimationEnded, std::to_string(m_nCurrentPlayingIndex)
-      );
+          GetOwner()->GetGlobalGuid(), eAnimationEnded,
+          std::to_string(m_nCurrentPlayingIndex));
     }
 
     // check queue
@@ -101,14 +102,15 @@ void Animation::vUpdate(const float fElapsedTime) {
 
       if (m_bNotifyOfAnimationEvents) {
         // send message here to dart
-        const auto animationSystem = ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-          AnimationSystem::StaticGetTypeID(), "Animation::vUpdate"
-        );
+        const auto animationSystem =
+            ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
+                AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
 
         animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGlobalGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
-        );
+            GetOwner()->GetGlobalGuid(), eAnimationStarted,
+            std::to_string(m_nCurrentPlayingIndex));
       }
+
     } else {
       m_fTimeSinceStart = 0.0f;
       m_nCurrentPlayingIndex = -1;
@@ -130,8 +132,9 @@ void Animation::vEnqueueAnimation(const int32_t index) {
   }
 
   if (static_cast<size_t>(index) >= m_mapAnimationNamesToIndex.size()) {
-    spdlog::warn("Attempting to vEnqueueAnimation that is greater than total count of "
-                 "animations.");
+    spdlog::warn(
+        "Attempting to vEnqueueAnimation that is greater than total count of "
+        "animations.");
     return;
   }
 
@@ -141,7 +144,7 @@ void Animation::vEnqueueAnimation(const int32_t index) {
 ////////////////////////////////////////////////////////////////////////////
 void Animation::vClearQueue() {
   std::queue<int32_t> emptyQueue;
-  std::swap(m_queAnimationQueue, emptyQueue); // Efficiently clear the queue
+  std::swap(m_queAnimationQueue, emptyQueue);  // Efficiently clear the queue
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -157,7 +160,8 @@ void Animation::vSetAnimator(filament::gltfio::Animator& animator) {
 
 ////////////////////////////////////////////////////////////////////////////
 void Animation::vPlayAnimation(int32_t index) {
-  if (index < 0 || static_cast<size_t>(index) >= m_mapAnimationNamesToIndex.size()) {
+  if (index < 0 ||
+      static_cast<size_t>(index) >= m_mapAnimationNamesToIndex.size()) {
     spdlog::warn("Invalid animation index: {}", index);
     return;
   }
@@ -186,34 +190,33 @@ void Animation::vSetupAnimationNameMapping() {
     const auto count = m_poAnimator->getAnimationCount();
     for (size_t i = 0; i < count; i++) {
       m_mapAnimationNamesToIndex.insert(
-        std::make_pair(std::string(m_poAnimator->getAnimationName(i)), i)
-      );
+          std::make_pair(std::string(m_poAnimator->getAnimationName(i)), i));
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////
 void Animation::DebugPrint(const std::string& tabPrefix) const {
-  spdlog::debug("{}m_nCurrentPlayingIndex: {}", tabPrefix, m_nCurrentPlayingIndex);
+  spdlog::debug("{}m_nCurrentPlayingIndex: {}", tabPrefix,
+                m_nCurrentPlayingIndex);
   spdlog::debug("{}m_bPaused: {}", tabPrefix, m_bPaused);
   spdlog::debug("{}m_bAutoPlay: {}", tabPrefix, m_bAutoPlay);
   spdlog::debug("{}m_bLoop: {}", tabPrefix, m_bLoop);
-  spdlog::debug("{}m_bResetToTPoseOnReset: {}", tabPrefix, m_bResetToTPoseOnReset);
-  spdlog::debug("{}m_fPlaybackSpeedScalar: {}", tabPrefix, m_fPlaybackSpeedScalar);
-  spdlog::debug("{}m_bNotifyOfAnimationEvents: {}", tabPrefix, m_bNotifyOfAnimationEvents);
+  spdlog::debug("{}m_bResetToTPoseOnReset: {}", tabPrefix,
+                m_bResetToTPoseOnReset);
+  spdlog::debug("{}m_fPlaybackSpeedScalar: {}", tabPrefix,
+                m_fPlaybackSpeedScalar);
+  spdlog::debug("{}m_bNotifyOfAnimationEvents: {}", tabPrefix,
+                m_bNotifyOfAnimationEvents);
   spdlog::debug("{}m_fTimeSinceStart: {}", tabPrefix, m_fTimeSinceStart);
 
   if (m_poAnimator) {
     const auto count = m_poAnimator->getAnimationCount();
     spdlog::debug("{}Animation Info: count[{}]", tabPrefix, count);
     for (size_t i = 0; i < count; i++) {
-      spdlog::debug(
-        "{}Anim at [{}]: Name: '{}', Duration: {}",
-        tabPrefix,
-        i,
-        m_poAnimator->getAnimationName(i),
-        m_poAnimator->getAnimationDuration(i)
-      );
+      spdlog::debug("{}Anim at [{}]: Name: '{}', Duration: {}", tabPrefix, i,
+                    m_poAnimator->getAnimationName(i),
+                    m_poAnimator->getAnimationDuration(i));
     }
   } else {
     spdlog::debug("{}m_poAnimator is nullptr", tabPrefix);
@@ -224,9 +227,10 @@ void Animation::DebugPrint(const std::string& tabPrefix) const {
     spdlog::debug("{}  Name: '{}', Index: {}", tabPrefix, name, index);
   }
 
-  spdlog::debug("{}m_queAnimationQueue size: {}", tabPrefix, m_queAnimationQueue.size());
+  spdlog::debug("{}m_queAnimationQueue size: {}", tabPrefix,
+                m_queAnimationQueue.size());
   if (!m_queAnimationQueue.empty()) {
-    std::queue<int32_t> tempQueue = m_queAnimationQueue; // Copy to iterate
+    std::queue<int32_t> tempQueue = m_queAnimationQueue;  // Copy to iterate
     spdlog::debug("{}Queue contents:", tabPrefix);
     while (!tempQueue.empty()) {
       int32_t index = tempQueue.front();
@@ -236,4 +240,4 @@ void Animation::DebugPrint(const std::string& tabPrefix) const {
   }
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

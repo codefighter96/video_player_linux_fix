@@ -16,7 +16,6 @@
 
 #include "view_target.h"
 
-#include <asio/post.hpp>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/view_target_system.h>
@@ -28,9 +27,10 @@
 #include <flutter/encodable_value.h>
 #include <gltfio/Animator.h>
 #include <plugins/common/common.h>
-#include <utility>
 #include <view/flutter_view.h>
 #include <wayland/display.h>
+#include <asio/post.hpp>
+#include <utility>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -45,13 +45,15 @@ class FilamentViewPlugin;
 
 namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(const int32_t top, const int32_t left, FlutterDesktopEngineState* state)
-  : state_(state),
-    left_(left),
-    top_(top),
-    callback_(nullptr),
-    fanimator_(nullptr),
-    cameraManager_(nullptr) {
+ViewTarget::ViewTarget(const int32_t top,
+                       const int32_t left,
+                       FlutterDesktopEngineState* state)
+    : state_(state),
+      left_(left),
+      top_(top),
+      callback_(nullptr),
+      fanimator_(nullptr),
+      cameraManager_(nullptr) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 }
@@ -68,9 +70,9 @@ ViewTarget::~ViewTarget() {
     callback_ = nullptr;
   }
 
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "~ViewTarget"
-  );
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroy(fview_);
@@ -118,7 +120,8 @@ void ViewTarget::setupWaylandSubsurface() {
     return;
   }
 
-  surface_ = wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
+  surface_ =
+      wl_compositor_create_surface(flutter_view->GetDisplay()->GetCompositor());
   if (!surface_) {
     // Handle error: failed to create surface
     spdlog::error("{}::{}", __FUNCTION__, __LINE__);
@@ -126,12 +129,12 @@ void ViewTarget::setupWaylandSubsurface() {
   }
 
   subsurface_ = wl_subcompositor_get_subsurface(
-    flutter_view->GetDisplay()->GetSubCompositor(), surface_, parent_surface_
-  );
+      flutter_view->GetDisplay()->GetSubCompositor(), surface_,
+      parent_surface_);
   if (!subsurface_) {
     // Handle error: failed to create subsurface
     spdlog::error("{}::{}", __FUNCTION__, __LINE__);
-    wl_surface_destroy(surface_); // Clean up the surface
+    wl_surface_destroy(surface_);  // Clean up the surface
     return;
   }
 
@@ -140,14 +143,18 @@ void ViewTarget::setupWaylandSubsurface() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::InitializeFilamentInternals(const uint32_t width, const uint32_t height) {
+void ViewTarget::InitializeFilamentInternals(const uint32_t width,
+                                             const uint32_t height) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
-  native_window_ = {.display = display_, .surface = surface_, .width = width, .height = height};
+  native_window_ = {.display = display_,
+                    .surface = surface_,
+                    .width = width,
+                    .height = height};
 
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize"
-  );
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
 
   const auto engine = filamentSystem->getFilamentEngine();
   fswapChain_ = engine->createSwapChain(&native_window_);
@@ -162,9 +169,9 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width, const uint32_
 void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), __FUNCTION__
-  );
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   fview_->setScene(filamentSystem->getFilamentScene());
 
@@ -208,13 +215,15 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vSetupCameraManagerWithDeserializedCamera(std::unique_ptr<Camera> camera) const {
+void ViewTarget::vSetupCameraManagerWithDeserializedCamera(
+    std::unique_ptr<Camera> camera) const {
   cameraManager_->updateCamera(camera.get());
   cameraManager_->setPrimaryCamera(std::move(camera));
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings qualitySettings) const {
+void ViewTarget::vChangeQualitySettings(
+    const ePredefinedQualitySettings qualitySettings) const {
   // Reset the settings for each quality setting
   filament::viewer::ViewSettings settings = settings_.view;
 
@@ -229,7 +238,8 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 50.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      settings.renderQuality = {.hdrColorBuffer = filament::View::QualityLevel::LOW};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::LOW};
       fview_->setStencilBufferEnabled(false);
       fview_->setScreenSpaceRefractionEnabled(false);
       break;
@@ -244,7 +254,8 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 100.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      settings.renderQuality = {.hdrColorBuffer = filament::View::QualityLevel::LOW};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::LOW};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(false);
       break;
@@ -259,7 +270,8 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 250.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      settings.renderQuality = {.hdrColorBuffer = filament::View::QualityLevel::HIGH};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
       break;
@@ -269,15 +281,18 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       settings.msaa.enabled = true;
       settings.msaa.sampleCount = 2;
       settings.dsr = {.enabled = false};
-      settings.screenSpaceReflections = {
-        .thickness = 0.05f, .bias = 0.5f, .maxDistance = 4.0f, .stride = 2.0f, .enabled = true
-      };
+      settings.screenSpaceReflections = {.thickness = 0.05f,
+                                         .bias = 0.5f,
+                                         .maxDistance = 4.0f,
+                                         .stride = 2.0f,
+                                         .enabled = true};
       settings.bloom = {.strength = 0.3f, .enabled = true};
       settings.postProcessingEnabled = true;
       settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 500.0f;
       settings.shadowType = filament::View::ShadowType::PCF;
-      settings.renderQuality = {.hdrColorBuffer = filament::View::QualityLevel::HIGH};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
       break;
@@ -287,47 +302,51 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       settings.msaa.enabled = true;
       settings.msaa.sampleCount = 4;
       settings.dsr = {.enabled = false};
-      settings.screenSpaceReflections = {
-        .thickness = 0.05f, .bias = 0.5f, .maxDistance = 4.0f, .stride = 2.0f, .enabled = true
-      };
+      settings.screenSpaceReflections = {.thickness = 0.05f,
+                                         .bias = 0.5f,
+                                         .maxDistance = 4.0f,
+                                         .stride = 2.0f,
+                                         .enabled = true};
       settings.bloom = {.strength = 0.4f, .enabled = true};
       settings.postProcessingEnabled = true;
       settings.dynamicLighting.zLightNear = 0.01f;
       settings.dynamicLighting.zLightFar = 1000.0f;
-      settings.renderQuality = {.hdrColorBuffer = filament::View::QualityLevel::HIGH};
+      settings.renderQuality = {.hdrColorBuffer =
+                                    filament::View::QualityLevel::HIGH};
       settings.shadowType = filament::View::ShadowType::PCF;
       fview_->setStencilBufferEnabled(true);
       fview_->setScreenSpaceRefractionEnabled(true);
       break;
   }
 
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "Change Quality Settings"
-  );
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "Change Quality Settings");
 
   // Now apply the settings to the Filament engine and view
   applySettings(filamentSystem->getFilamentEngine(), settings, fview_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) const {
+void ViewTarget::vSetFogOptions(
+    const filament::View::FogOptions& fogOptions) const {
   fview_->setFogOptions(fogOptions);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::SendFrameViewCallback(
-  const std::string& methodName,
-  std::initializer_list<std::pair<const char*, EncodableValue>> args
-) {
+    const std::string& methodName,
+    std::initializer_list<std::pair<const char*, EncodableValue>> args) {
   EncodableMap encodableMap;
-  encodableMap.insert({EncodableValue("method"), flutter::EncodableValue(methodName)});
+  encodableMap.insert(
+      {EncodableValue("method"), flutter::EncodableValue(methodName)});
   for (const auto& [fst, snd] : args) {
-    encodableMap[EncodableValue(fst)] = snd; // NOLINT
+    encodableMap[EncodableValue(fst)] = snd;  // NOLINT
   }
 
-  const auto viewTargetSystem = ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-    ViewTargetSystem::StaticGetTypeID(), __FUNCTION__
-  );
+  const auto viewTargetSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
+          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
 
   viewTargetSystem->vSendDataToEventChannel(encodableMap);
 }
@@ -364,13 +383,13 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   // drawing a frame.
 
   SendFrameViewCallback(
-    kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))}
-  );
+      kUpdateFrame,
+      {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))});
 
   // Render the scene, unless the renderer wants to skip the frame.
-  if (const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-        FilamentSystem::StaticGetTypeID(), "DrawFrame"
-      );
+  if (const auto filamentSystem =
+          ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+              FilamentSystem::StaticGetTypeID(), "DrawFrame");
       filamentSystem->getFilamentRenderer()->beginFrame(fswapChain_, time)) {
     // Note you might want render time and gameplay time to be different
     // but for smooth animation you don't. (physics would be simulated w/o
@@ -379,42 +398,43 @@ void ViewTarget::DrawFrame(const uint32_t time) {
     // Future tasking for making a more featured timing / frame info class.
     const uint32_t deltaTimeMS = time - m_LastTime;
     float timeSinceLastRenderedSec =
-      static_cast<float>(deltaTimeMS) / 1000.0f; // convert to seconds
+        static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
     if (timeSinceLastRenderedSec == 0.0f) {
       timeSinceLastRenderedSec += 1.0f;
     }
-    float fps = 1.0f / timeSinceLastRenderedSec; // calculate FPS
+    float fps = 1.0f / timeSinceLastRenderedSec;  // calculate FPS
 
     SendFrameViewCallback(
-      kPreRenderFrame,
-      {std::make_pair(kParam_TimeSinceLastRenderedSec, EncodableValue(timeSinceLastRenderedSec)),
-       std::make_pair(kParam_FPS, EncodableValue(fps))}
-    );
+        kPreRenderFrame,
+        {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                        EncodableValue(timeSinceLastRenderedSec)),
+         std::make_pair(kParam_FPS, EncodableValue(fps))});
 
     doCameraFeatures(timeSinceLastRenderedSec);
 
     SendFrameViewCallback(
-      kRenderFrame,
-      {std::make_pair(kParam_TimeSinceLastRenderedSec, EncodableValue(timeSinceLastRenderedSec)),
-       std::make_pair(kParam_FPS, EncodableValue(fps))}
-    );
+        kRenderFrame, {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                                      EncodableValue(timeSinceLastRenderedSec)),
+                       std::make_pair(kParam_FPS, EncodableValue(fps))});
 
     filamentSystem->getFilamentRenderer()->render(fview_);
 
     filamentSystem->getFilamentRenderer()->endFrame();
 
     SendFrameViewCallback(
-      kPostRenderFrame,
-      {std::make_pair(kParam_TimeSinceLastRenderedSec, EncodableValue(timeSinceLastRenderedSec)),
-       std::make_pair(kParam_FPS, EncodableValue(fps))}
-    );
+        kPostRenderFrame,
+        {std::make_pair(kParam_TimeSinceLastRenderedSec,
+                        EncodableValue(timeSinceLastRenderedSec)),
+         std::make_pair(kParam_FPS, EncodableValue(fps))});
   }
 
   m_LastTime = time;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time) {
+void ViewTarget::OnFrame(void* data,
+                         wl_callback* callback,
+                         const uint32_t time) {
   post(*ECSystemManager::GetInstance()->GetStrand(), [data, callback, time] {
     const auto obj = static_cast<ViewTarget*>(data);
     obj->callback_ = nullptr;
@@ -439,7 +459,8 @@ void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time)
 
 /////////////////////////////////////////////////////////////////////////
 void ViewTarget::doCameraFeatures(const float fDeltaTime) const {
-  if (cameraManager_ == nullptr) return;
+  if (cameraManager_ == nullptr)
+    return;
   cameraManager_->updateCamerasFeatures(fDeltaTime);
 }
 
@@ -452,30 +473,32 @@ void ViewTarget::setOffset(const double left, const double top) {
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::resize(const double width, const double height) {
   // Will need to determine what bottom should be
-  fview_->setViewport({left_, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
+  fview_->setViewport(
+      {left_, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
 
-  cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+  cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width),
+                                       static_cast<uint32_t>(height));
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vOnTouch(
-  const int32_t action,
-  const int32_t point_count,
-  const size_t point_data_size,
-  const double* point_data
-) const {
-  auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), __FUNCTION__
-  );
+void ViewTarget::vOnTouch(const int32_t action,
+                          const int32_t point_count,
+                          const size_t point_data_size,
+                          const double* point_data) const {
+  auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
 
   // if action is 0, then on 'first' touch, cast ray from camera;
   const auto viewport = fview_->getViewport();
-  const auto touch = TouchPair(point_count, point_data_size, point_data, viewport.height);
+  const auto touch =
+      TouchPair(point_count, point_data_size, point_data, viewport.height);
 
   static constexpr int ACTION_DOWN = 0;
 
   if (action == ACTION_DOWN) {
-    const auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    const auto rayInfo =
+        cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
 
     ECSMessage rayInformation;
     rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
@@ -483,8 +506,10 @@ void ViewTarget::vOnTouch(
 
     ECSMessage collisionRequest;
     collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
-    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
-    collisionRequest.addData(ECSMessageType::CollisionRequestType, eNativeOnTouchBegin);
+    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor,
+                             std::string(__FUNCTION__));
+    collisionRequest.addData(ECSMessageType::CollisionRequestType,
+                             eNativeOnTouchBegin);
     ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 
@@ -492,4 +517,4 @@ void ViewTarget::vOnTouch(
     cameraManager_->onAction(action, point_count, point_data_size, point_data);
   }
 }
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view
