@@ -23,22 +23,22 @@
 namespace plugin_filament_view {
 
 class Size {
-  public:
-    explicit Size(const flutter::EncodableMap& params);
+ public:
+  explicit Size(const flutter::EncodableMap& params);
 
-    Size(double x, double y, double z);
+  Size(double x, double y, double z);
 
-    void DebugPrint(const char* tag);
+  void DebugPrint(const char* tag);
 
-    // Disallow copy and assign.
-    Size(const Size&) = delete;
+  // Disallow copy and assign.
+  Size(const Size&) = delete;
 
-    Size& operator=(const Size&) = delete;
+  Size& operator=(const Size&) = delete;
 
-  private:
-    std::optional<double> x_;
-    std::optional<double> y_;
-    std::optional<double> z_;
+ private:
+  std::optional<double> x_;
+  std::optional<double> y_;
+  std::optional<double> z_;
 };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

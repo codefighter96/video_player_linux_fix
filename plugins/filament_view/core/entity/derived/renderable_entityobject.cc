@@ -18,13 +18,14 @@
 namespace plugin_filament_view {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-RenderableEntityObject::RenderableEntityObject(const flutter::EncodableMap& params)
-  : EntityObject("`RenderableEntityObject::TBD") {
+RenderableEntityObject::RenderableEntityObject(
+    const flutter::EncodableMap& params)
+    : EntityObject("`RenderableEntityObject::TBD") {
   DeserializeNameAndGlobalGuid(params);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 RenderableEntityObject::RenderableEntityObject()
-  : EntityObject("`RenderableEntityObject::TBD") {}
+    : EntityObject("`RenderableEntityObject::TBD") {}
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

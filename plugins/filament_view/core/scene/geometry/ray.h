@@ -25,26 +25,27 @@
 namespace plugin_filament_view {
 
 class Ray {
-  public:
-    Ray(Position& pos, Direction& dir, float length)
-      : direction_(dir),
-        position_(pos),
-        length_(length) {}
+ public:
+  Ray(Position& pos, Direction& dir, float length)
+      : direction_(dir), position_(pos), length_(length) {}
+  explicit Ray(const flutter::EncodableMap& params);
 
-    explicit Ray(const flutter::EncodableMap& params);
+  [[nodiscard]] ::filament::math::float3 f3GetPosition() const {
+    return position_;
+  }
 
-    [[nodiscard]] ::filament::math::float3 f3GetPosition() const { return position_; }
+  [[nodiscard]] ::filament::math::float3 f3GetDirection() const {
+    return direction_;
+  }
 
-    [[nodiscard]] ::filament::math::float3 f3GetDirection() const { return direction_; }
+  [[nodiscard]] double dGetLength() const { return length_; }
 
-    [[nodiscard]] double dGetLength() const { return length_; }
+  void DebugPrint(const char* tag);
 
-    void DebugPrint(const char* tag);
-
-  private:
-    Direction direction_;
-    Position position_;
-    double length_;
+ private:
+  Direction direction_;
+  Position position_;
+  double length_;
 };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

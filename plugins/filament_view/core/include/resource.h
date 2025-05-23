@@ -20,40 +20,41 @@
 
 enum class Status { Success, Error, Loading };
 
-template <typename T> class Resource {
-  private:
-    Status status_;
-    std::string_view message_ = {};
-    std::optional<T> data_ = {};
+template <typename T>
+class Resource {
+ private:
+  Status status_;
+  std::string_view message_ = {};
+  std::optional<T> data_ = {};
 
-  public:
-    Resource(Status status, std::string_view message, std::optional<T> data = std::nullopt)
-      : status_(status),
-        message_(message),
-        data_(std::move(data)) {}
+ public:
+  Resource(Status status,
+           std::string_view message,
+           std::optional<T> data = std::nullopt)
+      : status_(status), message_(message), data_(std::move(data)) {}
 
-    Resource()
-      : status_(Status::Success),
-        message_() {}
+  Resource() : status_(Status::Success), message_() {}
 
-    static Resource Success(T data) { return Resource(Status::Success, "", data); }
+  static Resource Success(T data) {
+    return Resource(Status::Success, "", data);
+  }
 
-    static Resource Error(std::string_view message) {
-      return Resource(Status::Error, message, std::nullopt);
+  static Resource Error(std::string_view message) {
+    return Resource(Status::Error, message, std::nullopt);
+  }
+
+  [[nodiscard]] Status getStatus() const { return status_; }
+
+  [[nodiscard]] std::string_view getMessage() const { return message_; }
+
+  [[nodiscard]] std::optional<T> getData() const { return data_; }
+
+  void vReset() {
+    if (getStatus() == Status::Success) {
+      getData().reset();
     }
 
-    [[nodiscard]] Status getStatus() const { return status_; }
-
-    [[nodiscard]] std::string_view getMessage() const { return message_; }
-
-    [[nodiscard]] std::optional<T> getData() const { return data_; }
-
-    void vReset() {
-      if (getStatus() == Status::Success) {
-        getData().reset();
-      }
-
-      message_ = "";
-      status_ = Status::Loading;
-    }
+    message_ = "";
+    status_ = Status::Loading;
+  }
 };

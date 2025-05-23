@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 #pragma once
-
 namespace plugin_filament_view {
 
 enum class ECSMessageType {

@@ -26,25 +26,25 @@ using ::utils::Entity;
 namespace shapes {
 
 class Plane : public BaseShape {
-  public:
-    explicit Plane(const flutter::EncodableMap& params);
-    Plane() = default;
-    ~Plane() override = default;
+ public:
+  explicit Plane(const flutter::EncodableMap& params);
+  Plane() = default;
+  ~Plane() override = default;
 
-    // Disallow copy and assign.
-    Plane(const Plane&) = delete;
-    Plane& operator=(const Plane&) = delete;
+  // Disallow copy and assign.
+  Plane(const Plane&) = delete;
+  Plane& operator=(const Plane&) = delete;
 
-    void DebugPrint(const char* tag) const override;
+  void DebugPrint(const char* tag) const override;
 
-    bool bInitAndCreateShape(::filament::Engine* engine_, std::shared_ptr<Entity> entityObject)
-      override;
+  bool bInitAndCreateShape(::filament::Engine* engine_,
+                           std::shared_ptr<Entity> entityObject) override;
 
-  private:
-    void createDoubleSidedPlane(::filament::Engine* engine_);
+ private:
+  void createDoubleSidedPlane(::filament::Engine* engine_);
 
-    void createSingleSidedPlane(::filament::Engine* engine_);
+  void createSingleSidedPlane(::filament::Engine* engine_);
 };
 
-} // namespace shapes
-} // namespace plugin_filament_view
+}  // namespace shapes
+}  // namespace plugin_filament_view

@@ -41,28 +41,29 @@ Texture* HDRLoader::createTextureFromImage(Engine* engine, LinearImage* image) {
   }
 
   Texture* texture = Texture::Builder()
-                       .width(image->getWidth())
-                       .height(image->getHeight())
-                       .levels(0xff)
-                       .format(Texture::InternalFormat::R11F_G11F_B10F)
-                       .sampler(Texture::Sampler::SAMPLER_2D)
-                       .build(*engine);
+                         .width(image->getWidth())
+                         .height(image->getHeight())
+                         .levels(0xff)
+                         .format(Texture::InternalFormat::R11F_G11F_B10F)
+                         .sampler(Texture::Sampler::SAMPLER_2D)
+                         .build(*engine);
 
   if (!texture) {
     return deleteImageAndLogError(image);
   }
 
   const Texture::PixelBufferDescriptor::Callback freeCallback =
-    [](void* /* buf */, size_t, void* userdata) { delete static_cast<LinearImage*>(userdata); };
+      [](void* /* buf */, size_t, void* userdata) {
+        delete static_cast<LinearImage*>(userdata);
+      };
 
   Texture::PixelBufferDescriptor pbd(
-    (image->getPixelRef()),
-    static_cast<size_t>(image->getWidth()) * image->getHeight() * 3 * sizeof(float),
-    Texture::PixelBufferDescriptor::PixelDataFormat::RGB,
-    Texture::PixelBufferDescriptor::PixelDataType::FLOAT,
-    freeCallback,
-    image
-  );
+      (image->getPixelRef()),
+      static_cast<size_t>(image->getWidth()) * image->getHeight() * 3 *
+          sizeof(float),
+      Texture::PixelBufferDescriptor::PixelDataFormat::RGB,
+      Texture::PixelBufferDescriptor::PixelDataType::FLOAT, freeCallback,
+      image);
 
   texture->setImage(*engine, 0, std::move(pbd));
   texture->generateMipmaps(*engine);
@@ -70,8 +71,9 @@ Texture* HDRLoader::createTextureFromImage(Engine* engine, LinearImage* image) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Texture*
-HDRLoader::createTexture(Engine* engine, const std::string& asset_path, const std::string& name) {
+Texture* HDRLoader::createTexture(Engine* engine,
+                                  const std::string& asset_path,
+                                  const std::string& name) {
   SPDLOG_DEBUG("Loading {}", asset_path.c_str());
   std::ifstream ins(asset_path, std::ios::binary);
   auto* image = new LinearImage(ImageDecoder::decode(ins, name));
@@ -79,14 +81,12 @@ HDRLoader::createTexture(Engine* engine, const std::string& asset_path, const st
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Texture* HDRLoader::createTexture(
-  Engine* engine,
-  const std::vector<uint8_t>& buffer,
-  const std::string& name
-) {
+Texture* HDRLoader::createTexture(Engine* engine,
+                                  const std::vector<uint8_t>& buffer,
+                                  const std::string& name) {
   const std::string str(buffer.begin(), buffer.end());
   std::istringstream ins(str);
   auto* image = new LinearImage(ImageDecoder::decode(ins, name));
   return createTextureFromImage(engine, image);
 }
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

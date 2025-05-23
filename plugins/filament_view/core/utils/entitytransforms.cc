@@ -27,43 +27,39 @@ using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::mat3f EntityTransforms::identity3x3() {
-  return {
-    filament::math::float3{1.0f, 0.0f, 0.0f},
-    filament::math::float3{0.0f, 1.0f, 0.0f},
-    filament::math::float3{0.0f, 0.0f, 1.0f}
-  };
+  return {filament::math::float3{1.0f, 0.0f, 0.0f},
+          filament::math::float3{0.0f, 1.0f, 0.0f},
+          filament::math::float3{0.0f, 0.0f, 1.0f}};
 }
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::mat4f EntityTransforms::identity4x4() {
-  return {
-    filament::math::float4(1.0f, 0.0f, 0.0f, 0.0f),
-    filament::math::float4(0.0f, 1.0f, 0.0f, 0.0f),
-    filament::math::float4(0.0f, 0.0f, 1.0f, 0.0f),
-    filament::math::float4(0.0f, 0.0f, 0.0f, 1.0f)
-  };
+  return {filament::math::float4(1.0f, 0.0f, 0.0f, 0.0f),
+          filament::math::float4(0.0f, 1.0f, 0.0f, 0.0f),
+          filament::math::float4(0.0f, 0.0f, 1.0f, 0.0f),
+          filament::math::float4(0.0f, 0.0f, 0.0f, 1.0f)};
 }
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::mat4f EntityTransforms::oApplyShear(
-  const filament::math::mat4f& matrix,
-  const filament::math::float3& shear
-) {
+    const filament::math::mat4f& matrix,
+    const filament::math::float3& shear) {
   // Create a shear matrix
   filament::math::mat4f shearMatrix = identity4x4();
 
   // Apply shear values (assuming shear.x applies to YZ, shear.y applies to XZ,
   // shear.z applies to XY)
-  shearMatrix[1][0] = shear.x; // Shear along X axis
-  shearMatrix[2][0] = shear.y; // Shear along Y axis
-  shearMatrix[2][1] = shear.z; // Shear along Z axis
+  shearMatrix[1][0] = shear.x;  // Shear along X axis
+  shearMatrix[2][0] = shear.y;  // Shear along Y axis
+  shearMatrix[2][1] = shear.z;  // Shear along Z axis
 
   // Multiply the original matrix by the shear matrix
   return matrix * shearMatrix;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-filament::math::mat3f EntityTransforms::QuaternionToMat3f(const filament::math::quatf& rotation) {
+filament::math::mat3f EntityTransforms::QuaternionToMat3f(
+    const filament::math::quatf& rotation) {
   // Extract quaternion components
   const float x = rotation.x;
   const float y = rotation.y;
@@ -82,15 +78,17 @@ filament::math::mat3f EntityTransforms::QuaternionToMat3f(const filament::math::
   const float wz = w * z;
 
   // Create the 3x3 rotation matrix
-  return {
-    filament::math::float3(1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy)),
-    filament::math::float3(2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx)),
-    filament::math::float3(2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy))
-  };
+  return {filament::math::float3(1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz),
+                                 2.0f * (xz - wy)),
+          filament::math::float3(2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz),
+                                 2.0f * (yz + wx)),
+          filament::math::float3(2.0f * (xz + wy), 2.0f * (yz - wx),
+                                 1.0f - 2.0f * (xx + yy))};
 }
 
 ////////////////////////////////////////////////////////////////////////////
-filament::math::mat4f EntityTransforms::QuaternionToMat4f(const filament::math::quatf& rotation) {
+filament::math::mat4f EntityTransforms::QuaternionToMat4f(
+    const filament::math::quatf& rotation) {
   // Use the QuaternionToMat3f function to get the 3x3 matrix
   const filament::math::mat3f rotationMatrix = QuaternionToMat3f(rotation);
 
@@ -100,140 +98,129 @@ filament::math::mat4f EntityTransforms::QuaternionToMat4f(const filament::math::
 
 ////////////////////////////////////////////////////////////////////////////
 // Functions that use CustomModelViewer to get the engine
-void EntityTransforms::vApplyScale(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& scale
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyScale(const std::shared_ptr<Entity>& poEntity,
+                                   const filament::math::float3& scale) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyScale(poEntity, scale, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyRotation(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::quatf& rotation
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyRotation(const std::shared_ptr<Entity>& poEntity,
+                                      const filament::math::quatf& rotation) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyRotation(poEntity, rotation, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTranslate(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& translation
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+    const std::shared_ptr<Entity>& poEntity,
+    const filament::math::float3& translation) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyTranslate(poEntity, translation, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::mat4f& transform
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
+                                       const filament::math::mat4f& transform) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyTransform(poEntity, transform, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  const BaseTransform& transform
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
+                                       const BaseTransform& transform) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
 
   // Create the rotation, scaling, and translation matrices
   const auto rotationMatrix = QuaternionToMat4f(transform.GetRotation());
-  const auto scalingMatrix = filament::math::mat4f::scaling(transform.GetScale());
-  const auto translationMatrix = filament::math::mat4f::translation(transform.GetCenterPosition());
+  const auto scalingMatrix =
+      filament::math::mat4f::scaling(transform.GetScale());
+  const auto translationMatrix =
+      filament::math::mat4f::translation(transform.GetCenterPosition());
 
   // Combine the transformations: translate * rotate * scale
-  const auto combinedTransform = translationMatrix * rotationMatrix * scalingMatrix;
+  const auto combinedTransform =
+      translationMatrix * rotationMatrix * scalingMatrix;
 
   vApplyTransform(poEntity, combinedTransform, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::quatf& rotation,
-  const filament::math::float3& scale,
-  const filament::math::float3& translation
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+    const std::shared_ptr<Entity>& poEntity,
+    const filament::math::quatf& rotation,
+    const filament::math::float3& scale,
+    const filament::math::float3& translation) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyTransform(poEntity, rotation, scale, translation, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyShear(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& shear
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyShear(const std::shared_ptr<Entity>& poEntity,
+                                   const filament::math::float3& shear) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyShear(poEntity, shear, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vResetTransform(const std::shared_ptr<Entity>& poEntity) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vResetTransform(
+    const std::shared_ptr<Entity>& poEntity) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vResetTransform(poEntity, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-filament::math::mat4f EntityTransforms::oGetCurrentTransform(const std::shared_ptr<Entity>& poEntity
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+filament::math::mat4f EntityTransforms::oGetCurrentTransform(
+    const std::shared_ptr<Entity>& poEntity) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   return oGetCurrentTransform(poEntity, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyLookAt(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& target,
-  const filament::math::float3& up
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
+                                    const filament::math::float3& target,
+                                    const filament::math::float3& up) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
   vApplyLookAt(poEntity, target, up, engine);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // Functions that take an engine as a parameter (these already exist)
-void EntityTransforms::vApplyScale(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& scale,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vApplyScale(const std::shared_ptr<Entity>& poEntity,
+                                   const filament::math::float3& scale,
+                                   filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -252,12 +239,11 @@ void EntityTransforms::vApplyScale(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyRotation(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::quatf& rotation,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vApplyRotation(const std::shared_ptr<Entity>& poEntity,
+                                      const filament::math::quatf& rotation,
+                                      filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -277,11 +263,11 @@ void EntityTransforms::vApplyRotation(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTranslate(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& translation,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+    const std::shared_ptr<Entity>& poEntity,
+    const filament::math::float3& translation,
+    filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -290,7 +276,8 @@ void EntityTransforms::vApplyTranslate(
   const auto currentTransform = transformManager.getTransform(instance);
 
   // Create the translation matrix
-  const auto translationMatrix = filament::math::mat4f::translation(translation);
+  const auto translationMatrix =
+      filament::math::mat4f::translation(translation);
 
   // Combine the current transform with the translation matrix
   const auto combinedTransform = currentTransform * translationMatrix;
@@ -300,12 +287,11 @@ void EntityTransforms::vApplyTranslate(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::mat4f& transform,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vApplyTransform(const std::shared_ptr<Entity>& poEntity,
+                                       const filament::math::mat4f& transform,
+                                       filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -316,13 +302,13 @@ void EntityTransforms::vApplyTransform(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::quatf& rotation,
-  const filament::math::float3& scale,
-  const filament::math::float3& translation,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+    const std::shared_ptr<Entity>& poEntity,
+    const filament::math::quatf& rotation,
+    const filament::math::float3& scale,
+    const filament::math::float3& translation,
+    filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -330,22 +316,23 @@ void EntityTransforms::vApplyTransform(
   // Create the rotation, scaling, and translation matrices
   const auto rotationMatrix = QuaternionToMat4f(rotation);
   const auto scalingMatrix = filament::math::mat4f::scaling(scale);
-  const auto translationMatrix = filament::math::mat4f::translation(translation);
+  const auto translationMatrix =
+      filament::math::mat4f::translation(translation);
 
   // Combine the transformations: translate * rotate * scale
-  const auto combinedTransform = translationMatrix * rotationMatrix * scalingMatrix;
+  const auto combinedTransform =
+      translationMatrix * rotationMatrix * scalingMatrix;
 
   // Set the combined transform back to the entity
   transformManager.setTransform(instance, combinedTransform);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyShear(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& shear,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vApplyShear(const std::shared_ptr<Entity>& poEntity,
+                                   const filament::math::float3& shear,
+                                   filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -364,11 +351,10 @@ void EntityTransforms::vApplyShear(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vResetTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vResetTransform(const std::shared_ptr<Entity>& poEntity,
+                                       filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -380,10 +366,10 @@ void EntityTransforms::vResetTransform(
 
 ////////////////////////////////////////////////////////////////////////////
 filament::math::mat4f EntityTransforms::oGetCurrentTransform(
-  const std::shared_ptr<Entity>& poEntity,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return identity4x4();
+    const std::shared_ptr<Entity>& poEntity,
+    filament::Engine* engine) {
+  if (!*poEntity)
+    return identity4x4();
 
   const auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -393,13 +379,12 @@ filament::math::mat4f EntityTransforms::oGetCurrentTransform(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void EntityTransforms::vApplyLookAt(
-  const std::shared_ptr<Entity>& poEntity,
-  const filament::math::float3& target,
-  const filament::math::float3& up,
-  filament::Engine* engine
-) {
-  if (!*poEntity) return;
+void EntityTransforms::vApplyLookAt(const std::shared_ptr<Entity>& poEntity,
+                                    const filament::math::float3& target,
+                                    const filament::math::float3& up,
+                                    filament::Engine* engine) {
+  if (!*poEntity)
+    return;
 
   auto& transformManager = engine->getTransformManager();
   const auto instance = transformManager.getInstance(*poEntity);
@@ -417,10 +402,9 @@ void EntityTransforms::vApplyLookAt(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Model>& oModelAsset,
-  const BaseTransform& transform,
-  filament::Engine* engine
-) {
+    const std::shared_ptr<Model>& oModelAsset,
+    const BaseTransform& transform,
+    filament::Engine* engine) {
   auto& transformManager = engine->getTransformManager();
 
   Entity entityToWorkWith;
@@ -434,11 +418,14 @@ void EntityTransforms::vApplyTransform(
 
   // Create the rotation, scaling, and translation matrices
   const auto rotationMatrix = QuaternionToMat4f(transform.GetRotation());
-  const auto scalingMatrix = filament::math::mat4f::scaling(transform.GetScale());
-  const auto translationMatrix = filament::math::mat4f::translation(transform.GetCenterPosition());
+  const auto scalingMatrix =
+      filament::math::mat4f::scaling(transform.GetScale());
+  const auto translationMatrix =
+      filament::math::mat4f::translation(transform.GetCenterPosition());
 
   // Combine the transformations: translate * rotate * scale
-  const auto combinedTransform = translationMatrix * rotationMatrix * scalingMatrix;
+  const auto combinedTransform =
+      translationMatrix * rotationMatrix * scalingMatrix;
 
   // Set the combined transform back to the entity
   transformManager.setTransform(ei, combinedTransform);
@@ -446,15 +433,14 @@ void EntityTransforms::vApplyTransform(
 
 ////////////////////////////////////////////////////////////////////////////
 void EntityTransforms::vApplyTransform(
-  const std::shared_ptr<Model>& oModelAsset,
-  const BaseTransform& transform
-) {
-  const auto filamentSystem = ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-    FilamentSystem::StaticGetTypeID(), "EntityTransforms"
-  );
+    const std::shared_ptr<Model>& oModelAsset,
+    const BaseTransform& transform) {
+  const auto filamentSystem =
+      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
+          FilamentSystem::StaticGetTypeID(), "EntityTransforms");
   const auto engine = filamentSystem->getFilamentEngine();
 
   vApplyTransform(oModelAsset, transform, engine);
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

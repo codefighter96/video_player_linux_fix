@@ -23,15 +23,16 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 CommonRenderable::CommonRenderable(const flutter::EncodableMap& params)
-  : Component(std::string(__FUNCTION__)),
-    m_bCullingOfObjectEnabled(true),
-    m_bReceiveShadows(false),
-    m_bCastShadows(false) {
+    : Component(std::string(__FUNCTION__)),
+      m_bCullingOfObjectEnabled(true),
+      m_bReceiveShadows(false),
+      m_bCastShadows(false) {
   Deserialize::DecodeParameterWithDefault(
-    kCullingEnabled, &m_bCullingOfObjectEnabled, params, true
-  );
-  Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows, params, false);
-  Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params, false);
+      kCullingEnabled, &m_bCullingOfObjectEnabled, params, true);
+  Deserialize::DecodeParameterWithDefault(kReceiveShadows, &m_bReceiveShadows,
+                                          params, false);
+  Deserialize::DecodeParameterWithDefault(kCastShadows, &m_bCastShadows, params,
+                                          false);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -41,4 +42,4 @@ void CommonRenderable::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Cast Shadows: {}", m_bCastShadows);
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

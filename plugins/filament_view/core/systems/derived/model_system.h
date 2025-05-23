@@ -15,14 +15,14 @@
  */
 #pragma once
 
-#include <asio/io_context_strand.hpp>
 #include <core/entity/derived/model/model.h>
 #include <core/include/resource.h>
 #include <core/systems/base/ecsystem.h>
-#include <future>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
+#include <asio/io_context_strand.hpp>
+#include <future>
 #include <list>
 
 namespace plugin_filament_view {
@@ -30,100 +30,101 @@ namespace plugin_filament_view {
 class Model;
 
 class ModelSystem : public ECSystem {
-  public:
-    ModelSystem() = default;
+ public:
+  ModelSystem() = default;
 
-    void destroyAllAssetsOnModels();
-    void destroyAsset(const filament::gltfio::FilamentAsset* asset) const;
+  void destroyAllAssetsOnModels();
+  void destroyAsset(const filament::gltfio::FilamentAsset* asset) const;
 
-    void loadModelGlb(
+  void loadModelGlb(std::shared_ptr<Model> oOurModel,
+                    const std::vector<uint8_t>& buffer,
+                    const std::string& assetName);
+
+  void loadModelGltf(std::shared_ptr<Model> oOurModel,
+                     const std::vector<uint8_t>& buffer,
+                     std::function<const ::filament::backend::BufferDescriptor&(
+                         std::string uri)>& callback);
+
+  filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szGUID);
+
+  void updateAsyncAssetLoading();
+
+  std::future<Resource<std::string_view>> loadGlbFromAsset(
       std::shared_ptr<Model> oOurModel,
-      const std::vector<uint8_t>& buffer,
-      const std::string& assetName
-    );
+      const std::string& path);
 
-    void loadModelGltf(
+  std::future<Resource<std::string_view>> loadGlbFromUrl(
       std::shared_ptr<Model> oOurModel,
-      const std::vector<uint8_t>& buffer,
-      std::function<const ::filament::backend::BufferDescriptor&(std::string uri)>& callback
-    );
+      std::string url);
 
-    filament::gltfio::FilamentAsset* poFindAssetByGuid(const std::string& szGUID);
-
-    void updateAsyncAssetLoading();
-
-    std::future<Resource<std::string_view>>
-    loadGlbFromAsset(std::shared_ptr<Model> oOurModel, const std::string& path);
-
-    std::future<Resource<std::string_view>>
-    loadGlbFromUrl(std::shared_ptr<Model> oOurModel, std::string url);
-
-    static std::future<Resource<std::string_view>> loadGltfFromAsset(
+  static std::future<Resource<std::string_view>> loadGltfFromAsset(
       const std::shared_ptr<Model>& oOurModel,
       const std::string& path,
       const std::string& pre_path,
-      const std::string& post_path
-    );
+      const std::string& post_path);
 
-    static std::future<Resource<std::string_view>>
-    loadGltfFromUrl(const std::shared_ptr<Model>& oOurModel, const std::string& url);
+  static std::future<Resource<std::string_view>> loadGltfFromUrl(
+      const std::shared_ptr<Model>& oOurModel,
+      const std::string& url);
 
-    void vInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+  void vInitSystem() override;
+  void vUpdate(float fElapsedTime) override;
+  void vShutdownSystem() override;
+  void DebugPrint() override;
 
-    [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
+  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
 
-    [[nodiscard]] static size_t StaticGetTypeID() { return typeid(ModelSystem).hash_code(); }
+  [[nodiscard]] static size_t StaticGetTypeID() {
+    return typeid(ModelSystem).hash_code();
+  }
 
-  private:
-    ::filament::gltfio::AssetLoader* assetLoader_{};
-    ::filament::gltfio::MaterialProvider* materialProvider_{};
-    ::filament::gltfio::ResourceLoader* resourceLoader_{};
+ private:
+  ::filament::gltfio::AssetLoader* assetLoader_{};
+  ::filament::gltfio::MaterialProvider* materialProvider_{};
+  ::filament::gltfio::ResourceLoader* resourceLoader_{};
 
-    // This is the EntityObject guids to model instantiated.
-    std::map<EntityGUID, std::shared_ptr<Model>> m_mapszoAssets; // NOLINT
+  // This is the EntityObject guids to model instantiated.
+  std::map<EntityGUID, std::shared_ptr<Model>> m_mapszoAssets;  // NOLINT
 
-    // This will be needed for a list of prefab instances to load from
-    std::map<std::string, filament::gltfio::FilamentAsset*> m_mapInstanceableAssets_;
+  // This will be needed for a list of prefab instances to load from
+  std::map<std::string, filament::gltfio::FilamentAsset*>
+      m_mapInstanceableAssets_;
 
-    // So we start the program, and say we want 20 foxes. We only load '1',
-    // queue the other ones in here, and instance off the main one when its
-    // completed.
-    std::map<std::string, std::list<std::shared_ptr<Model>>> m_mapszoAssetsAwaitingDataLoad;
+  // So we start the program, and say we want 20 foxes. We only load '1',
+  // queue the other ones in here, and instance off the main one when its
+  // completed.
+  std::map<std::string, std::list<std::shared_ptr<Model>>>
+      m_mapszoAssetsAwaitingDataLoad;
 
-    // When loading, it will be in here so we know not to load more than 1
-    std::map<std::string, bool> m_mapszbCurrentlyLoadingInstanceableAssets;
+  // When loading, it will be in here so we know not to load more than 1
+  std::map<std::string, bool> m_mapszbCurrentlyLoadingInstanceableAssets;
 
-    // This is a reusable list of renderables for popping off
-    // async load.
-    // NOTE If you change this size; the async update loop on the system count
-    // needs to change.
-    utils::Entity readyRenderables_[128];
+  // This is a reusable list of renderables for popping off
+  // async load.
+  // NOTE If you change this size; the async update loop on the system count
+  // needs to change.
+  utils::Entity readyRenderables_[128];
 
-    // not actively used, to be moved
-    std::vector<float> morphWeights_;
+  // not actively used, to be moved
+  std::vector<float> morphWeights_;
 
-    void vSetupAssetThroughoutECS(
+  void vSetupAssetThroughoutECS(
       std::shared_ptr<Model>& sharedPtr,
       filament::gltfio::FilamentAsset* filamentAsset,
-      filament::gltfio::FilamentInstance* filamentAssetInstance
-    );
+      filament::gltfio::FilamentInstance* filamentAssetInstance);
 
-    void populateSceneWithAsyncLoadedAssets(const Model* model);
+  void populateSceneWithAsyncLoadedAssets(const Model* model);
 
-    static void vRemoveAndReaddModelToCollisionSystem(
+  static void vRemoveAndReaddModelToCollisionSystem(
       const EntityGUID& guid,
-      const std::shared_ptr<Model>& model
-    );
+      const std::shared_ptr<Model>& model);
 
-    using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
-    void handleFile(
+  using PromisePtr = std::shared_ptr<std::promise<Resource<std::string_view>>>;
+  void handleFile(
       std::shared_ptr<Model>&& oOurModel,
       const std::vector<uint8_t>& buffer,
       const std::string& fileSource,
-      const PromisePtr& promise
-    ); // NOLINT(readability-avoid-const-params-in-decls)
+      const PromisePtr&
+          promise);  // NOLINT(readability-avoid-const-params-in-decls)
 };
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

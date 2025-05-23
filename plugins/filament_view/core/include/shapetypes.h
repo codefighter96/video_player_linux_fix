@@ -20,4 +20,4 @@ namespace plugin_filament_view {
 // futures to create - capsule, cylinder
 enum class ShapeType { Unset = 0, Plane = 1, Cube = 2, Sphere = 3, Max };
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

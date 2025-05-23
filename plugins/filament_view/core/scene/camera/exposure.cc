@@ -71,4 +71,4 @@ void Exposure::DebugPrint(const char* tag) {
   spdlog::debug("++++++++");
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view
