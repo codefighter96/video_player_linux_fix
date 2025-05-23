@@ -18,8 +18,7 @@
 #include "filament_system.h"
 
 #include <core/scene/geometry/ray.h>
-#include <core/systems/ecsystems_manager.h>
-#include <core/utils/entitytransforms.h>
+#include <core/systems/ecs.h>
 #include <filament/Engine.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
@@ -38,10 +37,10 @@ namespace plugin_filament_view {
 DebugLine::DebugLine(filament::math::float3 startingPoint,
                      filament::math::float3 endingPoint,
                      filament::Engine* engine,
-                     std::shared_ptr<Entity> entity,
+                     FilamentEntity entity,
                      float fTimeToLive)
     : m_fRemainingTime(fTimeToLive),
-      m_poEntity(std::move(entity))  // Create entity
+      _fEntity(entity)  // Create entity
 {
   vertices_.emplace_back(startingPoint);
   vertices_.emplace_back(endingPoint);  //,
@@ -85,7 +84,7 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
       .culling(false)
       .receiveShadows(false)
       .castShadows(false)
-      .build(*engine, *m_poEntity);
+      .build(*engine, _fEntity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -108,13 +107,11 @@ void DebugLinesSystem::DebugPrint() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vCleanup");
+      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    filamentSystem->getFilamentScene()->removeEntities((*it)->m_poEntity.get(),
-                                                       1);
+    filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
     // do visual cleanup here
     (*it)->vCleanup(engine);
@@ -126,16 +123,14 @@ void DebugLinesSystem::vCleanup() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vUpdate(const float fElapsedTime) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vUpdate");
+      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
     (*it)->m_fRemainingTime -= fElapsedTime;
 
     if ((*it)->m_fRemainingTime < 0) {
-      filamentSystem->getFilamentScene()->removeEntities(
-          (*it)->m_poEntity.get(), 1);
+      filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
       // do visual cleanup here
       (*it)->vCleanup(engine);
@@ -148,7 +143,7 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vInitSystem() {
+void DebugLinesSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("Adding debug line: ");
@@ -173,17 +168,16 @@ void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
   }
 
   auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "DebugLinesSystem::vAddLine");
+      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vAddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
-  auto oEntity = std::make_shared<Entity>(oEntitymanager.create());
+  auto oEntity = oEntitymanager.create();
 
   auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
                                                   oEntity, secondsTimeout);
 
-  filamentSystem->getFilamentScene()->addEntity(*oEntity);
+  filamentSystem->getFilamentScene()->addEntity(oEntity);
 
   ourLines_.emplace_back(std::move(newDebugLine));
 }

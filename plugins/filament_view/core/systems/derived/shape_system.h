@@ -18,6 +18,10 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include <filament/Engine.h>
+#include <filament/Scene.h>
+#include "filament_system.h"
+
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/systems/base/ecsystem.h>
 #include <core/systems/derived/material_system.h>
@@ -36,13 +40,15 @@ class ShapeSystem : public ECSystem {
   void addShapesToScene(
       std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
 
+  void addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape);
+
   // Disallow copy and assign.
   ShapeSystem(const ShapeSystem&) = delete;
   ShapeSystem& operator=(const ShapeSystem&) = delete;
 
   // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(bool bValue) const;
-  void vToggleSingleShapeInScene(const std::string& szGUID, bool bValue) const;
+  void vToggleAllShapesInScene(bool enable) const;
+  void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
   void vRemoveAllShapesInScene();
 
@@ -52,23 +58,22 @@ class ShapeSystem : public ECSystem {
   static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
       const flutter::EncodableMap& mapData);
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ShapeSystem).hash_code();
-  }
-
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;
 
  private:
-  static void vRemoveAndReaddShapeToCollisionSystem(
-      const EntityGUID& guid,
-      const std::shared_ptr<shapes::BaseShape>& shape);
+  // filamentEngine, RenderableManager, EntityManager, TransformManager
+  smarter_shared_ptr<FilamentSystem> _filament;
+  smarter_raw_ptr<filament::Engine> _engine;
+  smarter_raw_ptr<filament::RenderableManager> _rcm;
+  smarter_raw_ptr<utils::EntityManager> _em;
+  smarter_raw_ptr<filament::TransformManager> _tm;
 
-  std::map<EntityGUID, std::shared_ptr<shapes::BaseShape>>
-      m_mapszoShapes;  // NOLINT
+  bool hasShape(const EntityGUID guid) const;
+  shapes::BaseShape* getShape(const EntityGUID guid) const;
+
+  std::vector<EntityGUID> _shapes;
 };
 }  // namespace plugin_filament_view

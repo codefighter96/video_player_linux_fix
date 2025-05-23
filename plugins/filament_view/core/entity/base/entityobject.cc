@@ -15,141 +15,136 @@
  */
 #include "entityobject.h"
 
-#include <core/components/derived/animation.h>
-#include <core/components/derived/light.h>
 #include <core/include/literals.h>
-#include <core/systems/derived/animation_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
-#include <core/systems/derived/light_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
+#include <core/utils/deserialize.h>
 #include <core/utils/uuidGenerator.h>
 #include <plugins/common/common.h>
 #include <utility>
 
 namespace plugin_filament_view {
 
-/////////////////////////////////////////////////////////////////////////////////////////
+EntityObject::EntityObject() : guid_(generateUUID()), name_(std::string()) {}
+
 EntityObject::EntityObject(std::string name)
-    : global_guid_(generateUUID()), name_(std::move(name)) {}
+    : guid_(generateUUID()), name_(std::move(name)) {}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-EntityObject::EntityObject(std::string name, std::string global_guid)
-    : global_guid_(std::move(global_guid)), name_(std::move(name)) {}
+EntityObject::EntityObject(EntityGUID guid)
+    : guid_(guid), name_(std::string()) {}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vOverrideName(const std::string& name) {
-  name_ = name;
+EntityObject::EntityObject(std::string name, EntityGUID guid)
+    : guid_(guid), name_(std::move(name)) {}
+
+EntityObject::EntityObject(const EntityDescriptor& descriptor)
+    : guid_(descriptor.guid), name_(descriptor.name) {}
+
+EntityObject::EntityObject(const flutter::EncodableMap& params)
+    : guid_(kNullGuid), name_(std::string()) {
+  deserializeFrom(params);
+  assert(guid_ != kNullGuid);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vOverrideGlobalGuid(const std::string& global_guid) {
-  global_guid_ = global_guid;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::DeserializeNameAndGlobalGuid(
+EntityDescriptor EntityObject::DeserializeNameAndGuid(
     const flutter::EncodableMap& params) {
+  EntityDescriptor descriptor;
+
+  // Deserialize name
   if (const auto itName = params.find(flutter::EncodableValue(kName));
       itName != params.end() && !itName->second.IsNull()) {
     // they're requesting entity be named what they want.
 
     if (auto requestedName = std::get<std::string>(itName->second);
         !requestedName.empty()) {
-      vOverrideName(requestedName);
-      SPDLOG_INFO("OVERRIDING NAME: {}", requestedName);
+      descriptor.name = requestedName;
     }
   }
 
-  if (const auto itGUID = params.find(flutter::EncodableValue(kGlobalGuid));
-      itGUID != params.end() && !itGUID->second.IsNull()) {
-    // they're requesting entity have a guid they desire.
-    // Note! There's no clash checking here.
-    if (auto requestedGlobalGUID = std::get<std::string>(itGUID->second);
-        !requestedGlobalGUID.empty()) {
-      vOverrideGlobalGuid(requestedGlobalGUID);
-      SPDLOG_INFO("OVERRIDING GLOBAL GUID: {}", requestedGlobalGUID);
-    }
+  // Deserialize guid
+  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid, params,
+                                               kNullGuid);
+
+  if (descriptor.guid == kNullGuid) {
+    spdlog::warn("Failed to deserialize guid, generating new one");
+    descriptor.guid = generateUUID();
   }
+
+  return descriptor;
+}
+
+void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
+  // Deserialize name and guid
+  auto descriptor = DeserializeNameAndGuid(params);
+  name_ = descriptor.name;
+  guid_ = descriptor.guid;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
-  spdlog::debug("EntityObject Name \'{}\' UUID {} ComponentCount {}", name_,
-                global_guid_, components_.size());
-
-  for (const auto& component : components_) {
-    spdlog::debug("\tComponent Type \'{}\' Name \'{}\'",
-                  component->GetRTTITypeName(), component->GetName());
-    component->DebugPrint("\t\t");
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vUnregisterEntity() {
-  if (!m_bAlreadyRegistered) {
+  if (!isInitialized()) {
+    spdlog::debug("EntityObject '{}'({}) is not initialized", name_, guid_);
     return;
   }
 
-  const auto objectLocatorSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          EntityObjectLocatorSystem::StaticGetTypeID(), "vRegisterEntity");
-
-  objectLocatorSystem->vUnregisterEntityObject(shared_from_this());
-
-  m_bAlreadyRegistered = false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vRegisterEntity() {
-  if (m_bAlreadyRegistered) {
-    return;
+  std::vector<std::string> componentNames;
+  // get list of component pointers
+  const auto components = ecs->getComponentsOfEntity(guid_);
+  for (const auto& component : components) {
+    if (component == nullptr) {
+      spdlog::warn("Component is null");
+      continue;
+    }
+    componentNames.push_back(component->GetTypeName());
   }
 
-  const auto objectLocatorSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<EntityObjectLocatorSystem>(
-          EntityObjectLocatorSystem::StaticGetTypeID(), "vRegisterEntity");
-
-  objectLocatorSystem->vRegisterEntityObject(shared_from_this());
-
-  m_bAlreadyRegistered = true;
+  spdlog::debug("EntityObject '{}'({}) has {} components: {}", name_, guid_,
+                componentNames.size(), fmt::join(componentNames, ", "));
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+std::shared_ptr<Component> EntityObject::getComponent(
+    size_t staticTypeID) const {
+  return ecs->getComponent(guid_, staticTypeID);
+}
+
+[[nodiscard]] bool EntityObject::hasComponent(size_t staticTypeID) const {
+  return ecs->hasComponent(guid_, staticTypeID);
+}
+
 void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
                                                 EntityObject& other) const {
-  const auto component = GetComponentByStaticTypeID(staticTypeID);
+  checkInitialized();
+  const auto component = ecs->getComponent(guid_, staticTypeID);
   if (component == nullptr) {
     spdlog::warn("Unable to clone component of {}", staticTypeID);
     return;
   }
 
-  other.vAddComponent(std::shared_ptr<Component>(component->Clone()));
+  ecs->addComponent(other.guid_,
+                    std::shared_ptr<Component>(component->Clone()));
+}
+
+void EntityObject::addComponent(size_t staticTypeID,
+                                const std::shared_ptr<Component>& component) {
+  if (isInitialized()) {
+    ecs->addComponent(guid_, component);
+  } else {
+    // batch the component to be added after initialization
+    _tmpComponents[staticTypeID] = component;
+  }
+}
+
+void EntityObject::onAddComponent(const std::shared_ptr<Component>& component) {
+  checkInitialized();
+  component->entityOwner_ = this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vAddComponent(std::shared_ptr<Component> component,
-                                 const bool bAutoAddToSystems) {
-  component->entityOwner_ = this;
-
-  if (bAutoAddToSystems) {
-    if (component->GetTypeID() == Light::StaticGetTypeID()) {
-      const auto lightSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
-              LightSystem::StaticGetTypeID(), __FUNCTION__);
-
-      lightSystem->vRegisterEntityObject(shared_from_this());
-    }
-
-    if (component->GetTypeID() == Animation::StaticGetTypeID()) {
-      const auto animationSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "loadModelGltf");
-
-      animationSystem->vRegisterEntityObject(shared_from_this());
-    }
+void EntityObject::onInitialize() {
+  checkInitialized();
+  // add all components that were added before initialization
+  for (const auto& [staticTypeID, component] : _tmpComponents) {
+    ecs->addComponent(guid_, component);
   }
-
-  components_.emplace_back(std::move(component));
+  _tmpComponents.clear();
 }
 
 }  // namespace plugin_filament_view

@@ -36,17 +36,11 @@ using filament::math::float3;
 using filament::math::mat3f;
 using filament::math::packSnorm16;
 using filament::math::short4;
-using utils::Entity;
-
-////////////////////////////////////////////////////////////////////////////
-Cube::Cube(const flutter::EncodableMap& params) : BaseShape(params) {
-  SPDLOG_TRACE("+-{}", __FUNCTION__);
-}
 
 ////////////////////////////////////////////////////////////////////////////
 bool Cube::bInitAndCreateShape(filament::Engine* engine_,
-                               std::shared_ptr<Entity> entityObject) {
-  m_poEntity = std::move(entityObject);
+                               FilamentEntity entityObject) {
+  _fEntity = entityObject;
 
   if (m_bDoubleSided)
     createDoubleSidedCube(engine_);

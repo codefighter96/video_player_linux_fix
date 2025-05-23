@@ -25,6 +25,9 @@
 
 #include <core/systems/messages/ecs_message.h>
 #include <core/systems/messages/ecs_message_types.h>
+#include <core/utils/filament_types.h>
+#include <core/utils/identifiable_type.h>
+#include <core/utils/smarter_pointers.h>
 
 namespace flutter {
 class PluginRegistrar;
@@ -33,9 +36,11 @@ class EncodableValue;
 
 namespace plugin_filament_view {
 
+class ECSManager;
+
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
-class ECSystem {
+class ECSystem : public IdentifiableType {
  public:
   virtual ~ECSystem() = default;
 
@@ -55,17 +60,28 @@ class ECSystem {
   // Process incoming messages
   virtual void vProcessMessages();
 
-  virtual void vInitSystem() = 0;
+  void vInitSystem(const plugin_filament_view::ECSManager& ecsManager) {
+    ecs = const_cast<ECSManager*>(&ecsManager);
+    vOnInitSystem();
+  }
+
+  /// @deprecated To be replaced by `LifecycleParticipant`
+  [[nodiscard]] inline bool isInitialized() const { return ecs != nullptr; }
+
+  /// @deprecated To be replaced by `LifecycleParticipant`
+  /// @throws std::runtime_error if not initialized
+  void checkInitialized() const {
+    if (!isInitialized()) {
+      throw std::runtime_error(
+          "ECSManager is not initialized. Call vInitSystem() first.");
+    }
+  }
+
+  virtual void vOnInitSystem() = 0;
 
   virtual void vUpdate(float /*deltaTime*/) = 0;
 
   virtual void vShutdownSystem() = 0;
-
-  [[nodiscard]] virtual size_t GetTypeID() const = 0;
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ECSystem).hash_code();
-  }
 
   virtual void DebugPrint() = 0;
 
@@ -75,6 +91,8 @@ class ECSystem {
   void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
  protected:
+  smarter_raw_ptr<ECSManager> ecs = nullptr;
+
   // Handle a specific message type by invoking the registered handlers
   virtual void vHandleMessage(const ECSMessage& msg);
 

@@ -18,8 +18,10 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/base/component.h>
+#include <core/components/derived/basetransform.h>
 #include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
+#include <core/utils/bounding_volumes.h>
 
 namespace plugin_filament_view {
 
@@ -29,75 +31,83 @@ namespace plugin_filament_view {
 // from the base transform with on overrides. Expected work TBD for future
 // improvements.
 
+namespace shapes {
+class BaseShape;
+}  // namespace shapes
+
+class CollisionSystem;
+
 class Collidable : public Component {
+  friend class CollisionSystem;
+
  public:
-  Collidable()
-      : Component(std::string(__FUNCTION__)),
-        m_bIsStatic(true),
-        m_f3CenterPosition({0.0f, 0.0f, 0.0f}),
-        m_nCollisionLayer(0),
-        m_nCollisionMask(0xFFFFFFFF),
-        m_bShouldMatchAttachedObject(false),
-        m_eShapeType(),
-        m_f3ExtentsSize({0.0f, 0.0f, 0.0f}) {}
+  // You can turn collision objects on / off during runtime without removing /
+  // re-adding from the scene.
+  bool enabled = true;
+  /// @brief The name of the event to be triggered on collision.
+  /// This is used to identify the event in the event system.
+  /// The default value is "click".
+  std::string eventName = "click";
+  /// Bounding box of the collidable
+  AABB _aabb;
+
+ public:
+  Collidable() : Component(std::string(__FUNCTION__)) {}
+
+  // TODO: make this a more complete constructor
+  Collidable(const ShapeType& shapeType)
+      : Component(std::string(__FUNCTION__)), m_eShapeType(shapeType) {}
 
   explicit Collidable(const flutter::EncodableMap& params);
 
   // Getters
-  [[nodiscard]] bool GetIsStatic() const { return m_bIsStatic; }
-  [[nodiscard]] int64_t GetCollisionLayer() const { return m_nCollisionLayer; }
-  [[nodiscard]] int64_t GetCollisionMask() const { return m_nCollisionMask; }
-  [[nodiscard]] bool GetShouldMatchAttachedObject() const {
+  [[nodiscard]] inline bool GetIsStatic() const { return m_bIsStatic; }
+  [[nodiscard]] inline int64_t GetCollisionLayer() const {
+    return m_nCollisionLayer;
+  }
+  [[nodiscard]] inline int64_t GetCollisionMask() const {
+    return m_nCollisionMask;
+  }
+  [[nodiscard]] inline bool GetShouldMatchAttachedObject() const {
     return m_bShouldMatchAttachedObject;
   }
-  [[nodiscard]] ShapeType GetShapeType() const { return m_eShapeType; }
-  [[nodiscard]] filament::math::float3 GetExtentsSize() const {
-    return m_f3ExtentsSize;
+  [[nodiscard]] inline ShapeType GetShapeType() const { return m_eShapeType; }
+  [[nodiscard]] inline filament::math::float3 GetExtentsSize() const {
+    return _extentSize;
   }
-  [[nodiscard]] filament::math::float3 GetCenterPoint() const {
-    return m_f3CenterPosition;
-  }
-
-  [[nodiscard]] bool GetIsEnabled() const { return m_bIsEnabled; }
 
   // Setters
-  void SetIsStatic(bool value) { m_bIsStatic = value; }
-  void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
-  void SetCollisionMask(int64_t value) { m_nCollisionMask = value; }
-  void SetShouldMatchAttachedObject(bool value) {
+  inline void SetIsStatic(bool value) { m_bIsStatic = value; }
+  inline void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
+  inline void SetCollisionMask(int64_t value) { m_nCollisionMask = value; }
+  inline void SetShouldMatchAttachedObject(bool value) {
     m_bShouldMatchAttachedObject = value;
   }
-  void SetShapeType(ShapeType value) { m_eShapeType = value; }
-  void SetExtentsSize(const filament::math::float3& value) {
-    m_f3ExtentsSize = value;
+  inline void SetShapeType(ShapeType value) { m_eShapeType = value; }
+  inline void SetExtentsSize(const filament::math::float3& value) {
+    if (m_bIsStatic)
+      throw std::runtime_error("Cannot set extents size on static collidable");
+    _extentSize = value;
   }
-  void SetCenterPoint(const filament::math::float3& value) {
-    m_f3CenterPosition = value;
-  }
-
-  void SetEnabled(bool value) { m_bIsEnabled = value; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
 
   [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
-  bool bDoesIntersect(const Ray& ray,
-                      ::filament::math::float3& hitPosition) const;
+  bool intersects(const Ray& ray,
+                  ::filament::math::float3& hitPosition,
+                  const std::shared_ptr<BaseTransform>& transform) const;
 
-  static size_t StaticGetTypeID() { return typeid(Collidable).hash_code(); }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] Component* Clone() const override {
+  [[nodiscard]] inline Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
   }
 
  private:
   // If true, the object is static and won't sync move with its renderable
   // object once created in place.
-  bool m_bIsStatic = true;
+  bool m_bIsStatic = false;
   // if this isStatic, then we need to copy this on creation
   // from basetransform property
-  filament::math::float3 m_f3CenterPosition;
+  filament::math::float3 m_f3StaticPosition = {0, 0, 0};
 
   // Layer for collision filtering
   // Not actively used in first iteration, but should be in future.
@@ -109,16 +119,18 @@ class Collidable : public Component {
   // Native. else it will use shapeType_ and extents;
   //
   // At the time of implementation, models must do their own shapeType_ usage.
-  bool m_bShouldMatchAttachedObject = false;
+  bool m_bShouldMatchAttachedObject = true;
 
-  // if this !shouldMatchAttachedObject, then we need to deserialize these two
-  // vars
-  ShapeType m_eShapeType;
-  filament::math::float3 m_f3ExtentsSize;
+  /// Collider shape type (supported values: Cube)
+  /// TODO: add support for other shapes
+  ShapeType m_eShapeType = ShapeType::Cube;        // default
+  filament::math::float3 _extentSize = {1, 1, 1};  // default
 
-  // You can turn collision objects on / off during runtime without removing /
-  // re-adding from the scene.
-  bool m_bIsEnabled = true;
+  /*
+   *  Setup stuff
+   */
+  /// Collidable's child wireframe object
+  std::shared_ptr<shapes::BaseShape> _wireframe;
 };
 
 }  // namespace plugin_filament_view

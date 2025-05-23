@@ -20,7 +20,9 @@
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/color.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
+#include <core/utils/asserts.h>
+#include <core/utils/uuidGenerator.h>
 #include <filament/Color.h>
 #include <filament/LightManager.h>
 #include <filament/Scene.h>
@@ -36,10 +38,11 @@ using filament::math::mat4f;
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vCreateDefaultLight() {
   SPDLOG_DEBUG("{}", __FUNCTION__);
-  m_poDefaultLight =
-      std::make_shared<NonRenderableEntityObject>("DefaultLight");
+
+  m_poDefaultLight = std::make_shared<NonRenderableEntityObject>(
+      "DefaultLight", generateUUID());
   const auto oLightComp = std::make_shared<Light>();
-  m_poDefaultLight->vAddComponent(oLightComp);
+  ecs->addComponent(m_poDefaultLight->GetGuid(), oLightComp);
 
   oLightComp->SetIntensity(200);
   oLightComp->SetDirection({0, -1, 0});
@@ -50,7 +53,7 @@ void LightSystem::vCreateDefaultLight() {
 
   vBuildLightAndAddToScene(*oLightComp);
 
-  m_poDefaultLight->vRegisterEntity();
+  ecs->addEntity(m_poDefaultLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -61,14 +64,11 @@ void LightSystem::vBuildLightAndAddToScene(Light& light) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vBuildLight(Light& light) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "vBuildLight");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("vBuildLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
-  if (light.m_poFilamentEntityLight == nullptr) {
-    light.m_poFilamentEntityLight =
-        std::make_shared<utils::Entity>(engine->getEntityManager().create());
+  if (!light.m_poFilamentEntityLight) {
+    light.m_poFilamentEntityLight = engine->getEntityManager().create();
   } else {
     vRemoveLightFromScene(light);
   }
@@ -107,41 +107,38 @@ void LightSystem::vBuildLight(Light& light) {
   builder.sunHaloSize(light.GetSunHaloSize());
   builder.sunHaloFalloff(light.GetSunHaloFalloff());
 
-  builder.build(*engine, *light.m_poFilamentEntityLight);
+  builder.build(*engine, light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRemoveLightFromScene(const Light& light) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
-          "lightManager::vRemoveLightFromScene");
+      ecs->getSystem<FilamentSystem>("lightManager::vRemoveLightFromScene");
 
   const auto scene = filamentSystem->getFilamentScene();
 
-  scene->removeEntities(light.m_poFilamentEntityLight.get(), 1);
+  scene->remove(light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vAddLightToScene(const Light& light) {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "lightManager::vAddLightToScene");
+      ecs->getSystem<FilamentSystem>("lightManager::vAddLightToScene");
 
   const auto scene = filamentSystem->getFilamentScene();
 
-  scene->addEntity(*light.m_poFilamentEntityLight);
+  scene->addEntity(light.m_poFilamentEntityLight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vInitSystem() {
+void LightSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ChangeSceneLightProperties,
       [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeSceneLightProperties");
 
-        const auto guid = msg.getData<std::string>(
-            ECSMessageType::ChangeSceneLightProperties);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ChangeSceneLightProperties);
 
         const auto colorValue = msg.getData<std::string>(
             ECSMessageType::ChangeSceneLightPropertiesColorValue);
@@ -150,18 +147,15 @@ void LightSystem::vInitSystem() {
             ECSMessageType::ChangeSceneLightPropertiesIntensity);
 
         // find the entity in our list:
-        if (const auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          const auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-                  .get());
-          theLight->SetIntensity(intensityValue);
-          theLight->SetColor(colorValue);
+        const auto theLight = ecs->getComponent<Light>(guid);
+        runtime_assert(theLight != nullptr,
+                       fmt::format("Entity({}): Light not found", guid));
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+        theLight->SetIntensity(intensityValue);
+        theLight->SetColor(colorValue);
+
+        vRemoveLightFromScene(*theLight);
+        vBuildLightAndAddToScene(*theLight);
 
         SPDLOG_TRACE("ChangeSceneLightProperties Complete");
       });
@@ -171,25 +165,21 @@ void LightSystem::vInitSystem() {
         SPDLOG_TRACE("ChangeSceneLightTransform");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeSceneLightTransform);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeSceneLightTransform);
 
         const auto position = msg.getData<float3>(ECSMessageType::Position);
 
         const auto rotation = msg.getData<float3>(ECSMessageType::Direction);
 
         // find the entity in our list:
-        if (auto ourEntity = m_mapGuidToEntity.find(guid);
-            ourEntity != m_mapGuidToEntity.end()) {
-          auto theLight = dynamic_cast<Light*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-                  .get());
-          theLight->SetPosition(position);
-          theLight->SetDirection(rotation);
+        const auto theLight = ecs->getComponent<Light>(guid);
+        runtime_assert(theLight != nullptr,
+                       fmt::format("Entity({}): Light not found", guid));
+        theLight->SetPosition(position);
+        theLight->SetDirection(rotation);
 
-          vRemoveLightFromScene(*theLight);
-          vBuildLightAndAddToScene(*theLight);
-        }
+        vRemoveLightFromScene(*theLight);
+        vBuildLightAndAddToScene(*theLight);
 
         SPDLOG_TRACE("ChangeSceneLightTransform Complete");
       });
@@ -201,9 +191,8 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
-    const auto component = dynamic_cast<Light*>(
-        m_poDefaultLight->GetComponentByStaticTypeID(Light::StaticGetTypeID())
-            .get());
+    const auto component =
+        ecs->getComponent<Light>(m_poDefaultLight->GetGuid());
     vRemoveLightFromScene(*component);
 
     m_poDefaultLight.reset();
@@ -217,24 +206,4 @@ void LightSystem::DebugPrint() {
   // TODO Update print out list of lights
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vRegisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  if (m_mapGuidToEntity.find(entity->GetGlobalGuid()) !=
-      m_mapGuidToEntity.end()) {
-    spdlog::error("{}: Entity {} already registered", __FUNCTION__,
-                  entity->GetGlobalGuid());
-    return;
-  }
-
-  spdlog::debug("Adding entity with {}", entity->GetGlobalGuid());
-
-  m_mapGuidToEntity.insert(std::pair(entity->GetGlobalGuid(), entity));
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vUnregisterEntityObject(
-    const std::shared_ptr<EntityObject>& entity) {
-  m_mapGuidToEntity.erase(entity->GetGlobalGuid());
-}
 }  // namespace plugin_filament_view

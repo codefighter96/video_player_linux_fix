@@ -18,13 +18,12 @@
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 #include <asio/post.hpp>
@@ -34,14 +33,16 @@
 namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
-SceneTextDeserializer::SceneTextDeserializer(
-    const std::vector<uint8_t>& params) {
-  const auto ecsManager = ECSystemManager::GetInstance();
+SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
+    : _ecs(nullptr) {
+  _ecs = ECSManager::GetInstance();
   const std::string& flutterAssetsPath =
-      ecsManager->getConfigValue<std::string>(kAssetPath);
+      _ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
+  spdlog::debug("[{}] deserializing root...", __FUNCTION__);
   vDeserializeRootLevel(params, flutterAssetsPath);
+  spdlog::debug("[{}] deserializing root done!", __FUNCTION__);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -61,19 +62,8 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       continue;
     }
 
-    if (key == kModel) {
-      spdlog::warn("Loading Single Model - Deprecated Functionality {}", key);
-
-      auto deserializedModel = Model::Deserialize(
-          flutterAssetsPath, std::get<flutter::EncodableMap>(snd));
-      if (deserializedModel == nullptr) {
-        spdlog::error("Unable to load model");
-        continue;
-      }
-      models_.emplace_back(std::move(deserializedModel));
-    } else if (key == kModels &&
-               std::holds_alternative<flutter::EncodableList>(snd)) {
-      SPDLOG_TRACE("Loading Multiple Models {}", key);
+    if (key == kModels && std::holds_alternative<flutter::EncodableList>(snd)) {
+      spdlog::debug("===== Deserializing Multiple Models {} ...", key);
 
       auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& iter : list) {
@@ -81,9 +71,8 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           spdlog::warn("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-
-        auto deserializedModel = Model::Deserialize(
-            flutterAssetsPath, std::get<flutter::EncodableMap>(iter));
+        auto deserializedModel =
+            Model::Deserialize(std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model");
           continue;
@@ -92,20 +81,23 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       }
 
     } else if (key == kScene) {
+      spdlog::debug("===== Deserializing Scene {} ...", key);
       vDeserializeSceneLevel(snd);
     } else if (key == kShapes &&
                std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
 
+      spdlog::debug("===== Deserializing multiple Shapes {} ...", key);
       for (const auto& iter : list) {
         if (iter.IsNull()) {
           SPDLOG_DEBUG("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto shape = ShapeSystem::poDeserializeShapeFromData(
+
+        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
             std::get<flutter::EncodableMap>(iter));
 
-        shapes_.emplace_back(shape.release());
+        shapes_.emplace_back(std::move(deserializedShape));
       }
     } else {
       spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}",
@@ -138,14 +130,12 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
         auto encodableMap = std::get<flutter::EncodableMap>(iter);
 
         // This will get placed on an entity
-        std::string overWriteGuid;
-        Deserialize::DecodeParameterWithDefault(kGlobalGuid, &overWriteGuid,
-                                                encodableMap, std::string(""));
+        EntityGUID overWriteGuid;
+        Deserialize::DecodeParameterWithDefaultInt64(kGuid, &overWriteGuid,
+                                                     encodableMap, kNullGuid);
 
-        if (overWriteGuid.empty()) {
-          spdlog::warn(
-              "Your {} on light is empty string, will not add to scene",
-              kGlobalGuid);
+        if (overWriteGuid == kNullGuid) {
+          spdlog::warn("Light is missing a GUID, will not add to scene");
           continue;
         }
 
@@ -186,17 +176,24 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vRunPostSetupLoad() {
+  spdlog::trace("setUpLoadingModels");
   setUpLoadingModels();
+  spdlog::trace("setUpSkybox");
   setUpSkybox();
+  spdlog::trace("setUpLights");
   setUpLights();
+  spdlog::trace("setUpIndirectLight");
   setUpIndirectLight();
+  spdlog::trace("setUpShapes");
   setUpShapes();
+
+  spdlog::trace("setups done!");
 
   // note Camera* is deleted on the other side, freeing up the memory.
   ECSMessage viewTargetCameraSet;
   viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad,
                               camera_);
-  ECSystemManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
+  ECSManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
 
   indirect_light_.reset();
   skybox_.reset();
@@ -219,28 +216,32 @@ void SceneTextDeserializer::setUpLoadingModels() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpShapes() {
-  SPDLOG_TRACE("{} {}", __FUNCTION__, __LINE__);
+  spdlog::debug("{} {}", __FUNCTION__, __LINE__);
 
-  const auto shapeSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ShapeSystem>(
-          ShapeSystem::StaticGetTypeID(), "setUpShapes");
-  const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(), "setUpShapes");
+  spdlog::trace("getting systems");
+  const auto shapeSystem = _ecs->getSystem<ShapeSystem>("setUpShapes");
+  const auto collisionSystem = _ecs->getSystem<CollisionSystem>("setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
-    spdlog::error(
+    throw std::runtime_error(
         "[SceneTextDeserializer] Error.ShapeSystem or collisionSystem is null");
-    return;
   }
 
   for (const auto& shape : shapes_) {
-    if (shape->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
-      if (collisionSystem != nullptr) {
-        collisionSystem->vAddCollidable(shape.get());
-      }
-    }
+    spdlog::trace("Adding shape to scene {}", shape->GetGuid());
+    _ecs->addEntity(shape);
+    /// TODO: fix shape collidables
+    // spdlog::trace("Adding collidable...");
+    // if (shape->hasComponent<Collidable>()) {
+    //   spdlog::trace("Shape {} has collidable! Adding to collision system",
+    //   shape->GetGuid()); if (collisionSystem != nullptr) {
+    //     collisionSystem->vAddCollidable(shape.get());
+    //   }
+    // }
+    // spdlog::trace("Collidable added!");
   }
+
+  spdlog::debug("Shape setup done, adding to scene");
 
   shapeSystem->addShapesToScene(&shapes_);
 
@@ -249,41 +250,26 @@ void SceneTextDeserializer::setUpShapes() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
-  const auto ecsManager = ECSystemManager::GetInstance();
-  const auto& strand = *ecsManager->GetStrand();
+  const auto& strand = *_ecs->GetStrand();
 
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<ModelSystem>(
-            ModelSystem::StaticGetTypeID(), "loadModel");
+        ECSManager::GetInstance()->getSystem<ModelSystem>("loadModel");
 
     if (modelSystem == nullptr) {
       spdlog::error("Unable to find the model system.");
       return;
     }
 
-    const auto& loader = modelSystem;
-    if (dynamic_cast<GlbModel*>(model.get())) {
-      const auto glb_model = dynamic_cast<GlbModel*>(model.get());
-      if (!glb_model->szGetAssetPath().empty()) {
-        loader->loadGlbFromAsset(std::move(model), glb_model->szGetAssetPath());
-      }
-
-      if (!glb_model->szGetURLPath().empty()) {
-        loader->loadGlbFromUrl(std::move(model), glb_model->szGetURLPath());
-      }
-    } else if (dynamic_cast<GltfModel*>(model.get())) {
-      const auto gltf_model = dynamic_cast<GltfModel*>(model.get());
-      if (!gltf_model->szGetAssetPath().empty()) {
-        ModelSystem::loadGltfFromAsset(model, gltf_model->szGetAssetPath(),
-                                       gltf_model->szGetPrefix(),
-                                       gltf_model->szGetPostfix());
-      }
-
-      if (!gltf_model->szGetURLPath().empty()) {
-        ModelSystem::loadGltfFromUrl(model, gltf_model->szGetURLPath());
-      }
+    const Model* glb_model = dynamic_cast<Model*>(model.get());
+    if (!glb_model->getAssetPath().empty()) {
+      modelSystem->queueModelLoad(std::move(model));
+    } else {
+      spdlog::error("Model has no asset path, unable to load");
     }
+
+    spdlog::trace("[loadModel] Model {} queued for loading",
+                  glb_model->getAssetPath());
   });
 }
 
@@ -292,39 +278,39 @@ void SceneTextDeserializer::setUpSkybox() const {
   // Todo move to a message.
 
   auto skyboxSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<SkyboxSystem>(
-          SkyboxSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<SkyboxSystem>(__FUNCTION__);
 
   if (!skybox_) {
-    SkyboxSystem::setDefaultSkybox();
+    skyboxSystem->setDefaultSkybox();
     // makeSurfaceViewTransparent();
   } else {
     if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
       if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
-          !hdr_skybox->szGetAssetPath().empty()) {
+          !hdr_skybox->getAssetPath().empty()) {
         const auto shouldUpdateLight =
-            hdr_skybox->szGetAssetPath() == indirect_light_->getAssetPath();
-        SkyboxSystem::setSkyboxFromHdrAsset(
-            hdr_skybox->szGetAssetPath(), hdr_skybox->getShowSun(),
+            hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
+
+        skyboxSystem->setSkyboxFromHdrAsset(
+            hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       } else if (!skybox->getUrl().empty()) {
         const auto shouldUpdateLight =
             hdr_skybox->szGetURLPath() == indirect_light_->getUrl();
-        SkyboxSystem::setSkyboxFromHdrUrl(
+        skyboxSystem->setSkyboxFromHdrUrl(
             hdr_skybox->szGetURLPath(), hdr_skybox->getShowSun(),
             shouldUpdateLight, indirect_light_->getIntensity());
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       if (const auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
-          !kxt_skybox->szGetAssetPath().empty()) {
-        SkyboxSystem::setSkyboxFromKTXAsset(kxt_skybox->szGetAssetPath());
+          !kxt_skybox->getAssetPath().empty()) {
+        skyboxSystem->setSkyboxFromKTXAsset(kxt_skybox->getAssetPath());
       } else if (!kxt_skybox->szGetURLPath().empty()) {
-        SkyboxSystem::setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
+        skyboxSystem->setSkyboxFromKTXUrl(kxt_skybox->szGetURLPath());
       }
     } else if (dynamic_cast<ColorSkybox*>(skybox)) {
       if (const auto color_skybox = dynamic_cast<ColorSkybox*>(skybox);
           !color_skybox->szGetColor().empty()) {
-        SkyboxSystem::setSkyboxFromColor(color_skybox->szGetColor());
+        skyboxSystem->setSkyboxFromColor(color_skybox->szGetColor());
       }
     }
   }
@@ -332,27 +318,24 @@ void SceneTextDeserializer::setUpSkybox() const {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpLights() {
-  const auto lightSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<LightSystem>(
-          LightSystem::StaticGetTypeID(), __FUNCTION__);
+  const auto lightSystem = _ecs->getSystem<LightSystem>(__FUNCTION__);
 
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
     const auto newEntity = std::make_shared<NonRenderableEntityObject>(
-        "SceneTextDeserializer::setUpLights");
+        "SceneTextDeserializer::setUpLights", fst);
 
-    newEntity->vOverrideGlobalGuid(fst);
-    newEntity->vAddComponent(snd);
+    _ecs->addEntity(newEntity);
+    _ecs->addComponent(newEntity->GetGuid(), snd);
 
-    LightSystem::vBuildLightAndAddToScene(*snd);
-
-    newEntity->vRegisterEntity();
+    lightSystem->vBuildLightAndAddToScene(*snd);
   }
 
   // if a light didnt get deserialized, tell light system to create a default
   // one.
   if (lights_.empty()) {
+    SPDLOG_DEBUG("No lights found, creating default light");
     lightSystem->vCreateDefaultLight();
   }
 
@@ -363,27 +346,26 @@ void SceneTextDeserializer::setUpLights() {
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
   auto indirectlightSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<IndirectLightSystem>(
-          IndirectLightSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.
-    // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
+    // plugin_filament_view::indirectlightSystem->setDefaultIndirectLight();
   } else {
     if (const auto indirectLight = indirect_light_.get();
         dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
-        IndirectLightSystem::setIndirectLightFromKtxAsset(
+        indirectlightSystem->setIndirectLightFromKtxAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       } else if (!indirectLight->getUrl().empty()) {
-        IndirectLightSystem::setIndirectLightFromKtxUrl(
+        indirectlightSystem->setIndirectLightFromKtxUrl(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         // val shouldUpdateLight = indirectLight->getAssetPath() !=
         // scene?.skybox?.assetPath if (shouldUpdateLight) {
-        IndirectLightSystem::setIndirectLightFromHdrAsset(
+        indirectlightSystem->setIndirectLightFromHdrAsset(
             indirectLight->getAssetPath(), indirectLight->getIntensity());
         //}
 
@@ -391,16 +373,16 @@ void SceneTextDeserializer::setUpIndirectLight() const {
         // auto shouldUpdateLight = indirectLight->getUrl() !=
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
-        IndirectLightSystem::setIndirectLightFromHdrUrl(
+        indirectlightSystem->setIndirectLightFromHdrUrl(
             indirectLight->getUrl(), indirectLight->getIntensity());
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      IndirectLightSystem::setIndirectLight(
+      indirectlightSystem->setIndirectLight(
           dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
       // Already called in the default constructor.
-      // plugin_filament_view::IndirectLightSystem::setDefaultIndirectLight();
+      // plugin_filament_view::indirectlightSystem->setDefaultIndirectLight();
     }
   }
 }

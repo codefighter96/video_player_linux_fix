@@ -17,7 +17,7 @@
 
 #include <core/include/literals.h>
 #include <core/systems/derived/animation_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
 #include <filesystem>
@@ -62,10 +62,10 @@ void Animation::vUpdate(const float fElapsedTime) {
 
     if (m_bNotifyOfAnimationEvents) {
       const auto animationSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+          ECSManager::GetInstance()->getSystem<AnimationSystem>(
+              "Animation::vUpdate");
       animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGlobalGuid(), eAnimationStarted,
+          GetOwner()->GetGuid(), eAnimationStarted,
           std::to_string(m_nCurrentPlayingIndex));
     }
   }
@@ -86,11 +86,11 @@ void Animation::vUpdate(const float fElapsedTime) {
     if (m_bNotifyOfAnimationEvents) {
       // send message here to dart
       const auto animationSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-              AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+          ECSManager::GetInstance()->getSystem<AnimationSystem>(
+              "Animation::vUpdate");
 
       animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGlobalGuid(), eAnimationEnded,
+          GetOwner()->GetGuid(), eAnimationEnded,
           std::to_string(m_nCurrentPlayingIndex));
     }
 
@@ -103,11 +103,11 @@ void Animation::vUpdate(const float fElapsedTime) {
       if (m_bNotifyOfAnimationEvents) {
         // send message here to dart
         const auto animationSystem =
-            ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-                AnimationSystem::StaticGetTypeID(), "Animation::vUpdate");
+            ECSManager::GetInstance()->getSystem<AnimationSystem>(
+                "Animation::vUpdate");
 
         animationSystem->vNotifyOfAnimationEvent(
-            GetOwner()->GetGlobalGuid(), eAnimationStarted,
+            GetOwner()->GetGuid(), eAnimationStarted,
             std::to_string(m_nCurrentPlayingIndex));
       }
 

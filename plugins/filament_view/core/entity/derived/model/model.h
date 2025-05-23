@@ -26,16 +26,24 @@
 
 namespace plugin_filament_view {
 
-class Model : public RenderableEntityObject {
- public:
-  Model(std::string assetPath,
-        std::string url,
-        const flutter::EncodableMap& params);
+enum class ModelInstancingMode {
+  none = 0,
+  primary = 1,
+  secondary = 2,
+};
 
+const char* modelInstancingModeToString(ModelInstancingMode mode);
+
+class Model : public RenderableEntityObject {
+  friend class ModelSystem;
+
+ public:
+  Model();
   ~Model() override = default;
 
+  /// @brief Static deserializer - calls the constructor and deserializeFrom
+  /// under the hood
   static std::shared_ptr<Model> Deserialize(
-      const std::string& flutterAssetsPath,
       const flutter::EncodableMap& params);
 
   // Disallow copy and assign.
@@ -50,10 +58,6 @@ class Model : public RenderableEntityObject {
     m_poAssetInstance = poAssetInstance;
   }
 
-  void SetPrimaryAssetToInstanceFrom(bool bValue) {
-    m_bIsPrimaryAssetToInstanceFrom = bValue;
-  }
-
   [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const {
     return m_poAsset;
   }
@@ -63,94 +67,46 @@ class Model : public RenderableEntityObject {
   }
 
   [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-    return m_poBaseTransform.lock();
+    return getComponent<BaseTransform>();
   }
   [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
-    return m_poCommonRenderable.lock();
+    return getComponent<CommonRenderable>();
   }
 
-  [[nodiscard]] std::string szGetAssetPath() const { return assetPath_; }
-  [[nodiscard]] std::string szGetURLPath() const { return url_; }
+  [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
 
-  [[nodiscard]] bool bShouldKeepAssetDataInMemory() const {
-    return m_bShouldKeepAssetDataInMemory;
+  /// @returns model's instancing mode
+  [[nodiscard]] ModelInstancingMode getInstancingMode() const {
+    return _instancingMode;
   }
 
-  [[nodiscard]] bool bIsPrimaryAssetToInstanceFrom() const {
-    return m_bIsPrimaryAssetToInstanceFrom;
-  }
-  [[nodiscard]] filament::Aabb poGetBoundingBox() {
-    if (m_poAsset != nullptr) {
-      return m_poAsset->getBoundingBox();
-    } else if (m_poAssetInstance != nullptr) {
-      return m_poAssetInstance->getBoundingBox();
-    }
+  /// Returns whether the model is in the scene
+  [[nodiscard]] bool isInScene() const { return m_isInScene; }
 
-    return {};
-  }
-
-  void vInitComponents(std::shared_ptr<BaseTransform> poTransform,
-                       std::shared_ptr<CommonRenderable> poCommonRenderable,
-                       const flutter::EncodableMap& params);
+  [[nodiscard]] virtual AABB getAABB() const override;
 
  protected:
   std::string assetPath_;
-  std::string url_;
 
   filament::gltfio::FilamentAsset* m_poAsset;
   filament::gltfio::FilamentInstance* m_poAssetInstance;
+  std::map<FilamentEntity, EntityGUID> _childrenEntities;
 
-  // used for instancing objects.
-  bool m_bShouldKeepAssetDataInMemory = false;
-  bool m_bIsPrimaryAssetToInstanceFrom = false;
+  ModelInstancingMode _instancingMode = ModelInstancingMode::none;
+  /// Whether it's been inserted into the scene
+  bool m_isInScene = false;
 
   void DebugPrint() const override;
 
-  // Components - saved off here for faster
-  // lookup, but they're not owned here, but on EntityObject's list.
-  std::weak_ptr<BaseTransform> m_poBaseTransform;
-  std::weak_ptr<CommonRenderable> m_poCommonRenderable;
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  /// material to be used for the model - instantiated from material definition
-  /// Only after a run time request to change has been made.
-  /// This should probably be on the entity level as model would use this in
-  /// future as well.
-  Resource<filament::MaterialInstance*> m_poMaterialInstance;
-  void vLoadMaterialDefinitionsToMaterialInstance();
-
+  /// TODO: move to CommonRenderable
   void vChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,
       const TextureMap& /*loadedTextures*/) override;
   void vChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
       const TextureMap& /*loadedTextures*/) override;
-};
-
-class GlbModel final : public Model {
- public:
-  GlbModel(std::string assetPath,
-           std::string url,
-           const flutter::EncodableMap& params);
-
-  ~GlbModel() override = default;
-};
-
-class GltfModel final : public Model {
- public:
-  GltfModel(std::string assetPath,
-            std::string url,
-            std::string pathPrefix,
-            std::string pathPostfix,
-            const flutter::EncodableMap& params);
-
-  ~GltfModel() override = default;
-
-  [[nodiscard]] std::string szGetPrefix() const { return pathPrefix_; }
-  [[nodiscard]] std::string szGetPostfix() const { return pathPostfix_; }
-
- private:
-  std::string pathPrefix_;
-  std::string pathPostfix_;
 };
 
 }  // namespace plugin_filament_view

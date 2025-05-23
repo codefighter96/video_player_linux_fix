@@ -20,7 +20,7 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/material_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <filament/RenderableManager.h>
 #include <plugins/common/common.h>
@@ -29,130 +29,60 @@
 
 namespace plugin_filament_view {
 
+const char* modelInstancingModeToString(ModelInstancingMode mode) {
+  switch (mode) {
+    case ModelInstancingMode::none:
+      return "none";
+    case ModelInstancingMode::primary:
+      return "primary";
+    case ModelInstancingMode::secondary:
+      return "secondary";
+    default:
+      return "unknown";
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
-Model::Model(std::string assetPath,
-             std::string url,
-             const flutter::EncodableMap& params)
-    : RenderableEntityObject(params),
-      assetPath_(std::move(assetPath)),
-      url_(std::move(url)),
+Model::Model()
+    : RenderableEntityObject(),
+      assetPath_(),
       m_poAsset(nullptr),
-      m_poAssetInstance(nullptr) {
-  Deserialize::DecodeParameterWithDefault(kRenderable_KeepAssetInMemory,
-                                          &m_bShouldKeepAssetDataInMemory,
-                                          params, false);
+      m_poAssetInstance(nullptr) {}
 
-  Deserialize::DecodeParameterWithDefault(
-      kRenderable_IsPrimaryAssetToInstanceFrom,
-      &m_bIsPrimaryAssetToInstanceFrom, params, false);
+void Model::deserializeFrom(const flutter::EncodableMap& params) {
+  RenderableEntityObject::deserializeFrom(params);
 
-  DeserializeNameAndGlobalGuid(params);
-}
+  // assetPath_
+  assetPath_ = Deserialize::DecodeParameter<std::string>(kAssetPath, params);
 
-////////////////////////////////////////////////////////////////////////////
-void Model::vInitComponents(
-    std::shared_ptr<BaseTransform> poTransform,
-    std::shared_ptr<CommonRenderable> poCommonRenderable,
-    const flutter::EncodableMap& params) {
-  m_poBaseTransform = std::weak_ptr<BaseTransform>(poTransform);
-  m_poCommonRenderable = std::weak_ptr<CommonRenderable>(poCommonRenderable);
+  // is_glb
+  bool is_glb = Deserialize::DecodeParameter<bool>(kIsGlb, params);
+  runtime_assert(is_glb,
+                 "Model::deserializeFrom - is_glb must be true for Model");
 
-  vAddComponent(std::move(poTransform));
-  vAddComponent(std::move(poCommonRenderable));
+  // _instancingMode
+  Deserialize::DecodeEnumParameterWithDefault(kModelInstancingMode,
+                                              &_instancingMode, params,
+                                              ModelInstancingMode::none);
 
-  // if we have collidable data request, we need to build that component, as its
-  // optional
-  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
-      it != params.end() && !it->second.IsNull()) {
-    // They're requesting a collidable on this object. Make one.
-    auto collidableComp = std::make_shared<Collidable>(params);
-    vAddComponent(std::move(collidableComp));
-  }
+  spdlog::trace("Model({}), instanceMode: {}", assetPath_,
+                modelInstancingModeToString(_instancingMode));
 
-  // if we have animation data; lets deserialize and add it to this
-  if (const auto it = params.find(flutter::EncodableValue(kAnimation));
-      it != params.end() && !it->second.IsNull()) {
-    auto animationInformation = std::make_shared<Animation>(
-        std::get<flutter::EncodableMap>(it->second));
-    vAddComponent(std::move(animationInformation));
+  // Animation (optional)
+  spdlog::trace("Making Animation...");
+  if (Deserialize::HasKey(params, kAnimation)) {
+    // they're requesting an animation on this object. Make one.
+    addComponent(Animation(params));
+  } else {
+    spdlog::trace("This entity params has no animation");
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
-GlbModel::GlbModel(std::string assetPath,
-                   std::string url,
-                   const flutter::EncodableMap& params)
-    : Model(std::move(assetPath), std::move(url), params) {}
+std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
+  std::shared_ptr<Model> toReturn = std::make_shared<Model>();
+  toReturn->deserializeFrom(params);
 
-////////////////////////////////////////////////////////////////////////////
-GltfModel::GltfModel(std::string assetPath,
-                     std::string url,
-                     std::string pathPrefix,
-                     std::string pathPostfix,
-                     const flutter::EncodableMap& params)
-    : Model(std::move(assetPath), std::move(url), params),
-      pathPrefix_(std::move(pathPrefix)),
-      pathPostfix_(std::move(pathPostfix)) {}
-
-////////////////////////////////////////////////////////////////////////////
-std::shared_ptr<Model> Model::Deserialize(
-    const std::string& /*flutterAssetsPath*/,
-    const flutter::EncodableMap& params) {
-  SPDLOG_TRACE("++Model::Model");
-  std::unique_ptr<Animation> animation;
-  std::optional<std::string> assetPath;
-  std::optional<std::string> pathPrefix;
-  std::optional<std::string> pathPostfix;
-  std::optional<std::string> url;
-  bool is_glb = false;
-
-  auto oTransform = std::make_shared<BaseTransform>(params);
-  auto oCommonRenderable = std::make_shared<CommonRenderable>(params);
-
-  for (const auto& [fst, snd] : params) {
-    if (snd.IsNull())
-      continue;
-    if (auto key = std::get<std::string>(fst);
-        key == "assetPath" && std::holds_alternative<std::string>(snd)) {
-      assetPath = std::get<std::string>(snd);
-    } else if (key == "isGlb" && std::holds_alternative<bool>(snd)) {
-      is_glb = std::get<bool>(snd);
-    } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
-      url = std::get<std::string>(snd);
-    } else if (key == "pathPrefix" &&
-               std::holds_alternative<std::string>(snd)) {
-      pathPrefix = std::get<std::string>(snd);
-    } else if (key == "pathPostfix" &&
-               std::holds_alternative<std::string>(snd)) {
-      pathPostfix = std::get<std::string>(snd);
-    } else if (key == "scene" &&
-               std::holds_alternative<flutter::EncodableMap>(snd)) {
-      spdlog::warn("Scenes are no longer valid off of a model node.");
-    } /*else if (!it.second.IsNull()) {
-      spdlog::debug("[Model] Unhandled Parameter");
-      plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(),
-                                                           it.second);
-    }*/
-  }
-
-  if (is_glb) {
-    auto toReturn = std::make_shared<GlbModel>(
-        assetPath.has_value() ? std::move(assetPath.value()) : "",
-        url.has_value() ? std::move(url.value()) : "", params);
-
-    toReturn->vInitComponents(std::move(oTransform),
-                              std::move(oCommonRenderable), params);
-    return toReturn;
-  }
-
-  auto toReturn = std::make_shared<GltfModel>(
-      assetPath.has_value() ? std::move(assetPath.value()) : "",
-      url.has_value() ? std::move(url.value()) : "",
-      pathPrefix.has_value() ? std::move(pathPrefix.value()) : "",
-      pathPostfix.has_value() ? std::move(pathPostfix.value()) : "", params);
-
-  toReturn->vInitComponents(std::move(oTransform), std::move(oCommonRenderable),
-                            params);
   return toReturn;
 }
 
@@ -161,28 +91,20 @@ void Model::DebugPrint() const {
   vDebugPrintComponents();
 }
 
-////////////////////////////////////////////////////////////////////////////
-void Model::vLoadMaterialDefinitionsToMaterialInstance() {
-  const auto materialSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<MaterialSystem>(
-          MaterialSystem::StaticGetTypeID(), "BaseShape::vBuildRenderable");
+AABB Model::getAABB() const {
+  AABB aabb;
+  filament::Aabb rawBox;
 
-  if (materialSystem == nullptr) {
-    spdlog::error("Failed to get material system.");
+  if (m_poAsset != nullptr) {
+    rawBox = m_poAsset->getBoundingBox();
+  } else if (m_poAssetInstance != nullptr) {
+    rawBox = m_poAssetInstance->getBoundingBox();
   } else {
-    // this will also set all the default values of the material instance from
-    // the material param list
-    const auto materialDefinitions =
-        GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID());
-    if (materialDefinitions != nullptr) {
-      m_poMaterialInstance = materialSystem->getMaterialInstance(
-          dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
-    }
-
-    if (m_poMaterialInstance.getStatus() != Status::Success) {
-      spdlog::error("Failed to get material instance.");
-    }
+    spdlog::warn("Model::getAABB - asset and asset instance are null");
   }
+
+  aabb.set(rawBox.min, rawBox.max);
+  return aabb;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -190,9 +112,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                        const TextureMap& /*loadedTextures*/) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
-  if (HasComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID())) {
-    vRemoveComponent(MaterialDefinitions::StaticGetTypeID());
-  }
+  ecs->removeComponent<MaterialDefinitions>(guid_);
 
   // If you want to inspect the params coming in.
   /*for (const auto& [fst, snd] : params) {
@@ -201,7 +121,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
   }*/
 
   auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
-  vAddComponent(std::move(materialDefinitions));
+  ecs->addComponent(guid_, std::move(materialDefinitions));
 
   m_poMaterialInstance.vReset();
 
@@ -217,8 +137,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
 
   // now, reload / rebuild the material?
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(),
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
           "BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call
@@ -242,12 +161,12 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
                                           *m_poMaterialInstance.getData());
     }
   } else if (getAssetInstance()) {
-    const utils::Entity* instanceEntities = getAssetInstance()->getEntities();
+    const FilamentEntity* instanceEntities = getAssetInstance()->getEntities();
     const size_t instanceEntityCount = getAssetInstance()->getEntityCount();
 
     for (size_t i = 0; i < instanceEntityCount; i++) {
       // Check if this entity has a Renderable component
-      if (const utils::Entity entity = instanceEntities[i];
+      if (const FilamentEntity entity = instanceEntities[i];
           renderManager.hasComponent(entity)) {
         const auto ri = renderManager.getInstance(entity);
 
@@ -276,8 +195,7 @@ void Model::vChangeMaterialInstanceProperty(
 
   const auto data = m_poMaterialInstance.getData().value();
 
-  const auto matDefs = dynamic_cast<MaterialDefinitions*>(
-      GetComponentByStaticTypeID(MaterialDefinitions::StaticGetTypeID()).get());
+  const auto matDefs = getComponent<MaterialDefinitions>();
   if (matDefs == nullptr) {
     return;
   }

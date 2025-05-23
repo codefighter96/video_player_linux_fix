@@ -40,25 +40,14 @@ class AnimationSystem : public ECSystem {
   AnimationSystem(const AnimationSystem&) = delete;
   AnimationSystem& operator=(const AnimationSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(AnimationSystem).hash_code();
-  }
-
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;
 
  private:
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-  void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-
-  void vNotifyOfAnimationEvent(const EntityGUID& entityGuid,
+  void vNotifyOfAnimationEvent(const EntityGUID entityGuid,
                                const AnimationEventType& eType,
                                const std::string& eventData) const;
-
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> _entities;
 };
 }  // namespace plugin_filament_view

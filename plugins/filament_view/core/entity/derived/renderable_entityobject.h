@@ -17,9 +17,19 @@
 
 #include <encodable_value.h>
 
+#include <core/components/derived/basetransform.h>
+#include <core/components/derived/collidable.h>
+#include <core/components/derived/commonrenderable.h>
 #include <core/entity/base/entityobject.h>
+#include <core/utils/bounding_volumes.h>
 
 namespace plugin_filament_view {
+
+class MaterialSystem;
+class ModelSystem;
+
+/// TODO: remove this and refactor specific methods into the Renderable
+/// component (CoI, come on)
 
 // Renderable Entity Objects are intended to have material settings on them
 // where NonRenderable EntityObjects do not. Its expected on play Renderable's
@@ -29,12 +39,29 @@ namespace plugin_filament_view {
 // collision
 class RenderableEntityObject : public EntityObject {
   friend class MaterialSystem;
+  friend class ModelSystem;
 
  public:
- protected:
-  explicit RenderableEntityObject(const flutter::EncodableMap& params);
-  RenderableEntityObject();
-  virtual void DebugPrint() const = 0;
+  RenderableEntityObject() : EntityObject() {}
+  explicit RenderableEntityObject(const flutter::EncodableMap& params)
+      : EntityObject(params) {}
+
+  explicit RenderableEntityObject(const std::string& name)
+      : EntityObject(name) {}
+
+  explicit RenderableEntityObject(const EntityGUID guid) : EntityObject(guid) {}
+  explicit RenderableEntityObject(const std::string& name,
+                                  const EntityGUID guid)
+      : EntityObject(name, guid) {}
+
+  virtual void DebugPrint() const override {};
+
+  void onInitialize() override;
+
+  /*
+   * Deserialization
+   */
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
   // These are expected to have Material instances in base class after we go
   // from Uber shader to <?more interchangeable?> on models. For now these are
@@ -43,11 +70,30 @@ class RenderableEntityObject : public EntityObject {
   // This is a heavy lift function as it will recreate / load a material
   // if it doesn't exist and reset everything from scratch.
   virtual void vChangeMaterialDefinitions(const flutter::EncodableMap& params,
-                                          const TextureMap& loadedTextures) = 0;
+                                          const TextureMap& loadedTextures) {};
   virtual void vChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures) = 0;
+      const TextureMap& loadedTextures) {};
 
- private:
+  /// material to be used for the renderable - instantiated from material
+  /// definition Only after a run time request to change has been made. This
+  /// should probably be on the entity level as renderable would use this in
+  /// future as well.
+  Resource<filament::MaterialInstance*> m_poMaterialInstance =
+      Resource<filament::MaterialInstance*>::Error("Unset");
+
+  void vLoadMaterialDefinitionsToMaterialInstance();
+
+ public:
+  /// TODO: use those in the addCollidable rewrite
+  /// @returns The AABB of the entity
+  [[nodiscard]] virtual AABB getAABB() const;
+
+  /// The default implementation just returns a sphere with the max radius
+  /// covering the AABB
+  /// @returns The radius of the bounding sphere
+  [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
+    return BoundingSphere(getAABB());
+  }
 };
 }  // namespace plugin_filament_view

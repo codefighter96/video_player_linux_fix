@@ -19,7 +19,7 @@
 #include <core/include/file_utils.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <imageio/ImageDecoder.h>
 #include <stb_image.h>
 #include <memory>
@@ -51,8 +51,8 @@ filament::Texture* TextureLoader::createTextureFromImage(
   const unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "createTextureFromImage");
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
+          "createTextureFromImage");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Texture* texture =
@@ -94,7 +94,7 @@ Resource<filament::Texture*> TextureLoader::loadTexture(
 
   if (!texture->assetPath_.empty()) {
     const auto assetPath =
-        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+        ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
     const auto file_path = getAbsolutePath(texture->assetPath_, assetPath);
     if (!isValidFilePath(file_path)) {

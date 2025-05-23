@@ -20,10 +20,8 @@
 #include <core/components/derived/material_definitions.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <plugins/common/common.h>
-
-#include "entityobject_locator_system.h"
 
 namespace plugin_filament_view {
 
@@ -82,7 +80,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     const MaterialDefinitions* materialDefinitions) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
-    SPDLOG_ERROR(
+    spdlog::error(
         "--Bad MaterialDefinitions Result "
         "MaterialManager::getMaterialInstance");
     return Resource<filament::MaterialInstance*>::Error("Material not found");
@@ -101,12 +99,13 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
       materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
-    SPDLOG_TRACE("++MaterialManager::LoadingMaterial");
+    SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
+    materialDefinitions->DebugPrint("  ");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
       spdlog::error(
-          "--Bad Material Result MaterialManager::getMaterialInstance");
+          "--Bad Material Result MaterialSystem::getMaterialInstance");
       return Resource<filament::MaterialInstance*>::Error(
           materialToInstanceFrom.getMessage());
     }
@@ -170,7 +169,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vInitSystem() {
+void MaterialSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
         spdlog::debug("ChangeMaterialParameter");
@@ -178,17 +177,10 @@ void MaterialSystem::vInitSystem() {
         const flutter::EncodableMap& params =
             msg.getData<flutter::EncodableMap>(
                 ECSMessageType::ChangeMaterialParameter);
-        const EntityGUID& guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        const auto objectLocatorSystem =
-            ECSystemManager::GetInstance()
-                ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    EntityObjectLocatorSystem::StaticGetTypeID(),
-                    "ChangeMaterialParameter");
-
-        if (const auto entityObject =
-                objectLocatorSystem->poGetEntityObjectById(guid);
+        if (const auto entityObject = ecs->getEntity(guid);
             entityObject != nullptr) {
           spdlog::debug("ChangeMaterialParameter valid entity found.");
 
@@ -211,17 +203,10 @@ void MaterialSystem::vInitSystem() {
             msg.getData<flutter::EncodableMap>(
                 ECSMessageType::ChangeMaterialDefinitions);
 
-        const EntityGUID& guid =
+        const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        const auto objectLocatorSystem =
-            ECSystemManager::GetInstance()
-                ->poGetSystemAs<EntityObjectLocatorSystem>(
-                    EntityObjectLocatorSystem::StaticGetTypeID(),
-                    "ChangeMaterialDefinitions");
-
-        if (const auto entityObject =
-                objectLocatorSystem->poGetEntityObjectById(guid);
+        if (const auto entityObject = ecs->getEntity(guid);
             entityObject != nullptr) {
           spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
@@ -239,8 +224,7 @@ void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "CameraManager::setDefaultCamera");
+      ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

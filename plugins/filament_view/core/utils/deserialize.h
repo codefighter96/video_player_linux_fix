@@ -21,6 +21,9 @@
 
 #include <core/components/derived/material_definitions.h>
 
+#include <plugins/common/common.h>
+#include <utility>
+
 namespace plugin_filament_view {
 
 class Deserialize {
@@ -29,21 +32,45 @@ class Deserialize {
   static ::filament::math::float3 Format3(const flutter::EncodableMap& map);
   static ::filament::math::quatf Format4(const flutter::EncodableMap& map);
 
-  static const flutter::EncodableValue& DeserializeParameter(
-      const char* key,
-      const flutter::EncodableValue& value) {
-    if (!std::holds_alternative<flutter::EncodableMap>(value)) {
-      throw std::runtime_error("Provided value is not an EncodableMap");
-    }
-
-    const auto& params = std::get<flutter::EncodableMap>(value);
-    auto it = params.find(flutter::EncodableValue(key));
-    if (it != params.end()) {
-      return it->second;
-    }
-
-    throw std::runtime_error("Key not found in EncodableMap");
+  /// @returns true if the given key exists in the map and is not null.
+  static bool HasKey(const flutter::EncodableMap& params, const char* key) {
+    const auto it = params.find(flutter::EncodableValue(key));
+    return it != params.end() && !it->second.IsNull();
   }
+
+  /// @brief Decode a parameter from the given map.
+  /// @throws std::runtime_error if the parameter is not found or is of the
+  /// wrong type.
+  template <typename T>
+  static T DecodeParameter(const char* key,
+                           const flutter::EncodableMap& params) {
+    auto it = params.find(flutter::EncodableValue(key));
+    if (it != params.end() && std::holds_alternative<T>(it->second)) {
+      return std::get<T>(it->second);
+    } else {
+      throw std::runtime_error(
+          fmt::format("Parameter '{}' not found or wrong type", key));
+    }
+  }
+
+  /// @brief Decode an optional parameter from the given map.
+  /// @returns std::optional<T> containing the value if found, or std::nullopt
+  /// if not.
+  template <typename T>
+  static std::optional<T> DecodeOptionalParameter(
+      const char* key,
+      const flutter::EncodableMap& params) {
+    auto it = params.find(flutter::EncodableValue(key));
+    if (it != params.end() && std::holds_alternative<T>(it->second)) {
+      return std::get<T>(it->second);
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  /*
+   * Decoders with default values
+   */
 
   template <typename T>
   static void DecodeParameterWithDefault(const char* key,
@@ -55,6 +82,18 @@ class Deserialize {
       *out_value = std::get<T>(it->second);
     } else {
       *out_value = default_value;
+    }
+  }
+
+  template <typename T>
+  static T DecodeParameterWithDefault(const char* key,
+                                      const flutter::EncodableMap& params,
+                                      const T& default_value) {
+    auto it = params.find(flutter::EncodableValue(key));
+    if (it != params.end() && std::holds_alternative<T>(it->second)) {
+      return std::get<T>(it->second);
+    } else {
+      return default_value;
     }
   }
 
@@ -110,6 +149,7 @@ class Deserialize {
                                          const flutter::EncodableMap& params,
                                          const float& default_value);
 
+  // Takes either int32 or int64 and casts to int64
   static void DecodeParameterWithDefaultInt64(
       const char* key,
       int64_t* out_value,

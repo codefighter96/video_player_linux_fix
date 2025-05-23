@@ -34,13 +34,7 @@ class ViewTargetSystem : public ECSystem {
   ViewTargetSystem(const ViewTargetSystem&) = delete;
   ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(ViewTargetSystem).hash_code();
-  }
-
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

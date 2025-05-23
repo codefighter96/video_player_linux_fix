@@ -16,7 +16,9 @@
 #include "basetransform.h"
 
 #include <core/include/literals.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/utils/deserialize.h>
+#include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -24,32 +26,39 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 BaseTransform::BaseTransform(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
-      m_f3CenterPosition(0, 0, 0),
-      m_f3ExtentsSize(0, 0, 0),
-      m_f3Scale(1, 1, 1),
-      m_quatRotation(0, 0, 0, 1) {
-  Deserialize::DecodeParameterWithDefault(kSize, &m_f3ExtentsSize, params,
-                                          filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kCenterPosition, &m_f3CenterPosition,
-                                          params,
-                                          filament::math::float3(0, 0, 0));
-  Deserialize::DecodeParameterWithDefault(kScale, &m_f3Scale, params,
-                                          filament::math::float3(1, 1, 1));
-  Deserialize::DecodeParameterWithDefault(kRotation, &m_quatRotation, params,
-                                          filament::math::quatf(0, 0, 0, 1));
+      local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
+      global({kMat4fIdentity}) {
+  spdlog::trace("BaseTransform::BaseTransform");
+  Deserialize::DecodeParameterWithDefault(kPosition, &(local.position), params,
+                                          kFloat3Zero);
+  Deserialize::DecodeParameterWithDefault(kScale, &(local.scale), params,
+                                          kFloat3One);
+  Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params,
+                                          kQuatfIdentity);
+
+  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params,
+                                               kNullGuid);
+  if (_parentId != kNullGuid) {
+    _isParentDirty = true;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
-  spdlog::debug(tabPrefix + "Center Position: x={}, y={}, z={}",
-                m_f3CenterPosition.x, m_f3CenterPosition.y,
-                m_f3CenterPosition.z);
-  spdlog::debug(tabPrefix + "Scale: x={}, y={}, z={}", m_f3Scale.x, m_f3Scale.y,
-                m_f3Scale.z);
-  spdlog::debug(tabPrefix + "Rotation: x={}, y={}, z={} w={}", m_quatRotation.x,
-                m_quatRotation.y, m_quatRotation.z, m_quatRotation.w);
-  spdlog::debug(tabPrefix + "Extents Size: x={}, y={}, z={}", m_f3ExtentsSize.x,
-                m_f3ExtentsSize.y, m_f3ExtentsSize.z);
+  spdlog::debug(tabPrefix + "Local transform:");
+  spdlog::debug(tabPrefix + "ParentId: {}", _parentId);
+  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}", local.position.x,
+                local.position.y, local.position.z);
+  spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x,
+                local.scale.y, local.scale.z);
+  spdlog::debug(tabPrefix + "Rot: w={} x={}, y={}, z={}", local.rotation.w,
+                local.rotation.x, local.rotation.y, local.rotation.z);
+}
+
+void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
+  filament::gltfio::decomposeMatrix(localMatrix, &local.position,
+                                    &local.rotation, &local.scale);
+  _isDirty = true;
 }
 
 }  // namespace plugin_filament_view

@@ -84,7 +84,7 @@ add_library(plugin_filament_view STATIC
         core/entity/derived/nonrenderable_entityobject.cc
         core/entity/derived/renderable_entityobject.cc
         core/systems/base/ecsystem.cc
-        core/systems/ecsystems_manager.cc
+        core/systems/ecs.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc
         core/entity/derived/model/model.cc
@@ -101,7 +101,7 @@ add_library(plugin_filament_view STATIC
         core/systems/derived/debug_lines_system.cc
         core/scene/indirect_light/indirect_light.cc
         core/systems/derived/indirect_light_system.cc
-        core/utils/entitytransforms.cc
+        core/utils/vectorutils.cc
         core/utils/hdr_loader.cc
         core/systems/derived/light_system.cc
         core/scene/material/loader/material_loader.cc
@@ -120,9 +120,11 @@ add_library(plugin_filament_view STATIC
         core/entity/derived/shapes/plane.cc
         core/systems/derived/shape_system.cc
         core/utils/deserialize.cc
+        core/utils/uuidGenerator.cc
+        core/utils/asserts.cc
         core/scene/view_target.cc
         core/systems/derived/view_target_system.cc
-        core/systems/derived/entityobject_locator_system.cc
+        core/systems/derived/transform_system.cc
 )
 
 target_include_directories(plugin_filament_view PUBLIC

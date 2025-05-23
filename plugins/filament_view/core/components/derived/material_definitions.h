@@ -44,6 +44,14 @@ class MaterialDefinitions : public Component {
     }
   }
 
+  MaterialDefinitions(
+      const std::string& assetPath,
+      const std::map<std::string, std::shared_ptr<MaterialParameter>>&
+          parameters)
+      : Component(std::string(__FUNCTION__)),
+        assetPath_(assetPath),
+        parameters_(parameters) {}
+
   ~MaterialDefinitions() override;
 
   static void vApplyMaterialParameterToInstance(
@@ -66,28 +74,46 @@ class MaterialDefinitions : public Component {
   [[nodiscard]] std::vector<MaterialParameter*>
   vecGetTextureMaterialParameters() const;
 
-  [[nodiscard]] std::string szGetMaterialAssetPath() const {
+  [[nodiscard]] inline std::string szGetMaterialAssetPath() const {
     return assetPath_;
   }
-  [[nodiscard]] std::string szGetMaterialURLPath() const { return url_; }
+  [[nodiscard]] inline std::string szGetMaterialURLPath() const { return url_; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
 
-  static size_t StaticGetTypeID() {
-    return typeid(MaterialDefinitions).hash_code();
-  }
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] Component* Clone() const override {
-    auto* cloned =
-        new MaterialDefinitions(*this);  // Copy constructor is called here
-    return cloned;
+  [[nodiscard]] inline Component* Clone() const override {
+    return new MaterialDefinitions(*this);  // Copy constructor is called here
   }
 
  private:
   std::string assetPath_;
   std::string url_;
-  std::map<std::string, std::unique_ptr<MaterialParameter>> parameters_;
+  std::map<std::string, std::shared_ptr<MaterialParameter>> parameters_;
 };
+
+const std::shared_ptr<MaterialParameter> kDefaultBaseColor =
+    std::make_unique<MaterialParameter>(
+        "baseColor",
+        MaterialParameter::MaterialType::COLOR,
+        filament::math::float4(1.0f, 1.0f, 1.0f, 1.0f));
+const std::shared_ptr<MaterialParameter> kDefaultRoughness =
+    std::make_unique<MaterialParameter>("roughness",
+                                        MaterialParameter::MaterialType::FLOAT,
+                                        0.5f);
+const std::shared_ptr<MaterialParameter> kDefaultMetallic =
+    std::make_unique<MaterialParameter>("metallic",
+                                        MaterialParameter::MaterialType::FLOAT,
+                                        0.0f);
+
+const std::map<std::string, std::shared_ptr<MaterialParameter>>
+    kDefaultMaterialParameters{
+        {"baseColor", kDefaultBaseColor},
+        {"roughness", kDefaultRoughness},
+        {"metallic", kDefaultMetallic},
+    };
+
+const MaterialDefinitions kDefaultMaterial =
+    MaterialDefinitions("assets/materials/lit.filamat",
+                        kDefaultMaterialParameters);
+
 }  // namespace plugin_filament_view

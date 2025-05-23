@@ -68,15 +68,15 @@ class FilamentViewPlugin : public flutter::Plugin,
 
   std::optional<FlutterError> ChangeMaterialParameter(
       const flutter::EncodableMap& params,
-      const std::string& guid) override;
+      const int64_t guid) override;
   // Change material definition for the given entity.
   std::optional<FlutterError> ChangeMaterialDefinition(
       const flutter::EncodableMap& params,
-      const std::string& guid) override;
+      const int64_t guid) override;
   // Toggle shapes visibility in the scene.
   std::optional<FlutterError> ToggleShapesInScene(bool value) override;
   // Set shape transform
-  std::optional<FlutterError> SetShapeTransform(const std::string& guid,
+  std::optional<FlutterError> SetShapeTransform(const int64_t guid,
                                                 double posx,
                                                 double posy,
                                                 double posz,
@@ -109,30 +109,28 @@ class FilamentViewPlugin : public flutter::Plugin,
   std::optional<FlutterError> SetFogOptions(const bool enabled) override;
   // Set camera rotation by a float value.
   std::optional<FlutterError> SetCameraRotation(double value) override;
-  std::optional<FlutterError> ChangeLightTransformByGUID(
-      const std::string& guid,
-      double posx,
-      double posy,
-      double posz,
-      double dirx,
-      double diry,
-      double dirz) override;
+  std::optional<FlutterError> ChangeLightTransformByGUID(const int64_t guid,
+                                                         double posx,
+                                                         double posy,
+                                                         double posz,
+                                                         double dirx,
+                                                         double diry,
+                                                         double dirz) override;
   std::optional<FlutterError> ChangeLightColorByGUID(
-      const std::string& guid,
+      const int64_t guid,
       const std::string& color,
       int64_t intensity) override;
   std::optional<FlutterError> EnqueueAnimation(
-      const std::string& guid,
+      const int64_t guid,
       int64_t animation_index) override;
-  std::optional<FlutterError> ClearAnimationQueue(
-      const std::string& guid) override;
-  std::optional<FlutterError> PlayAnimation(const std::string& guid,
+  std::optional<FlutterError> ClearAnimationQueue(const int64_t guid) override;
+  std::optional<FlutterError> PlayAnimation(const int64_t guid,
                                             int64_t animation_index) override;
-  std::optional<FlutterError> ChangeAnimationSpeed(const std::string& guid,
+  std::optional<FlutterError> ChangeAnimationSpeed(const int64_t guid,
                                                    double speed) override;
-  std::optional<FlutterError> PauseAnimation(const std::string& guid) override;
-  std::optional<FlutterError> ResumeAnimation(const std::string& guid) override;
-  std::optional<FlutterError> SetAnimationLooping(const std::string& guid,
+  std::optional<FlutterError> PauseAnimation(const int64_t guid) override;
+  std::optional<FlutterError> ResumeAnimation(const int64_t guid) override;
+  std::optional<FlutterError> SetAnimationLooping(const int64_t guid,
                                                   bool looping) override;
   std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_id,
@@ -144,28 +142,28 @@ class FilamentViewPlugin : public flutter::Plugin,
       double direction_z,
       double length) override;
 
-  std::optional<FlutterError> ChangeScaleByGUID(const std::string& guid,
+  std::optional<FlutterError> ChangeScaleByGUID(const int64_t guid,
                                                 double x,
                                                 double y,
                                                 double z) override;
-  std::optional<FlutterError> ChangeTranslationByGUID(const std::string& guid,
+  std::optional<FlutterError> ChangeTranslationByGUID(const int64_t guid,
                                                       double x,
                                                       double y,
                                                       double z) override;
-  std::optional<FlutterError> ChangeRotationByGUID(const std::string& guid,
+  std::optional<FlutterError> ChangeRotationByGUID(const int64_t guid,
                                                    double x,
                                                    double y,
                                                    double z,
                                                    double w) override;
 
   std::optional<FlutterError> TurnOffVisualForEntity(
-      const std::string& guid) override;
+      const int64_t guid) override;
   std::optional<FlutterError> TurnOnVisualForEntity(
-      const std::string& guid) override;
+      const int64_t guid) override;
   std::optional<FlutterError> TurnOffCollisionChecksForEntity(
-      const std::string& guid) override;
+      const int64_t guid) override;
   std::optional<FlutterError> TurnOnCollisionChecksForEntity(
-      const std::string& guid) override;
+      const int64_t guid) override;
 
   // Disallow copy and assign.
   FilamentViewPlugin(const FilamentViewPlugin&) = delete;

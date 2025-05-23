@@ -21,14 +21,19 @@
 
 namespace plugin_filament_view {
 
-using ::utils::Entity;
-
 namespace shapes {
 
 class Plane : public BaseShape {
  public:
-  explicit Plane(const flutter::EncodableMap& params);
-  Plane() = default;
+  /// @brief Constructor for Plane. Generates a GUID and has an empty name.
+  Plane() : BaseShape(ShapeType::Plane) {}
+  /// @brief Constructor for Plane with a name. Generates a unique GUID.
+  explicit Plane(std::string name) : BaseShape(name, ShapeType::Plane) {}
+  /// @brief Constructor for Plane with GUID. Name is empty.
+  explicit Plane(EntityGUID guid) : BaseShape(guid, ShapeType::Plane) {}
+  /// @brief Constructor for Plane with a name and GUID.
+  explicit Plane(std::string name, EntityGUID guid)
+      : BaseShape(name, guid, ShapeType::Plane) {}
   ~Plane() override = default;
 
   // Disallow copy and assign.
@@ -38,7 +43,7 @@ class Plane : public BaseShape {
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+                           FilamentEntity entityObject) override;
 
  private:
   void createDoubleSidedPlane(::filament::Engine* engine_);

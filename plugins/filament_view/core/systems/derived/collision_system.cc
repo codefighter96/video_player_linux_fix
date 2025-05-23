@@ -21,8 +21,12 @@
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
 #include <core/entity/derived/shapes/sphere.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/derived/shape_system.h>
+#include <core/systems/derived/transform_system.h>
+#include <core/systems/ecs.h>
+#include <core/utils/asserts.h>
 #include <filament/Scene.h>
+#include <filament/TransformManager.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -46,152 +50,24 @@ flutter::EncodableValue HitResult::Encode() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CollisionSystem::bHasEntityObjectRepresentation(
-    const EntityGUID& guid) const {
-  return collidablesDebugDrawingRepresentation_.find(guid) !=
-         collidablesDebugDrawingRepresentation_.end();
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vAddCollidable(EntityObject* collidable) {
-  if (!collidable->HasComponentByStaticTypeID(Collidable::StaticGetTypeID())) {
-    spdlog::error(
-        "You tried to add an entityObject that didnt have a collidable on it, "
-        "bailing out.");
-    return;
-  }
-
-  const auto originalCollidable = dynamic_cast<Collidable*>(
-      collidable->GetComponentByStaticTypeID(Collidable::StaticGetTypeID())
-          .get());
-
-  if (originalCollidable != nullptr &&
-      originalCollidable->GetShouldMatchAttachedObject()) {
-    // if it's a shape
-    if (const auto originalShape = dynamic_cast<shapes::BaseShape*>(collidable);
-        originalShape != nullptr) {
-      originalCollidable->SetShapeType(originalShape->type_);
-      originalCollidable->SetExtentsSize(
-          originalShape->m_poBaseTransform.lock()->GetExtentsSize());
-    }
-
-    // modeled handled below
-  }
-
-  // make the BaseShape Object
-  shapes::BaseShape* newShape = nullptr;
-  if (dynamic_cast<Model*>(collidable)) {
-    const auto ourModelObject = dynamic_cast<Model*>(collidable);
-    const auto ourAABB = ourModelObject->poGetBoundingBox();
-
-    newShape = new shapes::Cube();
-    newShape->m_bDoubleSided = false;
-    newShape->type_ = ShapeType::Cube;
-
-    ourModelObject->vShallowCopyComponentToOther(
-        BaseTransform::StaticGetTypeID(), *newShape);
-    ourModelObject->vShallowCopyComponentToOther(
-        CommonRenderable::StaticGetTypeID(), *newShape);
-
-    const std::shared_ptr<Component> componentBT =
-        newShape->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID());
-    const std::shared_ptr<BaseTransform> baseTransformPtr =
-        std::dynamic_pointer_cast<BaseTransform>(componentBT);
-
-    const std::shared_ptr<Component> componentCR =
-        newShape->GetComponentByStaticTypeID(
-            CommonRenderable::StaticGetTypeID());
-    const std::shared_ptr<CommonRenderable> commonRenderablePtr =
-        std::dynamic_pointer_cast<CommonRenderable>(componentCR);
-
-    newShape->m_poBaseTransform =
-        std::weak_ptr<BaseTransform>(baseTransformPtr);
-    newShape->m_poCommonRenderable =
-        std::weak_ptr<CommonRenderable>(commonRenderablePtr);
-
-    const auto& ourTransform = baseTransformPtr;
-
-    // Note I believe this is correct; more thorough testing is needed; there's
-    // a concern around exporting models not centered at 0,0,0 and not being
-    // 100% accurate.
-    ourTransform->SetCenterPosition(ourAABB.center() +
-                                    ourTransform->GetCenterPosition());
-    ourTransform->SetExtentsSize(ourAABB.extent());
-    ourTransform->SetScale(ourAABB.extent());
-
-    if (originalCollidable != nullptr &&
-        originalCollidable->GetShouldMatchAttachedObject()) {
-      originalCollidable->SetCenterPoint(ourTransform->GetCenterPosition());
-
-      originalCollidable->SetShapeType(ShapeType::Cube);
-      originalCollidable->SetExtentsSize(ourAABB.extent());
-    }
-  } else if (dynamic_cast<shapes::Cube*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Cube*>(collidable);
-    newShape = new shapes::Cube();
-    originalObject->CloneToOther(*newShape);
-  } else if (dynamic_cast<shapes::Sphere*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Sphere*>(collidable);
-    newShape = new shapes::Sphere();
-    originalObject->CloneToOther(*newShape);
-  } else if (dynamic_cast<shapes::Plane*>(collidable)) {
-    const auto originalObject = dynamic_cast<shapes::Plane*>(collidable);
-    newShape = new shapes::Plane();
-    originalObject->CloneToOther(*newShape);
-  }
-
-  if (newShape == nullptr) {
-    // log not handled;
-    spdlog::error("Failed to create collidable shape.");
-    return;
-  }
-
-  collidables_.push_back(collidable);
-
-  newShape->m_bIsWireframe = true;
-
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "vAddCollidable");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  filament::Scene* poFilamentScene = filamentSystem->getFilamentScene();
-  utils::EntityManager& oEntityManager = engine->getEntityManager();
-
-  const auto oEntity = std::make_shared<Entity>(oEntityManager.create());
-
-  newShape->bInitAndCreateShape(engine, oEntity);
-  poFilamentScene->addEntity(*oEntity);
-
-  // now store in map.
-  collidablesDebugDrawingRepresentation_.insert(
-      std::pair(collidable->GetGlobalGuid(), newShape));
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vRemoveCollidable(EntityObject* collidable) {
-  collidables_.remove(collidable);
-
-  // Remove from collidablesDebugDrawingRepresentation_
-  const auto iter =
-      collidablesDebugDrawingRepresentation_.find(collidable->GetGlobalGuid());
-  if (iter != collidablesDebugDrawingRepresentation_.end()) {
-    delete iter->second;
-    collidablesDebugDrawingRepresentation_.erase(iter);
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vTurnOnRenderingOfCollidables() const {
-  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
-    snd->vRemoveEntityFromScene();
+  const auto colliders = ecs->getComponentsOfType<Collidable>();
+  for (const auto& collider : colliders) {
+    const auto wireframe = collider->_wireframe;
+    if (!!wireframe) {
+      wireframe->vAddEntityToScene();
+    }
   }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vTurnOffRenderingOfCollidables() const {
-  for (const auto& [fst, snd] : collidablesDebugDrawingRepresentation_) {
-    snd->vAddEntityToScene();
+  const auto colliders = ecs->getComponentsOfType<Collidable>();
+  for (const auto& collider : colliders) {
+    const auto wireframe = collider->_wireframe;
+    if (!!wireframe) {
+      wireframe->vRemoveEntityFromScene();
+    }
   }
 }
 
@@ -199,7 +75,7 @@ void CollisionSystem::vTurnOffRenderingOfCollidables() const {
 void CollisionSystem::DebugPrint() {
   spdlog::debug("{}", __FUNCTION__);
 
-  /*for (auto& collidable : collidables_) {
+  /*for (auto& collidable : collidables) {
     collidable->DebugPrint();
   }*/
 }
@@ -215,14 +91,16 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     int64_t /*collisionLayer*/) const {
   std::list<HitResult> hitResults;
 
+  const auto collidables = ecs->getEntitiesWithComponent<Collidable>();
+
   // Iterate over all entities.
-  for (const auto& entity : collidables_) {
-    // Make sure collidable is still here....
-    auto collidable = std::dynamic_pointer_cast<Collidable>(
-        entity->GetComponentByStaticTypeID(Collidable::StaticGetTypeID()));
-    if (!collidable) {
-      continue;  // No collidable component, skip this entity
-    }
+  for (const auto& entity : collidables) {
+    const EntityGUID guid = entity->GetGuid();
+    auto collidable = ecs->getComponent<Collidable>(guid);
+    debug_assert(!!collidable,
+                 fmt::format("Collidable missing for entity: {}", guid));
+    if (!collidable->enabled)
+      continue;
 
     // Check if the collision layer matches (if a specific layer was provided)
     // if (collisionLayer != 0 && (collidable->GetCollisionLayer() &
@@ -230,13 +108,15 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     //    continue; // Skip if layers don't match
     // }
 
+    const auto transform = ecs->getComponent<BaseTransform>(guid);
+
     // Perform intersection test with the ray
     if (filament::math::float3 hitLocation;
-        collidable->bDoesIntersect(rayCast, hitLocation)) {
+        collidable->intersects(rayCast, hitLocation, transform)) {
       // If there is an intersection, create a HitResult
       HitResult hitResult;
-      hitResult.guid_ = entity->GetGlobalGuid();
-      hitResult.name_ = entity->GetName();
+      hitResult.guid_ = guid;
+      hitResult.name_ = collidable->eventName;
       hitResult.hitPosition_ = hitLocation;  // Set the hit location
 
       SPDLOG_INFO("HIT RESULT: {}", hitResult.guid_);
@@ -291,7 +171,7 @@ void CollisionSystem::SendCollisionInformationCallback(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vInitSystem() {
+void CollisionSystem::vOnInitSystem() {
   vRegisterMessageHandler(
       ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
         auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
@@ -324,26 +204,75 @@ void CollisionSystem::vInitSystem() {
 
   vRegisterMessageHandler(
       ECSMessageType::ToggleCollisionForEntity, [this](const ECSMessage& msg) {
-        const auto stringGUID =
-            msg.getData<std::string>(ECSMessageType::ToggleCollisionForEntity);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ToggleCollisionForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        for (const auto& entity : collidables_) {
-          if (entity->GetGlobalGuid() == stringGUID) {
-            const auto collidable = std::dynamic_pointer_cast<Collidable>(
-                entity->GetComponentByStaticTypeID(
-                    Collidable::StaticGetTypeID()));
-
-            collidable->SetEnabled(value);
-
-            break;
-          }
+        if (const auto collidable = ecs->getComponent<Collidable>(guid);
+            !!collidable) {
+          collidable->enabled = value;
         }
       });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vUpdate(float /*fElapsedTime*/) {}
+void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
+  TransformSystem* transformSystem =
+      ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
+
+  // Iterate over all collidables
+  const auto colliders = ecs->getComponentsOfType<Collidable>();
+  for (const auto& collidable : colliders) {
+    // Check if the collidable is enabled
+    if (collidable->enabled) {
+      // get pointer to collidable->_aabb
+      AABB& aabb = collidable->_aabb;
+
+      // Make sure it has an AABB
+      if (aabb.isEmpty()) {
+        const auto entity = collidable->entityOwner_;
+        spdlog::trace("Collidable entity({}) has no AABB", entity->GetGuid());
+        // Get AABB if it's a RenderableEntityObject
+        if (const auto renderableEntity =
+                dynamic_cast<RenderableEntityObject*>(entity)) {
+          aabb = renderableEntity->getAABB();
+          spdlog::trace("  Adding AABB to collidable entity({})",
+                        entity->GetGuid());
+          spdlog::trace("  AABB.pos: x={}, y={}, z={}", aabb.center.x,
+                        aabb.center.y, aabb.center.z);
+          spdlog::trace("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2,
+                        aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
+#if SPDLOG_LEVEL == trace
+// renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
+#endif
+        } else {
+          spdlog::error("  Collidable does not have an AABB");
+          continue;
+        }
+      }
+
+      // Make sure it has a wireframe
+      if (!collidable->_wireframe) {
+        const auto entity = collidable->entityOwner_;
+        // Create a cube wireframe
+        auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
+        cubeChild->m_bIsWireframe = true;
+        cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
+        const auto shapeSystem =
+            ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
+        ecs->addEntity(cubeChild);
+        shapeSystem->addShapeToScene(cubeChild);
+        auto childTransform = cubeChild->getComponent<BaseTransform>();
+        childTransform->SetTransform(aabb.center, aabb.halfExtent * 2,
+                                     kQuatfIdentity);
+
+        childTransform->setParent(entity->GetGuid());
+
+        collidable->_wireframe = cubeChild;
+      }
+    }
+  }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vShutdownSystem() {}

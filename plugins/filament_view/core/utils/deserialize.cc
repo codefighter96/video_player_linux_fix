@@ -152,10 +152,18 @@ void Deserialize::DecodeParameterWithDefaultInt64(
     int64_t* out_value,
     const flutter::EncodableMap& params,
     const int64_t& default_value) {
-  if (const auto it = params.find(flutter::EncodableValue(key));
-      it != params.end() && std::holds_alternative<int64_t>(it->second)) {
+  const auto it = params.find(flutter::EncodableValue(key));
+
+  if (it == params.end()) {
+    *out_value = default_value;
+  } else if (std::holds_alternative<int64_t>(it->second)) {
     *out_value = std::get<int64_t>(it->second);
+  } else if (std::holds_alternative<int32_t>(it->second)) {
+    *out_value = std::get<int32_t>(it->second);
   } else {
+    // get type as string
+    // auto type = std::string(it->second.type().name());
+    spdlog::debug("Unhandled type for key: {}", key);
     *out_value = default_value;
   }
 }

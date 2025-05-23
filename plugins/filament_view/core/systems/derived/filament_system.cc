@@ -15,14 +15,14 @@
  */
 #include "filament_system.h"
 
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <filament/Renderer.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::vInitSystem() {
+void FilamentSystem::vOnInitSystem() {
   spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
 
   /* Note; this is checked in for future reference, on some systems this might

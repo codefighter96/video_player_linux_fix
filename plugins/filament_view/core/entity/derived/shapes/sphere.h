@@ -21,24 +21,31 @@
 
 namespace plugin_filament_view {
 
-using ::utils::Entity;
-
 namespace shapes {
 
 class Sphere : public BaseShape {
  public:
-  explicit Sphere(const flutter::EncodableMap& params);
-  Sphere();
+  // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
+  Sphere() : BaseShape(ShapeType::Sphere) {}
+  /// @brief Constructor for Sphere with a name. Generates a unique GUID.
+  explicit Sphere(std::string name) : BaseShape(name, ShapeType::Sphere) {}
+  /// @brief Constructor for Sphere with GUID. Name is empty.
+  explicit Sphere(EntityGUID guid) : BaseShape(guid, ShapeType::Sphere) {}
+  /// @brief Constructor for Sphere with a name and GUID.
+  explicit Sphere(std::string name, EntityGUID guid)
+      : BaseShape(name, guid, ShapeType::Sphere) {}
   ~Sphere() override = default;
 
   // Disallow copy and assign.
   Sphere(const Sphere&) = delete;
   Sphere& operator=(const Sphere&) = delete;
 
+  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+
   void DebugPrint(const char* tag) const override;
 
   bool bInitAndCreateShape(::filament::Engine* engine_,
-                           std::shared_ptr<Entity> entityObject) override;
+                           FilamentEntity entityObject) override;
   void CloneToOther(BaseShape& other) const override;
 
  private:
@@ -46,8 +53,8 @@ class Sphere : public BaseShape {
 
   void createSingleSidedSphere(::filament::Engine* engine_);
 
-  int stacks_;
-  int slices_;
+  int stacks_ = 20;
+  int slices_ = 20;
 
   std::vector<::filament::math::float3> vertices_;
   std::vector<::filament::math::float3> normals_;

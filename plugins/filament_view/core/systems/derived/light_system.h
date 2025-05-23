@@ -35,33 +35,23 @@ class LightSystem : public ECSystem {
   // if after deserialization is complete, and there isn't a light made
   // this will be called to create a simple direct light
   void vCreateDefaultLight();
-  static void vBuildLight(Light& light);
-  static void vBuildLightAndAddToScene(Light& light);
+  void vBuildLight(Light& light);
+  void vBuildLightAndAddToScene(Light& light);
 
   // Disallow copy and assign.
   LightSystem(const LightSystem&) = delete;
   LightSystem& operator=(const LightSystem&) = delete;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(LightSystem).hash_code();
-  }
-
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;
 
  private:
   // These change the lights in filaments scene
-  static void vRemoveLightFromScene(const Light& light);
-  static void vAddLightToScene(const Light& light);
-
-  void vRegisterEntityObject(const std::shared_ptr<EntityObject>& entity);
-  void vUnregisterEntityObject(const std::shared_ptr<EntityObject>& entity);
+  void vRemoveLightFromScene(const Light& light);
+  void vAddLightToScene(const Light& light);
 
   std::shared_ptr<NonRenderableEntityObject> m_poDefaultLight;
-  std::map<EntityGUID, std::shared_ptr<EntityObject>> m_mapGuidToEntity;
 };
 }  // namespace plugin_filament_view

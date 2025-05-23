@@ -38,6 +38,8 @@ class HitResult {
 // or spatial tree structure in place that makes this type of work more
 // efficient.
 class CollisionSystem : public ECSystem {
+  friend class ModelSystem;
+
  public:
   CollisionSystem() = default;
 
@@ -53,17 +55,8 @@ class CollisionSystem : public ECSystem {
 
   void vUpdate(float fElapsedTime) override;
 
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vShutdownSystem() override;
-
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(CollisionSystem).hash_code();
-  }
-
-  void vAddCollidable(EntityObject* collidable);
-  void vRemoveCollidable(EntityObject* collidable);
 
   void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
@@ -78,19 +71,11 @@ class CollisionSystem : public ECSystem {
       std::string sourceQuery,
       CollisionEventType eType) const;
 
-  // Checks to see if we already has this guid in our mapping.
-  [[nodiscard]] bool bHasEntityObjectRepresentation(
-      const EntityGUID& guid) const;
-
  private:
   bool currentlyDrawingDebugCollidables = false;
 
   void vMatchCollidablesToRenderingModelsTransforms();
   void vMatchCollidablesToDebugDrawingTransforms();
-
-  std::list<EntityObject*> collidables_;
-  std::map<EntityGUID, shapes::BaseShape*>
-      collidablesDebugDrawingRepresentation_;
 };
 
 }  // namespace plugin_filament_view

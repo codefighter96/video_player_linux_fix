@@ -19,7 +19,7 @@
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/view_target_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <filament/Renderer.h>
 #include <filament/SwapChain.h>
 #include <filament/View.h>
@@ -71,8 +71,7 @@ ViewTarget::~ViewTarget() {
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "~ViewTarget");
+      ECSManager::GetInstance()->getSystem<FilamentSystem>("~ViewTarget");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroy(fview_);
@@ -153,8 +152,8 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width,
                     .height = height};
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "ViewTarget::Initialize");
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
+          "ViewTarget::Initialize");
 
   const auto engine = filamentSystem->getFilamentEngine();
   fswapChain_ = engine->createSwapChain(&native_window_);
@@ -170,8 +169,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(__FUNCTION__);
 
   fview_->setScene(filamentSystem->getFilamentScene());
 
@@ -320,8 +318,8 @@ void ViewTarget::vChangeQualitySettings(
   }
 
   const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "Change Quality Settings");
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(
+          "Change Quality Settings");
 
   // Now apply the settings to the Filament engine and view
   applySettings(filamentSystem->getFilamentEngine(), settings, fview_);
@@ -345,8 +343,7 @@ void ViewTarget::SendFrameViewCallback(
   }
 
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vSendDataToEventChannel(encodableMap);
 }
@@ -388,8 +385,7 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
   // Render the scene, unless the renderer wants to skip the frame.
   if (const auto filamentSystem =
-          ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-              FilamentSystem::StaticGetTypeID(), "DrawFrame");
+          ECSManager::GetInstance()->getSystem<FilamentSystem>("DrawFrame");
       filamentSystem->getFilamentRenderer()->beginFrame(fswapChain_, time)) {
     // Note you might want render time and gameplay time to be different
     // but for smooth animation you don't. (physics would be simulated w/o
@@ -435,7 +431,7 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 void ViewTarget::OnFrame(void* data,
                          wl_callback* callback,
                          const uint32_t time) {
-  post(*ECSystemManager::GetInstance()->GetStrand(), [data, callback, time] {
+  post(*ECSManager::GetInstance()->GetStrand(), [data, callback, time] {
     const auto obj = static_cast<ViewTarget*>(data);
     obj->callback_ = nullptr;
 
@@ -486,8 +482,7 @@ void ViewTarget::vOnTouch(const int32_t action,
                           const size_t point_data_size,
                           const double* point_data) const {
   auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<FilamentSystem>(__FUNCTION__);
 
   // if action is 0, then on 'first' touch, cast ray from camera;
   const auto viewport = fview_->getViewport();
@@ -502,7 +497,7 @@ void ViewTarget::vOnTouch(const int32_t action,
 
     ECSMessage rayInformation;
     rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
-    ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
+    ECSManager::GetInstance()->vRouteMessage(rayInformation);
 
     ECSMessage collisionRequest;
     collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
@@ -510,7 +505,7 @@ void ViewTarget::vOnTouch(const int32_t action,
                              std::string(__FUNCTION__));
     collisionRequest.addData(ECSMessageType::CollisionRequestType,
                              eNativeOnTouchBegin);
-    ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
+    ECSManager::GetInstance()->vRouteMessage(collisionRequest);
   }
 
   if (cameraManager_) {

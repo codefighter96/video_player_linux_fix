@@ -20,15 +20,15 @@
 #include <core/systems/derived/animation_system.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/debug_lines_system.h>
-#include <core/systems/derived/entityobject_locator_system.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/indirect_light_system.h>
 #include <core/systems/derived/light_system.h>
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/derived/view_target_system.h>
-#include <core/systems/ecsystems_manager.h>
+#include <core/systems/ecs.h>
 #include <event_sink.h>
 #include <event_stream_handler_functions.h>
 #include <messages.g.h>
@@ -47,37 +47,37 @@ bool m_bHasSetupRegistrar = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void RunOnceCheckAndInitializeECSystems() {
-  const auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecs = ECSManager::GetInstance();
 
-  if (ecsManager->getRunState() != ECSystemManager::RunState::NotInitialized) {
+  if (ecs->getRunState() != ECSManager::RunState::NotInitialized) {
     return;
   }
 
-  // Get the strand from the ECSystemManager
-  const auto& strand = *ecsManager->GetStrand();
+  // Get the strand from the ECSManager
+  const auto& strand = *ecs->GetStrand();
 
   std::promise<void> initPromise;
   const std::future<void> initFuture = initPromise.get_future();
 
   // Post the initialization code to the strand
   post(strand, [=, &initPromise]() mutable {
-    // Add systems to the ECSystemManager
-    ecsManager->vAddSystem(std::make_unique<FilamentSystem>());
-    ecsManager->vAddSystem(std::make_unique<DebugLinesSystem>());
-    ecsManager->vAddSystem(std::make_unique<CollisionSystem>());
-    ecsManager->vAddSystem(std::make_unique<ModelSystem>());
-    ecsManager->vAddSystem(std::make_unique<MaterialSystem>());
-    ecsManager->vAddSystem(std::make_unique<ShapeSystem>());
-    ecsManager->vAddSystem(std::make_unique<IndirectLightSystem>());
-    ecsManager->vAddSystem(std::make_unique<SkyboxSystem>());
-    ecsManager->vAddSystem(std::make_unique<LightSystem>());
-    ecsManager->vAddSystem(std::make_unique<ViewTargetSystem>());
-    ecsManager->vAddSystem(std::make_unique<AnimationSystem>());
+    // Add systems to the ECSManager
+    ecs->vAddSystem(std::make_unique<FilamentSystem>());
+    ecs->vAddSystem(std::make_unique<DebugLinesSystem>());
+    ecs->vAddSystem(std::make_unique<CollisionSystem>());
+    ecs->vAddSystem(std::make_unique<ModelSystem>());
+    ecs->vAddSystem(std::make_unique<MaterialSystem>());
+    ecs->vAddSystem(std::make_unique<ShapeSystem>());
+    ecs->vAddSystem(std::make_unique<IndirectLightSystem>());
+    ecs->vAddSystem(std::make_unique<SkyboxSystem>());
+    ecs->vAddSystem(std::make_unique<LightSystem>());
+    ecs->vAddSystem(std::make_unique<ViewTargetSystem>());
+    ecs->vAddSystem(std::make_unique<AnimationSystem>());
+    ecs->vAddSystem(std::make_unique<TransformSystem>());
     // Internal debate whether we auto subscribe to systems on entity creation
     // or not.
-    ecsManager->vAddSystem(std::make_unique<EntityObjectLocatorSystem>());
 
-    ecsManager->vInitSystems();
+    ecs->vInitSystems();
 
     initPromise.set_value();
   });
@@ -90,17 +90,17 @@ void KickOffRenderingLoops() {
   ECSMessage viewTargetStartRendering;
   viewTargetStartRendering.addData(
       ECSMessageType::ViewTargetStartRenderingLoops, true);
-  ECSystemManager::GetInstance()->vRouteMessage(viewTargetStartRendering);
+  ECSManager::GetInstance()->vRouteMessage(viewTargetStartRendering);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void DeserializeDataAndSetupMessageChannels(
     flutter::PluginRegistrar* registrar,
     const std::vector<uint8_t>& params) {
-  const auto ecsManager = ECSystemManager::GetInstance();
+  const auto ecs = ECSManager::GetInstance();
 
-  // Get the strand from the ECSystemManager
-  const auto& strand = *ecsManager->GetStrand();
+  // Get the strand from the ECSManager
+  const auto& strand = *ecs->GetStrand();
 
   std::promise<void> initPromise;
   const std::future<void> initFuture = initPromise.get_future();
@@ -109,6 +109,7 @@ void DeserializeDataAndSetupMessageChannels(
   // called.
   if (postSetupDeserializer == nullptr) {
     post(strand, [=, &initPromise]() mutable {
+      spdlog::trace("running SceneTextDeserializer");
       sceneTextDeserializer = std::make_unique<SceneTextDeserializer>(params);
       postSetupDeserializer = sceneTextDeserializer.get();
 
@@ -121,17 +122,12 @@ void DeserializeDataAndSetupMessageChannels(
     initFuture.wait();
   }
 
-  const auto animationSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<AnimationSystem>(
-          AnimationSystem::StaticGetTypeID(), __FUNCTION__);
+  spdlog::trace("getting systems");
+  const auto animationSystem = ecs->getSystem<AnimationSystem>(__FUNCTION__);
 
-  const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+  const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(__FUNCTION__);
 
-  const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(), __FUNCTION__);
+  const auto collisionSystem = ecs->getSystem<CollisionSystem>(__FUNCTION__);
 
   collisionSystem->vSetupMessageChannels(registrar,
                                          "plugin.filament_view.collision_info");
@@ -159,8 +155,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
     void* platform_view_context) {
   pthread_setname_np(pthread_self(), "HomeScreenFilamentViewPlugin");
 
-  const auto ecsManager = ECSystemManager::GetInstance();
-  ecsManager->setConfigValue(kAssetPath, assetDirectory);
+  const auto ecs = ECSManager::GetInstance();
+  ecs->setConfigValue(kAssetPath, assetDirectory);
 
   /*bool bDebugAttached = false;
   int i = 0;
@@ -188,7 +184,8 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   viewTargetCreationRequest.addData(
       ECSMessageType::ViewTargetCreateRequestHeight,
       static_cast<uint32_t>(height));
-  ECSystemManager::GetInstance()->vRouteMessage(viewTargetCreationRequest);
+
+  ecs->vRouteMessage(viewTargetCreationRequest);
 
   // Safeguarded to only be called once internal
   DeserializeDataAndSetupMessageChannels(registrar, params);
@@ -250,10 +247,10 @@ FilamentViewPlugin::FilamentViewPlugin(
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
 
-  ECSystemManager::GetInstance()->vShutdownSystems();
-  ECSystemManager::GetInstance()->vRemoveAllSystems();
+  ECSManager::GetInstance()->vShutdownSystems();
+  ECSManager::GetInstance()->vRemoveAllSystems();
   // wait for thread to stop running. (Should be relatively quick)
-  while (ECSystemManager::GetInstance()->bIsCompletedStopping() == false) {
+  while (ECSManager::GetInstance()->bIsCompletedStopping() == false) {
   }
 }
 
@@ -314,22 +311,22 @@ void FilamentViewPlugin::sendReadyEvent() {
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialParameter(
     const flutter::EncodableMap& params,
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage materialData;
   materialData.addData(ECSMessageType::ChangeMaterialParameter, params);
   materialData.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(materialData);
+  ECSManager::GetInstance()->vRouteMessage(materialData);
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeMaterialDefinition(
     const flutter::EncodableMap& params,
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage materialData;
   materialData.addData(ECSMessageType::ChangeMaterialDefinitions, params);
   materialData.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(materialData);
+  ECSManager::GetInstance()->vRouteMessage(materialData);
   return std::nullopt;
 }
 
@@ -338,13 +335,13 @@ std::optional<FlutterError> FilamentViewPlugin::ToggleShapesInScene(
     const bool value) {
   ECSMessage toggleMessage;
   toggleMessage.addData(ECSMessageType::ToggleShapesInScene, value);
-  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
+  ECSManager::GetInstance()->vRouteMessage(toggleMessage);
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
-    const std::string& guid,
+    const int64_t guid,
     const double posx,
     const double posy,
     const double posz,
@@ -371,7 +368,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
   shapeData.addData(ECSMessageType::Position, position);
   shapeData.addData(ECSMessageType::Rotation, rotation);
   shapeData.addData(ECSMessageType::Scale, scale);
-  ECSystemManager::GetInstance()->vRouteMessage(shapeData);
+  ECSManager::GetInstance()->vRouteMessage(shapeData);
 
   return std::nullopt;
 }
@@ -382,7 +379,7 @@ FilamentViewPlugin::ToggleDebugCollidableViewsInScene(const bool value) {
   ECSMessage toggleMessage;
   toggleMessage.addData(ECSMessageType::ToggleDebugCollidableViewsInScene,
                         value);
-  ECSystemManager::GetInstance()->vRouteMessage(toggleMessage);
+  ECSManager::GetInstance()->vRouteMessage(toggleMessage);
   return std::nullopt;
 }
 
@@ -390,8 +387,7 @@ FilamentViewPlugin::ToggleDebugCollidableViewsInScene(const bool value) {
 std::optional<FlutterError> FilamentViewPlugin::ChangeCameraMode(
     const std::string& mode) {
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vChangePrimaryCameraMode(0, mode);
   return std::nullopt;
@@ -407,7 +403,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraOrbitHomePosition(
 
   ECSMessage data;
   data.addData(ECSMessageType::ChangeCameraOrbitHomePosition, position);
-  ECSystemManager::GetInstance()->vRouteMessage(data);
+  ECSManager::GetInstance()->vRouteMessage(data);
   return std::nullopt;
 }
 
@@ -420,7 +416,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraTargetPosition(
       static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
   ECSMessage data;
   data.addData(ECSMessageType::ChangeCameraTargetPosition, position);
-  ECSystemManager::GetInstance()->vRouteMessage(data);
+  ECSManager::GetInstance()->vRouteMessage(data);
   return std::nullopt;
 }
 
@@ -433,7 +429,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraFlightStartPosition(
       static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
   ECSMessage data;
   data.addData(ECSMessageType::ChangeCameraFlightStartPosition, position);
-  ECSystemManager::GetInstance()->vRouteMessage(data);
+  ECSManager::GetInstance()->vRouteMessage(data);
   return std::nullopt;
 }
 
@@ -441,8 +437,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraFlightStartPosition(
 std::optional<FlutterError>
 FilamentViewPlugin::ResetInertiaCameraToDefaultValues() {
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vResetInertiaCameraToDefaultValues(0);
   return std::nullopt;
@@ -454,7 +449,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeViewQualitySettings() {
   ECSMessage qualitySettings;
   qualitySettings.addData(ECSMessageType::ChangeViewQualitySettings,
                           qualitySettingsVal);
-  ECSystemManager::GetInstance()->vRouteMessage(qualitySettings);
+  ECSManager::GetInstance()->vRouteMessage(qualitySettings);
 
   qualitySettingsVal++;
   if (qualitySettingsVal > ViewTarget::ePredefinedQualitySettings::Ultra) {
@@ -468,7 +463,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(
     const bool enabled) {
   ECSMessage fogData;
   fogData.addData(ECSMessageType::SetFogOptions, enabled);
-  ECSystemManager::GetInstance()->vRouteMessage(fogData);
+  ECSManager::GetInstance()->vRouteMessage(fogData);
 
   return std::nullopt;
 }
@@ -477,8 +472,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(
 std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
     const double value) {
   const auto viewTargetSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-          ViewTargetSystem::StaticGetTypeID(), __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vSetCurrentCameraOrbitAngle(0, static_cast<float>(value));
   return std::nullopt;
@@ -486,7 +480,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeLightTransformByGUID(
-    const std::string& guid,
+    const int64_t guid,
     double posx,
     double posy,
     double posz,
@@ -504,14 +498,14 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeLightTransformByGUID(
   lightData.addData(ECSMessageType::ChangeSceneLightTransform, guid);
   lightData.addData(ECSMessageType::Position, position);
   lightData.addData(ECSMessageType::Direction, direction);
-  ECSystemManager::GetInstance()->vRouteMessage(lightData);
+  ECSManager::GetInstance()->vRouteMessage(lightData);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeLightColorByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const std::string& color,
     const int64_t intensity) {
   ECSMessage lightData;
@@ -520,91 +514,91 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeLightColorByGUID(
                     color);
   lightData.addData(ECSMessageType::ChangeSceneLightPropertiesIntensity,
                     static_cast<float>(intensity));
-  ECSystemManager::GetInstance()->vRouteMessage(lightData);
+  ECSManager::GetInstance()->vRouteMessage(lightData);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::EnqueueAnimation(
-    const std::string& guid,
+    const int64_t guid,
     const int64_t animation_index) {
   ECSMessage enqueueMessage;
   enqueueMessage.addData(ECSMessageType::AnimationEnqueue,
                          static_cast<int32_t>(animation_index));
   enqueueMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(enqueueMessage);
+  ECSManager::GetInstance()->vRouteMessage(enqueueMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ClearAnimationQueue(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage clearQueueMessage;
   clearQueueMessage.addData(ECSMessageType::AnimationClearQueue, guid);
   clearQueueMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(clearQueueMessage);
+  ECSManager::GetInstance()->vRouteMessage(clearQueueMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::PlayAnimation(
-    const std::string& guid,
+    const int64_t guid,
     const int64_t animation_index) {
   ECSMessage playMessage;
   playMessage.addData(ECSMessageType::AnimationPlay,
                       static_cast<int32_t>(animation_index));
   playMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(playMessage);
+  ECSManager::GetInstance()->vRouteMessage(playMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeAnimationSpeed(
-    const std::string& guid,
+    const int64_t guid,
     const double speed) {
   ECSMessage changeSpeedMessage;
   changeSpeedMessage.addData(ECSMessageType::AnimationChangeSpeed,
                              static_cast<float>(speed));
   changeSpeedMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(changeSpeedMessage);
+  ECSManager::GetInstance()->vRouteMessage(changeSpeedMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::PauseAnimation(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage pauseMessage;
   pauseMessage.addData(ECSMessageType::AnimationPause, guid);
   pauseMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(pauseMessage);
+  ECSManager::GetInstance()->vRouteMessage(pauseMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ResumeAnimation(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage resumeMessage;
   resumeMessage.addData(ECSMessageType::AnimationResume, guid);
   resumeMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(resumeMessage);
+  ECSManager::GetInstance()->vRouteMessage(resumeMessage);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::SetAnimationLooping(
-    const std::string& guid,
+    const int64_t guid,
     const bool looping) {
   ECSMessage setLoopingMessage;
   setLoopingMessage.addData(ECSMessageType::AnimationSetLooping, looping);
   setLoopingMessage.addData(ECSMessageType::EntityToTarget, guid);
-  ECSystemManager::GetInstance()->vRouteMessage(setLoopingMessage);
+  ECSManager::GetInstance()->vRouteMessage(setLoopingMessage);
 
   return std::nullopt;
 }
@@ -631,7 +625,7 @@ std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
   // Debug line message
   ECSMessage rayInformation;
   rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
-  ECSystemManager::GetInstance()->vRouteMessage(rayInformation);
+  ECSManager::GetInstance()->vRouteMessage(rayInformation);
 
   // Collision request message
   ECSMessage collisionRequest;
@@ -639,14 +633,14 @@ std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
   collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, query_id);
   collisionRequest.addData(ECSMessageType::CollisionRequestType,
                            eFromNonNative);
-  ECSystemManager::GetInstance()->vRouteMessage(collisionRequest);
+  ECSManager::GetInstance()->vRouteMessage(collisionRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeScaleByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z) {
@@ -656,14 +650,14 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeScaleByGUID(
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ChangeScaleByGUID, guid);
   changeRequest.addData(ECSMessageType::floatVec3, values);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeTranslationByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z) {
@@ -673,14 +667,14 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeTranslationByGUID(
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ChangeTranslationByGUID, guid);
   changeRequest.addData(ECSMessageType::floatVec3, values);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeRotationByGUID(
-    const std::string& guid,
+    const int64_t guid,
     const double x,
     const double y,
     const double z,
@@ -692,51 +686,51 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeRotationByGUID(
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ChangeRotationByGUID, guid);
   changeRequest.addData(ECSMessageType::floatVec4, values);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOffVisualForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleVisualForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, false);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOnVisualForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleVisualForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, true);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOffCollisionChecksForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleCollisionForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, false);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::TurnOnCollisionChecksForEntity(
-    const std::string& guid) {
+    const int64_t guid) {
   ECSMessage changeRequest;
   changeRequest.addData(ECSMessageType::ToggleCollisionForEntity, guid);
   changeRequest.addData(ECSMessageType::BoolValue, true);
-  ECSystemManager::GetInstance()->vRouteMessage(changeRequest);
+  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
@@ -753,7 +747,7 @@ void FilamentViewPlugin::on_resize(const double width,
   resizeMessage.addData(ECSMessageType::ResizeWindow, static_cast<size_t>(0));
   resizeMessage.addData(ECSMessageType::ResizeWindowWidth, width);
   resizeMessage.addData(ECSMessageType::ResizeWindowHeight, height);
-  ECSystemManager::GetInstance()->vRouteMessage(resizeMessage);
+  ECSManager::GetInstance()->vRouteMessage(resizeMessage);
 }
 
 void FilamentViewPlugin::on_set_direction(const int32_t direction, void* data) {
@@ -772,7 +766,7 @@ void FilamentViewPlugin::on_set_offset(const double left,
   moveMessage.addData(ECSMessageType::MoveWindow, static_cast<size_t>(0));
   moveMessage.addData(ECSMessageType::MoveWindowLeft, left);
   moveMessage.addData(ECSMessageType::MoveWindowTop, top);
-  ECSystemManager::GetInstance()->vRouteMessage(moveMessage);
+  ECSManager::GetInstance()->vRouteMessage(moveMessage);
 }
 
 // TODO this function will need to change to say 'which' view is being changed.
@@ -783,8 +777,7 @@ void FilamentViewPlugin::on_touch(const int32_t action,
                                   void* data) {
   if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
     const auto viewTargetSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<ViewTargetSystem>(
-            ViewTargetSystem::StaticGetTypeID(),
+        ECSManager::GetInstance()->getSystem<ViewTargetSystem>(
             "FilamentViewPlugin::on_touch");
 
     // has to be changed to 'which' on touch was hit

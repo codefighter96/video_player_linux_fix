@@ -16,6 +16,7 @@
 
 #include "sphere.h"
 
+#include <core/include/literals.h>
 #include <core/utils/deserialize.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
@@ -33,32 +34,23 @@ using filament::VertexAttribute;
 using filament::VertexBuffer;
 using filament::math::float3;
 using filament::math::mat3f;
-using utils::Entity;
 
 ////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere() : stacks_(20), slices_(20) {}
 
-////////////////////////////////////////////////////////////////////////////
-Sphere::Sphere(const flutter::EncodableMap& params)
-    : BaseShape(params), stacks_(20), slices_(20) {
-  SPDLOG_TRACE("+-{}", __FUNCTION__);
+void Sphere::deserializeFrom(const flutter::EncodableMap& params) {
+  BaseShape::deserializeFrom(params);
 
-  static constexpr char kStacks[] = "stacks";
-  static constexpr char kSlices[] = "slices";
+  // stacks
+  stacks_ = Deserialize::DecodeParameterWithDefault(kStacks, params, 20);
 
-  constexpr int defaultStacks = 20;
-  constexpr int defaultSlices = 20;
-
-  Deserialize::DecodeParameterWithDefault(kStacks, &stacks_, params,
-                                          defaultStacks);
-  Deserialize::DecodeParameterWithDefault(kSlices, &slices_, params,
-                                          defaultSlices);
+  // slices
+  slices_ = Deserialize::DecodeParameterWithDefault(kSlices, params, 20);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 bool Sphere::bInitAndCreateShape(filament::Engine* engine_,
-                                 std::shared_ptr<Entity> entityObject) {
-  m_poEntity = std::move(entityObject);
+                                 FilamentEntity entityObject) {
+  _fEntity = entityObject;
 
   m_poVertexBuffer = nullptr;
   m_poIndexBuffer = nullptr;
@@ -85,9 +77,9 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
   for (int i = 0; i <= stacks; ++i) {
     const float stackAngle =
         static_cast<float>(M_PI) / 2.0f -
-        static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    const float xy = cosf(stackAngle);      // r * cos(u)
-    float z = sinf(stackAngle);             // r * sin(u)
+        static_cast<float>(i) * stackStep;     // from pi/2 to -pi/2
+    const float xy = cosf(stackAngle) * 0.5f;  // r * cos(u)
+    float z = sinf(stackAngle) * 0.5f;         // r * sin(u)
     float v = static_cast<float>(i) /
               static_cast<float>(stacks);  // Latitude, y-axis UV
 
@@ -175,7 +167,7 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
 void Sphere::createDoubleSidedSphere(filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
-  spdlog::warn("createDoubleSidedSphere not implemented.");
+  throw std::runtime_error("createDoubleSidedSphere not implemented");
 }
 
 ////////////////////////////////////////////////////////////////////////////

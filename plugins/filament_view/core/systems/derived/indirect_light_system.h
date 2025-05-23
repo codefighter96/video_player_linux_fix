@@ -34,27 +34,27 @@ class IndirectLightSystem : public ECSystem {
 
   void setDefaultIndirectLight();
 
-  static std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
+  std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
       const std::string& path,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLightFromKtxUrl(
+  std::future<Resource<std::string_view>> setIndirectLightFromKtxUrl(
       const std::string& url,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLightFromHdrAsset(
+  std::future<Resource<std::string_view>> setIndirectLightFromHdrAsset(
       const std::string& path,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLightFromHdrUrl(
+  std::future<Resource<std::string_view>> setIndirectLightFromHdrUrl(
       const std::string& url,
       double intensity);
 
-  static Resource<std::string_view> loadIndirectLightHdrFromFile(
+  Resource<std::string_view> loadIndirectLightHdrFromFile(
       const std::string& asset_path,
       double intensity);
 
-  static std::future<Resource<std::string_view>> setIndirectLight(
+  std::future<Resource<std::string_view>> setIndirectLight(
       DefaultIndirectLight* indirectLight);
 
   // Disallow copy and assign.
@@ -63,13 +63,7 @@ class IndirectLightSystem : public ECSystem {
 
   ~IndirectLightSystem() override;
 
-  [[nodiscard]] size_t GetTypeID() const override { return StaticGetTypeID(); }
-
-  [[nodiscard]] static size_t StaticGetTypeID() {
-    return typeid(IndirectLightSystem).hash_code();
-  }
-
-  void vInitSystem() override;
+  void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
   void vShutdownSystem() override;
   void DebugPrint() override;

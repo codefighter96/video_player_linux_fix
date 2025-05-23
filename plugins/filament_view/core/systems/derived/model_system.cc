@@ -15,21 +15,27 @@
  */
 #include "model_system.h"
 #include "collision_system.h"
-#include "filament_system.h"
 
 #include <core/components/derived/collidable.h>
+#include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/file_utils.h>
-#include <core/systems/ecsystems_manager.h>
-#include <core/utils/entitytransforms.h>
+#include <core/systems/derived/transform_system.h>
+#include <core/systems/ecs.h>
 #include <curl_client/curl_client.h>
 #include <filament/Scene.h>
-#include <filament/filament/RenderableManager.h>
 #include <filament/gltfio/ResourceLoader.h>
 #include <filament/gltfio/TextureProvider.h>
 #include <filament/gltfio/materials/uberarchive.h>
 #include <filament/utils/Slice.h>
 #include <algorithm>  // for max
 #include <asio/post.hpp>
+#include <cassert>
+
+// rapidjson
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/stringbuffer.h>
 
 #include "animation_system.h"
 
@@ -42,10 +48,10 @@ using filament::gltfio::ResourceLoader;
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::destroyAllAssetsOnModels() {
-  for (const auto& [fst, snd] : m_mapszoAssets) {
+  for (const auto& [fst, snd] : _models) {
     destroyAsset(snd->getAsset());  // NOLINT
   }
-  m_mapszoAssets.clear();
+  _models.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -55,210 +61,206 @@ void ModelSystem::destroyAsset(
     return;
   }
 
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
-
-  filamentSystem->getFilamentScene()->removeEntities(asset->getEntities(),
-                                                     asset->getEntityCount());
+  _filament->getFilamentScene()->removeEntities(asset->getEntities(),
+                                                asset->getEntityCount());
   assetLoader_->destroyAsset(asset);
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-filament::gltfio::FilamentAsset* ModelSystem::poFindAssetByGuid(
-    const std::string& szGUID) {
-  const auto iter = m_mapszoAssets.find(szGUID);
-  if (iter == m_mapszoAssets.end()) {
-    return nullptr;
-  }
+void ModelSystem::createModelInstance(Model* model) {
+  checkInitialized();
+  debug_assert(assetLoader_ != nullptr,
+               "ModelSystem::createModelInstance - assetLoader_ is null");
 
-  return iter->second->getAsset();
-}
+  const auto assetPath = model->getAssetPath();
+  spdlog::trace("\nModelSystem::createModelInstance: {}", assetPath);
+  spdlog::trace("instance mode: {}",
+                modelInstancingModeToString(model->getInstancingMode()));
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::loadModelGlb(std::shared_ptr<Model> oOurModel,
-                               const std::vector<uint8_t>& buffer,
-                               const std::string& /*assetName*/) {
-  if (assetLoader_ == nullptr) {
-    // NOTE, this should only be temporary until CustomModelViewer isn't
-    // necessary in implementation.
-    vInitSystem();
-
-    if (assetLoader_ == nullptr) {
-      spdlog::error("unable to initialize model system");
-      return;
-    }
-  }
-
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadModelGlb");
-  const auto engine = filamentSystem->getFilamentEngine();
-  auto& rcm = engine->getRenderableManager();
-
-  // Note if you're creating a lot of instances, this is better to use at the
+  // NOTE: if you're creating a lot of instances, this is better to use at the
   // start FilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t
   // numBytes, FilamentInstance **instances, size_t numInstances)
+  /// NOTE: is it tho?
   filament::gltfio::FilamentAsset* asset = nullptr;
   filament::gltfio::FilamentInstance* assetInstance = nullptr;
 
-  const auto instancedModelData =
-      m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath());
-  if (instancedModelData != m_mapInstanceableAssets_.end()) {
-    // we have the model already, use it.
-    assetInstance = assetLoader_->createInstance(instancedModelData->second);
+  // check if instanceable (primary) is loaded
+  const auto instancedModelData = _assets[assetPath];
+  if (instancedModelData.state != AssetLoadingState::unset) {
+    spdlog::trace("Primary confirmed loaded");
+    asset = instancedModelData.asset;
+    runtime_assert(asset != nullptr,
+                   "ModelSystem::createModelInstance - asset CANNOT be null");
 
-    const Entity* instanceEntities = assetInstance->getEntities();
-    const size_t instanceEntityCount = assetInstance->getEntityCount();
-
-    for (size_t i = 0; i < instanceEntityCount; i++) {
-      const Entity entity = instanceEntities[i];
-
-      // Check if this entity has a Renderable component
-      if (rcm.hasComponent(entity)) {
-        const auto ri = rcm.getInstance(entity);
-
-        rcm.setCastShadows(
-            ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-        rcm.setReceiveShadows(
-            ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-        rcm.setScreenSpaceContactShadows(ri, false);
-      }
-
-      filamentSystem->getFilamentScene()->addEntity(entity);
-    }
-
-    filamentSystem->getFilamentScene()->addEntity(assetInstance->getRoot());
-    oOurModel->setAssetInstance(assetInstance);
+    // if the asset is not instanceable, it will return nullptr
+    assetInstance = assetLoader_->createInstance(asset);
+    spdlog::trace("Asset instance created!");
+    // if not nullptr, it means it's a valid secondary instance
+  } else {
+    throw std::runtime_error(fmt::format(
+        "ModelSystem::createModelInstance - asset {} not loaded", assetPath));
   }
 
-  // instance-able / primary object.
-  if (assetInstance == nullptr) {
-    asset = assetLoader_->createAsset(buffer.data(),
-                                      static_cast<uint32_t>(buffer.size()));
-    if (!asset) {
-      spdlog::error("Failed to loadModelGlb->createasset from buffered data.");
-      return;
-    }
+  // instance / secondary object.
+  // asset loaded,
+  spdlog::trace("HAS INSTANCE");
+  model->setAssetInstance(assetInstance);
 
-    resourceLoader_->asyncBeginLoad(asset);
-
-    if (oOurModel->bShouldKeepAssetDataInMemory()) {
-      m_mapInstanceableAssets_.insert(
-          std::pair(oOurModel->szGetAssetPath(), asset));
-    } else {
-      asset->releaseSourceData();
-    }
-
-    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                         asset->getRenderableEntityCount()};
-
-    for (const auto entity : listOfRenderables) {
-      const auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(
-          ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-      rcm.setReceiveShadows(
-          ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-      // Investigate this more before making it a property on common renderable
-      // component.
-      rcm.setScreenSpaceContactShadows(ri, false);
-    }
-
-    oOurModel->setAsset(asset);
-  }
-
-  EntityTransforms::vApplyTransform(oOurModel, *oOurModel->GetBaseTransform());
-
-  std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
-  vSetupAssetThroughoutECS(sharedPtr, asset, assetInstance);
+  // by this point we should either have a subinstance, or THE primary instance
+  runtime_assert(assetInstance != nullptr, "This should NEVER be null!");
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::loadModelGltf(
-    std::shared_ptr<Model> oOurModel,
-    const std::vector<uint8_t>& buffer,
-    std::function<const filament::backend::BufferDescriptor&(
-        std::string uri)>& /* callback */) {
-  auto* asset = assetLoader_->createAsset(buffer.data(),
-                                          static_cast<uint32_t>(buffer.size()));
-  if (!asset) {
-    spdlog::error("Failed to loadModelGltf->createasset from buffered data.");
+void ModelSystem::addModelToScene(EntityGUID modelGuid) {
+  checkInitialized();
+
+  // Get model
+  std::shared_ptr<Model> model = _models[modelGuid];
+  runtime_assert(model != nullptr,
+                 fmt::format("[{}] Can't add model({}) to scene, model is null",
+                             __FUNCTION__, modelGuid)
+                     .c_str());
+
+  // Expects the model to be already loaded
+  runtime_assert(
+      _assets[model->getAssetPath()].state == AssetLoadingState::loaded,
+      fmt::format("[{}] Can't add model({}) to scene, asset not loaded (asset "
+                  "state: {})",
+                  __FUNCTION__, modelGuid,
+                  modelInstancingModeToString(model->getInstancingMode()))
+          .c_str());
+
+  const bool isInScene = model->isInScene();
+  const ModelInstancingMode instancingMode = model->getInstancingMode();
+
+  if (isInScene) {
+    spdlog::warn(
+        "[{}] model '{}'({}) is already in scene (asset {}), skipping add",
+        __FUNCTION__, model->GetName(), modelGuid, model->assetPath_);
     return;
   }
 
-  const auto uri_data = asset->getResourceUris();
-  const auto uris =
-      std::vector(uri_data, uri_data + asset->getResourceUriCount());
-  for (const auto uri : uris) {
-    (void)uri;
-    SPDLOG_DEBUG("resource uri: {}", uri);
-#if 0   // TODO
-              auto resourceBuffer = callback(uri);
-              if (!resourceBuffer) {
-                  this->asset_ = nullptr;
-                  return;
-              }
-              resourceLoader_->addResourceData(uri, resourceBuffer);
-#endif  // TODO
+  FilamentEntity* modelEntities = nullptr;
+  size_t modelEntityCount = 0;
+
+  // Get the asset instance
+  const auto asset = model->getAsset();
+  const auto assetInstance = model->getAssetInstance();
+
+  if (instancingMode == ModelInstancingMode::secondary) {
+    // If it's a secondary instance, we need to get the entities from the asset
+    // instance
+    runtime_assert(
+        assetInstance != nullptr,
+        "ModelSystem::addModelToScene: model asset instance cannot be null");
+    // runtime_assert(
+    //   asset != nullptr,
+    //   "ModelSystem::addModelToScene: model asset cannot be null"
+    // );
+
+    modelEntities = const_cast<FilamentEntity*>(assetInstance->getEntities());
+    modelEntityCount = assetInstance->getEntityCount();
+  } else {
+    /// If it's non-instanced, we need to get the entities from the asset`
+    // runtime_assert(
+    //   asset != nullptr,
+    //   "ModelSystem::addModelToScene: model asset cannot be null"
+    // );
+
+    if (asset == nullptr) {
+      spdlog::warn(
+          "[{}] model({}) asset({}) is null, deferring load till later (are we "
+          "tho?)",
+          __FUNCTION__, modelGuid, model->getAssetPath());
+      return;
+    }
+
+    modelEntities = const_cast<FilamentEntity*>(asset->getRenderableEntities());
+    modelEntityCount = asset->getRenderableEntityCount();
   }
-  resourceLoader_->asyncBeginLoad(asset);
-  // modelViewer->setAnimator(asset->getInstance()->getAnimator());
-  asset->releaseSourceData();
 
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "loadModelGltf");
-  const auto engine = filamentSystem->getFilamentEngine();
+  /*
+   *  Renderable setup
+   */
+  spdlog::trace("  Setting up renderables...");
 
-  auto& rcm = engine->getRenderableManager();
+  utils::Slice const renderables{modelEntities, modelEntityCount};
 
-  utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                       asset->getRenderableEntityCount()};
-
-  for (const auto entity : listOfRenderables) {
-    const auto ri = rcm.getInstance(entity);
-    rcm.setCastShadows(
-        ri, oOurModel->GetCommonRenderable()->IsCastShadowsEnabled());
-    rcm.setReceiveShadows(
-        ri, oOurModel->GetCommonRenderable()->IsReceiveShadowsEnabled());
-    // Investigate this more before making it a property on common renderable
-    // component.
-    rcm.setScreenSpaceContactShadows(ri, false);
+  if (instancingMode == ModelInstancingMode::primary) {
+    spdlog::trace("  Model({}) is primary, not adding to scene", modelGuid);
+    return;
   }
 
-  oOurModel->setAsset(asset);
+  // Add to ECS
+  spdlog::trace("  Adding model({}) to ECS", __FUNCTION__, modelGuid);
+  ecs->addEntity(model);
 
-  EntityTransforms::vApplyTransform(oOurModel, *oOurModel->GetBaseTransform());
+  FilamentEntity instanceEntity = assetInstance->getRoot();
+  model->_fEntity = instanceEntity;
+  spdlog::trace("  Adding model[{}]->({}) to Filament scene",
+                instanceEntity.getId(), modelGuid);
+  _filament->getFilamentScene()->addEntity(instanceEntity);
+  model->_childrenEntities[instanceEntity] = modelGuid;
 
-  std::shared_ptr<Model> sharedPtr = std::move(oOurModel);
+  for (const auto entity : renderables) {
+    // const auto entity = modelEntities[i];
+    _filament->getFilamentScene()->addEntity(entity);
 
-  vSetupAssetThroughoutECS(sharedPtr, asset, nullptr);
-}
+    setupRenderable(entity, model.get(),
+                    const_cast<filament::gltfio::FilamentAsset*>(
+                        model->getAssetInstance()->getAsset()));
+  }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vSetupAssetThroughoutECS(
-    std::shared_ptr<Model>& sharedPtr,
-    filament::gltfio::FilamentAsset* filamentAsset,
-    filament::gltfio::FilamentInstance* filamentAssetInstance) {
-  m_mapszoAssets.insert(std::pair(sharedPtr->GetGlobalGuid(), sharedPtr));
+  // Set up transform parenting (needs to be done after renderable setup)
+  spdlog::trace("  Setting up transform parenting for model({})", modelGuid);
+  for (auto& [childEntity, childGuid] : model->_childrenEntities) {
+    spdlog::trace("  child[{}]->({}) {}", childEntity.getId(), childGuid,
+                  childGuid == modelGuid ? "(is model!)" : "");
 
+    // Skip the model itself
+    if (childGuid == kNullGuid || childGuid == modelGuid)
+      continue;
+
+    const auto childTransform = ecs->getComponent<BaseTransform>(childGuid);
+    const FilamentTransformInstance childInstance =
+        _tm->getInstance(childEntity);
+    const FilamentEntity parentEntity = _tm->getParent(childInstance);
+    const EntityGUID parentGuid = model->_childrenEntities[parentEntity];
+
+    spdlog::trace("    has parent[{}]->({})", parentEntity.getId(), parentGuid);
+
+    if (parentGuid != kNullGuid)  // safeguard, shouldn't be necessary
+      childTransform->setParent(parentGuid);
+  }
+
+  // Set up transform
+  auto transform = model->getComponent<BaseTransform>();
+  transform->_fInstance = _tm->getInstance(instanceEntity);
+  transform->SetDirty(true);
+  /// NOTE: why is this needed? if this is not called the collider doesn't work,
+  //        even though it's visible
+  ecs->getSystem<TransformSystem>("ModelSystem::addModelToScene")
+      ->applyTransform(model->GetGuid(), true);
+
+  // Set up renderable
+  auto renderable = model->getComponent<CommonRenderable>();
+  renderable->_fInstance = _rcm->getInstance(instanceEntity);
+
+  // Set up collidable
+  // NOTE: no need - CollisionSystem sets up collidables asynchronously on
+  // vUpdate
+
+  // Set up animator
   filament::gltfio::Animator* animatorInstance = nullptr;
-
-  if (filamentAssetInstance != nullptr) {
-    animatorInstance = filamentAssetInstance->getAnimator();
-  } else if (filamentAsset != nullptr) {
-    animatorInstance = filamentAsset->getInstance()->getAnimator();
+  if (assetInstance != nullptr) {
+    animatorInstance = assetInstance->getAnimator();
+  } else if (asset != nullptr) {
+    animatorInstance = asset->getInstance()->getAnimator();
   }
-
-  if (animatorInstance != nullptr &&
-      sharedPtr->HasComponentByStaticTypeID(Animation::StaticGetTypeID())) {
-    const auto animatorComponent =
-        sharedPtr->GetComponentByStaticTypeID(Animation::StaticGetTypeID());
-    const auto animator = dynamic_cast<Animation*>(animatorComponent.get());
+  if (animatorInstance != nullptr && model->hasComponent<Animation>()) {
+    const auto animator = model->getComponent<Animation>();
     animator->vSetAnimator(*animatorInstance);
 
     // Great if you need help with your animation information!
-    // animationPtr->DebugPrint("From ModelSystem::vSetupAssetThroughoutECS\t");
+    // animationPtr->DebugPrint("From ModelSystem::addModelToScene\t");
   } else if (animatorInstance != nullptr &&
              animatorInstance->getAnimationCount() > 0) {
     SPDLOG_DEBUG(
@@ -266,476 +268,526 @@ void ModelSystem::vSetupAssetThroughoutECS(
         "on this, but you didn't load an animation component, load one if you "
         "want that "
         "functionality",
-        sharedPtr->szGetAssetPath(), animatorInstance->getAnimationCount());
+        model->getAssetPath(), animatorInstance->getAnimationCount());
   }
 
-  sharedPtr->vRegisterEntity();
+  model->m_isInScene = true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::populateSceneWithAsyncLoadedAssets(const Model* model) {
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), __FUNCTION__);
-  const auto engine = filamentSystem->getFilamentEngine();
+void ModelSystem::setupRenderable(const FilamentEntity fEntity,
+                                  Model* model,
+                                  filament::gltfio::FilamentAsset* asset) {
+  const char* name = asset->getName(fEntity);
+  if (name == nullptr) {
+    name = "(null)";
+  }
 
-  auto& rcm = engine->getRenderableManager();
+  // Create a RenderableEntityObject child
+  const auto child = std::make_shared<RenderableEntityObject>();
+  child->_fEntity = fEntity;
+  child->name_ = asset->getName(fEntity);
+  spdlog::trace("  Creating child entity '{}'({})->[{}] of '{}'({})",
+                child->GetName(), child->GetGuid(), fEntity.getId(),
+                model->GetName(), model->GetGuid());
+  model->_childrenEntities[fEntity] = child->GetGuid();
 
-  auto* asset = model->getAsset();
-
-  if (!asset) {
+  /*
+   * Transform
+   */
+  /// NOTE: we set up transform first, even if it might not have a renderable
+  ///       because it's still valid for parenting reasons.
+  const auto ti = _tm->getInstance(fEntity);
+  if (!ti.isValid()) {
+    spdlog::trace("[{}] Skipping fentity {} of model({}), has no transform",
+                  __FUNCTION__, fEntity.getId(), model->GetGuid());
     return;
   }
 
-  size_t count = asset->popRenderables(nullptr, 0);
-  while (count) {
-    constexpr size_t maxToPopAtOnce = 128;
-    auto maxToPop = std::min(count, maxToPopAtOnce);
+  // Set up Transform component
+  auto transform = BaseTransform();
+  transform._fInstance = ti;
+  transform.SetTransform(_tm->getTransform(ti));
+  auto parentEntity = _tm->getParent(ti);
 
-    SPDLOG_DEBUG(
-        "ModelSystem::populateSceneWithAsyncLoadedAssets async load count "
-        "available[{}] - working on [{}]",
-        count, maxToPop);
-    // Note for high amounts, we should probably do a small amount; break out;
-    // and let it come back do more on another frame.
+  spdlog::trace("  Parent entity: [{}]", parentEntity.getId());
+#if SPDLOG_LEVEL == trace
+// transform.DebugPrint("  ");
+#endif
 
-    asset->popRenderables(readyRenderables_, maxToPop);
+  child->addComponent(transform);
 
-    utils::Slice const listOfRenderables{asset->getRenderableEntities(),
-                                         asset->getRenderableEntityCount()};
+  const auto ri = _rcm->getInstance(fEntity);
+  if (!ri.isValid()) {
+    spdlog::trace("[{}] Skipping fentity {} of model({}), has no renderable",
+                  __FUNCTION__, fEntity.getId(), model->GetGuid());
 
-    for (const auto entity : listOfRenderables) {
-      const auto ri = rcm.getInstance(entity);
-      rcm.setCastShadows(ri,
-                         model->GetCommonRenderable()->IsCastShadowsEnabled());
-      rcm.setReceiveShadows(
-          ri, model->GetCommonRenderable()->IsReceiveShadowsEnabled());
-      // Investigate this more before making it a property on common renderable
-      // component.
-      rcm.setScreenSpaceContactShadows(ri, false);
-    }
-
-    // we won't load the primary asset to render.
-    if (!model->bIsPrimaryAssetToInstanceFrom()) {
-      filamentSystem->getFilamentScene()->addEntities(readyRenderables_,
-                                                      maxToPop);
-    }
-
-    count = asset->popRenderables(nullptr, 0);
+    ecs->addEntity(child);
+    return;
   }
 
-  if ([[maybe_unused]] auto lightEntities = asset->getLightEntities()) {
-    spdlog::info(
-        "Note: Light entities have come in from asset model load;"
-        "these are not attached to our entities and will be un changeable");
-    filamentSystem->getFilamentScene()->addEntities(asset->getLightEntities(),
-                                                    sizeof(*lightEntities));
-  }
+  const auto commonRenderable = model->GetCommonRenderable();
+  _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
+  _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
+  _rcm->setScreenSpaceContactShadows(ri, false);
+
+  // Set up Renderable component
+  auto renderable = CommonRenderable();
+  renderable._fInstance = ri;
+  child->addComponent(renderable);
+
+  // (optional) Set up Collidable component
+  // Get extras (aka "userData", aka Blender's "Custom Properties"), string
+  // containing JSON If extras present and have "fs_touchEvent" property, parse
+  // and setup a Collidable component
+  if (const char* extras = asset->getExtras(fEntity); !!extras)
+    try {
+      // Parse using RapidJSON
+      spdlog::debug("  Has extras! Parsing '{}'", extras);
+      rapidjson::Document doc;
+      doc.Parse(extras);
+      if (doc.HasParseError()) {
+        spdlog::error(rapidjson::GetParseError_En(doc.GetParseError()));
+        throw std::runtime_error(
+            "[ModelSystem::setupCollidableChild] Failed to parse extras JSON");
+      }
+
+      // Get the touchEvent property
+      constexpr char kTouchEventProp[] = "fs_touchEvent";
+      if (doc.HasMember(kTouchEventProp)) {
+        const auto& touchEvent = doc[kTouchEventProp];
+        // type: string (event name)
+        const auto& eventName = touchEvent.GetString();
+        spdlog::trace("  Has '{}'! Value: {}", kTouchEventProp, eventName);
+
+        // check if is a perfect cube (with epsilon = 0.01)
+        // constexpr float epsilon = 0.01f;
+        // const AABB aabb = renderable.getAABB();
+        // const float sizeX = aabb.halfExtent.x * 2;
+        // const float sizeY = aabb.halfExtent.y * 2;
+        // const float sizeZ = aabb.halfExtent.z * 2;
+        // const bool isCube = std::abs(sizeX - sizeY) < epsilon &&
+        //                     std::abs(sizeY - sizeZ) < epsilon;
+        // spdlog::trace("isCube: {}", isCube);
+
+        AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
+
+        // attach collidable
+        auto collidable = Collidable();
+        collidable.SetIsStatic(false);
+        collidable.eventName = eventName;
+        // collidable._aabb = aabb;
+        // NOTE: extents automatically set from AABB by CollisionSystem
+        // collidable.SetShapeType(isCube ? ShapeType::Cube :
+        //                                   ShapeType::Sphere);
+        child->addComponent(collidable);
+
+        spdlog::trace("  Model child collidable setup complete");
+      }
+
+    } catch (const std::exception& e) {
+      spdlog::error(
+          "[{}] Failed to setup collidable child({}) with JSON: {}\nReason: {}",
+          __FUNCTION__, fEntity.getId(), extras, e.what());
+    }
+
+  ecs->addEntity(child);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::updateAsyncAssetLoading() {
-  resourceLoader_->asyncUpdateLoad();
+  // spdlog::debug(
+  //   "[{}] Updating async asset loading",
+  //   __FUNCTION__
+  // );
 
   // This does not specify per resource, but a global, best we can do with this
   // information is if we're done loading <everything> that was marked as async
   // load, then load that physics data onto a collidable if required. This gives
   // us visuals without collidables in a scene with <tons> of objects; but would
   // eventually settle
+  resourceLoader_->asyncUpdateLoad();
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
-
-  for (const auto& [fst, snd] : m_mapszoAssets) {
-    populateSceneWithAsyncLoadedAssets(snd.get());
-
-    if (percentComplete != 1.0f) {
-      continue;
-    }
-
-    // we're no longer loading, we're loaded.
-    m_mapszbCurrentlyLoadingInstanceableAssets.erase(fst);
-
-    // once we're done loading our assets; we should be able to load instanced
-    // models.
-    if (auto foundAwaitingIter =
-            m_mapszoAssetsAwaitingDataLoad.find(snd->szGetAssetPath());
-        snd->bShouldKeepAssetDataInMemory() &&
-        foundAwaitingIter != m_mapszoAssetsAwaitingDataLoad.end()) {
-      spdlog::info("Loading additional instanced assets: {}",
-                   snd->szGetAssetPath());
-      for (const auto& itemToLoad : foundAwaitingIter->second) {
-        spdlog::info("Loading subset: {}", snd->szGetAssetPath());
-        std::vector<uint8_t> emptyVec;
-        loadModelGlb(itemToLoad, emptyVec, itemToLoad->szGetAssetPath());
-      }
-      spdlog::info("Done Loading additional instanced assets: {}",
-                   snd->szGetAssetPath());
-      m_mapszoAssetsAwaitingDataLoad.erase(snd->szGetAssetPath());
-    }
-
-    // You don't get collision as a primary asset.
-    if (snd->bIsPrimaryAssetToInstanceFrom()) {
-      continue;
-    }
-
-    auto collisionSystem =
-        ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-            CollisionSystem::StaticGetTypeID(), "updateAsyncAssetLoading");
-    if (collisionSystem == nullptr) {
-      spdlog::warn("Failed to get collision system when loading model");
-      continue;
-    }
-
-    // if its 'done' loading, we need to create our large AABB collision
-    // object if this model it's referencing required one.
-    //
-    // Also need to make sure it hasn't already created one for this model.
-    if (snd->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
-        !collisionSystem->bHasEntityObjectRepresentation(fst)) {
-      // I don't think this needs to become a message; as an async load
-      // gives us un-deterministic throughput; it can't be replicated with a
-      // messaging structure, and we have to wait till the load is done.
-      collisionSystem->vAddCollidable(snd.get());
-    }
+  if (percentComplete != 1.0f) {
+    spdlog::trace("[{}] Model async loading progress: {}%", __FUNCTION__,
+                  percentComplete * 100.0f);
+    return;
+  } else {
+    // spdlog::info(
+    //   "[{}] Async model loading complete",
+    //   __FUNCTION__
+    // );
   }
-}
 
-////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGlbFromAsset(
-    std::shared_ptr<Model> oOurModel,
-    const std::string& path) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto promise_future(promise->get_future());
+  // for each AssetDescriptor...
+  for (auto& [assetPath, assetData] : _assets) {
+    // if the asset is loaded, mark it as loaded
+    if (assetData.state == AssetLoadingState::loading) {
+      assetData.state = AssetLoadingState::loaded;
+    }
 
-  try {
-    const asio::io_context::strand& strand_(
-        *ECSystemManager::GetInstance()->GetStrand());
-
-    const auto assetPath =
-        ECSystemManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
-
-    const bool bWantsInstancedData = oOurModel->bShouldKeepAssetDataInMemory();
-    const bool hasInstancedDataLoaded =
-        m_mapInstanceableAssets_.find(oOurModel->szGetAssetPath()) !=
-        m_mapInstanceableAssets_.end();
-    const bool isCurrentlyLoadingInstanceableData =
-        m_mapszbCurrentlyLoadingInstanceableAssets.find(
-            oOurModel->szGetAssetPath()) !=
-        m_mapszbCurrentlyLoadingInstanceableAssets.end();
-
-    if (bWantsInstancedData) {
-      std::string szAssetPath = oOurModel->szGetAssetPath();
-      if (isCurrentlyLoadingInstanceableData || hasInstancedDataLoaded) {
-        const auto iter =
-            m_mapszoAssetsAwaitingDataLoad.find(oOurModel->szGetAssetPath());
-        if (iter != m_mapszoAssetsAwaitingDataLoad.end()) {
-          iter->second.emplace_back(std::move(oOurModel));
-        } else {
-          std::list<std::shared_ptr<Model>> modelListToLoad;
-          modelListToLoad.emplace_back(std::move(oOurModel));
-          m_mapszoAssetsAwaitingDataLoad.insert(
-              std::pair(szAssetPath, modelListToLoad));
+    if (assetData.state == AssetLoadingState::loaded) {
+      // if the asset is loaded, load the models
+      for (auto& modelGuid : assetData.loadingInstances) {
+        // get the model
+        std::shared_ptr<Model> model = _models[modelGuid];
+        if (model == nullptr) {
+          spdlog::error("[{}] Model {} not found", __FUNCTION__, modelGuid);
+          continue;
         }
 
-        promise->set_value(Resource<std::string_view>::Success(
-            "Waiting Data load from other asset load adding to list to update "
-            "during update tick."));
+        if (model->isInScene()) {
+          spdlog::warn("Model {} is already in scene, skipping load",
+                       model->GetName());
+          continue;
+        }
 
-        return promise_future;
+        // Add model to scene
+        spdlog::debug("Loaded, adding model to scene: '{}'({})",
+                      model->getAssetPath(), modelGuid);
+
+        switch (model->getInstancingMode()) {
+          case ModelInstancingMode::primary:
+            spdlog::trace(
+                "Model is primary, updating transform but not adding to scene");
+            break;
+          case ModelInstancingMode::secondary:
+            // load the model as an instance
+            spdlog::trace("Loading model as instance: {}",
+                          model->getAssetPath());
+            createModelInstance(model.get());
+            spdlog::trace("Model instanced, adding to scene...");
+            addModelToScene(modelGuid);
+            spdlog::trace("Model added to scene! Yay!");
+
+            // Set up collidable children
+            // for (const auto entity : collidableChildren) {
+            //   setupCollidableChild(entity, sharedPtr.get(), asset);
+            // }
+            break;
+          case ModelInstancingMode::none:
+            // load the model as a single object
+            spdlog::trace("Loading model as single object: {}",
+                          model->getAssetPath());
+            addModelToScene(modelGuid);
+            break;
+        }
       }
 
-      // if we're not loading instance data, this will fall out and load it, set
-      // that we're loading it. next model will see its loading. and add itself
-      // to the wait.
-      m_mapszbCurrentlyLoadingInstanceableAssets.insert(
-          std::pair(szAssetPath, true));
+      // clear the loading instances
+      assetData.loadingInstances.clear();
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+void ModelSystem::queueModelLoad(std::shared_ptr<Model> model) {
+  spdlog::trace("Queueing model({}) load (instance mode: {}) -> {}",
+                model->GetGuid(),
+                modelInstancingModeToString(model->getInstancingMode()),
+                model->getAssetPath());
+
+  try {
+    const auto baseAssetPath = ecs->getConfigValue<std::string>(kAssetPath);
+    const auto modelAssetPath = model->getAssetPath();
+    const EntityGUID modelGuid = model->GetGuid();
+    const ModelInstancingMode instanceMode = model->getInstancingMode();
+
+    AssetDescriptor& assetData = _assets[modelAssetPath];
+
+    switch (assetData.state) {
+      /// Unset: not yet in queue
+      case AssetLoadingState::unset:
+        // mark as loading, add asset
+        // assetData.path = &modelAssetPath;
+        assetData.state = AssetLoadingState::loading;
+        _models[modelGuid] = std::move(model);
+        assetData.loadingInstances.emplace_back(modelGuid);
+
+        spdlog::trace("  Asset unset: queued for loading.");
+        loadModelFromFile(modelGuid, baseAssetPath);
+        return;
+      /// Loading: asset already in queue
+      case AssetLoadingState::loading:
+        // add model to asset's loading queue
+        _models[modelGuid] = model;
+        if (instanceMode == ModelInstancingMode::primary) {
+          spdlog::warn("Double-load of primary model({}): {}", modelGuid,
+                       modelAssetPath);
+        } else {
+          assetData.loadingInstances.emplace_back(modelGuid);
+        }
+        spdlog::trace("  Asset loading: model queued for loading.");
+        return;
+      /// Loaded: asset in memory, can instance
+      case AssetLoadingState::loaded:
+        // add model to asset's loading queue
+        _models[modelGuid] = std::move(model);
+        assetData.loadingInstances.emplace_back(modelGuid);
+        spdlog::trace("  Asset loaded: model queued for instancing.");
+        return;
+      /// Error: asset failed to load
+      case AssetLoadingState::error:
+        /// TODO: make sure this state is being set to begin with
+        spdlog::error(
+            "[ModelSystem::queueModelLoad] Asset {} failed to load, cannot "
+            "queue model({})",
+            modelAssetPath, modelGuid);
+        /// TODO: actuallly handle the error somehow?
+        break;
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        "[ModelSystem::queueModelLoad] Failed to queue model load: " +
+        std::string(e.what()));
+  }
+}
+
+void ModelSystem::loadModelFromFile(EntityGUID modelGuid,
+                                    const std::string& baseAssetPath) {
+  spdlog::trace("++ loadModelFromFile");
+
+  const auto& strand = *ecs->GetStrand();
+  post(strand, [&, modelGuid, baseAssetPath]() mutable {
+    spdlog::trace("++ loadModelFromFile (lambda), model guid: {}", modelGuid);
+    // Get model
+    std::shared_ptr<Model> model = _models[modelGuid];
+    if (model == nullptr) {
+      throw std::runtime_error(
+          fmt::format("[loadModelFromFile] Model {} not found", modelGuid));
     }
 
-    post(strand_,
-         [&, model = std::move(oOurModel), promise, path, assetPath]() mutable {
-           try {
-             const auto buffer = readBinaryFile(path, assetPath);
-             handleFile(std::move(model), buffer, path, promise);
-           } catch (const std::exception& e) {
-             spdlog::warn("Lambda Exception {}", e.what());
-             promise->set_exception(std::make_exception_ptr(e));
-           } catch (...) {
-             spdlog::warn("Unknown Exception in lambda");
-           }
-         });
-  } catch (const std::exception& e) {
-    std::cerr << "Total Exception: " << e.what() << '\n';
-    promise->set_exception(std::make_exception_ptr(e));
-  }
-  return promise_future;
+    try {
+      const auto assetPath = model->getAssetPath();
+      spdlog::trace("Loading model from assetPath: {}", assetPath);
+
+      // Read the file and handle buffer
+      const auto buffer = readBinaryFile(assetPath, baseAssetPath);
+      spdlog::trace("handleFile");
+      if (!buffer.empty()) {
+        // Load GLB asset
+
+        // Note if you're creating a lot of instances, this is better to use at
+        // the start FilamentAsset* createInstancedAsset(const uint8_t* bytes,
+        // uint32_t numBytes, FilamentInstance **instances, size_t numInstances)
+        filament::gltfio::FilamentAsset* asset = nullptr;
+        filament::gltfio::FilamentInstance* assetInstance = nullptr;
+
+        asset = assetLoader_->createAsset(buffer.data(),
+                                          static_cast<uint32_t>(buffer.size()));
+        spdlog::trace("[loadModelFromFile] asyncBeginLoad");
+        resourceLoader_->asyncBeginLoad(asset);
+        model->setAsset(asset);
+        _assets[assetPath].asset =
+            asset;  // important! if not set, secondaries cannot be created
+
+        // release source data
+        if (model->getInstancingMode() == ModelInstancingMode::none) {
+          spdlog::trace(
+              "[loadModelFromFile] Non-secondary loaded: releasing source "
+              "data");
+          asset->releaseSourceData();  // TODO: do we also call this for
+                                       // primaries after instancing?
+        }
+
+        assetInstance = asset->getInstance();
+        runtime_assert(
+            assetInstance != nullptr,
+            "[loadModelFromFile] Failed to fetch primary asset instance");
+
+        model->setAssetInstance(assetInstance);
+
+        spdlog::debug("Loaded glb model successfully from {}", assetPath);
+      } else {
+        spdlog::error("Couldn't load glb model from {}", assetPath);
+      }
+
+    } catch (const std::exception& e) {
+      spdlog::error("[ModelSystem::loadModelFromFile] Failed to load: {}",
+                    e.what());
+    } catch (...) {
+      spdlog::error(
+          "[ModelSystem::loadModelFromFile] Unknown Exception in lambda");
+    }
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGlbFromUrl(
-    std::shared_ptr<Model> oOurModel,
-    std::string url) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto promise_future(promise->get_future());
-  post(*ECSystemManager::GetInstance()->GetStrand(),
-       [&, model = std::move(oOurModel), promise,
-        url = std::move(url)]() mutable {
-         plugin_common_curl::CurlClient client;
-         const auto buffer = client.RetrieveContentAsVector();
-         if (client.GetCode() != CURLE_OK) {
-           promise->set_value(Resource<std::string_view>::Error(
-               "Couldn't load Glb from " + url));
-         }
-         handleFile(std::move(model), buffer, url, promise);
-       });
-  return promise_future;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::handleFile(std::shared_ptr<Model>&& oOurModel,
-                             const std::vector<uint8_t>& buffer,
-                             const std::string& fileSource,
-                             const PromisePtr& promise) {
-  spdlog::debug("handleFile");
-  if (!buffer.empty()) {
-    loadModelGlb(std::move(oOurModel), buffer, fileSource);
-    promise->set_value(Resource<std::string_view>::Success(
-        "Loaded glb model successfully from " + fileSource));
-  } else {
-    promise->set_value(Resource<std::string_view>::Error(
-        "Couldn't load glb model from " + fileSource));
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGltfFromAsset(
-    const std::shared_ptr<Model>& /*oOurModel*/,
-    const std::string& /* path */,
-    const std::string& /* pre_path */,
-    const std::string& /* post_path */) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto future(promise->get_future());
-  promise->set_value(Resource<std::string_view>::Error("Not implemented yet"));
-  return future;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>> ModelSystem::loadGltfFromUrl(
-    const std::shared_ptr<Model>& /*oOurModel*/,
-    const std::string& /* url */) {
-  const auto promise(
-      std::make_shared<std::promise<Resource<std::string_view>>>());
-  auto future(promise->get_future());
-  promise->set_value(Resource<std::string_view>::Error("Not implemented yet"));
-  return future;
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vInitSystem() {
+void ModelSystem::vOnInitSystem() {
+  spdlog::debug("[{}] Initializing ModelSystem", __FUNCTION__);
+  // TODO: can be removed pending LifecycleParticipant impl.
   if (materialProvider_ != nullptr) {
     return;
   }
 
-  const auto filamentSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-          FilamentSystem::StaticGetTypeID(), "ModelSystem::vInitSystem");
-  const auto engine = filamentSystem->getFilamentEngine();
+  _transforms = ecs->getSystem<TransformSystem>(__FUNCTION__);
 
-  if (engine == nullptr) {
-    spdlog::error("Engine is null, delaying vInitSystem");
-    return;
-  }
+  // Get filament
+  _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
+  runtime_assert(_filament != nullptr,
+                 "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+
+  _engine = _filament->getFilamentEngine();
+  runtime_assert(_engine != nullptr,
+                 "ModelSystem::vOnInitSystem: FilamentEngine not found");
+
+  _rcm = _engine->getRenderableManager();
+  _tm = _engine->getTransformManager();
+  _em = _engine->getEntityManager();
+
+  runtime_assert(_rcm != nullptr,
+                 "ModelSystem::vOnInitSystem: RenderableManager not found");
+  runtime_assert(_tm != nullptr,
+                 "ModelSystem::vOnInitSystem: TransformManager not found");
+  runtime_assert(_em != nullptr,
+                 "ModelSystem::vOnInitSystem: EntityManager not found");
+
+  spdlog::trace("[{}] loaded filament systems", __FUNCTION__);
 
   materialProvider_ = filament::gltfio::createUbershaderProvider(
-      engine, UBERARCHIVE_DEFAULT_DATA,
+      _engine, UBERARCHIVE_DEFAULT_DATA,
       static_cast<size_t>(UBERARCHIVE_DEFAULT_SIZE));
+
+  // new NameComponentManager(EntityManager::get());
+  names_ = new ::utils::NameComponentManager(::utils::EntityManager::get());
 
   SPDLOG_DEBUG("UbershaderProvider MaterialsCount: {}",
                materialProvider_->getMaterialsCount());
 
   AssetConfiguration assetConfiguration{};
-  assetConfiguration.engine = engine;
+  assetConfiguration.engine = _engine;
   assetConfiguration.materials = materialProvider_;
+  assetConfiguration.names = names_;
   assetLoader_ = AssetLoader::create(assetConfiguration);
 
   ResourceConfiguration resourceConfiguration{};
-  resourceConfiguration.engine = engine;
+  resourceConfiguration.engine = _engine;
   resourceConfiguration.normalizeSkinningWeights = true;
   resourceLoader_ = new ResourceLoader(resourceConfiguration);
 
-  const auto decoder = filament::gltfio::createStbProvider(engine);
+  const auto decoder = filament::gltfio::createStbProvider(_engine);
   resourceLoader_->addTextureProvider("image/png", decoder);
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
+  // TODO: add support for other texture formats here
 
   // ChangeTranslationByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeTranslationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeTranslationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
 
         const auto position =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
-        if (const auto ourEntity = m_mapszoAssets.find(guid);
-            ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
-                  .get());
+        // find the model in our list:
+        if (const auto ourEntity = _models.find(guid);
+            ourEntity != _models.end()) {
+          const auto model = ourEntity->second;
+          const auto transform = model->getComponent<BaseTransform>();
 
           // change stuff.
-          theObject->SetCenterPosition(position);
-
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+          transform->SetPosition(position);
         }
 
-        SPDLOG_TRACE("ChangeTranslationByGUID Complete");
+        spdlog::trace("ChangeTranslationByGUID Complete");
       });
 
   // ChangeRotationByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeRotationByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeRotationByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
 
         const auto values =
             msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
         filament::math::quatf rotation(values);
 
-        // find the entity in our list:
-        if (const auto ourEntity = m_mapszoAssets.find(guid);
-            ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
-                  .get());
+        // find the model in our list:
+        if (const auto ourEntity = _models.find(guid);
+            ourEntity != _models.end()) {
+          const auto model = ourEntity->second;
+          const auto transform = model->getComponent<BaseTransform>();
 
-          // change stuff.
-          theObject->SetRotation(rotation);
-
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+          transform->SetRotation(rotation);
         }
 
-        SPDLOG_TRACE("ChangeRotationByGUID Complete");
+        spdlog::trace("ChangeRotationByGUID Complete");
       });
 
   // ChangeScaleByGUID
+  // TODO: move to TransformSystem
   vRegisterMessageHandler(
       ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
         SPDLOG_TRACE("ChangeScaleByGUID");
 
         const auto guid =
-            msg.getData<std::string>(ECSMessageType::ChangeScaleByGUID);
+            msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
 
         const auto values =
             msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
-        if (const auto ourEntity = m_mapszoAssets.find(guid);
-            ourEntity != m_mapszoAssets.end()) {
-          const auto theObject = dynamic_cast<BaseTransform*>(
-              ourEntity->second
-                  ->GetComponentByStaticTypeID(BaseTransform::StaticGetTypeID())
-                  .get());
+        // find the model in our list:
+        if (const auto ourEntity = _models.find(guid);
+            ourEntity != _models.end()) {
+          const auto model = ourEntity->second;
+          const auto transform = model->getComponent<BaseTransform>();
 
-          // change stuff.
-          theObject->SetScale(values);
-
-          EntityTransforms::vApplyTransform(ourEntity->second, *theObject);
-
-          // and change the collision
-          vRemoveAndReaddModelToCollisionSystem(ourEntity->first,
-                                                ourEntity->second);
+          transform->SetScale(values);
         }
 
-        SPDLOG_TRACE("ChangeScaleByGUID Complete");
+        spdlog::trace("ChangeScaleByGUID Complete");
       });
 
   vRegisterMessageHandler(
       ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
         spdlog::debug("ToggleVisualForEntity");
 
-        const auto stringGUID =
-            msg.getData<std::string>(ECSMessageType::ToggleVisualForEntity);
+        const auto guid =
+            msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        if (const auto ourEntity = m_mapszoAssets.find(stringGUID);
-            ourEntity != m_mapszoAssets.end()) {
-          const auto fSystem =
-              ECSystemManager::GetInstance()->poGetSystemAs<FilamentSystem>(
-                  FilamentSystem::StaticGetTypeID(),
-                  "vRegisterMessageHandler::ToggleVisualForEntity");
-
+        if (const auto ourEntity = _models.find(guid);
+            ourEntity != _models.end()) {
           if (const auto modelAsset = ourEntity->second->getAsset()) {
             if (value) {
-              fSystem->getFilamentScene()->addEntities(
+              _filament->getFilamentScene()->addEntities(
                   modelAsset->getRenderableEntities(),
                   modelAsset->getRenderableEntityCount());
             } else {
-              fSystem->getFilamentScene()->removeEntities(
+              _filament->getFilamentScene()->removeEntities(
                   modelAsset->getRenderableEntities(),
                   modelAsset->getRenderableEntityCount());
             }
           } else if (const auto modelAssetInstance =
                          ourEntity->second->getAssetInstance()) {
             if (value) {
-              fSystem->getFilamentScene()->addEntities(
+              _filament->getFilamentScene()->addEntities(
                   modelAssetInstance->getEntities(),
                   modelAssetInstance->getEntityCount());
             } else {
-              fSystem->getFilamentScene()->removeEntities(
+              _filament->getFilamentScene()->removeEntities(
                   modelAssetInstance->getEntities(),
                   modelAssetInstance->getEntityCount());
             }
           }
         }
 
-        spdlog::debug("ToggleVisualForEntity Complete");
+        spdlog::trace("ToggleVisualForEntity Complete");
       });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vRemoveAndReaddModelToCollisionSystem(
-    const EntityGUID& guid,
-    const std::shared_ptr<Model>& model) {
-  const auto collisionSystem =
-      ECSystemManager::GetInstance()->poGetSystemAs<CollisionSystem>(
-          CollisionSystem::StaticGetTypeID(),
-          "vRemoveAndReaddModelToCollisionSystem");
-  if (collisionSystem == nullptr) {
-    spdlog::warn(
-        "Failed to get collision system when "
-        "vRemoveAndReaddModelToCollisionSystem");
-    return;
-  }
-
-  // if we are marked for collidable, have one in the scene, remove and readd
-  // if this is a performance issue, we can do the transform move in the future
-  // instead.
-  if (model->HasComponentByStaticTypeID(Collidable::StaticGetTypeID()) &&
-      collisionSystem->bHasEntityObjectRepresentation(guid)) {
-    collisionSystem->vRemoveCollidable(model.get());
-    collisionSystem->vAddCollidable(model.get());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::vUpdate(float /*fElapsedTime*/) {
+  // Make sure all models are loaded
   updateAsyncAssetLoading();
+
+  // Instance models that have just been loaded
+  // TODO: see TODOs in `updateAsyncAssetLoading`
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

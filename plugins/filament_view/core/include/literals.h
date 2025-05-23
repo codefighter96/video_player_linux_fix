@@ -101,15 +101,18 @@ static constexpr char kChangeMaterialDefinitionEntityGuid[] =
 
 // Deserialization
 static constexpr char kId[] = "id";
+static constexpr char kParentId[] = "parentId";
 static constexpr char kName[] = "name";
-static constexpr char kGlobalGuid[] = "global_guid";
+static constexpr char kGuid[] = "guid";
 static constexpr char kShapeType[] = "shapeType";
 static constexpr char kSize[] = "size";
-static constexpr char kCenterPosition[] = "centerPosition";
+static constexpr char kPosition[] = "position";
 static constexpr char kStartingPosition[] = "startingPosition";
 static constexpr char kNormal[] = "normal";
 static constexpr char kScale[] = "scale";
 static constexpr char kRotation[] = "rotation";
+static constexpr char kStacks[] = "stacks";
+static constexpr char kSlices[] = "slices";
 static constexpr char kMaterial[] = "material";
 static constexpr char kDoubleSided[] = "doubleSided";
 static constexpr char kCullingEnabled[] = "cullingEnabled";
@@ -117,7 +120,6 @@ static constexpr char kReceiveShadows[] = "receiveShadows";
 static constexpr char kCastShadows[] = "castShadows";
 static constexpr char kDirection[] = "direction";
 static constexpr char kLength[] = "length";
-static constexpr char kModel[] = "model";
 static constexpr char kModels[] = "models";
 static constexpr char kFallback[] = "fallback";
 static constexpr char kScene[] = "scene";
@@ -169,7 +171,6 @@ static constexpr char kType[] = "type";
 static constexpr char kColor[] = "color";
 static constexpr char kColorTemperature[] = "colorTemperature";
 static constexpr char kIntensity[] = "intensity";
-static constexpr char kPosition[] = "position";
 static constexpr char kCastLight[] = "castLight";
 static constexpr char kFalloffRadius[] = "falloffRadius";
 static constexpr char kSpotLightConeInner[] = "spotLightConeInner";
@@ -181,7 +182,7 @@ static constexpr char kSunHaloFalloff[] = "sunHaloFalloff";
 // specific collidable values:
 static constexpr char kCollidable[] = "collidable";
 static constexpr char kCollidableShapeType[] = "collidable_shapeType";
-static constexpr char kCollidableExtents[] = "collidable_extentsSize";
+static constexpr char kCollidableExtents[] = "collidable_extentSize";
 static constexpr char kCollidableIsStatic[] = "collidable_isStatic";
 static constexpr char kCollidableLayer[] = "collidable_layer";
 static constexpr char kCollidableMask[] = "collidable_mask";
@@ -231,12 +232,9 @@ static constexpr char kCamera_Pan_angleCapY[] = "pan_angleCapY";
 static constexpr char kCamera_Zoom_minCap[] = "zoom_minCap";
 static constexpr char kCamera_Zoom_maxCap[] = "zoom_maxCap";
 
-// Configuration values stored in ecsystems_manager for easier lookup
+// Configuration values stored in ecs for easier lookup
 static constexpr char kAssetPath[] = "assetPath";
-
-static constexpr char kRenderable_KeepAssetInMemory[] =
-    "should_keep_asset_in_memory";
-static constexpr char kRenderable_IsPrimaryAssetToInstanceFrom[] =
-    "is_primary_to_instance_from";
+static constexpr char kIsGlb[] = "isGlb";
+static constexpr char kModelInstancingMode[] = "instancingMode";
 
 }  // namespace plugin_filament_view
