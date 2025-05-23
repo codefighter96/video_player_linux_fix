@@ -358,10 +358,10 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   auto& componentMap = _components[componentId];
 
   // Check if the component already exists for this entity
-  if(componentMap[entityGuid]) {
-    throw std::runtime_error(
-      fmt::format("[{}] Component already exists for entity with id {}",
-      __FUNCTION__, entityGuid)
+  if (componentMap[entityGuid]) {
+    spdlog::warn(
+      "[{}] Component '{}' already exists for entity({}), overwriting",  //
+      __FUNCTION__, component->GetTypeName(), entityGuid
     );
   }
 
