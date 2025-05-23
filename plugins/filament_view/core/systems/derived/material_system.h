@@ -33,44 +33,46 @@ class TextureLoader;
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
 class MaterialSystem : public ECSystem {
- public:
-  MaterialSystem();
-  ~MaterialSystem() override;
+  public:
+    MaterialSystem();
+    ~MaterialSystem() override;
 
-  Resource<::filament::MaterialInstance*> getMaterialInstance(
-      const MaterialDefinitions* materialDefinitions);
+    Resource<::filament::MaterialInstance*> getMaterialInstance(
+      const MaterialDefinitions* materialDefinitions
+    );
 
-  // Disallow copy and assign.
-  MaterialSystem(const MaterialSystem&) = delete;
-  MaterialSystem& operator=(const MaterialSystem&) = delete;
+    // Disallow copy and assign.
+    MaterialSystem(const MaterialSystem&) = delete;
+    MaterialSystem& operator=(const MaterialSystem&) = delete;
 
-  void vOnInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
-  std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
+  private:
+    std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;
+    std::unique_ptr<plugin_filament_view::TextureLoader> textureLoader_;
 
-  static Resource<::filament::Material*> loadMaterialFromResource(
-      const MaterialDefinitions* materialDefinition);
-  Resource<::filament::MaterialInstance*> setupMaterialInstance(
+    static Resource<::filament::Material*> loadMaterialFromResource(
+      const MaterialDefinitions* materialDefinition
+    );
+    Resource<::filament::MaterialInstance*> setupMaterialInstance(
       const ::filament::Material* materialResult,
-      const MaterialDefinitions* materialDefinitions) const;
+      const MaterialDefinitions* materialDefinitions
+    ) const;
 
-  // this map contains the loaded materials from disk, that are not actively
-  // used but instead copies (instances) are made of, then the instances are
-  // used. Reducing disk reload.
-  std::map<std::string, Resource<::filament::Material*>>
-      loadedTemplateMaterials_;
-  std::mutex loadingMaterialsMutex_;
+    // this map contains the loaded materials from disk, that are not actively
+    // used but instead copies (instances) are made of, then the instances are
+    // used. Reducing disk reload.
+    std::map<std::string, Resource<::filament::Material*>> loadedTemplateMaterials_;
+    std::mutex loadingMaterialsMutex_;
 
-  // This map is a list of all loaded textures. Multiple materials might
-  // reference the same texture, and instead of loading them separately; they'll
-  // be reused here. As of writing 202409 Textures are tied to materials, so it
-  // makes sense to have a check if a material needs a texture, to load it in
-  // that stack chain.
-  TextureMap loadedTextures_;
+    // This map is a list of all loaded textures. Multiple materials might
+    // reference the same texture, and instead of loading them separately; they'll
+    // be reused here. As of writing 202409 Textures are tied to materials, so it
+    // makes sense to have a check if a material needs a texture, to load it in
+    // that stack chain.
+    TextureMap loadedTextures_;
 };
 }  // namespace plugin_filament_view

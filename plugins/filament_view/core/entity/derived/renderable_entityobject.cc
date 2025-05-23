@@ -24,8 +24,7 @@
 namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void RenderableEntityObject::deserializeFrom(
-    const flutter::EncodableMap& params) {
+void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params) {
   EntityObject::deserializeFrom(params);
 
   // Transform (required)
@@ -66,8 +65,8 @@ void RenderableEntityObject::onInitialize() {
 ////////////////////////////////////////////////////////////////////////////
 void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   checkInitialized();
-  const auto materialSystem = ecs->getSystem<MaterialSystem>(
-      "RenderableEntityObject::vBuildRenderable");
+  const auto materialSystem =
+    ecs->getSystem<MaterialSystem>("RenderableEntityObject::vBuildRenderable");
 
   // this will also set all the default values of the material instance from
   // the material param list
@@ -75,7 +74,8 @@ void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   const auto materialDefinitions = getComponent<MaterialDefinitions>();
   if (materialDefinitions != nullptr) {
     m_poMaterialInstance = materialSystem->getMaterialInstance(
-        dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get()));
+      dynamic_cast<const MaterialDefinitions*>(materialDefinitions.get())
+    );
   } else {
     spdlog::error("MaterialDefinitions is null.");
   }
@@ -89,21 +89,22 @@ AABB RenderableEntityObject::getAABB() const {
   // Get renderable component
   const auto renderable = getComponent<CommonRenderable>();
   runtime_assert(!!renderable, "Missing CommonRenderable component");
-  runtime_assert(!!renderable->_fInstance,
-                 fmt::format("CommonRenderable not initialized (is {})",
-                             renderable->_fInstance.asValue()));
+  runtime_assert(
+    !!renderable->_fInstance,
+    fmt::format("CommonRenderable not initialized (is {})", renderable->_fInstance.asValue())
+  );
 
   // Get the FilamentSystem, engine and rcm
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");
   runtime_assert(!!filamentSystem, "FilamentSystem not initialized");
   const auto& engine = filamentSystem->getFilamentEngine();
   const auto& rcm = engine->getRenderableManager();
 
   auto box = rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
-  spdlog::trace("[{}] Entity({}) has AABB.scale: x={}, y={}, z={}",
-                __FUNCTION__, guid_, box.halfExtent.x * 2, box.halfExtent.y * 2,
-                box.halfExtent.z * 2);
+  spdlog::trace(
+    "[{}] Entity({}) has AABB.scale: x={}, y={}, z={}", __FUNCTION__, guid_, box.halfExtent.x * 2,
+    box.halfExtent.y * 2, box.halfExtent.z * 2
+  );
 
   return box;
 }

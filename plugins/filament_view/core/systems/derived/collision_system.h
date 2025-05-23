@@ -26,56 +26,56 @@
 namespace plugin_filament_view {
 
 class HitResult {
- public:
-  EntityGUID guid_;
-  std::string name_;
-  ::filament::math::float3 hitPosition_;
+  public:
+    EntityGUID guid_;
+    std::string name_;
+    ::filament::math::float3 hitPosition_;
 
-  [[nodiscard]] flutter::EncodableValue Encode() const;
+    [[nodiscard]] flutter::EncodableValue Encode() const;
 };
 
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
 class CollisionSystem : public ECSystem {
-  friend class ModelSystem;
+    friend class ModelSystem;
 
- public:
-  CollisionSystem() = default;
+  public:
+    CollisionSystem() = default;
 
-  void vCleanup();
-  void DebugPrint() override;
+    void vCleanup();
+    void DebugPrint() override;
 
-  // Disallow copy and assign.
-  CollisionSystem(const CollisionSystem&) = delete;
-  CollisionSystem& operator=(const CollisionSystem&) = delete;
+    // Disallow copy and assign.
+    CollisionSystem(const CollisionSystem&) = delete;
+    CollisionSystem& operator=(const CollisionSystem&) = delete;
 
-  void vTurnOnRenderingOfCollidables() const;
-  void vTurnOffRenderingOfCollidables() const;
+    void vTurnOnRenderingOfCollidables() const;
+    void vTurnOffRenderingOfCollidables() const;
 
-  void vUpdate(float fElapsedTime) override;
+    void vUpdate(float fElapsedTime) override;
 
-  void vOnInitSystem() override;
-  void vShutdownSystem() override;
+    void vOnInitSystem() override;
+    void vShutdownSystem() override;
 
-  void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
-  // send in your ray, get a list of hit results back, collisionLayer not
-  // actively used - future work.
-  std::list<HitResult> lstCheckForCollidable(Ray& rayCast,
-                                             int64_t collisionLayer = 0) const;
+    // send in your ray, get a list of hit results back, collisionLayer not
+    // actively used - future work.
+    std::list<HitResult> lstCheckForCollidable(Ray& rayCast, int64_t collisionLayer = 0) const;
 
-  // this will send the hit information sent in to non-native (Dart) code.
-  void SendCollisionInformationCallback(
+    // this will send the hit information sent in to non-native (Dart) code.
+    void SendCollisionInformationCallback(
       const std::list<HitResult>& lstHitResults,
       std::string sourceQuery,
-      CollisionEventType eType) const;
+      CollisionEventType eType
+    ) const;
 
- private:
-  bool currentlyDrawingDebugCollidables = false;
+  private:
+    bool currentlyDrawingDebugCollidables = false;
 
-  void vMatchCollidablesToRenderingModelsTransforms();
-  void vMatchCollidablesToDebugDrawingTransforms();
+    void vMatchCollidablesToRenderingModelsTransforms();
+    void vMatchCollidablesToDebugDrawingTransforms();
 };
 
 }  // namespace plugin_filament_view

@@ -23,48 +23,48 @@
 
 namespace plugin_filament_view {
 class TextureDefinitions {
- public:
-  enum TextureType {
-    UNKNOWN,
-    COLOR,
-    NORMAL,
-    DATA,
-  };
+  public:
+    enum TextureType {
+      UNKNOWN,
+      COLOR,
+      NORMAL,
+      DATA,
+    };
 
-  TextureDefinitions(TextureType type,
-                     std::string assetPath,
-                     std::string url,
-                     TextureSampler* sampler);
+    TextureDefinitions(
+      TextureType type,
+      std::string assetPath,
+      std::string url,
+      TextureSampler* sampler
+    );
 
-  ~TextureDefinitions() = default;
+    ~TextureDefinitions() = default;
 
-  static std::unique_ptr<TextureDefinitions> Deserialize(
-      const flutter::EncodableMap& params);
+    static std::unique_ptr<TextureDefinitions> Deserialize(const flutter::EncodableMap& params);
 
-  void DebugPrint(const char* tag);
+    void DebugPrint(const char* tag);
 
-  static TextureType getType(const std::string& type);
+    static TextureType getType(const std::string& type);
 
-  static const char* getTextForType(TextureType type);
+    static const char* getTextForType(TextureType type);
 
-  friend class TextureLoader;
-  friend class MaterialSystem;
+    friend class TextureLoader;
+    friend class MaterialSystem;
 
-  // this will either get the assetPath or the url, priority of assetPath
-  // looking for which is valid. Used to see if we have this loaded in cache.
-  [[nodiscard]] std::string szGetTextureDefinitionLookupName() const;
+    // this will either get the assetPath or the url, priority of assetPath
+    // looking for which is valid. Used to see if we have this loaded in cache.
+    [[nodiscard]] std::string szGetTextureDefinitionLookupName() const;
 
-  TextureSampler* getSampler() { return sampler_; }
+    TextureSampler* getSampler() { return sampler_; }
 
-  [[nodiscard]] std::unique_ptr<TextureDefinitions> clone() const {
-    return std::make_unique<TextureDefinitions>(type_, assetPath_, url_,
-                                                sampler_);
-  }
+    [[nodiscard]] std::unique_ptr<TextureDefinitions> clone() const {
+      return std::make_unique<TextureDefinitions>(type_, assetPath_, url_, sampler_);
+    }
 
- private:
-  std::string assetPath_;
-  std::string url_;
-  TextureType type_;
-  TextureSampler* sampler_;
+  private:
+    std::string assetPath_;
+    std::string url_;
+    TextureType type_;
+    TextureSampler* sampler_;
 };
 }  // namespace plugin_filament_view

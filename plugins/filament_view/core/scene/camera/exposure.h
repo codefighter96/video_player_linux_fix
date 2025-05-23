@@ -27,47 +27,47 @@ namespace plugin_filament_view {
 class CameraManager;
 
 class Exposure {
- public:
-  explicit Exposure(const flutter::EncodableMap& params);
+  public:
+    explicit Exposure(const flutter::EncodableMap& params);
 
-  void DebugPrint(const char* tag);
+    void DebugPrint(const char* tag);
 
-  Exposure(const Exposure& other) = default;
+    Exposure(const Exposure& other) = default;
 
-  Exposure& operator=(const Exposure& other) {
-    if (this == &other) {
+    Exposure& operator=(const Exposure& other) {
+      if (this == &other) {
+        return *this;
+      }
+      aperture_ = other.aperture_;
+      shutterSpeed_ = other.shutterSpeed_;
+      sensitivity_ = other.sensitivity_;
+      exposure_ = other.exposure_;
       return *this;
     }
-    aperture_ = other.aperture_;
-    shutterSpeed_ = other.shutterSpeed_;
-    sensitivity_ = other.sensitivity_;
-    exposure_ = other.exposure_;
-    return *this;
-  }
 
-  [[nodiscard]] std::unique_ptr<Exposure> clone() const {
-    return std::make_unique<Exposure>(*this);  // Calls the copy constructor
-  }
+    [[nodiscard]] std::unique_ptr<Exposure> clone() const {
+      return std::make_unique<Exposure>(*this);  // Calls the copy constructor
+    }
 
-  friend class CameraManager;
+    friend class CameraManager;
 
- private:
-  /// Aperture in f-stops, clamped between 0.5 and 64. A lower aperture value
-  /// increases the exposure, leading to a brighter scene. Realistic values are
-  /// between 0.95 and 32.
-  std::optional<float> aperture_;
+  private:
+    /// Aperture in f-stops, clamped between 0.5 and 64. A lower aperture value
+    /// increases the exposure, leading to a brighter scene. Realistic values are
+    /// between 0.95 and 32.
+    std::optional<float> aperture_;
 
-  /// shutterSpeed – Shutter speed in seconds,
-  /// clamped between 1/25,000 and 60. A lower shutter speed increases the
-  /// exposure. Realistic values are between 1/8000 and 30. sensitivity
-  std::optional<float> shutterSpeed_;
+    /// shutterSpeed – Shutter speed in seconds,
+    /// clamped between 1/25,000 and 60. A lower shutter speed increases the
+    /// exposure. Realistic values are between 1/8000 and 30. sensitivity
+    std::optional<float> shutterSpeed_;
 
-  /// Sensitivity in ISO, clamped between 10 and 204,800.
-  /// A higher sensitivity increases the exposure. Realistic values are between
-  /// 50 and 25600.
-  std::optional<float> sensitivity_;
+    /// Sensitivity in ISO, clamped between 10 and 204,800.
+    /// A higher sensitivity increases the exposure. Realistic values are between
+    /// 50 and 25600.
+    std::optional<float> sensitivity_;
 
-  /// Sets this camera's exposure directly.
-  std::optional<float> exposure_;
+    /// Sets this camera's exposure directly.
+    std::optional<float> exposure_;
 };
 }  // namespace plugin_filament_view

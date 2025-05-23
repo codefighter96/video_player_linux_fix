@@ -18,9 +18,9 @@
 #ifndef FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 #define FLUTTER_PLUGIN_FILAMENT_VIEW_PLUGIN_C_API_H_
 
+#include "platform_view_listener.h"
 #include <flutter_homescreen.h>
 #include <flutter_plugin_registrar.h>
-#include "platform_view_listener.h"
 
 #include <string>
 #include <vector>
@@ -36,20 +36,21 @@ extern "C" {
 #endif
 
 FLUTTER_PLUGIN_EXPORT void FilamentViewPluginCApiRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrar* registrar,
-    int32_t id,
-    const std::string& viewType,
-    int32_t direction,
-    double top,
-    double left,
-    double width,
-    double height,
-    const std::vector<uint8_t>& params,
-    const std::string& assetDirectory,
-    FlutterDesktopEngineRef engine,
-    PlatformViewAddListener addListener,
-    PlatformViewRemoveListener removeListener,
-    void* platform_view_context);
+  FlutterDesktopPluginRegistrar* registrar,
+  int32_t id,
+  const std::string& viewType,
+  int32_t direction,
+  double top,
+  double left,
+  double width,
+  double height,
+  const std::vector<uint8_t>& params,
+  const std::string& assetDirectory,
+  FlutterDesktopEngineRef engine,
+  PlatformViewAddListener addListener,
+  PlatformViewRemoveListener removeListener,
+  void* platform_view_context
+);
 
 #if defined(__cplusplus)
 }  // extern "C"

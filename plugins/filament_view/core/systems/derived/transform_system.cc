@@ -48,9 +48,7 @@ void TransformSystem::vHandleMessage(const ECSMessage& msg) {
   // spdlog::debug("TransformSystem handling message");
 }
 
-void TransformSystem::DebugPrint() {
-  spdlog::debug("TransformSystem DebugPrint");
-}
+void TransformSystem::DebugPrint() { spdlog::debug("TransformSystem DebugPrint"); }
 
 //
 // Internal logic
@@ -60,8 +58,7 @@ void TransformSystem::updateTransforms() {
   // Update transforms
   const auto transforms = ecs->getComponentsOfType<BaseTransform>();
   for (const auto& transform : transforms) {
-    if (!transform->IsDirty())
-      continue;
+    if (!transform->IsDirty()) continue;
     applyTransform(*transform, false);
   }
 }
@@ -70,12 +67,10 @@ void TransformSystem::updateFilamentParentTree() {
   // Update Filament parent tree
   auto transforms = ecs->getComponentsOfType<BaseTransform>();
   for (auto& transform : transforms) {
-    if (!transform->IsParentDirty())
-      continue;
+    if (!transform->IsParentDirty()) continue;
 
     // Get the parent transform
-    const auto parentTransform =
-        ecs->getComponent<BaseTransform>(transform->GetParentId());
+    const auto parentTransform = ecs->getComponent<BaseTransform>(transform->GetParentId());
     applyParent(*transform, parentTransform.get());
   }
 }
@@ -84,8 +79,7 @@ void TransformSystem::updateFilamentParentTree() {
 // Utility functions
 //
 
-void TransformSystem::applyTransform(const EntityGUID entityId,
-                                     const bool forceRecalculate) {
+void TransformSystem::applyTransform(const EntityGUID entityId, const bool forceRecalculate) {
   // Get the entity and its transform
   const auto transform = ecs->getComponent<BaseTransform>(entityId);
   if (transform == nullptr) {
@@ -95,8 +89,7 @@ void TransformSystem::applyTransform(const EntityGUID entityId,
   applyTransform(*transform, forceRecalculate);
 }
 
-void TransformSystem::applyTransform(BaseTransform& transform,
-                                     const bool forceRecalculate) {
+void TransformSystem::applyTransform(BaseTransform& transform, const bool forceRecalculate) {
   // Recalculate the transform only if it's dirty or forced
   if (!forceRecalculate && !transform.IsDirty()) {
     return;
@@ -104,13 +97,16 @@ void TransformSystem::applyTransform(BaseTransform& transform,
 
   const EntityGUID entityId = transform.GetOwner()->GetGuid();
   filament::math::mat4f localMatrix = filament::gltfio::composeMatrix(
-      transform.local.position, transform.local.rotation,
-      transform.local.scale);
+    transform.local.position, transform.local.rotation, transform.local.scale
+  );
 
   const auto _fInstance = transform._fInstance;
-  runtime_assert(_fInstance.isValid(),
-                 fmt::format("[{}] Transform({}) instance({}) is not valid",
-                             __FUNCTION__, entityId, _fInstance.asValue()));
+  runtime_assert(
+    _fInstance.isValid(),
+    fmt::format(
+      "[{}] Transform({}) instance({}) is not valid", __FUNCTION__, entityId, _fInstance.asValue()
+    )
+  );
 
   // Set the transform
   tm->setTransform(_fInstance, localMatrix);
@@ -118,44 +114,42 @@ void TransformSystem::applyTransform(BaseTransform& transform,
   transform.SetDirty(false);  // reset
 }
 
-void TransformSystem::applyParent(BaseTransform& child,
-                                  const BaseTransform* parent) {
+void TransformSystem::applyParent(BaseTransform& child, const BaseTransform* parent) {
   // Get the instance of the child and parent
   const auto childInstance = child._fInstance;
-  const auto parentInstance =
-      !!parent ? parent->_fInstance : FilamentTransformInstance();
+  const auto parentInstance = !!parent ? parent->_fInstance : FilamentTransformInstance();
 
   applyParent(childInstance, parentInstance);
   child.SetParentDirty(false);  // reset
 }
 
-void TransformSystem::applyParent(const FilamentEntity& child,
-                                  const FilamentEntity* parent) {
+void TransformSystem::applyParent(const FilamentEntity& child, const FilamentEntity* parent) {
   // Get the instance of the child and parent
   const auto childInstance = tm->getInstance(child);
-  const auto parentInstance =
-      !!parent ? tm->getInstance(*parent) : FilamentTransformInstance();
+  const auto parentInstance = !!parent ? tm->getInstance(*parent) : FilamentTransformInstance();
 
   applyParent(childInstance, parentInstance);
 }
 
 void TransformSystem::applyParent(
-    const FilamentTransformInstance& childInstance,
-    const FilamentTransformInstance& parentInstance) {
+  const FilamentTransformInstance& childInstance,
+  const FilamentTransformInstance& parentInstance
+) {
   // Check if the child instance is valid
-  runtime_assert(childInstance.isValid(), "womp womp"
-                 // fmt::format(
-                 //   "[{}] Child instance {} of {} is not valid.",
-                 //   __FUNCTION__, child.getId(), parent->getId()
-                 // )
+  runtime_assert(
+    childInstance.isValid(), "womp womp"
+    // fmt::format(
+    //   "[{}] Child instance {} of {} is not valid.",
+    //   __FUNCTION__, child.getId(), parent->getId()
+    // )
   );
   // Check if the parent instance is valid (or if null for deparenting)
   runtime_assert(
-      parentInstance.isValid() || parentInstance.asValue() == 0, "womp womp 2"
-      // fmt::format(
-      //   "[{}] Parent instance {} of {} is not valid.",
-      //   __FUNCTION__, parent->getId(), child.getId()
-      // )
+    parentInstance.isValid() || parentInstance.asValue() == 0, "womp womp 2"
+    // fmt::format(
+    //   "[{}] Parent instance {} of {} is not valid.",
+    //   __FUNCTION__, parent->getId(), child.getId()
+    // )
   );
   // Check if the parent and child are the same
   // if (child == *parent) {

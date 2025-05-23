@@ -24,28 +24,34 @@
 
 namespace plugin_filament_view {
 
-EntityObject::EntityObject() : guid_(generateUUID()), name_(std::string()) {}
+EntityObject::EntityObject()
+  : guid_(generateUUID()),
+    name_(std::string()) {}
 
 EntityObject::EntityObject(std::string name)
-    : guid_(generateUUID()), name_(std::move(name)) {}
+  : guid_(generateUUID()),
+    name_(std::move(name)) {}
 
 EntityObject::EntityObject(EntityGUID guid)
-    : guid_(guid), name_(std::string()) {}
+  : guid_(guid),
+    name_(std::string()) {}
 
 EntityObject::EntityObject(std::string name, EntityGUID guid)
-    : guid_(guid), name_(std::move(name)) {}
+  : guid_(guid),
+    name_(std::move(name)) {}
 
 EntityObject::EntityObject(const EntityDescriptor& descriptor)
-    : guid_(descriptor.guid), name_(descriptor.name) {}
+  : guid_(descriptor.guid),
+    name_(descriptor.name) {}
 
 EntityObject::EntityObject(const flutter::EncodableMap& params)
-    : guid_(kNullGuid), name_(std::string()) {
+  : guid_(kNullGuid),
+    name_(std::string()) {
   deserializeFrom(params);
   assert(guid_ != kNullGuid);
 }
 
-EntityDescriptor EntityObject::DeserializeNameAndGuid(
-    const flutter::EncodableMap& params) {
+EntityDescriptor EntityObject::DeserializeNameAndGuid(const flutter::EncodableMap& params) {
   EntityDescriptor descriptor;
 
   // Deserialize name
@@ -53,15 +59,13 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
       itName != params.end() && !itName->second.IsNull()) {
     // they're requesting entity be named what they want.
 
-    if (auto requestedName = std::get<std::string>(itName->second);
-        !requestedName.empty()) {
+    if (auto requestedName = std::get<std::string>(itName->second); !requestedName.empty()) {
       descriptor.name = requestedName;
     }
   }
 
   // Deserialize guid
-  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid, params,
-                                               kNullGuid);
+  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid, params, kNullGuid);
 
   if (descriptor.guid == kNullGuid) {
     spdlog::warn("Failed to deserialize guid, generating new one");
@@ -96,12 +100,13 @@ void EntityObject::vDebugPrintComponents() const {
     componentNames.push_back(component->GetTypeName());
   }
 
-  spdlog::debug("EntityObject '{}'({}) has {} components: {}", name_, guid_,
-                componentNames.size(), fmt::join(componentNames, ", "));
+  spdlog::debug(
+    "EntityObject '{}'({}) has {} components: {}", name_, guid_, componentNames.size(),
+    fmt::join(componentNames, ", ")
+  );
 }
 
-std::shared_ptr<Component> EntityObject::getComponent(
-    size_t staticTypeID) const {
+std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
   return ecs->getComponent(guid_, staticTypeID);
 }
 
@@ -109,8 +114,7 @@ std::shared_ptr<Component> EntityObject::getComponent(
   return ecs->hasComponent(guid_, staticTypeID);
 }
 
-void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
-                                                EntityObject& other) const {
+void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const {
   checkInitialized();
   const auto component = ecs->getComponent(guid_, staticTypeID);
   if (component == nullptr) {
@@ -118,12 +122,10 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
     return;
   }
 
-  ecs->addComponent(other.guid_,
-                    std::shared_ptr<Component>(component->Clone()));
+  ecs->addComponent(other.guid_, std::shared_ptr<Component>(component->Clone()));
 }
 
-void EntityObject::addComponent(size_t staticTypeID,
-                                const std::shared_ptr<Component>& component) {
+void EntityObject::addComponent(size_t staticTypeID, const std::shared_ptr<Component>& component) {
   if (isInitialized()) {
     ecs->addComponent(guid_, component);
   } else {

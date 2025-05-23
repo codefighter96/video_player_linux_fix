@@ -24,42 +24,44 @@ namespace plugin_filament_view {
 namespace shapes {
 
 class Sphere : public BaseShape {
- public:
-  // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
-  Sphere() : BaseShape(ShapeType::Sphere) {}
-  /// @brief Constructor for Sphere with a name. Generates a unique GUID.
-  explicit Sphere(std::string name) : BaseShape(name, ShapeType::Sphere) {}
-  /// @brief Constructor for Sphere with GUID. Name is empty.
-  explicit Sphere(EntityGUID guid) : BaseShape(guid, ShapeType::Sphere) {}
-  /// @brief Constructor for Sphere with a name and GUID.
-  explicit Sphere(std::string name, EntityGUID guid)
+  public:
+    // /// @brief Constructor for Sphere. Generates a GUID and has an empty name.
+    Sphere()
+      : BaseShape(ShapeType::Sphere) {}
+    /// @brief Constructor for Sphere with a name. Generates a unique GUID.
+    explicit Sphere(std::string name)
+      : BaseShape(name, ShapeType::Sphere) {}
+    /// @brief Constructor for Sphere with GUID. Name is empty.
+    explicit Sphere(EntityGUID guid)
+      : BaseShape(guid, ShapeType::Sphere) {}
+    /// @brief Constructor for Sphere with a name and GUID.
+    explicit Sphere(std::string name, EntityGUID guid)
       : BaseShape(name, guid, ShapeType::Sphere) {}
-  ~Sphere() override = default;
+    ~Sphere() override = default;
 
-  // Disallow copy and assign.
-  Sphere(const Sphere&) = delete;
-  Sphere& operator=(const Sphere&) = delete;
+    // Disallow copy and assign.
+    Sphere(const Sphere&) = delete;
+    Sphere& operator=(const Sphere&) = delete;
 
-  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+    virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  void DebugPrint(const char* tag) const override;
+    void DebugPrint(const char* tag) const override;
 
-  bool bInitAndCreateShape(::filament::Engine* engine_,
-                           FilamentEntity entityObject) override;
-  void CloneToOther(BaseShape& other) const override;
+    bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) override;
+    void CloneToOther(BaseShape& other) const override;
 
- private:
-  static void createDoubleSidedSphere(::filament::Engine* engine_);
+  private:
+    static void createDoubleSidedSphere(::filament::Engine* engine_);
 
-  void createSingleSidedSphere(::filament::Engine* engine_);
+    void createSingleSidedSphere(::filament::Engine* engine_);
 
-  int stacks_ = 20;
-  int slices_ = 20;
+    int stacks_ = 20;
+    int slices_ = 20;
 
-  std::vector<::filament::math::float3> vertices_;
-  std::vector<::filament::math::float3> normals_;
-  std::vector<unsigned short> indices_;
-  std::vector<::filament::math::float2> uvs_;
+    std::vector<::filament::math::float3> vertices_;
+    std::vector<::filament::math::float3> normals_;
+    std::vector<unsigned short> indices_;
+    std::vector<::filament::math::float2> uvs_;
 };
 
 }  // namespace shapes

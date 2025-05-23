@@ -34,13 +34,15 @@ using filament::VertexBuffer;
 namespace plugin_filament_view {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-DebugLine::DebugLine(filament::math::float3 startingPoint,
-                     filament::math::float3 endingPoint,
-                     filament::Engine* engine,
-                     FilamentEntity entity,
-                     float fTimeToLive)
-    : m_fRemainingTime(fTimeToLive),
-      _fEntity(entity)  // Create entity
+DebugLine::DebugLine(
+  filament::math::float3 startingPoint,
+  filament::math::float3 endingPoint,
+  filament::Engine* engine,
+  FilamentEntity entity,
+  float fTimeToLive
+)
+  : m_fRemainingTime(fTimeToLive),
+    _fEntity(entity)  // Create entity
 {
   vertices_.emplace_back(startingPoint);
   vertices_.emplace_back(endingPoint);  //,
@@ -49,42 +51,41 @@ DebugLine::DebugLine(filament::math::float3 startingPoint,
 
   // Initialize the VertexBuffer for the quad
   m_poVertexBuffer = VertexBuffer::Builder()
-                         .vertexCount(2)  // Four vertices for the quad
-                         .bufferCount(1)  // Single buffer for positions
-                         .attribute(VertexAttribute::POSITION, 0,
-                                    VertexBuffer::AttributeType::FLOAT3)
-                         .build(*engine);
+                       .vertexCount(2)  // Four vertices for the quad
+                       .bufferCount(1)  // Single buffer for positions
+                       .attribute(VertexAttribute::POSITION, 0, VertexBuffer::AttributeType::FLOAT3)
+                       .build(*engine);
 
   // Set vertex buffer data
   m_poVertexBuffer->setBufferAt(
-      *engine, 0,
-      VertexBuffer::BufferDescriptor(vertices_.data(),
-                                     vertices_.size() * sizeof(float) * 3));
+    *engine, 0,
+    VertexBuffer::BufferDescriptor(vertices_.data(), vertices_.size() * sizeof(float) * 3)
+  );
 
   // Initialize the IndexBuffer for the quad (two triangles)
   constexpr int indexCount = 2;
   m_poIndexBuffer = IndexBuffer::Builder()
-                        .indexCount(indexCount)
-                        .bufferType(IndexBuffer::IndexType::USHORT)
-                        .build(*engine);
+                      .indexCount(indexCount)
+                      .bufferType(IndexBuffer::IndexType::USHORT)
+                      .build(*engine);
 
   // Set index buffer data
   m_poIndexBuffer->setBuffer(
-      *engine, IndexBuffer::BufferDescriptor(
-                   indices_.data(), indices_.size() * sizeof(unsigned short)));
+    *engine,
+    IndexBuffer::BufferDescriptor(indices_.data(), indices_.size() * sizeof(unsigned short))
+  );
 
   boundingBox_.min = startingPoint;
   boundingBox_.max = endingPoint;
 
   // Build the Renderable with the vertex and index buffers
   RenderableManager::Builder(1)
-      .boundingBox({{}, boundingBox_.extent()})
-      .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
-                m_poIndexBuffer)
-      .culling(false)
-      .receiveShadows(false)
-      .castShadows(false)
-      .build(*engine, _fEntity);
+    .boundingBox({{}, boundingBox_.extent()})
+    .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer, m_poIndexBuffer)
+    .culling(false)
+    .receiveShadows(false)
+    .castShadows(false)
+    .build(*engine, _fEntity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -100,14 +101,11 @@ void DebugLine::vCleanup(filament::Engine* engine) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::DebugPrint() {
-  spdlog::debug("{}", __FUNCTION__);
-}
+void DebugLinesSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vCleanup");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vCleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
@@ -122,8 +120,7 @@ void DebugLinesSystem::vCleanup() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vUpdate(const float fElapsedTime) {
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vUpdate");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vUpdate");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
@@ -144,38 +141,35 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vOnInitSystem() {
-  vRegisterMessageHandler(
-      ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("Adding debug line: ");
-        const auto rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
+  vRegisterMessageHandler(ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("Adding debug line: ");
+    const auto rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
 
-        vAddLine(rayInfo.f3GetPosition(),
-                 rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
-      });
+    vAddLine(rayInfo.f3GetPosition(), rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+  });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vShutdownSystem() {
-  vCleanup();
-}
+void DebugLinesSystem::vShutdownSystem() { vCleanup(); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vAddLine(filament::math::float3 startPoint,
-                                filament::math::float3 endPoint,
-                                float secondsTimeout) {
+void DebugLinesSystem::vAddLine(
+  filament::math::float3 startPoint,
+  filament::math::float3 endPoint,
+  float secondsTimeout
+) {
   if (m_bCurrentlyDrawingDebugLines == false) {
     return;
   }
 
-  auto filamentSystem =
-      ecs->getSystem<FilamentSystem>("DebugLinesSystem::vAddLine");
+  auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vAddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
   auto oEntity = oEntitymanager.create();
 
-  auto newDebugLine = std::make_unique<DebugLine>(startPoint, endPoint, engine,
-                                                  oEntity, secondsTimeout);
+  auto newDebugLine =
+    std::make_unique<DebugLine>(startPoint, endPoint, engine, oEntity, secondsTimeout);
 
   filamentSystem->getFilamentScene()->addEntity(oEntity);
 

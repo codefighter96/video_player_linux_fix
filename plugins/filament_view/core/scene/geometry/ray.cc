@@ -22,11 +22,15 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 Ray::Ray(const flutter::EncodableMap& params)
-    : direction_({0, 0, -1}), position_({0, 0, 0}), length_(1.0f) {
-  Deserialize::DecodeParameterWithDefault(kDirection, &direction_, params,
-                                          filament::math::float3(0, 0, -1));
-  Deserialize::DecodeParameterWithDefault(kStartingPosition, &position_, params,
-                                          filament::math::float3(0, 0, 0));
+  : direction_({0, 0, -1}),
+    position_({0, 0, 0}),
+    length_(1.0f) {
+  Deserialize::DecodeParameterWithDefault(
+    kDirection, &direction_, params, filament::math::float3(0, 0, -1)
+  );
+  Deserialize::DecodeParameterWithDefault(
+    kStartingPosition, &position_, params, filament::math::float3(0, 0, 0)
+  );
   Deserialize::DecodeParameterWithDefault(kLength, &length_, params, 1.0f);
 }
 

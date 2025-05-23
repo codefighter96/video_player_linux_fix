@@ -35,78 +35,73 @@ enum class ModelInstancingMode {
 const char* modelInstancingModeToString(ModelInstancingMode mode);
 
 class Model : public RenderableEntityObject {
-  friend class ModelSystem;
+    friend class ModelSystem;
 
- public:
-  Model();
-  ~Model() override = default;
+  public:
+    Model();
+    ~Model() override = default;
 
-  /// @brief Static deserializer - calls the constructor and deserializeFrom
-  /// under the hood
-  static std::shared_ptr<Model> Deserialize(
-      const flutter::EncodableMap& params);
+    /// @brief Static deserializer - calls the constructor and deserializeFrom
+    /// under the hood
+    static std::shared_ptr<Model> Deserialize(const flutter::EncodableMap& params);
 
-  // Disallow copy and assign.
-  Model(const Model&) = delete;
-  Model& operator=(const Model&) = delete;
+    // Disallow copy and assign.
+    Model(const Model&) = delete;
+    Model& operator=(const Model&) = delete;
 
-  void setAsset(filament::gltfio::FilamentAsset* poAsset) {
-    m_poAsset = poAsset;
-  }
+    void setAsset(filament::gltfio::FilamentAsset* poAsset) { m_poAsset = poAsset; }
 
-  void setAssetInstance(filament::gltfio::FilamentInstance* poAssetInstance) {
-    m_poAssetInstance = poAssetInstance;
-  }
+    void setAssetInstance(filament::gltfio::FilamentInstance* poAssetInstance) {
+      m_poAssetInstance = poAssetInstance;
+    }
 
-  [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const {
-    return m_poAsset;
-  }
+    [[nodiscard]] filament::gltfio::FilamentAsset* getAsset() const { return m_poAsset; }
 
-  [[nodiscard]] filament::gltfio::FilamentInstance* getAssetInstance() const {
-    return m_poAssetInstance;
-  }
+    [[nodiscard]] filament::gltfio::FilamentInstance* getAssetInstance() const {
+      return m_poAssetInstance;
+    }
 
-  [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-    return getComponent<BaseTransform>();
-  }
-  [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
-    return getComponent<CommonRenderable>();
-  }
+    [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
+      return getComponent<BaseTransform>();
+    }
+    [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
+      return getComponent<CommonRenderable>();
+    }
 
-  [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
+    [[nodiscard]] std::string getAssetPath() const { return assetPath_; }
 
-  /// @returns model's instancing mode
-  [[nodiscard]] ModelInstancingMode getInstancingMode() const {
-    return _instancingMode;
-  }
+    /// @returns model's instancing mode
+    [[nodiscard]] ModelInstancingMode getInstancingMode() const { return _instancingMode; }
 
-  /// Returns whether the model is in the scene
-  [[nodiscard]] bool isInScene() const { return m_isInScene; }
+    /// Returns whether the model is in the scene
+    [[nodiscard]] bool isInScene() const { return m_isInScene; }
 
-  [[nodiscard]] virtual AABB getAABB() const override;
+    [[nodiscard]] virtual AABB getAABB() const override;
 
- protected:
-  std::string assetPath_;
+  protected:
+    std::string assetPath_;
 
-  filament::gltfio::FilamentAsset* m_poAsset;
-  filament::gltfio::FilamentInstance* m_poAssetInstance;
-  std::map<FilamentEntity, EntityGUID> _childrenEntities;
+    filament::gltfio::FilamentAsset* m_poAsset;
+    filament::gltfio::FilamentInstance* m_poAssetInstance;
+    std::map<FilamentEntity, EntityGUID> _childrenEntities;
 
-  ModelInstancingMode _instancingMode = ModelInstancingMode::none;
-  /// Whether it's been inserted into the scene
-  bool m_isInScene = false;
+    ModelInstancingMode _instancingMode = ModelInstancingMode::none;
+    /// Whether it's been inserted into the scene
+    bool m_isInScene = false;
 
-  void DebugPrint() const override;
+    void DebugPrint() const override;
 
-  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+    virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  /// TODO: move to CommonRenderable
-  void vChangeMaterialDefinitions(
+    /// TODO: move to CommonRenderable
+    void vChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,
-      const TextureMap& /*loadedTextures*/) override;
-  void vChangeMaterialInstanceProperty(
+      const TextureMap& /*loadedTextures*/
+    ) override;
+    void vChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
-      const TextureMap& /*loadedTextures*/) override;
+      const TextureMap& /*loadedTextures*/
+    ) override;
 };
 
 }  // namespace plugin_filament_view

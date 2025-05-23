@@ -30,24 +30,26 @@ class PluginRegistrar;
 namespace plugin_filament_view {
 
 class AnimationSystem : public ECSystem {
-  friend class Animation;
-  friend class EntityObject;
+    friend class Animation;
+    friend class EntityObject;
 
- public:
-  AnimationSystem() = default;
+  public:
+    AnimationSystem() = default;
 
-  // Disallow copy and assign.
-  AnimationSystem(const AnimationSystem&) = delete;
-  AnimationSystem& operator=(const AnimationSystem&) = delete;
+    // Disallow copy and assign.
+    AnimationSystem(const AnimationSystem&) = delete;
+    AnimationSystem& operator=(const AnimationSystem&) = delete;
 
-  void vOnInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  void vNotifyOfAnimationEvent(const EntityGUID entityGuid,
-                               const AnimationEventType& eType,
-                               const std::string& eventData) const;
+  private:
+    void vNotifyOfAnimationEvent(
+      const EntityGUID entityGuid,
+      const AnimationEventType& eType,
+      const std::string& eventData
+    ) const;
 };
 }  // namespace plugin_filament_view

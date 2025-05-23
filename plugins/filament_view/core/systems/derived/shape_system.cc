@@ -62,8 +62,7 @@ BaseShape* ShapeSystem::getShape(const EntityGUID guid) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid,
-                                            const bool enable) const {
+void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid, const bool enable) const {
   if (!hasShape(guid)) {
     return;
   }
@@ -89,7 +88,8 @@ void ShapeSystem::vRemoveAllShapesInScene() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
-    const flutter::EncodableMap& mapData) {
+  const flutter::EncodableMap& mapData
+) {
   ShapeType type;
 
   // Find the "shapeType" key in the mapData
@@ -97,8 +97,8 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
       it != mapData.end() && std::holds_alternative<int32_t>(it->second)) {
     // Check if the value is within the valid range of the ShapeType enum
     if (int32_t typeValue = std::get<int32_t>(it->second);
-        typeValue > static_cast<int32_t>(ShapeType::Unset) &&
-        typeValue < static_cast<int32_t>(ShapeType::Max)) {
+        typeValue > static_cast<int32_t>(ShapeType::Unset)
+        && typeValue < static_cast<int32_t>(ShapeType::Max)) {
       type = static_cast<ShapeType>(typeValue);
     } else {
       spdlog::error("Invalid shape type value: {}", typeValue);
@@ -134,8 +134,7 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::addShapesToScene(
-    std::vector<std::shared_ptr<BaseShape>>* shapes) {
+void ShapeSystem::addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shapes) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
   // TODO remove this, just debug info print for now;
@@ -150,10 +149,8 @@ void ShapeSystem::addShapesToScene(
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
-void ShapeSystem::addShapeToScene(
-    const std::shared_ptr<shapes::BaseShape>& shape) {
-  runtime_assert(shape != nullptr,
-                 "ShapeSystem::addShapeToScene: shape cannot be null");
+void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape) {
+  runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
 
   filament::Scene* filamentScene = _filament->getFilamentScene();
 
@@ -164,8 +161,7 @@ void ShapeSystem::addShapeToScene(
 
   shape->bInitAndCreateShape(_engine, oEntity);
 
-  spdlog::trace("Adding entity {} with filament entity {}", shape->GetGuid(),
-                oEntity.getId());
+  spdlog::trace("Adding entity {} with filament entity {}", shape->GetGuid(), oEntity.getId());
 
   // To investigate a better system for implementing layer mask
   // across dart to here.
@@ -180,145 +176,122 @@ void ShapeSystem::addShapeToScene(
 void ShapeSystem::vOnInitSystem() {
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr,
-                 "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr,
-                 "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
-  runtime_assert(_rcm != nullptr,
-                 "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr,
-                 "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr,
-                 "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
 
   /*
    * Register message handlers
    */
-  vRegisterMessageHandler(
-      ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
-        spdlog::debug("ToggleShapesInScene");
+  vRegisterMessageHandler(ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
+    spdlog::debug("ToggleShapesInScene");
 
-        const auto value =
-            msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
+    const auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
 
-        vToggleAllShapesInScene(value);
+    vToggleAllShapesInScene(value);
 
-        spdlog::trace("ToggleShapesInScene Complete");
-      });
+    spdlog::trace("ToggleShapesInScene Complete");
+  });
 
-  vRegisterMessageHandler(
-      ECSMessageType::SetShapeTransform, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("SetShapeTransform");
+  vRegisterMessageHandler(ECSMessageType::SetShapeTransform, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("SetShapeTransform");
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::SetShapeTransform);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::SetShapeTransform);
 
-        const auto position =
-            msg.getData<filament::math::float3>(ECSMessageType::Position);
-        const auto rotation =
-            msg.getData<filament::math::quatf>(ECSMessageType::Rotation);
-        const auto scale =
-            msg.getData<filament::math::float3>(ECSMessageType::Scale);
+    const auto position = msg.getData<filament::math::float3>(ECSMessageType::Position);
+    const auto rotation = msg.getData<filament::math::quatf>(ECSMessageType::Rotation);
+    const auto scale = msg.getData<filament::math::float3>(ECSMessageType::Scale);
 
-        // find the entity in our list:
-        if (hasShape(guid)) {
-          const auto entity = getShape(guid);
-          const auto baseTransform = entity->getComponent<BaseTransform>();
-          const auto collidable = entity->getComponent<Collidable>();
+    // find the entity in our list:
+    if (hasShape(guid)) {
+      const auto entity = getShape(guid);
+      const auto baseTransform = entity->getComponent<BaseTransform>();
+      const auto collidable = entity->getComponent<Collidable>();
 
-          baseTransform->SetTransform(position, scale, rotation);
-        }
+      baseTransform->SetTransform(position, scale, rotation);
+    }
 
-        SPDLOG_TRACE("SetShapeTransform Complete");
-      });
+    SPDLOG_TRACE("SetShapeTransform Complete");
+  });
 
-  vRegisterMessageHandler(
-      ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
-        spdlog::debug("ToggleVisualForEntity");
+  vRegisterMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
+    spdlog::debug("ToggleVisualForEntity");
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
-        const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
+    const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        vToggleSingleShapeInScene(guid, value);
+    vToggleSingleShapeInScene(guid, value);
 
-        spdlog::trace("ToggleVisualForEntity Complete");
-      });
+    spdlog::trace("ToggleVisualForEntity Complete");
+  });
 
   // ChangeTranslationByGUID
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("ChangeTranslationByGUID");
+  vRegisterMessageHandler(ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("ChangeTranslationByGUID");
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
 
-        const auto position =
-            msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
+    const auto position = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
-        if (hasShape(guid)) {
-          const auto entity = getShape(guid);
-          const auto baseTransform = entity->getComponent<BaseTransform>();
-          const auto collidable = entity->getComponent<Collidable>();
+    // find the entity in our list:
+    if (hasShape(guid)) {
+      const auto entity = getShape(guid);
+      const auto baseTransform = entity->getComponent<BaseTransform>();
+      const auto collidable = entity->getComponent<Collidable>();
 
-          baseTransform->SetPosition(position);
-        }
+      baseTransform->SetPosition(position);
+    }
 
-        SPDLOG_TRACE("ChangeTranslationByGUID Complete");
-      });
+    SPDLOG_TRACE("ChangeTranslationByGUID Complete");
+  });
 
   // ChangeRotationByGUID
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("ChangeRotationByGUID");
+  vRegisterMessageHandler(ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("ChangeRotationByGUID");
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
 
-        const auto values =
-            msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
-        filament::math::quatf rotation(values);
+    const auto values = msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
+    filament::math::quatf rotation(values);
 
-        // find the entity in our list:
-        if (hasShape(guid)) {
-          const auto entity = getShape(guid);
-          const auto baseTransform = entity->getComponent<BaseTransform>();
+    // find the entity in our list:
+    if (hasShape(guid)) {
+      const auto entity = getShape(guid);
+      const auto baseTransform = entity->getComponent<BaseTransform>();
 
-          baseTransform->SetRotation(rotation);
-        }
+      baseTransform->SetRotation(rotation);
+    }
 
-        SPDLOG_TRACE("ChangeRotationByGUID Complete");
-      });
+    SPDLOG_TRACE("ChangeRotationByGUID Complete");
+  });
 
   // ChangeScaleByGUID
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
-        SPDLOG_TRACE("ChangeScaleByGUID");
+  vRegisterMessageHandler(ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
+    SPDLOG_TRACE("ChangeScaleByGUID");
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
 
-        const auto values =
-            msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
+    const auto values = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
 
-        // find the entity in our list:
-        if (hasShape(guid)) {
-          const auto entity = getShape(guid);
-          const auto baseTransform = entity->getComponent<BaseTransform>();
-          const auto collidable = entity->getComponent<Collidable>();
+    // find the entity in our list:
+    if (hasShape(guid)) {
+      const auto entity = getShape(guid);
+      const auto baseTransform = entity->getComponent<BaseTransform>();
+      const auto collidable = entity->getComponent<Collidable>();
 
-          baseTransform->SetScale(values);
-        }
+      baseTransform->SetScale(values);
+    }
 
-        SPDLOG_TRACE("ChangeScaleByGUID Complete");
-      });
+    SPDLOG_TRACE("ChangeScaleByGUID Complete");
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -331,7 +304,5 @@ void ShapeSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::DebugPrint() {
-  SPDLOG_DEBUG("{}", __FUNCTION__);
-}
+void ShapeSystem::DebugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
 }  // namespace plugin_filament_view

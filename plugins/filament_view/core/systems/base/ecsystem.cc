@@ -16,10 +16,10 @@
 #include "ecsystem.h"
 
 #include <event_stream_handler_functions.h>
-#include <plugin_registrar.h>
-#include <standard_method_codec.h>
 #include <functional>
+#include <plugin_registrar.h>
 #include <queue>
+#include <standard_method_codec.h>
 #include <unordered_map>
 #include <vector>
 
@@ -36,34 +36,31 @@ void ECSystem::vSendMessage(const ECSMessage& msg) {
   std::unique_lock lock(messagesMutex);
   SPDLOG_TRACE("[vSendMessage] messagesMutex acquired");
   messageQueue_.push(msg);
-  SPDLOG_TRACE("[vSendMessage] Message pushed to queue. Queue size: {}",
-               messageQueue_.size());
+  SPDLOG_TRACE("[vSendMessage] Message pushed to queue. Queue size: {}", messageQueue_.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // Register a message handler for a specific message type
-void ECSystem::vRegisterMessageHandler(ECSMessageType type,
-                                       const ECSMessageHandler& handler) {
+void ECSystem::vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler) {
   SPDLOG_TRACE("[vRegisterMessageHandler] Attempting to acquire handlersMutex");
   std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vRegisterMessageHandler] handlersMutex acquired");
   handlers_[type].push_back(handler);
   SPDLOG_TRACE(
-      "[vRegisterMessageHandler] Handler registered for message type {}",
-      static_cast<int>(type));
+    "[vRegisterMessageHandler] Handler registered for message type {}", static_cast<int>(type)
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // Unregister all handlers for a specific message type
 void ECSystem::vUnregisterMessageHandler(ECSMessageType type) {
-  SPDLOG_TRACE(
-      "[vUnregisterMessageHandler] Attempting to acquire handlersMutex");
+  SPDLOG_TRACE("[vUnregisterMessageHandler] Attempting to acquire handlersMutex");
   std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vUnregisterMessageHandler] handlersMutex acquired");
   handlers_.erase(type);
   SPDLOG_TRACE(
-      "[vUnregisterMessageHandler] Handlers unregistered for message type {}",
-      static_cast<int>(type));
+    "[vUnregisterMessageHandler] Handlers unregistered for message type {}", static_cast<int>(type)
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -87,8 +84,8 @@ void ECSystem::vProcessMessages() {
     SPDLOG_TRACE("[vProcessMessages] messagesMutex acquired");
     std::swap(messageQueue_, messagesToProcess);
     SPDLOG_TRACE(
-        "[vProcessMessages] Swapped message queues. Messages to process: {}",
-        messagesToProcess.size());
+      "[vProcessMessages] Swapped message queues. Messages to process: {}", messagesToProcess.size()
+    );
   }  // messagesMutex is unlocked here
 
   while (!messagesToProcess.empty()) {
@@ -96,8 +93,9 @@ void ECSystem::vProcessMessages() {
     SPDLOG_TRACE("[vProcessMessages] Processing message");
     vHandleMessage(msg);
     messagesToProcess.pop();
-    SPDLOG_TRACE("[vProcessMessages] Message processed. Remaining messages: {}",
-                 messagesToProcess.size());
+    SPDLOG_TRACE(
+      "[vProcessMessages] Message processed. Remaining messages: {}", messagesToProcess.size()
+    );
   }
 
   SPDLOG_TRACE("[vProcessMessages] done");
@@ -113,15 +111,12 @@ void ECSystem::vHandleMessage(const ECSMessage& msg) {
     SPDLOG_TRACE("[vHandleMessage] handlersMutex acquired");
     for (const auto& [type, handlerList] : handlers_) {
       if (msg.hasData(type)) {
-        SPDLOG_TRACE("[vHandleMessage] Message has data for type {}",
-                     static_cast<int>(type));
-        handlersToInvoke.insert(handlersToInvoke.end(), handlerList.begin(),
-                                handlerList.end());
+        SPDLOG_TRACE("[vHandleMessage] Message has data for type {}", static_cast<int>(type));
+        handlersToInvoke.insert(handlersToInvoke.end(), handlerList.begin(), handlerList.end());
       }
     }
   }  // handlersMutex is unlocked here
-  SPDLOG_TRACE("[vHandleMessage] Handlers to invoke: {}",
-               handlersToInvoke.size());
+  SPDLOG_TRACE("[vHandleMessage] Handlers to invoke: {}", handlersToInvoke.size());
 
   for (const auto& handler : handlersToInvoke) {
     SPDLOG_TRACE("[vHandleMessage] Invoking handler");
@@ -135,8 +130,7 @@ void ECSystem::vHandleMessage(const ECSMessage& msg) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ECSystem::vSendDataToEventChannel(
-    const flutter::EncodableMap& oDataMap) const {
+void ECSystem::vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const {
   if (!event_sink_ || !event_channel_) {
     return;
   }
@@ -146,8 +140,9 @@ void ECSystem::vSendDataToEventChannel(
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ECSystem::vSetupMessageChannels(
-    flutter::PluginRegistrar* poPluginRegistrar,
-    const std::string& szChannelName) {
+  flutter::PluginRegistrar* poPluginRegistrar,
+  const std::string& szChannelName
+) {
   if (event_channel_ != nullptr) {
     return;
   }
@@ -155,22 +150,22 @@ void ECSystem::vSetupMessageChannels(
   SPDLOG_DEBUG("Creating Event Channel {}::{}", __FUNCTION__, szChannelName);
 
   event_channel_ = std::make_unique<flutter::EventChannel<>>(
-      poPluginRegistrar->messenger(), szChannelName,
-      &flutter::StandardMethodCodec::GetInstance());
+    poPluginRegistrar->messenger(), szChannelName, &flutter::StandardMethodCodec::GetInstance()
+  );
 
-  event_channel_->SetStreamHandler(
-      std::make_unique<flutter::StreamHandlerFunctions<>>(
-          [&](const flutter::EncodableValue* /* arguments */,
-              std::unique_ptr<flutter::EventSink<>>&& events)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            event_sink_ = std::move(events);
-            return nullptr;
-          },
-          [&](const flutter::EncodableValue* /* arguments */)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            event_sink_ = nullptr;
-            return nullptr;
-          }));
+  event_channel_->SetStreamHandler(std::make_unique<flutter::StreamHandlerFunctions<>>(
+    [&](
+      const flutter::EncodableValue* /* arguments */, std::unique_ptr<flutter::EventSink<>>&& events
+    ) -> std::unique_ptr<flutter::StreamHandlerError<>> {
+      event_sink_ = std::move(events);
+      return nullptr;
+    },
+    [&](const flutter::EncodableValue* /* arguments */)
+      -> std::unique_ptr<flutter::StreamHandlerError<>> {
+      event_sink_ = nullptr;
+      return nullptr;
+    }
+  ));
 
   SPDLOG_DEBUG("Event Channel creation Complete for {}", szChannelName);
 }

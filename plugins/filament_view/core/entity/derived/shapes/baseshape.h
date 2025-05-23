@@ -39,82 +39,89 @@ class ModelSystem;
 namespace shapes {
 
 class BaseShape : public RenderableEntityObject {
-  friend class plugin_filament_view::CollisionSystem;
-  friend class plugin_filament_view::ShapeSystem;
-  friend class plugin_filament_view::ModelSystem;
+    friend class plugin_filament_view::CollisionSystem;
+    friend class plugin_filament_view::ShapeSystem;
+    friend class plugin_filament_view::ModelSystem;
 
- public:
-  /// @brief Constructor for BaseShape. Generates a GUID and has an empty
-  /// name.
-  BaseShape(ShapeType type) : RenderableEntityObject(), type_(type) {}
-  /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
-  explicit BaseShape(std::string name, ShapeType type)
-      : RenderableEntityObject(name), type_(type) {}
-  /// @brief Constructor for BaseShape with GUID. Name is empty.
-  explicit BaseShape(EntityGUID guid, ShapeType type)
-      : RenderableEntityObject(guid), type_(type) {}
-  /// @brief Constructor for BaseShape with a name and GUID.
-  BaseShape(std::string name, EntityGUID guid, ShapeType type)
-      : RenderableEntityObject(name, guid), type_(type) {}
+  public:
+    /// @brief Constructor for BaseShape. Generates a GUID and has an empty
+    /// name.
+    BaseShape(ShapeType type)
+      : RenderableEntityObject(),
+        type_(type) {}
+    /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
+    explicit BaseShape(std::string name, ShapeType type)
+      : RenderableEntityObject(name),
+        type_(type) {}
+    /// @brief Constructor for BaseShape with GUID. Name is empty.
+    explicit BaseShape(EntityGUID guid, ShapeType type)
+      : RenderableEntityObject(guid),
+        type_(type) {}
+    /// @brief Constructor for BaseShape with a name and GUID.
+    BaseShape(std::string name, EntityGUID guid, ShapeType type)
+      : RenderableEntityObject(name, guid),
+        type_(type) {}
 
-  ~BaseShape() override;
+    ~BaseShape() override;
 
-  virtual void DebugPrint(const char* tag) const;
+    virtual void DebugPrint(const char* tag) const;
 
-  // Disallow copy and assign.
-  BaseShape(const BaseShape&) = delete;
-  BaseShape& operator=(const BaseShape&) = delete;
+    // Disallow copy and assign.
+    BaseShape(const BaseShape&) = delete;
+    BaseShape& operator=(const BaseShape&) = delete;
 
-  // will copy over properties, but not 'create' anything.
-  // similar to a shallow copy.
-  virtual void CloneToOther(BaseShape& other) const;
+    // will copy over properties, but not 'create' anything.
+    // similar to a shallow copy.
+    virtual void CloneToOther(BaseShape& other) const;
 
-  virtual bool bInitAndCreateShape(::filament::Engine* engine_,
-                                   FilamentEntity entityObject) = 0;
+    virtual bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) = 0;
 
-  void vRemoveEntityFromScene() const;
-  void vAddEntityToScene() const;
+    void vRemoveEntityFromScene() const;
+    void vAddEntityToScene() const;
 
- protected:
-  ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
-  ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
+  protected:
+    ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
+    ::filament::IndexBuffer* m_poIndexBuffer = nullptr;
 
-  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+    virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  void onInitialize() override;
+    void onInitialize() override;
 
-  void DebugPrint() const override;
+    void DebugPrint() const override;
 
-  // uses Vertex and Index buffer to create the material and geometry
-  // using all the internal variables.
-  void vBuildRenderable(::filament::Engine* engine_);
+    // uses Vertex and Index buffer to create the material and geometry
+    // using all the internal variables.
+    void vBuildRenderable(::filament::Engine* engine_);
 
-  ShapeType type_ = ShapeType::Unset;
+    ShapeType type_ = ShapeType::Unset;
 
-  /// direction of the shape rotation in the world space
-  filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
+    /// direction of the shape rotation in the world space
+    filament::math::float3 m_f3Normal = filament::math::float3(0, 0, 0);
 
-  // Whether we have winding indexes in both directions.
-  bool m_bDoubleSided = false;
+    // Whether we have winding indexes in both directions.
+    bool m_bDoubleSided = false;
 
-  // TODO - Note this is backlogged for using value.
-  //        For now this is unimplemented, but would be a <small> savings
-  //        when building as code currently allocates buffers for UVs
-  bool m_bHasTexturedMaterial = true;
+    // TODO - Note this is backlogged for using value.
+    //        For now this is unimplemented, but would be a <small> savings
+    //        when building as code currently allocates buffers for UVs
+    bool m_bHasTexturedMaterial = true;
 
-  void vChangeMaterialDefinitions(const flutter::EncodableMap& params,
-                                  const TextureMap& loadedTextures) override;
-  void vChangeMaterialInstanceProperty(
+    void vChangeMaterialDefinitions(
+      const flutter::EncodableMap& params,
+      const TextureMap& loadedTextures
+    ) override;
+    void vChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures) override;
+      const TextureMap& loadedTextures
+    ) override;
 
- private:
-  void vDestroyBuffers();
+  private:
+    void vDestroyBuffers();
 
-  // This does NOT come over as a property (currently), only used by
-  // CollisionManager when created debug wireframe models for seeing collidable
-  // shapes.
-  bool m_bIsWireframe = false;
+    // This does NOT come over as a property (currently), only used by
+    // CollisionManager when created debug wireframe models for seeing collidable
+    // shapes.
+    bool m_bIsWireframe = false;
 };
 
 }  // namespace shapes

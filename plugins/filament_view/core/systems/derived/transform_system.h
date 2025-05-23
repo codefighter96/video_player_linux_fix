@@ -31,80 +31,77 @@ namespace plugin_filament_view {
  */
 
 class TransformSystem : public ECSystem {
- public:
-  TransformSystem() = default;
+  public:
+    TransformSystem() = default;
 
-  void vOnInitSystem() override;
-  void vProcessMessages() override;
-  void vShutdownSystem() override;
-  void vHandleMessage(const ECSMessage& msg) override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vProcessMessages() override;
+    void vShutdownSystem() override;
+    void vHandleMessage(const ECSMessage& msg) override;
+    void DebugPrint() override;
 
-  void vUpdate(float deltaTime) override {
-    //   Filament transform transaction:
-    // updating the transforms and the parent tree can be
-    // quite expensive, so we want to batch them
-    tm->openLocalTransformTransaction();
+    void vUpdate(float deltaTime) override {
+      //   Filament transform transaction:
+      // updating the transforms and the parent tree can be
+      // quite expensive, so we want to batch them
+      tm->openLocalTransformTransaction();
 
-    // interpolateTransforms(deltaTime);
-    updateTransforms();
-    updateFilamentParentTree();
+      // interpolateTransforms(deltaTime);
+      updateTransforms();
+      updateFilamentParentTree();
 
-    // committing calculates the final global transforms
-    tm->commitLocalTransformTransaction();
-  }
+      // committing calculates the final global transforms
+      tm->commitLocalTransformTransaction();
+    }
 
- protected:
-  filament::TransformManager* tm = nullptr;
-  //
-  // Internal logic
-  //
+  protected:
+    filament::TransformManager* tm = nullptr;
+    //
+    // Internal logic
+    //
 
-  /**
-   * Updates the transforms of all entities in the scene.
-   *
-   * For each transform marked as "dirty", it commits the transform changes
-   * to the Filament engine. This includes updating the local transforms
-   * and updating the global ones wherever needed.
-   */
-  void updateTransforms();
-  /**
-   * Performs reparenting of the Filament parent tree.
-   *
-   * Iterates on all transforms, updating the Filament parent tree
-   * in event of hierarchy changes.
-   */
-  void updateFilamentParentTree();
+    /**
+     * Updates the transforms of all entities in the scene.
+     *
+     * For each transform marked as "dirty", it commits the transform changes
+     * to the Filament engine. This includes updating the local transforms
+     * and updating the global ones wherever needed.
+     */
+    void updateTransforms();
+    /**
+     * Performs reparenting of the Filament parent tree.
+     *
+     * Iterates on all transforms, updating the Filament parent tree
+     * in event of hierarchy changes.
+     */
+    void updateFilamentParentTree();
 
-  /**
-   * TODO: implement this
-   * Performs "async" lerp on transforms.
-   *
-   * For each transform marked as "animating", it performs a lerp step
-   * towards the target transform.
-   */
-  // void interpolateTransforms(float deltaTime);
+    /**
+     * TODO: implement this
+     * Performs "async" lerp on transforms.
+     *
+     * For each transform marked as "animating", it performs a lerp step
+     * towards the target transform.
+     */
+    // void interpolateTransforms(float deltaTime);
 
- public:
-  /// Applies the transform to the entity with the given ID.
-  ///
-  /// \param entityId The ID of the entity to apply the transform to.
-  /// \param forceRecalculate If true, forces a recalculation of the transform
-  /// even if it is not marked as dirty.
-  void applyTransform(const EntityGUID entityId,
-                      const bool forceRecalculate = false);
+  public:
+    /// Applies the transform to the entity with the given ID.
+    ///
+    /// \param entityId The ID of the entity to apply the transform to.
+    /// \param forceRecalculate If true, forces a recalculation of the transform
+    /// even if it is not marked as dirty.
+    void applyTransform(const EntityGUID entityId, const bool forceRecalculate = false);
 
-  void applyTransform(BaseTransform& transform,
-                      const bool forceRecalculate = false);
+    void applyTransform(BaseTransform& transform, const bool forceRecalculate = false);
 
-  void applyParent(BaseTransform& child, const BaseTransform* parent = nullptr);
+    void applyParent(BaseTransform& child, const BaseTransform* parent = nullptr);
 
- protected:
-  void applyParent(const FilamentEntity& child,
-                   const FilamentEntity* parent = nullptr);
+  protected:
+    void applyParent(const FilamentEntity& child, const FilamentEntity* parent = nullptr);
 
-  void applyParent(const FilamentTransformInstance& child,
-                   const FilamentTransformInstance& parent);
+    void
+    applyParent(const FilamentTransformInstance& child, const FilamentTransformInstance& parent);
 };
 
 }  // namespace plugin_filament_view

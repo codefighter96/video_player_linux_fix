@@ -6,12 +6,11 @@ namespace plugin_filament_view {
  * KVTree
  */
 
-template <typename Key, typename Value>
-KVTree<Key, Value>::~KVTree() {
+template<typename Key, typename Value> KVTree<Key, Value>::~KVTree() {
   // TODO
 }
 
-template <typename Key, typename Value>
+template<typename Key, typename Value>
 KVTreeNode<Key, Value>* KVTree<Key, Value>::get(const Key& key) const {
   auto it = nodeMap.find(key);
   if (it != nodeMap.end()) {
@@ -20,8 +19,7 @@ KVTreeNode<Key, Value>* KVTree<Key, Value>::get(const Key& key) const {
   return nullptr;
 }
 
-template <typename Key, typename Value>
-Value* KVTree<Key, Value>::getValue(const Key& key) const {
+template<typename Key, typename Value> Value* KVTree<Key, Value>::getValue(const Key& key) const {
   KVTreeNode<Key, Value>* node = get(key);
   if (!node) {
     throw std::runtime_error("Key not found in tree");
@@ -29,10 +27,8 @@ Value* KVTree<Key, Value>::getValue(const Key& key) const {
   return node->getValue();
 }
 
-template <typename Key, typename Value>
-void KVTree<Key, Value>::insert(const Key& key,
-                                const Value& value,
-                                const Key* parentKey) {
+template<typename Key, typename Value>
+void KVTree<Key, Value>::insert(const Key& key, const Value& value, const Key* parentKey) {
   // Ensure the key does not already exist.
   if (nodeMap.find(key) != nodeMap.end()) {
     throw std::runtime_error("Key already exists in tree");
@@ -58,7 +54,7 @@ void KVTree<Key, Value>::insert(const Key& key,
   }
 }
 
-template <typename Key, typename Value>
+template<typename Key, typename Value>
 void KVTree<Key, Value>::reparent(const Key& key, const Key* parentKey) {
   auto* node = get(key);
   // Exception: key not found.
@@ -66,9 +62,8 @@ void KVTree<Key, Value>::reparent(const Key& key, const Key* parentKey) {
     throw std::runtime_error("Key not found");
   }
 
-  auto* parent = parentKey
-                     ? get(const_cast<Key&>(key))
-                     : nullptr;  // nullptr if parent not found or is root.
+  auto* parent =
+    parentKey ? get(const_cast<Key&>(key)) : nullptr;  // nullptr if parent not found or is root.
   // Exception: parent key not found.
   if (parentKey && !parent) {
     throw std::runtime_error("Parent key not found");
@@ -84,8 +79,7 @@ void KVTree<Key, Value>::reparent(const Key& key, const Key* parentKey) {
   node->parent = parent;
 }
 
-template <typename Key, typename Value>
-void KVTree<Key, Value>::remove(const Key& key) {
+template<typename Key, typename Value> void KVTree<Key, Value>::remove(const Key& key) {
   auto* node = get(key);
 
   // Exception: key not found.
@@ -109,8 +103,7 @@ void KVTree<Key, Value>::remove(const Key& key) {
   }
 }
 
-template <typename Key, typename Value>
-void KVTree<Key, Value>::clear() {
+template<typename Key, typename Value> void KVTree<Key, Value>::clear() {
   // Clear the value map.
   keyValueMap.clear();
 
@@ -125,8 +118,7 @@ void KVTree<Key, Value>::clear() {
  * KVTreeNode
  */
 
-template <typename Key, typename Value>
-Value* KVTreeNode<Key, Value>::getValue() const {
+template<typename Key, typename Value> Value* KVTreeNode<Key, Value>::getValue() const {
   auto it = treePtr->keyValueMap.find(key);
   if (it != treePtr->keyValueMap.end()) {
     return &(it->second);
@@ -134,35 +126,33 @@ Value* KVTreeNode<Key, Value>::getValue() const {
   throw std::runtime_error("Key not found in value map");
 }
 
-template <typename Key, typename Value>
-const Key& KVTreeNode<Key, Value>::getKey() const {
+template<typename Key, typename Value> const Key& KVTreeNode<Key, Value>::getKey() const {
   return key;
 }
 
-template <typename Key, typename Value>
+template<typename Key, typename Value>
 KVTreeNode<Key, Value>* KVTreeNode<Key, Value>::getParent() const {
   return parent;
 }
 
-template <typename Key, typename Value>
-const std::vector<KVTreeNode<Key, Value>*>&
-KVTreeNode<Key, Value>::getChildren() const {
+template<typename Key, typename Value>
+const std::vector<KVTreeNode<Key, Value>*>& KVTreeNode<Key, Value>::getChildren() const {
   // Copy the children vector to prevent modification.
   auto* childrenCopy = new std::vector<KVTreeNode<Key, Value>*>(children);
   return *childrenCopy;
 }
 
-template <typename Key, typename Value>
-void KVTreeNode<Key, Value>::addChild(KVTreeNode* child) {
+template<typename Key, typename Value> void KVTreeNode<Key, Value>::addChild(KVTreeNode* child) {
   children.push_back(child);
 }
 
-template <typename Key, typename Value>
-void KVTreeNode<Key, Value>::removeChild(const Key& key) {
+template<typename Key, typename Value> void KVTreeNode<Key, Value>::removeChild(const Key& key) {
   children.erase(
-      std::remove_if(children.begin(), children.end(),
-                     [&](auto& item) { return item->getKey() == key; }),
-      children.end());
+    std::remove_if(
+      children.begin(), children.end(), [&](auto& item) { return item->getKey() == key; }
+    ),
+    children.end()
+  );
 }
 
 }  // namespace plugin_filament_view

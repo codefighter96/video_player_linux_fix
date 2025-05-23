@@ -36,33 +36,30 @@ MaterialSystem::MaterialSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-MaterialSystem::~MaterialSystem() {
-  SPDLOG_DEBUG("--{}", __FUNCTION__);
-}
+MaterialSystem::~MaterialSystem() { SPDLOG_DEBUG("--{}", __FUNCTION__); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::Material*> MaterialSystem::loadMaterialFromResource(
-    const MaterialDefinitions* materialDefinition) {
+  const MaterialDefinitions* materialDefinition
+) {
   // The Future object for loading Material
   if (!materialDefinition->szGetMaterialAssetPath().empty()) {
     // THIS does NOT set default a parameter values
-    return MaterialLoader::loadMaterialFromAsset(
-        materialDefinition->szGetMaterialAssetPath());
+    return MaterialLoader::loadMaterialFromAsset(materialDefinition->szGetMaterialAssetPath());
   }
 
   if (!materialDefinition->szGetMaterialURLPath().empty()) {
-    return MaterialLoader::loadMaterialFromUrl(
-        materialDefinition->szGetMaterialURLPath());
+    return MaterialLoader::loadMaterialFromUrl(materialDefinition->szGetMaterialURLPath());
   }
 
-  return Resource<filament::Material*>::Error(
-      "You must provide material asset path or url");
+  return Resource<filament::Material*>::Error("You must provide material asset path or url");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
-    const filament::Material* materialResult,
-    const MaterialDefinitions* materialDefinitions) const {
+  const filament::Material* materialResult,
+  const MaterialDefinitions* materialDefinitions
+) const {
   if (!materialResult) {
     SPDLOG_ERROR("Unable to {}", __FUNCTION__);
     return Resource<filament::MaterialInstance*>::Error("argument is NULL");
@@ -70,19 +67,20 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
 
   const auto materialInstance = materialResult->createInstance();
   materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
-      materialResult, materialInstance, loadedTextures_);
+    materialResult, materialInstance, loadedTextures_
+  );
 
   return Resource<filament::MaterialInstance*>::Success(materialInstance);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
-    const MaterialDefinitions* materialDefinitions) {
+  const MaterialDefinitions* materialDefinitions
+) {
   SPDLOG_TRACE("++MaterialManager::getMaterialInstance");
   if (!materialDefinitions) {
-    spdlog::error(
-        "--Bad MaterialDefinitions Result "
-        "MaterialManager::getMaterialInstance");
+    spdlog::error("--Bad MaterialDefinitions Result "
+                  "MaterialManager::getMaterialInstance");
     return Resource<filament::MaterialInstance*>::Error("Material not found");
   }
 
@@ -94,8 +92,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
   std::lock_guard lock(loadingMaterialsMutex_);
 
   auto lookupName = materialDefinitions->szGetMaterialDefinitionLookupName();
-  if (const auto materialToInstanceFromIter =
-          loadedTemplateMaterials_.find(lookupName);
+  if (const auto materialToInstanceFromIter = loadedTemplateMaterials_.find(lookupName);
       materialToInstanceFromIter != loadedTemplateMaterials_.end()) {
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
@@ -104,40 +101,35 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
-      spdlog::error(
-          "--Bad Material Result MaterialSystem::getMaterialInstance");
-      return Resource<filament::MaterialInstance*>::Error(
-          materialToInstanceFrom.getMessage());
+      spdlog::error("--Bad Material Result MaterialSystem::getMaterialInstance");
+      return Resource<filament::MaterialInstance*>::Error(materialToInstanceFrom.getMessage());
     }
 
     // if we got here the material is valid, and we should add it into our map
-    loadedTemplateMaterials_.insert(
-        std::make_pair(lookupName, materialToInstanceFrom));
+    loadedTemplateMaterials_.insert(std::make_pair(lookupName, materialToInstanceFrom));
   }
 
   // here we need to see if any & all textures that are requested on the
   // material be loaded before we create an instance of it.
-  const auto materialsRequiredTextures =
-      materialDefinitions->vecGetTextureMaterialParameters();
+  const auto materialsRequiredTextures = materialDefinitions->vecGetTextureMaterialParameters();
   for (const auto materialParam : materialsRequiredTextures) {
     try {
       // Call the getTextureValue method
       const auto& textureValue = materialParam->getTextureValue();
 
       // Access the Texture pointer from the MaterialTextureValue variant
-      const auto& texturePtr =
-          std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
+      const auto& texturePtr = std::get<std::unique_ptr<TextureDefinitions>>(textureValue);
 
       if (!texturePtr) {
-        spdlog::error("Unable to access texture point value for {}",
-                      materialParam->szGetParameterName());
+        spdlog::error(
+          "Unable to access texture point value for {}", materialParam->szGetParameterName()
+        );
         continue;
       }
 
       // see if the asset path is already in our map of saved textures
       const auto assetPath = materialParam->getTextureValueAssetPath();
-      if (auto foundAsset = loadedTextures_.find(assetPath);
-          foundAsset != loadedTextures_.end()) {
+      if (auto foundAsset = loadedTextures_.find(assetPath); foundAsset != loadedTextures_.end()) {
         // it exists already, don't need to load it.
         continue;
       }
@@ -147,22 +139,20 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
       if (loadedTexture.getStatus() != Status::Success) {
         spdlog::error("Unable to load texture from {}", assetPath);
-        Resource<filament::Texture*>::Error(
-            materialToInstanceFrom.getMessage());
+        Resource<filament::Texture*>::Error(materialToInstanceFrom.getMessage());
         continue;
       }
 
       loadedTextures_.insert(std::pair(assetPath, loadedTexture));
     } catch (const std::bad_variant_access& e) {
-      spdlog::error("Error: Could not retrieve the texture value. {}",
-                    e.what());
+      spdlog::error("Error: Could not retrieve the texture value. {}", e.what());
     } catch (const std::runtime_error& e) {
       spdlog::error("Error:  {}", e.what());
     }
   }
 
-  const auto materialInstance = setupMaterialInstance(
-      materialToInstanceFrom.getData().value(), materialDefinitions);
+  const auto materialInstance =
+    setupMaterialInstance(materialToInstanceFrom.getData().value(), materialDefinitions);
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;
@@ -170,61 +160,49 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vOnInitSystem() {
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeMaterialParameter");
+  vRegisterMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
+    spdlog::debug("ChangeMaterialParameter");
 
-        const flutter::EncodableMap& params =
-            msg.getData<flutter::EncodableMap>(
-                ECSMessageType::ChangeMaterialParameter);
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
+    const flutter::EncodableMap& params =
+      msg.getData<flutter::EncodableMap>(ECSMessageType::ChangeMaterialParameter);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto entityObject = ecs->getEntity(guid);
-            entityObject != nullptr) {
-          spdlog::debug("ChangeMaterialParameter valid entity found.");
+    if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
+      spdlog::debug("ChangeMaterialParameter valid entity found.");
 
-          const auto parameter = MaterialParameter::Deserialize("", params);
+      const auto parameter = MaterialParameter::Deserialize("", params);
 
-          const auto renderable =
-              dynamic_cast<RenderableEntityObject*>(entityObject.get());
-          renderable->vChangeMaterialInstanceProperty(parameter.get(),
-                                                      loadedTextures_);
-        }
+      const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
+      renderable->vChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
+    }
 
-        spdlog::debug("ChangeMaterialParameter Complete");
-      });
+    spdlog::debug("ChangeMaterialParameter Complete");
+  });
 
-  vRegisterMessageHandler(
-      ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
-        spdlog::debug("ChangeMaterialDefinitions");
+  vRegisterMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
+    spdlog::debug("ChangeMaterialDefinitions");
 
-        const flutter::EncodableMap& params =
-            msg.getData<flutter::EncodableMap>(
-                ECSMessageType::ChangeMaterialDefinitions);
+    const flutter::EncodableMap& params =
+      msg.getData<flutter::EncodableMap>(ECSMessageType::ChangeMaterialDefinitions);
 
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto entityObject = ecs->getEntity(guid);
-            entityObject != nullptr) {
-          spdlog::debug("ChangeMaterialDefinitions valid entity found.");
+    if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
+      spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
-          const auto renderable =
-              dynamic_cast<RenderableEntityObject*>(entityObject.get());
-          renderable->vChangeMaterialDefinitions(params, loadedTextures_);
-        }
+      const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
+      renderable->vChangeMaterialDefinitions(params, loadedTextures_);
+    }
 
-        spdlog::debug("ChangeMaterialDefinitions Complete");
-      });
+    spdlog::debug("ChangeMaterialDefinitions Complete");
+  });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
-  const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {
@@ -243,8 +221,6 @@ void MaterialSystem::vShutdownSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::DebugPrint() {
-  spdlog::debug("{}", __FUNCTION__);
-}
+void MaterialSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view
