@@ -60,7 +60,7 @@ class Animation final : public Component {
   void vEnqueueAnimation(int32_t index);
   void vClearQueue();
 
-  inline void vSetLooping(bool bValue) { m_bLoop = bValue; }
+  inline void vSetLooping(bool enable) { m_bLoop = enable; }
 
  private:
   int32_t m_nCurrentPlayingIndex{};

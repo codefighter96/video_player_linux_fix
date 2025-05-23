@@ -63,13 +63,13 @@ BaseShape* ShapeSystem::getShape(const EntityGUID guid) const {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid,
-                                            const bool bValue) const {
+                                            const bool enable) const {
   if (!hasShape(guid)) {
     return;
   }
 
   BaseShape* shape = getShape(guid);
-  if (bValue) {
+  if (enable) {
     shape->vAddEntityToScene();
   } else {
     shape->vRemoveEntityFromScene();

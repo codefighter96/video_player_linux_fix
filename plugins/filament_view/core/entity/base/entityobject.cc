@@ -38,7 +38,8 @@ EntityObject::EntityObject(std::string name, EntityGUID guid)
 EntityObject::EntityObject(const EntityDescriptor& descriptor)
     : guid_(descriptor.guid), name_(descriptor.name) {}
 
-EntityObject::EntityObject(const flutter::EncodableMap& params) {
+EntityObject::EntityObject(const flutter::EncodableMap& params)
+    : guid_(kNullGuid), name_(std::string()) {
   deserializeFrom(params);
   assert(guid_ != kNullGuid);
 }
