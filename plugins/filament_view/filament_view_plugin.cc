@@ -26,8 +26,8 @@
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
-#include <core/systems/derived/view_target_system.h>
 #include <core/systems/derived/transform_system.h>
+#include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
 #include <event_sink.h>
 #include <event_stream_handler_functions.h>
@@ -121,7 +121,6 @@ void DeserializeDataAndSetupMessageChannels(
 
     initFuture.wait();
   }
-
 
   spdlog::trace("getting systems");
   const auto animationSystem = ecs->getSystem<AnimationSystem>(__FUNCTION__);
@@ -438,8 +437,7 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraFlightStartPosition(
 std::optional<FlutterError>
 FilamentViewPlugin::ResetInertiaCameraToDefaultValues() {
   const auto viewTargetSystem =
-      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(
-          __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vResetInertiaCameraToDefaultValues(0);
   return std::nullopt;
@@ -474,8 +472,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(
 std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(
     const double value) {
   const auto viewTargetSystem =
-      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(
-          __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
 
   viewTargetSystem->vSetCurrentCameraOrbitAngle(0, static_cast<float>(value));
   return std::nullopt;

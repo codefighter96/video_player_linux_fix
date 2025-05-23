@@ -19,8 +19,8 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/derived/basetransform.h>
-#include <core/components/derived/commonrenderable.h>
 #include <core/components/derived/collidable.h>
+#include <core/components/derived/commonrenderable.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <core/include/shapetypes.h>
@@ -46,21 +46,16 @@ class BaseShape : public RenderableEntityObject {
  public:
   /// @brief Constructor for BaseShape. Generates a GUID and has an empty
   /// name.
-  BaseShape(ShapeType type) :
-    RenderableEntityObject(),
-    type_(type) {}
+  BaseShape(ShapeType type) : RenderableEntityObject(), type_(type) {}
   /// @brief Constructor for BaseShape with a name. Generates a unique GUID.
-  explicit BaseShape(std::string name, ShapeType type) :
-    RenderableEntityObject(name),
-    type_(type) {}
+  explicit BaseShape(std::string name, ShapeType type)
+      : RenderableEntityObject(name), type_(type) {}
   /// @brief Constructor for BaseShape with GUID. Name is empty.
-  explicit BaseShape(EntityGUID guid, ShapeType type) :
-    RenderableEntityObject(guid),
-    type_(type) {}
+  explicit BaseShape(EntityGUID guid, ShapeType type)
+      : RenderableEntityObject(guid), type_(type) {}
   /// @brief Constructor for BaseShape with a name and GUID.
-  BaseShape(std::string name, EntityGUID guid, ShapeType type) :
-    RenderableEntityObject(name, guid),
-    type_(type) {}
+  BaseShape(std::string name, EntityGUID guid, ShapeType type)
+      : RenderableEntityObject(name, guid), type_(type) {}
 
   ~BaseShape() override;
 

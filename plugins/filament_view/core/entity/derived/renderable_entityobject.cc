@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 #include "renderable_entityobject.h"
-#include <core/systems/ecs.h>
+#include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/material_system.h>
-#include <core/include/literals.h>
+#include <core/systems/ecs.h>
 #include <core/utils/asserts.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params) {
+void RenderableEntityObject::deserializeFrom(
+    const flutter::EncodableMap& params) {
   EntityObject::deserializeFrom(params);
 
   // Transform (required)
@@ -43,7 +44,7 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
   } else {
     spdlog::trace("  This entity params has no collidable");
   }
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view
 
 void RenderableEntityObject::onInitialize() {
   // Initialize the base class
@@ -51,21 +52,22 @@ void RenderableEntityObject::onInitialize() {
 
   // Make sure it has a Transform component
   const auto transform = getComponent<BaseTransform>();
-  if(!transform) {
-    addComponent(BaseTransform()); // init with defaults
+  if (!transform) {
+    addComponent(BaseTransform());  // init with defaults
   }
 
   // Make sure it has a CommonRenderable component
   const auto renderable = getComponent<CommonRenderable>();
-  if(!renderable) {
-    addComponent(CommonRenderable()); // init with defaults
+  if (!renderable) {
+    addComponent(CommonRenderable());  // init with defaults
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
   checkInitialized();
-  const auto materialSystem = ecs->getSystem<MaterialSystem>("RenderableEntityObject::vBuildRenderable");
+  const auto materialSystem = ecs->getSystem<MaterialSystem>(
+      "RenderableEntityObject::vBuildRenderable");
 
   // this will also set all the default values of the material instance from
   // the material param list
@@ -87,27 +89,23 @@ AABB RenderableEntityObject::getAABB() const {
   // Get renderable component
   const auto renderable = getComponent<CommonRenderable>();
   runtime_assert(!!renderable, "Missing CommonRenderable component");
-  runtime_assert(
-    !!renderable->_fInstance, 
-    fmt::format("CommonRenderable not initialized (is {})", renderable->_fInstance.asValue())
-  );
+  runtime_assert(!!renderable->_fInstance,
+                 fmt::format("CommonRenderable not initialized (is {})",
+                             renderable->_fInstance.asValue()));
 
   // Get the FilamentSystem, engine and rcm
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");
+  const auto filamentSystem =
+      ecs->getSystem<FilamentSystem>("RenderableEntityObject::getAABB");
   runtime_assert(!!filamentSystem, "FilamentSystem not initialized");
   const auto& engine = filamentSystem->getFilamentEngine();
   const auto& rcm = engine->getRenderableManager();
 
   auto box = rcm.getAxisAlignedBoundingBox(renderable->_fInstance);
-  spdlog::trace(
-    "[{}] Entity({}) has AABB.scale: x={}, y={}, z={}",
-    __FUNCTION__, guid_,
-    box.halfExtent.x * 2,
-    box.halfExtent.y * 2,
-    box.halfExtent.z * 2
-  );
+  spdlog::trace("[{}] Entity({}) has AABB.scale: x={}, y={}, z={}",
+                __FUNCTION__, guid_, box.halfExtent.x * 2, box.halfExtent.y * 2,
+                box.halfExtent.z * 2);
 
   return box;
 }
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

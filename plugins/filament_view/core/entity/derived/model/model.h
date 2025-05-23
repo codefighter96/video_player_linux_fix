@@ -36,12 +36,15 @@ const char* modelInstancingModeToString(ModelInstancingMode mode);
 
 class Model : public RenderableEntityObject {
   friend class ModelSystem;
+
  public:
   Model();
   ~Model() override = default;
 
-  /// @brief Static deserializer - calls the constructor and deserializeFrom under the hood
-  static std::shared_ptr<Model> Deserialize(const flutter::EncodableMap& params);
+  /// @brief Static deserializer - calls the constructor and deserializeFrom
+  /// under the hood
+  static std::shared_ptr<Model> Deserialize(
+      const flutter::EncodableMap& params);
 
   // Disallow copy and assign.
   Model(const Model&) = delete;
@@ -78,9 +81,7 @@ class Model : public RenderableEntityObject {
   }
 
   /// Returns whether the model is in the scene
-  [[nodiscard]] bool isInScene() const {
-    return m_isInScene;
-  }
+  [[nodiscard]] bool isInScene() const { return m_isInScene; }
 
   [[nodiscard]] virtual AABB getAABB() const override;
 

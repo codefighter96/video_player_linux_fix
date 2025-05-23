@@ -206,8 +206,7 @@ void MaterialSystem::vOnInitSystem() {
         const auto guid =
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
-        if (const auto entityObject =
-                ecs->getEntity(guid);
+        if (const auto entityObject = ecs->getEntity(guid);
             entityObject != nullptr) {
           spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
@@ -225,8 +224,7 @@ void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "CameraManager::setDefaultCamera");
+      ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

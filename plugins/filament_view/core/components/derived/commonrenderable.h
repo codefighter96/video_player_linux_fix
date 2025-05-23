@@ -22,7 +22,8 @@
 
 namespace plugin_filament_view {
 
-using FilamentRenderableInstance = utils::EntityInstance<filament::RenderableManager>;
+using FilamentRenderableInstance =
+    utils::EntityInstance<filament::RenderableManager>;
 
 class CommonRenderable : public Component {
  public:
@@ -45,7 +46,9 @@ class CommonRenderable : public Component {
     return m_bReceiveShadows;
   }
 
-  [[nodiscard]] inline bool IsCastShadowsEnabled() const { return m_bCastShadows; }
+  [[nodiscard]] inline bool IsCastShadowsEnabled() const {
+    return m_bCastShadows;
+  }
 
   // Setters
   inline void SetCullingOfObjectEnabled(bool enabled) {

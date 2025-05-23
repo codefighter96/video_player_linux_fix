@@ -17,8 +17,8 @@
 
 #include <core/include/literals.h>
 #include <core/systems/ecs.h>
-#include <core/utils/uuidGenerator.h>
 #include <core/utils/deserialize.h>
+#include <core/utils/uuidGenerator.h>
 #include <plugins/common/common.h>
 #include <utility>
 
@@ -58,10 +58,9 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(
     }
   }
 
-
   // Deserialize guid
-  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid,
-                                                 params, kNullGuid);
+  Deserialize::DecodeParameterWithDefaultInt64(kGuid, &descriptor.guid, params,
+                                               kNullGuid);
 
   if (descriptor.guid == kNullGuid) {
     spdlog::warn("Failed to deserialize guid, generating new one");
@@ -80,7 +79,7 @@ void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
-  if(!isInitialized()) {
+  if (!isInitialized()) {
     spdlog::debug("EntityObject '{}'({}) is not initialized", name_, guid_);
     return;
   }
@@ -96,13 +95,12 @@ void EntityObject::vDebugPrintComponents() const {
     componentNames.push_back(component->GetTypeName());
   }
 
-  spdlog::debug("EntityObject '{}'({}) has {} components: {}",
-                name_, guid_, componentNames.size(),
-                fmt::join(componentNames, ", "));
+  spdlog::debug("EntityObject '{}'({}) has {} components: {}", name_, guid_,
+                componentNames.size(), fmt::join(componentNames, ", "));
 }
 
-
-std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
+std::shared_ptr<Component> EntityObject::getComponent(
+    size_t staticTypeID) const {
   return ecs->getComponent(guid_, staticTypeID);
 }
 
@@ -119,14 +117,13 @@ void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID,
     return;
   }
 
-  ecs->addComponent(other.guid_, std::shared_ptr<Component>(component->Clone()));
+  ecs->addComponent(other.guid_,
+                    std::shared_ptr<Component>(component->Clone()));
 }
 
-void EntityObject::addComponent(
-  size_t staticTypeID,
-  const std::shared_ptr<Component>& component
-) {
-  if(isInitialized()) {
+void EntityObject::addComponent(size_t staticTypeID,
+                                const std::shared_ptr<Component>& component) {
+  if (isInitialized()) {
     ecs->addComponent(guid_, component);
   } else {
     // batch the component to be added after initialization

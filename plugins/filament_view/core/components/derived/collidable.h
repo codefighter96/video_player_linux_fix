@@ -50,24 +50,24 @@ class Collidable : public Component {
   std::string eventName = "click";
   /// Bounding box of the collidable
   AABB _aabb;
-  
+
  public:
-  Collidable() :
-    Component(std::string(__FUNCTION__)) {}
+  Collidable() : Component(std::string(__FUNCTION__)) {}
 
   // TODO: make this a more complete constructor
-  Collidable(
-    const ShapeType& shapeType
-  ) :
-    Component(std::string(__FUNCTION__)),
-    m_eShapeType(shapeType) {}
+  Collidable(const ShapeType& shapeType)
+      : Component(std::string(__FUNCTION__)), m_eShapeType(shapeType) {}
 
   explicit Collidable(const flutter::EncodableMap& params);
 
   // Getters
   [[nodiscard]] inline bool GetIsStatic() const { return m_bIsStatic; }
-  [[nodiscard]] inline int64_t GetCollisionLayer() const { return m_nCollisionLayer; }
-  [[nodiscard]] inline int64_t GetCollisionMask() const { return m_nCollisionMask; }
+  [[nodiscard]] inline int64_t GetCollisionLayer() const {
+    return m_nCollisionLayer;
+  }
+  [[nodiscard]] inline int64_t GetCollisionMask() const {
+    return m_nCollisionMask;
+  }
   [[nodiscard]] inline bool GetShouldMatchAttachedObject() const {
     return m_bShouldMatchAttachedObject;
   }
@@ -85,7 +85,8 @@ class Collidable : public Component {
   }
   inline void SetShapeType(ShapeType value) { m_eShapeType = value; }
   inline void SetExtentsSize(const filament::math::float3& value) {
-    if(m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collidable");
+    if (m_bIsStatic)
+      throw std::runtime_error("Cannot set extents size on static collidable");
     _extentSize = value;
   }
 
@@ -93,10 +94,9 @@ class Collidable : public Component {
 
   [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
   bool intersects(const Ray& ray,
-                      ::filament::math::float3& hitPosition,
-                      const std::shared_ptr<BaseTransform>& transform
-                    ) const;
-  
+                  ::filament::math::float3& hitPosition,
+                  const std::shared_ptr<BaseTransform>& transform) const;
+
   [[nodiscard]] inline Component* Clone() const override {
     return new Collidable(*this);  // Copy constructor is called here
   }
@@ -123,7 +123,7 @@ class Collidable : public Component {
 
   /// Collider shape type (supported values: Cube)
   /// TODO: add support for other shapes
-  ShapeType m_eShapeType = ShapeType::Cube; // default
+  ShapeType m_eShapeType = ShapeType::Cube;        // default
   filament::math::float3 _extentSize = {1, 1, 1};  // default
 
   /*

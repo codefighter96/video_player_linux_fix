@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include <spdlog/spdlog.h>
 #include <core/systems/base/ecsystem.h>
+#include <spdlog/spdlog.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <map>
@@ -24,11 +24,12 @@
 #include <shared_mutex>
 #include <vector>
 
-#include <core/utils/kvtree.h>
 #include <core/entity/base/entityobject.h>
 #include <core/utils/asserts.h>
+#include <core/utils/kvtree.h>
 
-#define CRASH_ON_INIT // if true, will not continue if any ECSystem fails to init
+#define CRASH_ON_INIT  // if true, will not continue if any ECSystem fails to
+                       // init
 
 namespace plugin_filament_view {
 
@@ -49,7 +50,6 @@ class ECSManager {
 
   void MainLoop();
 
-
   //
   //  Entity
   //
@@ -62,7 +62,8 @@ class ECSManager {
 
   std::mutex _componentsMutex;
   /// Map of component type IDs to their corresponding entityID->component maps
-  std::map<TypeID, std::map<EntityGUID, std::shared_ptr<Component>>> _components;
+  std::map<TypeID, std::map<EntityGUID, std::shared_ptr<Component>>>
+      _components;
 
   //
   //  System
@@ -70,8 +71,6 @@ class ECSManager {
 
   std::mutex _systemsMutex;
   std::map<TypeID, std::shared_ptr<ECSystem>> _systems;
-
-
 
   //
   // Threading
@@ -89,13 +88,11 @@ class ECSManager {
 
   std::map<std::string, int> m_mapOffThreadCallers;
 
-
   RunState m_eCurrentState;
   static ECSManager* m_poInstance;
 
   ECSManager();
   ~ECSManager();
-
 
  public:
   [[nodiscard]] inline RunState getRunState() const { return m_eCurrentState; }
@@ -110,22 +107,21 @@ class ECSManager {
   ECSManager(const ECSManager&) = delete;
   ECSManager& operator=(const ECSManager&) = delete;
 
-
   void vInitSystems();
 
   /**
-    * @brief Updates the engine logic for the current frame.
-    *
-    * It's called once per frame and is responsible for updating
-    * all engine entities, systems, and logic based on the elapsed time since
-    * the last frame.
-    *
-    * NOTE: must be run on the main thread.
-    *
-    * @param deltaTime The time elapsed since the last frame, in seconds.
-    *                  This value should be used to make all movement and
-    *                  time-based calculations frame rate independent.
-    */
+   * @brief Updates the engine logic for the current frame.
+   *
+   * It's called once per frame and is responsible for updating
+   * all engine entities, systems, and logic based on the elapsed time since
+   * the last frame.
+   *
+   * NOTE: must be run on the main thread.
+   *
+   * @param deltaTime The time elapsed since the last frame, in seconds.
+   *                  This value should be used to make all movement and
+   *                  time-based calculations frame rate independent.
+   */
   void vUpdate(float deltaTime);
   void vShutdownSystems();
 
@@ -141,40 +137,38 @@ class ECSManager {
   //
   //  Entity
   //
-  void addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent = nullptr);
+  void addEntity(const std::shared_ptr<EntityObject>& entity,
+                 const EntityGUID* parent = nullptr);
   void removeEntity(const EntityGUID entityGuid);
   [[nodiscard]] std::shared_ptr<EntityObject> getEntity(EntityGUID id);
 
   /// Moves the entity with the given GUID to the parent with the given GUID.
   void reparentEntity(const std::shared_ptr<EntityObject>& entity,
-                            const EntityGUID& parentGuid);
+                      const EntityGUID& parentGuid);
   /// Returns the children of the entity with the given GUID.
   [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntityChildren(
       EntityGUID id);
   /// Returns the GUIDs of the children of the entity with the given GUID.
-  [[nodiscard]] std::vector<EntityGUID> getEntityChildrenGuids(
-      EntityGUID id);
+  [[nodiscard]] std::vector<EntityGUID> getEntityChildrenGuids(EntityGUID id);
 
   /// Returns the parent of the entity with the given GUID.
-  [[nodiscard]] std::shared_ptr<EntityObject> getEntityParent(
-      EntityGUID id);
+  [[nodiscard]] std::shared_ptr<EntityObject> getEntityParent(EntityGUID id);
   /// Returns the GUID of the parent of the entity with the given GUID.
   [[nodiscard]] std::optional<EntityGUID> getEntityParentGuid(EntityGUID id);
 
   /// Returns all enttities having a component of the given type.
   template <typename T>
-  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntitiesWithComponent() {
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>>
+  getEntitiesWithComponent() {
     return getEntitiesWithComponent(Component::StaticGetTypeID<T>());
   }
 
-  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>> getEntitiesWithComponent(
-    TypeID componentTypeId
-  );
+  [[nodiscard]] std::vector<std::shared_ptr<EntityObject>>
+  getEntitiesWithComponent(TypeID componentTypeId);
 
   /// Checks whether the entity with the given GUID exists.
   /// @throws std::runtime_error if the entity does not exist.
   void checkHasEntity(EntityGUID id);
-  
 
   //
   //  Component
@@ -182,7 +176,7 @@ class ECSManager {
 
   /// Adds a component to the entity with the given GUID.
   void addComponent(const EntityGUID entityGuid,
-                            const std::shared_ptr<Component>& component);
+                    const std::shared_ptr<Component>& component);
 
   /// Removes a component from the entity with the given GUID.
   /// If either the entity or the component does not exist, nothing happens.
@@ -193,19 +187,18 @@ class ECSManager {
 
   void removeComponent(const EntityGUID& entityGuid, TypeID componentTypeId);
 
-  /// Returns the component of the given type from the entity with the given GUID.
+  /// Returns the component of the given type from the entity with the given
+  /// GUID.
   template <typename T>
-  [[nodiscard]] inline std::shared_ptr<T> getComponent(const EntityGUID& entityGuid) {
-    return std::dynamic_pointer_cast<T>(getComponent(
-      entityGuid,
-      Component::StaticGetTypeID<T>()
-    ));
+  [[nodiscard]] inline std::shared_ptr<T> getComponent(
+      const EntityGUID& entityGuid) {
+    return std::dynamic_pointer_cast<T>(
+        getComponent(entityGuid, Component::StaticGetTypeID<T>()));
   }
 
   [[nodiscard]] std::shared_ptr<Component> getComponent(
-    const EntityGUID& entityGuid,
-    TypeID componentTypeId
-  );
+      const EntityGUID& entityGuid,
+      TypeID componentTypeId);
 
   /// Returns all the components of the given type
   template <typename T>
@@ -222,21 +215,22 @@ class ECSManager {
   }
 
   [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponentsOfType(
-    TypeID componentTypeId
-  );
+      TypeID componentTypeId);
 
-  /// Returns whether the entity with the given GUID has a component of the given type.
+  /// Returns whether the entity with the given GUID has a component of the
+  /// given type.
   template <typename T>
   [[nodiscard]] inline bool hasComponent(const EntityGUID& entityGuid) {
     return hasComponent(entityGuid, Component::StaticGetTypeID<T>());
   }
 
-  [[nodiscard]] bool hasComponent(const EntityGUID entityGuid, TypeID componentTypeId);
+  [[nodiscard]] bool hasComponent(const EntityGUID entityGuid,
+                                  TypeID componentTypeId);
 
-  /// Returns a vector of pointers to all components of the entity with the given GUID.
+  /// Returns a vector of pointers to all components of the entity with the
+  /// given GUID.
   [[nodiscard]] std::vector<std::shared_ptr<Component>> getComponentsOfEntity(
-    const EntityGUID& entityGuid
-  );
+      const EntityGUID& entityGuid);
 
   //
   //  System
@@ -246,9 +240,9 @@ class ECSManager {
   void vRemoveAllSystems();
 
   /**
-    * Send a message to all registered systems
-    * \deprecated Deprecated in favor of queueTask
-    */
+   * Send a message to all registered systems
+   * \deprecated Deprecated in favor of queueTask
+   */
   void vRouteMessage(const ECSMessage& msg) {
     std::unique_lock<std::mutex> lock(_systemsMutex);
     // for (const auto& system : _systems) {
@@ -260,19 +254,15 @@ class ECSManager {
       system->vSendMessage(msg);
     }
   }
-  
+
   template <typename T>
   [[nodiscard]] inline std::shared_ptr<T> getSystem(const std::string& where) {
-    return std::dynamic_pointer_cast<T>(getSystem(
-      ECSystem::StaticGetTypeID<T>(),
-      where
-    ));
+    return std::dynamic_pointer_cast<T>(
+        getSystem(ECSystem::StaticGetTypeID<T>(), where));
   }
 
-  [[nodiscard]] std::shared_ptr<ECSystem> getSystem(
-    TypeID systemTypeID,
-    const std::string& where
-  );
+  [[nodiscard]] std::shared_ptr<ECSystem> getSystem(TypeID systemTypeID,
+                                                    const std::string& where);
 
   //
   //  Threading

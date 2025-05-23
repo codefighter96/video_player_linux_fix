@@ -12,7 +12,6 @@ inline void runtime_assert(bool condition, const std::string& message) {
   runtime_assert(condition, message.c_str());
 }
 
-#define debug_assert(condition, message) \
-    assert(condition && message);
+#define debug_assert(condition, message) assert(condition&& message);
 
-} // namespace plugin_filament_view
+}  // namespace plugin_filament_view

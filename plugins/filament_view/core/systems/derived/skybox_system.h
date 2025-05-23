@@ -57,11 +57,10 @@ class SkyboxSystem : public ECSystem {
       bool shouldUpdateLight,
       float intensity);
 
-  Resource<std::string_view> loadSkyboxFromHdrFile(
-      const std::string& assetPath,
-      bool showSun,
-      bool shouldUpdateLight,
-      float intensity);
+  Resource<std::string_view> loadSkyboxFromHdrFile(const std::string& assetPath,
+                                                   bool showSun,
+                                                   bool shouldUpdateLight,
+                                                   float intensity);
 
   // Disallow copy and assign.
   SkyboxSystem(const SkyboxSystem&) = delete;

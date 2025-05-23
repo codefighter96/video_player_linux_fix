@@ -23,8 +23,8 @@
 #include <core/entity/derived/shapes/sphere.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/transform_system.h>
-#include <core/utils/asserts.h>
 #include <core/systems/ecs.h>
+#include <core/utils/asserts.h>
 #include <filament/Scene.h>
 #include <filament/TransformManager.h>
 #include <plugins/common/common.h>
@@ -52,9 +52,9 @@ flutter::EncodableValue HitResult::Encode() const {
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vTurnOnRenderingOfCollidables() const {
   const auto colliders = ecs->getComponentsOfType<Collidable>();
-  for(const auto& collider : colliders) {
+  for (const auto& collider : colliders) {
     const auto wireframe = collider->_wireframe;
-    if(!!wireframe) {
+    if (!!wireframe) {
       wireframe->vAddEntityToScene();
     }
   }
@@ -63,9 +63,9 @@ void CollisionSystem::vTurnOnRenderingOfCollidables() const {
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vTurnOffRenderingOfCollidables() const {
   const auto colliders = ecs->getComponentsOfType<Collidable>();
-  for(const auto& collider : colliders) {
+  for (const auto& collider : colliders) {
     const auto wireframe = collider->_wireframe;
-    if(!!wireframe) {
+    if (!!wireframe) {
       wireframe->vRemoveEntityFromScene();
     }
   }
@@ -97,8 +97,10 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   for (const auto& entity : collidables) {
     const EntityGUID guid = entity->GetGuid();
     auto collidable = ecs->getComponent<Collidable>(guid);
-    debug_assert(!!collidable, fmt::format("Collidable missing for entity: {}", guid));
-    if (!collidable->enabled) continue;
+    debug_assert(!!collidable,
+                 fmt::format("Collidable missing for entity: {}", guid));
+    if (!collidable->enabled)
+      continue;
 
     // Check if the collision layer matches (if a specific layer was provided)
     // if (collisionLayer != 0 && (collidable->GetCollisionLayer() &
@@ -109,10 +111,8 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
     const auto transform = ecs->getComponent<BaseTransform>(guid);
 
     // Perform intersection test with the ray
-    if (
-      filament::math::float3 hitLocation;
-      collidable->intersects(rayCast, hitLocation, transform)
-    ) {
+    if (filament::math::float3 hitLocation;
+        collidable->intersects(rayCast, hitLocation, transform)) {
       // If there is an intersection, create a HitResult
       HitResult hitResult;
       hitResult.guid_ = guid;
@@ -208,7 +208,8 @@ void CollisionSystem::vOnInitSystem() {
             msg.getData<EntityGUID>(ECSMessageType::ToggleCollisionForEntity);
         const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        if (const auto collidable = ecs->getComponent<Collidable>(guid); !!collidable) {
+        if (const auto collidable = ecs->getComponent<Collidable>(guid);
+            !!collidable) {
           collidable->enabled = value;
         }
       });
@@ -216,7 +217,8 @@ void CollisionSystem::vOnInitSystem() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
-  TransformSystem* transformSystem = ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
+  TransformSystem* transformSystem =
+      ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
 
   // Iterate over all collidables
   const auto colliders = ecs->getComponentsOfType<Collidable>();
@@ -227,18 +229,22 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
       AABB& aabb = collidable->_aabb;
 
       // Make sure it has an AABB
-      if(aabb.isEmpty()) {
+      if (aabb.isEmpty()) {
         const auto entity = collidable->entityOwner_;
         spdlog::trace("Collidable entity({}) has no AABB", entity->GetGuid());
         // Get AABB if it's a RenderableEntityObject
-        if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(entity)) {
+        if (const auto renderableEntity =
+                dynamic_cast<RenderableEntityObject*>(entity)) {
           aabb = renderableEntity->getAABB();
-          spdlog::trace("  Adding AABB to collidable entity({})", entity->GetGuid());
-          spdlog::trace("  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z);
-          spdlog::trace("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
-          #if SPDLOG_LEVEL == trace
-          // renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
-          #endif
+          spdlog::trace("  Adding AABB to collidable entity({})",
+                        entity->GetGuid());
+          spdlog::trace("  AABB.pos: x={}, y={}, z={}", aabb.center.x,
+                        aabb.center.y, aabb.center.z);
+          spdlog::trace("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2,
+                        aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
+#if SPDLOG_LEVEL == trace
+// renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
+#endif
         } else {
           spdlog::error("  Collidable does not have an AABB");
           continue;
@@ -246,21 +252,19 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
       }
 
       // Make sure it has a wireframe
-      if(!collidable->_wireframe) {
+      if (!collidable->_wireframe) {
         const auto entity = collidable->entityOwner_;
         // Create a cube wireframe
         auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
         cubeChild->m_bIsWireframe = true;
         cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
-        const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
+        const auto shapeSystem =
+            ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
         ecs->addEntity(cubeChild);
         shapeSystem->addShapeToScene(cubeChild);
         auto childTransform = cubeChild->getComponent<BaseTransform>();
-        childTransform->SetTransform(
-          aabb.center,
-          aabb.halfExtent * 2,
-          kQuatfIdentity
-        );
+        childTransform->SetTransform(aabb.center, aabb.halfExtent * 2,
+                                     kQuatfIdentity);
 
         childTransform->setParent(entity->GetGuid());
 

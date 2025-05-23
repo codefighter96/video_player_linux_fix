@@ -28,17 +28,16 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
     : Component(std::string(__FUNCTION__)),
       local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
       global({kMat4fIdentity}) {
-
   spdlog::trace("BaseTransform::BaseTransform");
-  Deserialize::DecodeParameterWithDefault(kPosition, &(local.position),
-                                          params,
+  Deserialize::DecodeParameterWithDefault(kPosition, &(local.position), params,
                                           kFloat3Zero);
   Deserialize::DecodeParameterWithDefault(kScale, &(local.scale), params,
                                           kFloat3One);
   Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params,
                                           kQuatfIdentity);
 
-  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params, kNullGuid);
+  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params,
+                                               kNullGuid);
   if (_parentId != kNullGuid) {
     _isParentDirty = true;
   }
@@ -48,17 +47,17 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
 void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Local transform:");
   spdlog::debug(tabPrefix + "ParentId: {}", _parentId);
-  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}",
-                local.position.x, local.position.y,
-                local.position.z);
-  spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x, local.scale.y,
-                local.scale.z);
+  spdlog::debug(tabPrefix + "Pos: x={}, y={}, z={}", local.position.x,
+                local.position.y, local.position.z);
+  spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x,
+                local.scale.y, local.scale.z);
   spdlog::debug(tabPrefix + "Rot: w={} x={}, y={}, z={}", local.rotation.w,
                 local.rotation.x, local.rotation.y, local.rotation.z);
 }
 
 void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
-  filament::gltfio::decomposeMatrix(localMatrix, &local.position, &local.rotation, &local.scale);
+  filament::gltfio::decomposeMatrix(localMatrix, &local.position,
+                                    &local.rotation, &local.scale);
   _isDirty = true;
 }
 

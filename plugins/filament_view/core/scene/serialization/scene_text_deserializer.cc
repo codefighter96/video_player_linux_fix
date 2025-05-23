@@ -33,11 +33,11 @@
 namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
-SceneTextDeserializer::SceneTextDeserializer(
-    const std::vector<uint8_t>& params
-) : _ecs(nullptr) {
+SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
+    : _ecs(nullptr) {
   _ecs = ECSManager::GetInstance();
-  const std::string& flutterAssetsPath = _ecs->getConfigValue<std::string>(kAssetPath);
+  const std::string& flutterAssetsPath =
+      _ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
   spdlog::debug("[{}] deserializing root...", __FUNCTION__);
@@ -62,10 +62,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       continue;
     }
 
-    if (
-      key == kModels &&
-      std::holds_alternative<flutter::EncodableList>(snd)
-    ) {
+    if (key == kModels && std::holds_alternative<flutter::EncodableList>(snd)) {
       spdlog::debug("===== Deserializing Multiple Models {} ...", key);
 
       auto list = std::get<flutter::EncodableList>(snd);
@@ -74,7 +71,8 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           spdlog::warn("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto deserializedModel = Model::Deserialize(std::get<flutter::EncodableMap>(iter));
+        auto deserializedModel =
+            Model::Deserialize(std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model");
           continue;
@@ -134,7 +132,7 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
         // This will get placed on an entity
         EntityGUID overWriteGuid;
         Deserialize::DecodeParameterWithDefaultInt64(kGuid, &overWriteGuid,
-                                                encodableMap, kNullGuid);
+                                                     encodableMap, kNullGuid);
 
         if (overWriteGuid == kNullGuid) {
           spdlog::warn("Light is missing a GUID, will not add to scene");
@@ -221,12 +219,8 @@ void SceneTextDeserializer::setUpShapes() {
   spdlog::debug("{} {}", __FUNCTION__, __LINE__);
 
   spdlog::trace("getting systems");
-  const auto shapeSystem =
-      _ecs->getSystem<ShapeSystem>(
-          "setUpShapes");
-  const auto collisionSystem =
-      _ecs->getSystem<CollisionSystem>(
-          "setUpShapes");
+  const auto shapeSystem = _ecs->getSystem<ShapeSystem>("setUpShapes");
+  const auto collisionSystem = _ecs->getSystem<CollisionSystem>("setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
     throw std::runtime_error(
@@ -239,8 +233,8 @@ void SceneTextDeserializer::setUpShapes() {
     /// TODO: fix shape collidables
     // spdlog::trace("Adding collidable...");
     // if (shape->hasComponent<Collidable>()) {
-    //   spdlog::trace("Shape {} has collidable! Adding to collision system", shape->GetGuid());
-    //   if (collisionSystem != nullptr) {
+    //   spdlog::trace("Shape {} has collidable! Adding to collision system",
+    //   shape->GetGuid()); if (collisionSystem != nullptr) {
     //     collisionSystem->vAddCollidable(shape.get());
     //   }
     // }
@@ -260,8 +254,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
 
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem =
-        ECSManager::GetInstance()->getSystem<ModelSystem>(
-            "loadModel");
+        ECSManager::GetInstance()->getSystem<ModelSystem>("loadModel");
 
     if (modelSystem == nullptr) {
       spdlog::error("Unable to find the model system.");
@@ -285,8 +278,7 @@ void SceneTextDeserializer::setUpSkybox() const {
   // Todo move to a message.
 
   auto skyboxSystem =
-      ECSManager::GetInstance()->getSystem<SkyboxSystem>(
-          __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<SkyboxSystem>(__FUNCTION__);
 
   if (!skybox_) {
     skyboxSystem->setDefaultSkybox();
@@ -354,8 +346,7 @@ void SceneTextDeserializer::setUpLights() {
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
   auto indirectlightSystem =
-      ECSManager::GetInstance()->getSystem<IndirectLightSystem>(
-          __FUNCTION__);
+      ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.

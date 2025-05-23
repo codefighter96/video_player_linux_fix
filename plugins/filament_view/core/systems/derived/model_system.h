@@ -19,12 +19,12 @@
 #include <core/include/resource.h>
 #include <core/systems/base/ecsystem.h>
 #include <core/systems/derived/filament_system.h>
+#include <filament/TransformManager.h>
+#include <filament/filament/RenderableManager.h>
+#include <filament/utils/NameComponentManager.h>
 #include <gltfio/AssetLoader.h>
 #include <gltfio/FilamentAsset.h>
 #include <gltfio/ResourceLoader.h>
-#include <filament/utils/NameComponentManager.h>
-#include <filament/filament/RenderableManager.h>
-#include <filament/TransformManager.h>
 #include <asio/io_context_strand.hpp>
 #include <future>
 #include <list>
@@ -70,9 +70,7 @@ class ModelSystem : public ECSystem {
 
   void createModelInstance(Model* model);
 
-  void queueModelLoad(
-    std::shared_ptr<Model> oOurModel
-  );
+  void queueModelLoad(std::shared_ptr<Model> oOurModel);
 
   void vOnInitSystem() override;
   void vUpdate(float fElapsedTime) override;
@@ -84,7 +82,8 @@ class ModelSystem : public ECSystem {
   /// Every frame, update the status of asset loading
   /// and instantiate them where necessary
   void updateAsyncAssetLoading();
-  /// Every frame, make sure that models with loaded assets are added to the scene
+  /// Every frame, make sure that models with loaded assets are added to the
+  /// scene
   void updateModelsInScene();
 
  private:
@@ -102,26 +101,21 @@ class ModelSystem : public ECSystem {
   smarter_raw_ptr<filament::TransformManager> _tm;
 
   /// Map of asset paths to their loading states
-  std::map<std::string, AssetDescriptor> _assets {};
-  std::map<EntityGUID, std::shared_ptr<Model>> _models {};
+  std::map<std::string, AssetDescriptor> _assets{};
+  std::map<EntityGUID, std::shared_ptr<Model>> _models{};
 
   /// Creates renderables and adds them to the scene
   /// Expects the model to have been loaded first
   void addModelToScene(EntityGUID modelGuid);
 
-  void setupRenderable(
-    const FilamentEntity entity,
-    Model* model,
-    filament::gltfio::FilamentAsset* asset
-  );
+  void setupRenderable(const FilamentEntity entity,
+                       Model* model,
+                       filament::gltfio::FilamentAsset* asset);
 
   /// Asynchronously loads a model from a file and returns a future
   /// that will be set when the model is loaded
   /// Expects model to have been queued first, via [ModelSystem::queueModelLoad]
-  void loadModelFromFile(
-    EntityGUID modelGuid,
-    const std::string& baseAssetPath
-  );
-
+  void loadModelFromFile(EntityGUID modelGuid,
+                         const std::string& baseAssetPath);
 };
 }  // namespace plugin_filament_view

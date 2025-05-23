@@ -37,7 +37,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<int32_t>(ECSMessageType::AnimationEnqueue);
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
-        if(animationComponent) {
+        if (animationComponent) {
           animationComponent->vEnqueueAnimation(animationIndex);
           spdlog::debug("AnimationEnqueue Complete for GUID: {}", guid);
         }
@@ -52,7 +52,7 @@ void AnimationSystem::vOnInitSystem() {
             msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
         const auto animationComponent = ecs->getComponent<Animation>(guid);
-        if(animationComponent) {
+        if (animationComponent) {
           animationComponent->vClearQueue();
           spdlog::debug("AnimationClearQueue Complete for GUID: {}", guid);
         }

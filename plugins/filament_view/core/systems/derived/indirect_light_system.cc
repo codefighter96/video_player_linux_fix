@@ -54,8 +54,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
     return future;
   }
 
-  const asio::io_context::strand& strand_(
-      *ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->GetStrand());
 
   post(strand_, [&, promise, indirectLight] {
     auto builder = filament::IndirectLight::Builder();
@@ -69,8 +68,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
     }
 
     const auto filamentSystem =
-        ecs->getSystem<FilamentSystem>(
-            "setIndirectLight");
+        ecs->getSystem<FilamentSystem>("setIndirectLight");
     const auto engine = filamentSystem->getFilamentEngine();
 
     builder.build(*engine);
@@ -89,8 +87,7 @@ IndirectLightSystem::setIndirectLightFromKtxAsset(const std::string& /*path*/,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(
-      *ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->GetStrand());
 
   post(strand_, [&, promise /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -106,8 +103,7 @@ IndirectLightSystem::setIndirectLightFromKtxUrl(const std::string& /*url*/,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(
-      *ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->GetStrand());
 
   post(strand_, [&, promise /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -120,8 +116,7 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
     const std::string& asset_path,
     const double intensity) {
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "loadIndirectLightHdrFromFile");
+      ecs->getSystem<FilamentSystem>("loadIndirectLightHdrFromFile");
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Texture* texture;
@@ -162,10 +157,8 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(const std::string& path,
       std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(
-      *ecs->GetStrand());
-  const auto assetPath =
-      ecs->getConfigValue<std::string>(kAssetPath);
+  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const auto assetPath = ecs->getConfigValue<std::string>(kAssetPath);
 
   post(strand_, [&, promise, path = path, intensity, assetPath] {
     std::filesystem::path asset_path(assetPath);
@@ -193,8 +186,7 @@ IndirectLightSystem::setIndirectLightFromHdrUrl(const std::string& /*url*/,
   const auto promise(
       std::make_shared<std::promise<Resource<std::string_view>>>());
 
-  const asio::io_context::strand& strand_(
-      *ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->GetStrand());
 
   auto future(promise->get_future());
   post(strand_, [&, promise /*, intensity*/] {
@@ -227,8 +219,7 @@ void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
 ////////////////////////////////////////////////////////////////////////////////////
 void IndirectLightSystem::vShutdownSystem() {
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "setIndirectLight");
+      ecs->getSystem<FilamentSystem>("setIndirectLight");
   const auto engine = filamentSystem->getFilamentEngine();
 
   const auto prevIndirectLight =

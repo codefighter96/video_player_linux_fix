@@ -15,13 +15,13 @@
  */
 #pragma once
 
-#include <filament/gltfio/math.h>
+#include <filament/TransformManager.h>
 #include <filament/gltfio/FilamentAsset.h>
+#include <filament/gltfio/math.h>
 #include <filament/math/TMatHelpers.h>
 #include <filament/math/mat4.h>
 #include <filament/math/quat.h>
 #include <filament/math/vec3.h>
-#include <filament/TransformManager.h>
 #include <memory>
 
 #include <core/utils/filament_types.h>
@@ -35,11 +35,11 @@ class VectorUtils {
   static filament::math::mat4f identity4x4();
 
   static filament::math::float3 transformPositionVector(
-    const filament::math::float3& pos,
-    const filament::math::mat4f& transform);
+      const filament::math::float3& pos,
+      const filament::math::mat4f& transform);
   static filament::math::float3 transformScaleVector(
-    const filament::math::float3& scale,
-    const filament::math::mat4f& transform);
+      const filament::math::float3& scale,
+      const filament::math::mat4f& transform);
 };
 
 }  // namespace plugin_filament_view

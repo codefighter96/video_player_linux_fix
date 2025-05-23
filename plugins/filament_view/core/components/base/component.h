@@ -18,8 +18,8 @@
 #include <string>
 #include <typeinfo>
 
-#include <core/utils/identifiable_type.h>
 #include <core/utils/filament_types.h>
+#include <core/utils/identifiable_type.h>
 
 namespace plugin_filament_view {
 class EntityObject;
@@ -31,7 +31,9 @@ class Component : public IdentifiableType {
   friend class EntityObject;
 
  public:
-  [[nodiscard]] inline const EntityObject* GetOwner() const { return entityOwner_; }
+  [[nodiscard]] inline const EntityObject* GetOwner() const {
+    return entityOwner_;
+  }
 
   [[nodiscard]] virtual const std::type_info& GetType() const {
     return typeid(*this);
@@ -46,11 +48,12 @@ class Component : public IdentifiableType {
  protected:
   explicit Component(std::string name)
       : name_(std::move(name)), entityOwner_(nullptr) {}
-  
+
  private:
   /// @deprecated Instead use GetTypeName()
   std::string name_;
- public: 
+
+ public:
   EntityObject* entityOwner_ = nullptr;
 };
 

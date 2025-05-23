@@ -18,10 +18,9 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-
-#include "filament_system.h"
 #include <filament/Engine.h>
 #include <filament/Scene.h>
+#include "filament_system.h"
 
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/systems/base/ecsystem.h>

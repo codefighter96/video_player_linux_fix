@@ -18,8 +18,8 @@
 // #include <spdlog/spdlog.h>
 #include <asio/post.hpp>
 #include <chrono>
+#include <core/utils/kvtree.cc>  // NOLINT
 #include <thread>
-#include <core/utils/kvtree.cc> // NOLINT
 
 namespace plugin_filament_view {
 
@@ -73,7 +73,7 @@ void ECSManager::vSetupThreadingInternals() {
     pthread_setname_np(filament_api_thread_id_, "ECSManagerThreadRunner");
 
     spdlog::debug("ECSManager Filament API thread started: 0x{:x}",
-      filament_api_thread_id_);
+                  filament_api_thread_id_);
 
     io_context_->run();
   });
@@ -98,8 +98,7 @@ void ECSManager::MainLoop() {
       post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
-          vUpdate(
-              elapsedTime);  // Pass elapsed time to the main thread
+          vUpdate(elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
           throw;  // Rethrow the exception after resetting the flag
@@ -143,35 +142,32 @@ void ECSManager::StopMainLoop() {
   }
 }
 
-
 //
 //  Entity
 //
 void ECSManager::checkHasEntity(EntityGUID id) {
   std::lock_guard lock(_entitiesMutex);
-  
-  spdlog::trace(
-      "[{}] Checking if entity with id {} exists", __FUNCTION__, id);
+
+  spdlog::trace("[{}] Checking if entity with id {} exists", __FUNCTION__, id);
   if (_entities.get(id) == nullptr) {
     throw std::runtime_error(
         fmt::format("[{}] Unable to find entity with id {}", __FUNCTION__, id));
   }
 }
 
-void ECSManager::addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent) {
-  { // lock scope
+void ECSManager::addEntity(const std::shared_ptr<EntityObject>& entity,
+                           const EntityGUID* parent) {
+  {  // lock scope
     std::lock_guard lock(_entitiesMutex);
     const EntityGUID id = entity->GetGuid();
     if (_entities.get(id)) {
-      spdlog::error(
-        "[{}] Entity with GUID {} already exists",
-        __FUNCTION__, id
-      );
+      spdlog::error("[{}] Entity with GUID {} already exists", __FUNCTION__,
+                    id);
       return;
     }
 
     _entities.insert(id, entity, parent);
-  } // unlock here (entity init will lock again)
+  }  // unlock here (entity init will lock again)
 
   // initialize the entity
   entity->initialize(this);
@@ -206,31 +202,25 @@ std::shared_ptr<EntityObject> ECSManager::getEntity(EntityGUID id) {
     spdlog::error(
         "[{}] Unable to find "
         "entity with id {}",
-        __FUNCTION__,
-        id);
+        __FUNCTION__, id);
     return nullptr;
   }
   return *(node->getValue());
 }
 
-void ECSManager::reparentEntity(
-  const std::shared_ptr<EntityObject>& entity,
-  const EntityGUID& parentGuid) {
-try {
-  _entities.reparent(entity->GetGuid(), &parentGuid);
-} catch (const std::runtime_error& e) {
-  spdlog::error("[ECSManager::ReparentEntityObject] {}",
-                e.what());
-}
+void ECSManager::reparentEntity(const std::shared_ptr<EntityObject>& entity,
+                                const EntityGUID& parentGuid) {
+  try {
+    _entities.reparent(entity->GetGuid(), &parentGuid);
+  } catch (const std::runtime_error& e) {
+    spdlog::error("[ECSManager::ReparentEntityObject] {}", e.what());
+  }
 }
 
 std::vector<EntityGUID> ECSManager::getEntityChildrenGuids(EntityGUID id) {
   const auto* node = _entities.get(id);
   if (!node) {
-    spdlog::error(
-        "[{}] Unable to find entity with id {}",
-        __FUNCTION__,
-        id);
+    spdlog::error("[{}] Unable to find entity with id {}", __FUNCTION__, id);
     return {};
   }
 
@@ -246,7 +236,8 @@ std::vector<EntityGUID> ECSManager::getEntityChildrenGuids(EntityGUID id) {
   return childrenGuids;
 }
 
-std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntityChildren(EntityGUID id) {
+std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntityChildren(
+    EntityGUID id) {
   std::vector<EntityGUID> childrenGuids = getEntityChildrenGuids(id);
 
   std::vector<std::shared_ptr<EntityObject>> children;
@@ -280,8 +271,7 @@ std::optional<EntityGUID> ECSManager::getEntityParentGuid(EntityGUID id) {
 }
 
 std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntitiesWithComponent(
-  TypeID componentTypeId
-) {
+    TypeID componentTypeId) {
   std::unique_lock lock(_componentsMutex);
   std::vector<std::shared_ptr<EntityObject>> entitiesWithComponent;
 
@@ -296,15 +286,13 @@ std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntitiesWithComponent(
   return entitiesWithComponent;
 }
 
-
 //
 // Component
 //
 
 std::shared_ptr<Component> ECSManager::getComponent(
-  const EntityGUID& entityGuid,
-  TypeID componentTypeId
-) {
+    const EntityGUID& entityGuid,
+    TypeID componentTypeId) {
   std::unique_lock lock(_componentsMutex);
   auto componentMap = _components[componentTypeId];
   auto it = componentMap.find(entityGuid);
@@ -316,8 +304,7 @@ std::shared_ptr<Component> ECSManager::getComponent(
 }
 
 std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfType(
-  TypeID componentTypeId
-) {
+    TypeID componentTypeId) {
   std::unique_lock lock(_componentsMutex);
   std::vector<std::shared_ptr<Component>> componentsOfType;
 
@@ -330,10 +317,8 @@ std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfType(
   return componentsOfType;
 }
 
-bool ECSManager::hasComponent(
-  const EntityGUID entityGuid,
-  TypeID componentTypeId
-) {
+bool ECSManager::hasComponent(const EntityGUID entityGuid,
+                              TypeID componentTypeId) {
   checkHasEntity(entityGuid);
 
   std::unique_lock lock(_componentsMutex);
@@ -351,8 +336,9 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   const TypeID componentId = component->GetTypeID();
   std::unique_lock lock(_componentsMutex);
 
-  if(_components.find(componentId) == _components.end()) {
-  _components[componentId] = std::map<EntityGUID, std::shared_ptr<Component>>();
+  if (_components.find(componentId) == _components.end()) {
+    _components[componentId] =
+        std::map<EntityGUID, std::shared_ptr<Component>>();
   }
 
   auto& componentMap = _components[componentId];
@@ -360,23 +346,19 @@ void ECSManager::addComponent(const EntityGUID entityGuid,
   // Check if the component already exists for this entity
   if (componentMap[entityGuid]) {
     spdlog::warn(
-      "[{}] Component '{}' already exists for entity({}), overwriting",  //
-      __FUNCTION__, component->GetTypeName(), entityGuid
-    );
+        "[{}] Component '{}' already exists for entity({}), overwriting",  //
+        __FUNCTION__, component->GetTypeName(), entityGuid);
   }
 
   // Add the component to the entity
   componentMap[entityGuid] = component;
   entity->onAddComponent(component);
-  spdlog::trace("[{}] Added component {} to entity with id {}",
-    __FUNCTION__, component->GetTypeName(), entityGuid
-  );
-
+  spdlog::trace("[{}] Added component {} to entity with id {}", __FUNCTION__,
+                component->GetTypeName(), entityGuid);
 }
 
 std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfEntity(
-  const EntityGUID& entityGuid
-) {
+    const EntityGUID& entityGuid) {
   std::unique_lock lock(_componentsMutex);
   std::vector<std::shared_ptr<Component>> entityComponents;
 
@@ -390,16 +372,12 @@ std::vector<std::shared_ptr<Component>> ECSManager::getComponentsOfEntity(
   return entityComponents;
 }
 
-void ECSManager::removeComponent(
-  const EntityGUID& entityGuid,
-  TypeID componentTypeId
-) {
+void ECSManager::removeComponent(const EntityGUID& entityGuid,
+                                 TypeID componentTypeId) {
   std::unique_lock lock(_componentsMutex);
   auto componentMap = _components[componentTypeId];
   componentMap.erase(entityGuid);
 }
-
-
 
 //
 //  System
@@ -415,19 +393,19 @@ void ECSManager::vInitSystems() {
   for (auto& [systemId, system] : _systems) {
     try {
       systemName = system->GetTypeName();
-      spdlog::debug("Initializing system {} ({}) at address {}",
-        systemName, systemId, static_cast<void*>(system.get()));
-      
+      spdlog::debug("Initializing system {} ({}) at address {}", systemName,
+                    systemId, static_cast<void*>(system.get()));
+
       system->vInitSystem(*const_cast<const ECSManager*>(this));
     } catch (const std::exception& e) {
-      #ifndef CRASH_ON_INIT 
-      spdlog::error("Failed to initialize system {} ({}): {}",
-        systemName, systemId, e.what());
-      #else
+#ifndef CRASH_ON_INIT
+      spdlog::error("Failed to initialize system {} ({}): {}", systemName,
+                    systemId, e.what());
+#else
       throw std::runtime_error(
-        fmt::format("Failed to initialize system {} ({}): {}",
-                    systemName, systemId, e.what()));
-      #endif
+          fmt::format("Failed to initialize system {} ({}): {}", systemName,
+                      systemId, e.what()));
+#endif
     }
   }
 
@@ -435,10 +413,8 @@ void ECSManager::vInitSystems() {
   m_eCurrentState = Initialized;
 }
 
-std::shared_ptr<ECSystem> ECSManager::getSystem(
-  TypeID systemTypeID, 
-  const std::string& where
-) {
+std::shared_ptr<ECSystem> ECSManager::getSystem(TypeID systemTypeID,
+                                                const std::string& where) {
   if (const auto callingThread = pthread_self();
       callingThread != filament_api_thread_id_) {
     // Note we should have a 'log once' base functionality in common
@@ -473,25 +449,24 @@ void ECSManager::vAddSystem(const std::shared_ptr<ECSystem>& system) {
 
   // Check if the system is already registered
   if (_systems.find(systemId) != _systems.end()) {
-    throw std::runtime_error(
-        fmt::format("System {} ({}) is already registered", system->GetTypeName(),
-                    systemId));
+    throw std::runtime_error(fmt::format("System {} ({}) is already registered",
+                                         system->GetTypeName(), systemId));
   }
 
-  spdlog::trace("Adding system {} ({}) at address {}",
-    system->GetTypeName(), systemId, static_cast<void*>(system.get()));
+  spdlog::trace("Adding system {} ({}) at address {}", system->GetTypeName(),
+                systemId, static_cast<void*>(system.get()));
 
   _systems[systemId] = system;
 }
 
 void ECSManager::vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
   std::unique_lock lock(_systemsMutex);
-  
+
   const TypeID systemId = system->GetTypeID();
-  
+
   _systems.erase(systemId);
-  spdlog::trace("Removed system {} ({}) at address {}",
-    system->GetTypeName(), systemId, static_cast<void*>(system.get()));
+  spdlog::trace("Removed system {} ({}) at address {}", system->GetTypeName(),
+                systemId, static_cast<void*>(system.get()));
 }
 
 void ECSManager::vRemoveAllSystems() {
@@ -527,7 +502,8 @@ void ECSManager::DebugPrint() const {
     spdlog::debug(
         "[{}] system {} at address {}, "
         "use_count={}",
-        __FUNCTION__, system->GetTypeName(), static_cast<void*>(system.get()), system.use_count());
+        __FUNCTION__, system->GetTypeName(), static_cast<void*>(system.get()),
+        system.use_count());
   }
 }
 
@@ -552,7 +528,6 @@ void ECSManager::vShutdownSystems() {
         spdlog::error("Encountered null system pointer!");
       }
     }
-
 
     m_eCurrentState = Shutdown;
   });

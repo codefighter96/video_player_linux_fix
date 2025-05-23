@@ -1,8 +1,8 @@
 #include <filament/utils/Entity.h>
 #include <filament/utils/EntityInstance.h>
 
-#include <filament/TransformManager.h>
 #include <filament/RenderableManager.h>
+#include <filament/TransformManager.h>
 
 namespace plugin_filament_view {
 
@@ -14,7 +14,9 @@ using FilamentEntity = utils::Entity;
 /// Lightweight object: can be passed around by value (it's just an ID).
 template <typename T>
 using FilamentEntityInstance = utils::EntityInstance<T>;
-using FilamentTransformInstance = FilamentEntityInstance<filament::TransformManager>;
-using FilamentRenderableInstance = FilamentEntityInstance<filament::RenderableManager>;
+using FilamentTransformInstance =
+    FilamentEntityInstance<filament::TransformManager>;
+using FilamentRenderableInstance =
+    FilamentEntityInstance<filament::RenderableManager>;
 
-}; // namespace plugin_filament_view
+};  // namespace plugin_filament_view

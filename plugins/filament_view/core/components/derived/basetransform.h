@@ -17,17 +17,18 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <filament/math/quat.h>
 #include <filament/math/mat4.h>
+#include <filament/math/quat.h>
 
-#include <core/entity/base/entityobject.h>
 #include <core/components/base/component.h>
-#include <core/utils/filament_types.h>
+#include <core/entity/base/entityobject.h>
 #include <core/utils/asserts.h>
+#include <core/utils/filament_types.h>
 
 namespace plugin_filament_view {
 
-/// @brief TransformVectorData is a struct that holds position/scale/rotation data.
+/// @brief TransformVectorData is a struct that holds position/scale/rotation
+/// data.
 struct TransformVectorData {
   union {
     filament::math::float3 position;
@@ -61,7 +62,8 @@ struct TransformVectorData {
   };
 };
 
-/// @brief TransformMatrixData is a struct that holds a computed transform matrix's data.
+/// @brief TransformMatrixData is a struct that holds a computed transform
+/// matrix's data.
 struct TransformMatrixData {
   union {
     filament::math::mat4f matrix;
@@ -75,205 +77,189 @@ static constexpr filament::math::quatf kQuatfIdentity = {0, 0, 0, 1};
 static constexpr filament::math::mat4f kMat4fIdentity = filament::math::mat4f();
 
 class BaseTransform : public Component {
-  private:
-    /// @brief _isDirty is a flag that indicates if the transform has been modified.
-    /// If true, the transform will be updated by the [TransformSystem] on this frame
-    /// and the flag will be set to false.
-    /// It's set to true whenever the transform is modified.
-    bool _isDirty = true;
-    EntityGUID _parentId = kNullGuid;
-    bool _isParentDirty = false;
+ private:
+  /// @brief _isDirty is a flag that indicates if the transform has been
+  /// modified. If true, the transform will be updated by the [TransformSystem]
+  /// on this frame and the flag will be set to false. It's set to true whenever
+  /// the transform is modified.
+  bool _isDirty = true;
+  EntityGUID _parentId = kNullGuid;
+  bool _isParentDirty = false;
 
-  public:
-    TransformVectorData local;
-    /// @brief Computed transform matrix in world space.
-    /// TODO: does this have to be stored as value? Evaluate storing pointer only
-    TransformMatrixData global;
-    FilamentTransformInstance _fInstance;
+ public:
+  TransformVectorData local;
+  /// @brief Computed transform matrix in world space.
+  /// TODO: does this have to be stored as value? Evaluate storing pointer only
+  TransformMatrixData global;
+  FilamentTransformInstance _fInstance;
 
-    BaseTransform()
-          : Component(std::string(__FUNCTION__)),
-            local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
-            global({kMat4fIdentity}) {}
+  BaseTransform()
+      : Component(std::string(__FUNCTION__)),
+        local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
+        global({kMat4fIdentity}) {}
 
-    explicit BaseTransform(const filament::math::float3& position,
+  explicit BaseTransform(const filament::math::float3& position,
+                         const filament::math::float3& scale,
+                         const filament::math::quatf& rotation)
+      : Component(std::string(__FUNCTION__)),
+        local({{position}, {scale}, {rotation}}),
+        global({kMat4fIdentity}) {}
+
+  explicit BaseTransform(const TransformVectorData& localTransform)
+      : Component(std::string(__FUNCTION__)),
+        local(localTransform),
+        global({kMat4fIdentity}) {}
+
+  // explicit BaseTransform(const filament::math::float3& position,
+  //                        const filament::math::float3& scale)
+  //       : Component(std::string(__FUNCTION__)),
+  //         local({position, scale, kQuatfIdentity}),
+  //         global({kMat4fIdentity}) {}
+
+  // explicit BaseTransform(const filament::math::float3& position)
+  //       : Component(std::string(__FUNCTION__)),
+  //         local({position, kFloat3One, kQuatfIdentity}),
+  //         global({kMat4fIdentity}) {}
+
+  explicit BaseTransform(const flutter::EncodableMap& params);
+
+  /*
+   *   Local
+   */
+  // Getters
+  [[nodiscard]] inline EntityGUID GetParentId() const { return _parentId; }
+
+  [[nodiscard]] inline const filament::math::float3& GetPosition() const {
+    return local.position;
+  }
+
+  [[nodiscard]] inline const filament::math::float3& GetScale() const {
+    return local.scale;
+  }
+
+  [[nodiscard]] inline const filament::math::quatf& GetRotation() const {
+    return local.rotation;
+  }
+
+  // Setters
+  inline void SetPosition(const filament::math::float3& position) {
+    local.position = position;
+    _isDirty = true;
+  }
+
+  inline void SetScale(const filament::math::float3& scale) {
+    // assert positive scale
+    /// TODO: if interested in supporting e.g. negative scalings and shear
+    ///       should look at Graphics Gems II §VII.1.
+    runtime_assert(scale.x >= 0 && scale.y >= 0 && scale.z >= 0,
+                   "Scale must be positive");
+
+    local.scale = scale;
+    _isDirty = true;
+  }
+
+  inline void SetRotation(const filament::math::quatf& rotation) {
+    local.rotation = rotation;
+    _isDirty = true;
+  }
+
+  /// Sets all transform values at once. All params are optional (nullptr)
+  inline void SetTransform(const filament::math::float3* position = nullptr,
+                           const filament::math::float3* scale = nullptr,
+                           const filament::math::quatf* rotation = nullptr) {
+    if (position) {
+      local.position = *position;
+    }
+
+    if (scale) {
+      local.scale = *scale;
+    }
+
+    if (rotation) {
+      local.rotation = *rotation;
+    }
+
+    _isDirty = true;
+  }
+
+  inline void SetTransform(const filament::math::float3& position,
                            const filament::math::float3& scale,
-                           const filament::math::quatf& rotation)
-          : Component(std::string(__FUNCTION__)),
-            local({{position}, {scale}, {rotation}}),
-            global({kMat4fIdentity}) {}
+                           const filament::math::quatf& rotation) {
+    local.position = position;
+    local.scale = scale;
+    local.rotation = rotation;
+    _isDirty = true;
+  }
 
-    explicit BaseTransform(const TransformVectorData& localTransform)
-          : Component(std::string(__FUNCTION__)),
-            local(localTransform),
-            global({kMat4fIdentity}) {}
+  void SetTransform(const filament::math::mat4f& localMatrix);
 
-    // explicit BaseTransform(const filament::math::float3& position,
-    //                        const filament::math::float3& scale)
-    //       : Component(std::string(__FUNCTION__)),
-    //         local({position, scale, kQuatfIdentity}),
-    //         global({kMat4fIdentity}) {}
+  inline void setParent(EntityGUID parentId) {
+    _parentId = parentId;
+    _isParentDirty = true;
+  }
 
-    // explicit BaseTransform(const filament::math::float3& position)
-    //       : Component(std::string(__FUNCTION__)),
-    //         local({position, kFloat3One, kQuatfIdentity}),
-    //         global({kMat4fIdentity}) {}
-            
-    explicit BaseTransform(const flutter::EncodableMap& params);
+  inline void SetDirty(bool dirty) { _isDirty = dirty; }
 
-    /*
-     *   Local
-     */
-    // Getters
-    [[nodiscard]] inline EntityGUID GetParentId() const {
-      return _parentId;
-    }
+  inline void SetParentDirty(bool dirty) { _isParentDirty = dirty; }
 
-    [[nodiscard]] inline const filament::math::float3& GetPosition() const {
-      return local.position;
-    }
+  /*
+   *   Global
+   */
+  // Getters
+  [[nodiscard]] inline bool IsDirty() const { return _isDirty; }
 
-    [[nodiscard]] inline const filament::math::float3& GetScale() const {
-      return local.scale;
-    }
+  [[nodiscard]] inline bool IsParentDirty() const { return _isParentDirty; }
 
-    [[nodiscard]] inline const filament::math::quatf& GetRotation() const {
-      return local.rotation;
-    }
+  /// @returns The transform matrix in world space.
+  [[nodiscard]] inline const filament::math::mat4f& GetGlobalMatrix() const {
+    return global.matrix;
+  }
 
-    // Setters
-    inline void SetPosition(const filament::math::float3& position) {
-      local.position = position;
-      _isDirty = true;
-    }
+  // TODO
+  // [[nodiscard]] const filament::math::float3& GetGlobalPosition() const {
 
-    inline void SetScale(const filament::math::float3& scale) {
-      // assert positive scale
-      /// TODO: if interested in supporting e.g. negative scalings and shear 
-      ///       should look at Graphics Gems II §VII.1.
-      runtime_assert(
-        scale.x >= 0 && scale.y >= 0 && scale.z >= 0,
-        "Scale must be positive"
-      );
+  // }
 
-      local.scale = scale;
-      _isDirty = true;
-    }
+  // TODO
+  // [[nodiscard]] const filament::math::float3& GetGlobalScale() const {
 
-    inline void SetRotation(const filament::math::quatf& rotation) {
-      local.rotation = rotation;
-      _isDirty = true;
-    }
+  // }
 
-    /// Sets all transform values at once. All params are optional (nullptr)
-    inline void SetTransform(const filament::math::float3* position = nullptr,
-                      const filament::math::float3* scale = nullptr,
-                      const filament::math::quatf* rotation = nullptr) {
-      if (position) {
-        local.position = *position;
-      }
+  // TODO
+  // [[nodiscard]] const filament::math::quatf& GetGlobalRotation() const {
 
-      if (scale) {
-        local.scale = *scale;
-      }
-      
-      if (rotation) {
-        local.rotation = *rotation;
-      }
+  // }
 
-      _isDirty = true;
-    }
+  // Setters
 
-    inline void SetTransform(
-      const filament::math::float3& position,
-      const filament::math::float3& scale,
-      const filament::math::quatf& rotation
-    ) {
-      local.position = position;
-      local.scale = scale;
-      local.rotation = rotation;
-      _isDirty = true;
-    }
+  // TODO
+  // void SetGlobalMatrix(const filament::math::mat4f& matrix) {
+  //   throw std::runtime_error("Not implemented");
+  // }
 
-    void SetTransform(const filament::math::mat4f& localMatrix);
+  // TODO
+  // void SetGlobalPosition(const filament::math::float3& position) {
 
-    inline void setParent(EntityGUID parentId) {
-      _parentId = parentId;
-      _isParentDirty = true;
-    }
+  // }
 
-    inline void SetDirty(bool dirty) {
-      _isDirty = dirty;
-    }
+  // TODO
+  // void SetGlobalScale(const filament::math::float3& scale) {
 
-    inline void SetParentDirty(bool dirty) {
-      _isParentDirty = dirty;
-    }
+  // }
 
+  // TODO
+  // void SetGlobalRotation(const filament::math::quatf& rotation) {
 
+  // }
 
-    /*
-     *   Global
-     */
-    // Getters
-    [[nodiscard]] inline bool IsDirty() const {
-      return _isDirty;
-    }
+  /*
+   *   Utils
+   */
+  void DebugPrint(const std::string& tabPrefix) const override;
 
-    [[nodiscard]] inline bool IsParentDirty() const {
-      return _isParentDirty;
-    }
-
-    /// @returns The transform matrix in world space.    
-    [[nodiscard]] inline const filament::math::mat4f& GetGlobalMatrix() const {
-      return global.matrix;
-    }
-
-    // TODO
-    // [[nodiscard]] const filament::math::float3& GetGlobalPosition() const {
-      
-    // }
-
-    // TODO
-    // [[nodiscard]] const filament::math::float3& GetGlobalScale() const {
-
-    // }
-
-    // TODO
-    // [[nodiscard]] const filament::math::quatf& GetGlobalRotation() const {
-
-    // }
-
-    // Setters
-
-    // TODO
-    // void SetGlobalMatrix(const filament::math::mat4f& matrix) {
-    //   throw std::runtime_error("Not implemented");
-    // }
-
-    // TODO
-    // void SetGlobalPosition(const filament::math::float3& position) {
-    
-    // }
-
-    // TODO
-    // void SetGlobalScale(const filament::math::float3& scale) {
-
-    // }
-
-    // TODO
-    // void SetGlobalRotation(const filament::math::quatf& rotation) {
-
-    // }
-
-    /*
-     *   Utils
-     */
-    void DebugPrint(const std::string& tabPrefix) const override;
-    
-    [[nodiscard]] inline Component* Clone() const override {
-      return new BaseTransform(*this);
-    }
+  [[nodiscard]] inline Component* Clone() const override {
+    return new BaseTransform(*this);
+  }
 };
 
 }  // namespace plugin_filament_view

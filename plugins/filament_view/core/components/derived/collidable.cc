@@ -124,28 +124,23 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Collidable::intersects(const Ray& ray,
-                                filament::math::float3& hitPosition,
-                                const std::shared_ptr<BaseTransform>& transform
-                              ) const {
+bool Collidable::intersects(
+    const Ray& ray,
+    filament::math::float3& hitPosition,
+    const std::shared_ptr<BaseTransform>& transform) const {
   if (!enabled) {
     return false;
   }
 
   // TODO: implement static colliders
-  if(m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
+  if (m_bIsStatic != false)
+    throw std::runtime_error("Static collidables not implemented yet.");
 
   // Get AABB coordinates (local space!)
-  filament::math::float3 center = (
-    m_bIsStatic
-    ? m_f3StaticPosition
-    : _aabb.center 
-  );
-  filament::math::float3 extents = (
-    m_bShouldMatchAttachedObject
-    ? _aabb.halfExtent * 2
-    : _extentSize
-  ); 
+  filament::math::float3 center =
+      (m_bIsStatic ? m_f3StaticPosition : _aabb.center);
+  filament::math::float3 extents =
+      (m_bShouldMatchAttachedObject ? _aabb.halfExtent * 2 : _extentSize);
   const filament::math::float3 rayOrigin = ray.f3GetPosition();
   const filament::math::float3 rayDirection = ray.f3GetDirection();
 
@@ -159,8 +154,11 @@ bool Collidable::intersects(const Ray& ray,
   switch (m_eShapeType) {
     case ShapeType::Sphere: {
       // Sphere-ray intersection
-      float radius = extents.x;  // Assuming the x component of extents represents the radius
-      filament::math::float3 oc = rayOrigin - center;  // Vector from ray origin to sphere center
+      float radius =
+          extents
+              .x;  // Assuming the x component of extents represents the radius
+      filament::math::float3 oc =
+          rayOrigin - center;  // Vector from ray origin to sphere center
       float a = dot(rayDirection, rayDirection);
       float b = 2.0f * dot(oc, rayDirection);
       float c = dot(oc, oc) - radius * radius;
@@ -254,15 +252,11 @@ bool Collidable::intersects(const Ray& ray,
   // Intersection found
   if (doesIntersect) {
     spdlog::debug("== INTERSECTION FOUND == ({})", GetOwner()->GetGuid());
-    spdlog::debug(
-      "AABB.pos: x={}, y={}, z={} (global)",
-      center.x, center.y, center.z
-    );
-    spdlog::debug(
-      "AABB.size: x={}, y={}, z={} (global)",
-      extents.x, extents.y, extents.z
-    );
-    return true;  
+    spdlog::debug("AABB.pos: x={}, y={}, z={} (global)", center.x, center.y,
+                  center.z);
+    spdlog::debug("AABB.size: x={}, y={}, z={} (global)", extents.x, extents.y,
+                  extents.z);
+    return true;
   }
 
   return false;  // No intersection

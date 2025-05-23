@@ -63,7 +63,9 @@ class Light : public Component {
   }
   [[nodiscard]] inline bool GetCastLight() const { return m_bCastLight; }
   [[nodiscard]] inline bool GetCastShadows() const { return m_bCastShadows; }
-  [[nodiscard]] inline float GetFalloffRadius() const { return m_fFalloffRadius; }
+  [[nodiscard]] inline float GetFalloffRadius() const {
+    return m_fFalloffRadius;
+  }
   [[nodiscard]] inline float GetSpotLightConeInner() const {
     return m_fSpotLightConeInner;
   }
@@ -74,7 +76,9 @@ class Light : public Component {
     return m_fSunAngularRadius;
   }
   [[nodiscard]] inline float GetSunHaloSize() const { return m_fSunHaloSize; }
-  [[nodiscard]] inline float GetSunHaloFalloff() const { return m_fSunHaloFalloff; }
+  [[nodiscard]] inline float GetSunHaloFalloff() const {
+    return m_fSunHaloFalloff;
+  }
 
   inline void SetLightType(filament::LightManager::Type type) { m_Type = type; }
   inline void SetColor(const std::string& color) { m_szColor = color; }
@@ -91,15 +95,23 @@ class Light : public Component {
   inline void SetCastLight(bool castLight) { m_bCastLight = castLight; }
   inline void SetCastShadows(bool castShadows) { m_bCastShadows = castShadows; }
   inline void SetFalloffRadius(float radius) { m_fFalloffRadius = radius; }
-  inline void SetSpotLightConeInner(float angle) { m_fSpotLightConeInner = angle; }
-  inline void SetSpotLightConeOuter(float angle) { m_fSpotLightConeOuter = angle; }
-  inline void SetSunAngularRadius(float radius) { m_fSunAngularRadius = radius; }
+  inline void SetSpotLightConeInner(float angle) {
+    m_fSpotLightConeInner = angle;
+  }
+  inline void SetSpotLightConeOuter(float angle) {
+    m_fSpotLightConeOuter = angle;
+  }
+  inline void SetSunAngularRadius(float radius) {
+    m_fSunAngularRadius = radius;
+  }
   inline void SetSunHaloSize(float size) { m_fSunHaloSize = size; }
   inline void SetSunHaloFalloff(float falloff) { m_fSunHaloFalloff = falloff; }
 
   void DebugPrint(const std::string& tabPrefix) const override;
-  
-  [[nodiscard]] inline Component* Clone() const override { return new Light(*this); }
+
+  [[nodiscard]] inline Component* Clone() const override {
+    return new Light(*this);
+  }
 
   static ::filament::LightManager::Type textToLightType(
       const std::string& type);
@@ -117,7 +129,7 @@ class Light : public Component {
   // TODO: refactor to use BaseTransform
   filament::math::float3 m_f3Position;
   filament::math::float3 m_f3Direction;
-  
+
   bool m_bCastLight;
   bool m_bCastShadows;
   float m_fFalloffRadius;

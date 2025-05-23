@@ -17,10 +17,10 @@
 
 #include <encodable_value.h>
 
-#include <core/entity/base/entityobject.h>
 #include <core/components/derived/basetransform.h>
-#include <core/components/derived/commonrenderable.h>
 #include <core/components/derived/collidable.h>
+#include <core/components/derived/commonrenderable.h>
+#include <core/entity/base/entityobject.h>
 #include <core/utils/bounding_volumes.h>
 
 namespace plugin_filament_view {
@@ -28,7 +28,8 @@ namespace plugin_filament_view {
 class MaterialSystem;
 class ModelSystem;
 
-/// TODO: remove this and refactor specific methods into the Renderable component (CoI, come on)
+/// TODO: remove this and refactor specific methods into the Renderable
+/// component (CoI, come on)
 
 // Renderable Entity Objects are intended to have material settings on them
 // where NonRenderable EntityObjects do not. Its expected on play Renderable's
@@ -46,15 +47,12 @@ class RenderableEntityObject : public EntityObject {
       : EntityObject(params) {}
 
   explicit RenderableEntityObject(const std::string& name)
-  : EntityObject(name) {}
+      : EntityObject(name) {}
 
-  explicit RenderableEntityObject(const EntityGUID guid)
-  : EntityObject(guid) {}
+  explicit RenderableEntityObject(const EntityGUID guid) : EntityObject(guid) {}
   explicit RenderableEntityObject(const std::string& name,
                                   const EntityGUID guid)
       : EntityObject(name, guid) {}
-  
-
 
   virtual void DebugPrint() const override {};
 
@@ -64,7 +62,6 @@ class RenderableEntityObject : public EntityObject {
    * Deserialization
    */
   virtual void deserializeFrom(const flutter::EncodableMap& params) override;
-
 
   // These are expected to have Material instances in base class after we go
   // from Uber shader to <?more interchangeable?> on models. For now these are
@@ -78,12 +75,12 @@ class RenderableEntityObject : public EntityObject {
       const MaterialParameter* materialParam,
       const TextureMap& loadedTextures) {};
 
-  /// material to be used for the renderable - instantiated from material definition
-  /// Only after a run time request to change has been made.
-  /// This should probably be on the entity level as renderable would use this in
+  /// material to be used for the renderable - instantiated from material
+  /// definition Only after a run time request to change has been made. This
+  /// should probably be on the entity level as renderable would use this in
   /// future as well.
   Resource<filament::MaterialInstance*> m_poMaterialInstance =
-    Resource<filament::MaterialInstance*>::Error("Unset");
+      Resource<filament::MaterialInstance*>::Error("Unset");
 
   void vLoadMaterialDefinitionsToMaterialInstance();
 
@@ -92,7 +89,8 @@ class RenderableEntityObject : public EntityObject {
   /// @returns The AABB of the entity
   [[nodiscard]] virtual AABB getAABB() const;
 
-  /// The default implementation just returns a sphere with the max radius covering the AABB
+  /// The default implementation just returns a sphere with the max radius
+  /// covering the AABB
   /// @returns The radius of the bounding sphere
   [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
     return BoundingSphere(getAABB());

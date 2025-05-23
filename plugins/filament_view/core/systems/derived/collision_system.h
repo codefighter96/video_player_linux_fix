@@ -39,6 +39,7 @@ class HitResult {
 // efficient.
 class CollisionSystem : public ECSystem {
   friend class ModelSystem;
+
  public:
   CollisionSystem() = default;
 

@@ -32,7 +32,7 @@ class Animation final : public Component {
   explicit Animation(const flutter::EncodableMap& params);
 
   void DebugPrint(const std::string& tabPrefix) const override;
-  
+
   [[nodiscard]] inline Component* Clone() const override {
     return new Animation(*this);
   }
@@ -43,9 +43,7 @@ class Animation final : public Component {
 
   void vUpdate(float fElapsedTime);
 
-  [[nodiscard]] inline float getSpeed() const {
-    return m_fPlaybackSpeedScalar;
-  }
+  [[nodiscard]] inline float getSpeed() const { return m_fPlaybackSpeedScalar; }
 
   // Setter for m_fPlaybackSpeedScalar
   inline void setSpeed(float playbackSpeedScalar) {

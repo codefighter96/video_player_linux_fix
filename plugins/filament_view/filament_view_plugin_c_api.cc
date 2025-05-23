@@ -58,8 +58,7 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
       platform_view_context);*/
 
   // after we're done doing setup, kick off the run loops
-  if (const auto ecs =
-          plugin_filament_view::ECSManager::GetInstance();
+  if (const auto ecs = plugin_filament_view::ECSManager::GetInstance();
       ecs->getRunState() ==
       plugin_filament_view::ECSManager::RunState::Initialized) {
     ecs->DebugPrint();

@@ -16,6 +16,7 @@
 
 #include "sphere.h"
 
+#include <core/include/literals.h>
 #include <core/utils/deserialize.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
@@ -23,7 +24,6 @@
 #include <math/norm.h>
 #include <math/vec3.h>
 #include <plugins/common/common.h>
-#include <core/include/literals.h>
 #include <vector>
 
 namespace plugin_filament_view::shapes {
@@ -77,9 +77,9 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
   for (int i = 0; i <= stacks; ++i) {
     const float stackAngle =
         static_cast<float>(M_PI) / 2.0f -
-        static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    const float xy = cosf(stackAngle) * 0.5f;      // r * cos(u)
-    float z = sinf(stackAngle) * 0.5f;             // r * sin(u)
+        static_cast<float>(i) * stackStep;     // from pi/2 to -pi/2
+    const float xy = cosf(stackAngle) * 0.5f;  // r * cos(u)
+    float z = sinf(stackAngle) * 0.5f;         // r * sin(u)
     float v = static_cast<float>(i) /
               static_cast<float>(stacks);  // Latitude, y-axis UV
 

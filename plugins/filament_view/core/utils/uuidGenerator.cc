@@ -21,15 +21,15 @@
 namespace plugin_filament_view {
 
 int64_t _counter = 0;
-const int64_t _preamble = 1; // odd number for CPP (Dart has even)
+const int64_t _preamble = 1;  // odd number for CPP (Dart has even)
 const int64_t _increment = 2;
 
 int64_t generateUUID() {
-    const int64_t id = ++_counter * _increment + _preamble;
+  const int64_t id = ++_counter * _increment + _preamble;
 
-    // spdlog::debug("[generateGuid-cpp] generated ID: {}", id);
+  // spdlog::debug("[generateGuid-cpp] generated ID: {}", id);
 
-    return id;
+  return id;
 }
 
 }  // namespace plugin_filament_view

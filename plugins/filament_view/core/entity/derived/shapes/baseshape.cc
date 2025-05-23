@@ -46,19 +46,21 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
   RenderableEntityObject::deserializeFrom(params);
 
   // shapeType
-  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params, ShapeType::Unset);
+  Deserialize::DecodeEnumParameterWithDefault(kShapeType, &type_, params,
+                                              ShapeType::Unset);
 
   // normal
-  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, float3(0, 0, 0));
+  Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params,
+                                          float3(0, 0, 0));
 
   // doubleSided
-  m_bDoubleSided = Deserialize::DecodeParameterWithDefault<bool>(kDoubleSided, params, false);
+  m_bDoubleSided = Deserialize::DecodeParameterWithDefault<bool>(kDoubleSided,
+                                                                 params, false);
 
   // MaterialDefinitions (optional)
-  if(Deserialize::HasKey(params, kMaterial)) {
+  if (Deserialize::HasKey(params, kMaterial)) {
     auto matdefParams = std::get<flutter::EncodableMap>(
-      params.find(flutter::EncodableValue(kMaterial))->second
-    );
+        params.find(flutter::EncodableValue(kMaterial))->second);
     addComponent(MaterialDefinitions(matdefParams));
   } else {
     spdlog::debug("This entity params has no material definitions");
@@ -70,9 +72,10 @@ void BaseShape::onInitialize() {
 
   // Make sure it has a MaterialDefinitions component
   const auto materialDefinitions = getComponent<MaterialDefinitions>();
-  if(!materialDefinitions) {
-    spdlog::warn("BaseShape({}) has no material, adding default material", guid_);
-    addComponent(kDefaultMaterial); // init with defaults
+  if (!materialDefinitions) {
+    spdlog::warn("BaseShape({}) has no material, adding default material",
+                 guid_);
+    addComponent(kDefaultMaterial);  // init with defaults
   }
 }
 
@@ -118,17 +121,19 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   other.m_bHasTexturedMaterial = m_bHasTexturedMaterial;
 
   // and now components.
-  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<BaseTransform>(), other);
-  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(),
-                                     other);
+  this->vShallowCopyComponentToOther(
+      Component::StaticGetTypeID<BaseTransform>(), other);
+  this->vShallowCopyComponentToOther(
+      Component::StaticGetTypeID<CommonRenderable>(), other);
 
-  const std::shared_ptr<BaseTransform> baseTransformPtr = ecs->getComponent<BaseTransform>(guid_);
+  const std::shared_ptr<BaseTransform> baseTransformPtr =
+      ecs->getComponent<BaseTransform>(guid_);
 
-  const std::shared_ptr<CommonRenderable> commonRenderablePtr = ecs->getComponent<CommonRenderable>(guid_);
+  const std::shared_ptr<CommonRenderable> commonRenderablePtr =
+      ecs->getComponent<CommonRenderable>(guid_);
 
   /// TODO: ecs->addComponent
 }
-
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vBuildRenderable(filament::Engine* engine_) {
@@ -136,13 +141,13 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   // material_manager can and will be null for now on wireframe creation.
 
   filament::math::float3 aabb;
-  switch(type_) {
+  switch (type_) {
     case ShapeType::Cube:
     case ShapeType::Sphere:
-      aabb = {0.5f, 0.5f, 0.5f}; // NOTE: faces forward by default
+      aabb = {0.5f, 0.5f, 0.5f};  // NOTE: faces forward by default
       break;
     case ShapeType::Plane:
-      aabb = {0.5f, 0.5f, 0.005f}; // NOTE: faces sideways by default
+      aabb = {0.5f, 0.5f, 0.005f};  // NOTE: faces sideways by default
       break;
     default:
       aabb = {0, 0, 0};
@@ -150,21 +155,16 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
       break;
   }
 
-
-  spdlog::trace("[{}] Building shape '{}'({})",
-    __FUNCTION__, GetName(), GetGuid()
-  );
+  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, GetName(),
+                GetGuid());
 
   const auto transform = getComponent<BaseTransform>();
-  #if SPDLOG_LEVEL == trace
-  // transform->DebugPrint("  ");
-  #endif
+#if SPDLOG_LEVEL == trace
+// transform->DebugPrint("  ");
+#endif
 
-
-  spdlog::trace(
-    "[{}] AABB.scale: x={}, y={}, z={}",
-    __FUNCTION__, aabb.x, aabb.y, aabb.z
-  );
+  spdlog::trace("[{}] AABB.scale: x={}, y={}, z={}", __FUNCTION__, aabb.x,
+                aabb.y, aabb.z);
 
   const auto renderable = getComponent<CommonRenderable>();
 
@@ -173,7 +173,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
     // m_poMaterialInstance =
     //  material_manager->getMaterialInstance(m_poMaterialDefinitions->get());
     RenderableManager::Builder(1)
-        .boundingBox({{}, aabb}) // center, halfExtent
+        .boundingBox({{}, aabb})  // center, halfExtent
         //.material(0, m_poMaterialInstance.getData().value())
         .geometry(0, RenderableManager::PrimitiveType::LINES, m_poVertexBuffer,
                   m_poIndexBuffer)
@@ -196,13 +196,15 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   }
 
   transform->_fInstance = engine_->getTransformManager().getInstance(_fEntity);
-  renderable->_fInstance = engine_->getRenderableManager().getInstance(_fEntity);
+  renderable->_fInstance =
+      engine_->getRenderableManager().getInstance(_fEntity);
 
   // Get parent entity id
   const auto parentId = transform->GetParentId();
 
-  const auto transformSystem = ecs->getSystem<TransformSystem>("BaseShape::vBuildRenderable");
-  if(parentId != kNullGuid) {
+  const auto transformSystem =
+      ecs->getSystem<TransformSystem>("BaseShape::vBuildRenderable");
+  if (parentId != kNullGuid) {
     // Get the parent entity object
     auto parentEntity = ecs->getEntity(parentId);
     auto parentFilamentEntity = parentEntity->_fEntity;
@@ -212,9 +214,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
   /// NOTE: why is this needed? if this is not called the collider doesn't work,
   ///       even though it's visible
-  transformSystem->applyTransform(
-    guid_, true
-  );
+  transformSystem->applyTransform(guid_, true);
 
   // TODO , need 'its done building callback to delete internal arrays data'
   // - note the calls are async built, but doesn't seem to be a method internal
@@ -225,13 +225,12 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 void BaseShape::vRemoveEntityFromScene() const {
   if (!_fEntity) {
     spdlog::warn("Attempt to remove uninitialized shape from scene {}",
-                __FUNCTION__);
+                 __FUNCTION__);
     return;
   }
 
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "BaseShape::vRemoveEntityFromScene");
+      ecs->getSystem<FilamentSystem>("BaseShape::vRemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->remove(_fEntity);
 }
@@ -239,13 +238,13 @@ void BaseShape::vRemoveEntityFromScene() const {
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vAddEntityToScene() const {
   if (!_fEntity) {
-    spdlog::warn("Attempt to add uninitialized shape to scene {}", __FUNCTION__);
+    spdlog::warn("Attempt to add uninitialized shape to scene {}",
+                 __FUNCTION__);
     return;
   }
 
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "BaseShape::vRemoveEntityFromScene");
+      ecs->getSystem<FilamentSystem>("BaseShape::vRemoveEntityFromScene");
   filamentSystem->getFilamentScene()->addEntity(_fEntity);
 }
 
@@ -276,7 +275,8 @@ void BaseShape::vChangeMaterialDefinitions(
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
   if (hasComponent<MaterialDefinitions>()) {
-    ecs->removeComponent(guid_, Component::StaticGetTypeID<MaterialDefinitions>());
+    ecs->removeComponent(guid_,
+                         Component::StaticGetTypeID<MaterialDefinitions>());
   }
 
   // If you want to inspect the params coming in.

@@ -25,9 +25,9 @@
 
 #include <core/systems/messages/ecs_message.h>
 #include <core/systems/messages/ecs_message_types.h>
+#include <core/utils/filament_types.h>
 #include <core/utils/identifiable_type.h>
 #include <core/utils/smarter_pointers.h>
-#include <core/utils/filament_types.h>
 
 namespace flutter {
 class PluginRegistrar;
@@ -66,9 +66,7 @@ class ECSystem : public IdentifiableType {
   }
 
   /// @deprecated To be replaced by `LifecycleParticipant`
-  [[nodiscard]] inline bool isInitialized() const {
-    return ecs != nullptr;
-  }
+  [[nodiscard]] inline bool isInitialized() const { return ecs != nullptr; }
 
   /// @deprecated To be replaced by `LifecycleParticipant`
   /// @throws std::runtime_error if not initialized
@@ -99,8 +97,6 @@ class ECSystem : public IdentifiableType {
   virtual void vHandleMessage(const ECSMessage& msg);
 
  private:
-
-
   std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages
   std::unordered_map<ECSMessageType,
                      std::vector<ECSMessageHandler>,

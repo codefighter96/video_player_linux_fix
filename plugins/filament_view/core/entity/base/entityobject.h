@@ -22,10 +22,10 @@
 #include <core/utils/filament_types.h>
 #include <filament/Scene.h>
 
-#include <utility>
 #include <core/components/base/component.h>
 #include <core/components/derived/material_definitions.h>
 #include <core/utils/smarter_pointers.h>
+#include <utility>
 
 namespace plugin_filament_view {
 class MaterialParameter;
@@ -63,15 +63,12 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
  public:
   FilamentEntity _fEntity;
 
-
   // Overloading the == operator to compare based on guid_
   bool operator==(const EntityObject& other) const {
     return guid_ == other.guid_;
   }
 
-  [[nodiscard]] inline bool isInitialized()  const{
-    return _isInitialized;
-  }
+  [[nodiscard]] inline bool isInitialized() const { return _isInitialized; }
 
   /// @brief Checks if the entity is initialized. Throws an exception if not.
   /// @throws std::runtime_error if the entity is not initialized.
@@ -80,7 +77,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
     if (!_isInitialized) {
       throw std::runtime_error(
-          // fmt::format("[{}] EntityObject ({}) is not initialized", __FUNCTION__, guid_));
+          // fmt::format("[{}] EntityObject ({}) is not initialized",
+          // __FUNCTION__, guid_));
           "EntityObject is not initialized");
     }
   }
@@ -96,14 +94,12 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// TODO: remove this, expose name as public
   [[nodiscard]] inline const std::string& GetName() const { return name_; }
 
-
-
  protected:
   smarter_raw_ptr<ECSManager> ecs = nullptr;
   /// Temporary storage for components that are being added to the entity
   /// before it's initialized within ECS.
-  /// After the entity is initialized, these components are moved to the ECS' memory
-  /// and the temporary storage is cleared.
+  /// After the entity is initialized, these components are moved to the ECS'
+  /// memory and the temporary storage is cleared.
   std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
 
   /// GUID of the entity.
@@ -138,7 +134,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// NOTE: this is a good place to initialize components and children.
   virtual void onInitialize();
   /// Called immediately before the entity is unregistered in the ECSManager.
-  /// NOTE: it doesn't need to deallocate components or children, the ECSManager will do that.
+  /// NOTE: it doesn't need to deallocate components or children, the ECSManager
+  /// will do that.
   virtual void onDestroy() {};
 
  public:
@@ -147,7 +144,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
   /// and added to the entity after initialization.
   template <typename T>
   inline void addComponent(const T& component) {
-    addComponent(Component::StaticGetTypeID<T>(), std::make_shared<T>(component));
+    addComponent(Component::StaticGetTypeID<T>(),
+                 std::make_shared<T>(component));
   }
 
   /// Called by [ECSManager] when a component is added to the entity.
@@ -158,7 +156,8 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
   template <typename T>
   [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
-    return std::dynamic_pointer_cast<T>(getComponent(Component::StaticGetTypeID<T>()));
+    return std::dynamic_pointer_cast<T>(
+        getComponent(Component::StaticGetTypeID<T>()));
   }
 
   template <typename T>
@@ -175,10 +174,10 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
 
   static EntityDescriptor DeserializeNameAndGuid(
       const flutter::EncodableMap& params);
-  
+
   /// @brief Deserializes the entity from a map of parameters.
   virtual void deserializeFrom(const flutter::EncodableMap& params);
-  
+
  private:
   std::mutex _initMutex;
   bool _isInitialized = false;
@@ -207,16 +206,18 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     _isInitialized = false;
   }
 
-  void addComponent(TypeID staticTypeID, const std::shared_ptr<Component>& component);
+  void addComponent(TypeID staticTypeID,
+                    const std::shared_ptr<Component>& component);
 
   /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
   /// @returns component if valid, nullptr if not found.
-  [[nodiscard]] std::shared_ptr<Component> getComponent(TypeID staticTypeID) const;
+  [[nodiscard]] std::shared_ptr<Component> getComponent(
+      TypeID staticTypeID) const;
 
   /// @brief Checks if the entity has a component of the given type.
-  /// @param staticTypeID The static type ID of the component -> [Component::StaticGetTypeID<DerivedClass>()]
+  /// @param staticTypeID The static type ID of the component ->
+  /// [Component::StaticGetTypeID<DerivedClass>()]
   /// @returns true if the entity has the component, false otherwise.
   [[nodiscard]] bool hasComponent(TypeID staticTypeID) const;
-
 };
 }  // namespace plugin_filament_view

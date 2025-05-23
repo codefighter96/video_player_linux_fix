@@ -19,8 +19,8 @@
 
 #include <core/include/additionalmath.h>
 #include <core/systems/derived/filament_system.h>
-#include <core/systems/derived/view_target_system.h>
 #include <core/systems/derived/transform_system.h>
+#include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
@@ -45,9 +45,8 @@ CameraManager::CameraManager(ViewTarget* poOwner)
 void CameraManager::setDefaultFilamentCamera() {
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
-  auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "CameraManager::setDefaultCamera");
+  auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      "CameraManager::setDefaultCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   auto fview = m_poOwner->getFilamentView();
@@ -259,9 +258,8 @@ void CameraManager::updateCameraManipulator(const Camera* cameraInfo) {
         cameraInfo->flightMaxMoveSpeed_.value());
   }
 
-  auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "CameraManager::setDefaultCamera");
+  auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      "CameraManager::setDefaultCamera");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
   manipulatorBuilder.viewport(static_cast<int>(viewport.width),
@@ -449,8 +447,7 @@ void CameraManager::updateCamerasFeatures(float fElapsedTime) {
 void CameraManager::destroyCamera() const {
   SPDLOG_DEBUG("++CameraManager::destroyCamera");
   const auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "destroyCamera");
+      ECSManager::GetInstance()->getSystem<FilamentSystem>("destroyCamera");
   const auto engine = filamentSystem->getFilamentEngine();
 
   engine->destroyCameraComponent(cameraEntity_);
@@ -559,9 +556,8 @@ void CameraManager::onAction(int32_t action,
   }
 #endif
 
-  auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "CameraManager::setDefaultCamera");
+  auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      "CameraManager::setDefaultCamera");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
   auto touch =
@@ -708,9 +704,8 @@ void CameraManager::updateCameraProjection() {
 
 ////////////////////////////////////////////////////////////////////////////
 float CameraManager::calculateAspectRatio() const {
-  auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "CameraManager::aGetRayInformationFromOnTouchPosition");
+  auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      "CameraManager::aGetRayInformationFromOnTouchPosition");
 
   const auto viewport = m_poOwner->getFilamentView()->getViewport();
   return static_cast<float>(viewport.width) /

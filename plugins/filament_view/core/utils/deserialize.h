@@ -39,28 +39,27 @@ class Deserialize {
   }
 
   /// @brief Decode a parameter from the given map.
-  /// @throws std::runtime_error if the parameter is not found or is of the wrong type.
+  /// @throws std::runtime_error if the parameter is not found or is of the
+  /// wrong type.
   template <typename T>
-  static T DecodeParameter(
-    const char* key,
-    const flutter::EncodableMap& params
-  ) {
+  static T DecodeParameter(const char* key,
+                           const flutter::EncodableMap& params) {
     auto it = params.find(flutter::EncodableValue(key));
     if (it != params.end() && std::holds_alternative<T>(it->second)) {
       return std::get<T>(it->second);
     } else {
       throw std::runtime_error(
-        fmt::format("Parameter '{}' not found or wrong type", key));
+          fmt::format("Parameter '{}' not found or wrong type", key));
     }
   }
 
   /// @brief Decode an optional parameter from the given map.
-  /// @returns std::optional<T> containing the value if found, or std::nullopt if not.
+  /// @returns std::optional<T> containing the value if found, or std::nullopt
+  /// if not.
   template <typename T>
   static std::optional<T> DecodeOptionalParameter(
-    const char* key,
-    const flutter::EncodableMap& params
-  ) {
+      const char* key,
+      const flutter::EncodableMap& params) {
     auto it = params.find(flutter::EncodableValue(key));
     if (it != params.end() && std::holds_alternative<T>(it->second)) {
       return std::get<T>(it->second);
@@ -87,10 +86,9 @@ class Deserialize {
   }
 
   template <typename T>
-  static T DecodeParameterWithDefault(
-      const char* key,
-      const flutter::EncodableMap& params,
-      const T& default_value) {
+  static T DecodeParameterWithDefault(const char* key,
+                                      const flutter::EncodableMap& params,
+                                      const T& default_value) {
     auto it = params.find(flutter::EncodableValue(key));
     if (it != params.end() && std::holds_alternative<T>(it->second)) {
       return std::get<T>(it->second);

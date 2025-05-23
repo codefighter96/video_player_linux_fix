@@ -18,7 +18,6 @@
 
 #include <core/components/derived/collidable.h>
 
-
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/entity/derived/shapes/cube.h>
 #include <core/entity/derived/shapes/plane.h>
@@ -48,7 +47,7 @@ void ShapeSystem::vToggleAllShapesInScene(const bool enable) const {
 }
 
 bool ShapeSystem::hasShape(const EntityGUID guid) const {
-  if(std::find(_shapes.begin(), _shapes.end(), guid) != _shapes.end()) {
+  if (std::find(_shapes.begin(), _shapes.end(), guid) != _shapes.end()) {
     return true;
   } else {
     return false;
@@ -115,15 +114,18 @@ std::unique_ptr<BaseShape> ShapeSystem::poDeserializeShapeFromData(
     case ShapeType::Plane: {
       auto toReturn = std::make_unique<shapes::Plane>();
       toReturn->deserializeFrom(mapData);
-      return toReturn; }
+      return toReturn;
+    }
     case ShapeType::Cube: {
       auto toReturn = std::make_unique<shapes::Cube>();
       toReturn->deserializeFrom(mapData);
-      return toReturn; }
+      return toReturn;
+    }
     case ShapeType::Sphere: {
       auto toReturn = std::make_unique<shapes::Sphere>();
       toReturn->deserializeFrom(mapData);
-      return toReturn; }
+      return toReturn;
+    }
     default:
       // Handle unknown shape type
       spdlog::error("Unknown shape type: {}", static_cast<int32_t>(type));
@@ -148,8 +150,10 @@ void ShapeSystem::addShapesToScene(
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
-void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape) {
-  runtime_assert(shape != nullptr, "ShapeSystem::addShapeToScene: shape cannot be null");
+void ShapeSystem::addShapeToScene(
+    const std::shared_ptr<shapes::BaseShape>& shape) {
+  runtime_assert(shape != nullptr,
+                 "ShapeSystem::addShapeToScene: shape cannot be null");
 
   filament::Scene* filamentScene = _filament->getFilamentScene();
 
@@ -160,8 +164,8 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shap
 
   shape->bInitAndCreateShape(_engine, oEntity);
 
-  spdlog::trace("Adding entity {} with filament entity {}",
-                shape->GetGuid(), oEntity.getId());
+  spdlog::trace("Adding entity {} with filament entity {}", shape->GetGuid(),
+                oEntity.getId());
 
   // To investigate a better system for implementing layer mask
   // across dart to here.
@@ -176,17 +180,22 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shap
 void ShapeSystem::vOnInitSystem() {
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr,
+                 "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr,
+                 "ModelSystem::vOnInitSystem: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
-  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr,
+                 "ModelSystem::vOnInitSystem: RenderableManager not found");
+  runtime_assert(_tm != nullptr,
+                 "ModelSystem::vOnInitSystem: TransformManager not found");
+  runtime_assert(_em != nullptr,
+                 "ModelSystem::vOnInitSystem: EntityManager not found");
 
   /*
    * Register message handlers

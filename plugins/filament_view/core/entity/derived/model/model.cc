@@ -57,18 +57,16 @@ void Model::deserializeFrom(const flutter::EncodableMap& params) {
 
   // is_glb
   bool is_glb = Deserialize::DecodeParameter<bool>(kIsGlb, params);
-  runtime_assert(is_glb, "Model::deserializeFrom - is_glb must be true for Model");
+  runtime_assert(is_glb,
+                 "Model::deserializeFrom - is_glb must be true for Model");
 
   // _instancingMode
-  Deserialize::DecodeEnumParameterWithDefault(
-    kModelInstancingMode,
-    &_instancingMode,
-    params,
-    ModelInstancingMode::none
-  );
+  Deserialize::DecodeEnumParameterWithDefault(kModelInstancingMode,
+                                              &_instancingMode, params,
+                                              ModelInstancingMode::none);
 
-  spdlog::trace("Model({}), instanceMode: {}",
-                assetPath_, modelInstancingModeToString(_instancingMode));
+  spdlog::trace("Model({}), instanceMode: {}", assetPath_,
+                modelInstancingModeToString(_instancingMode));
 
   // Animation (optional)
   spdlog::trace("Making Animation...");

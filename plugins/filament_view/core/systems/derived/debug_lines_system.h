@@ -20,7 +20,6 @@
 #include <memory>
 #include <vector>
 
-
 #include <filament/Box.h>
 #include <filament/Engine.h>
 #include <filament/utils/EntityManager.h>

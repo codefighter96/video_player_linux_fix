@@ -15,7 +15,6 @@
  */
 #pragma once
 
-
 #include <plugins/common/common.h>
 #include <utility>
 

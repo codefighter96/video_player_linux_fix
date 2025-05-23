@@ -100,10 +100,8 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
   for (const auto& [fst, snd] : parameters_) {
     if (snd != nullptr)
       // snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
-      spdlog::debug(
-          tabPrefix + "parameter: {} type: {}",
-          snd->szGetParameterName(),
-          static_cast<int>(snd->type_));
+      spdlog::debug(tabPrefix + "parameter: {} type: {}",
+                    snd->szGetParameterName(), static_cast<int>(snd->type_));
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");

@@ -21,6 +21,7 @@
 #include <core/include/color.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecs.h>
+#include <core/utils/asserts.h>
 #include <core/utils/uuidGenerator.h>
 #include <filament/Color.h>
 #include <filament/LightManager.h>
@@ -28,7 +29,6 @@
 #include <plugins/common/common.h>
 #include <utils/EntityManager.h>
 #include <asio/post.hpp>
-#include <core/utils/asserts.h>
 
 namespace plugin_filament_view {
 using filament::math::float3;
@@ -113,8 +113,7 @@ void LightSystem::vBuildLight(Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vRemoveLightFromScene(const Light& light) {
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "lightManager::vRemoveLightFromScene");
+      ecs->getSystem<FilamentSystem>("lightManager::vRemoveLightFromScene");
 
   const auto scene = filamentSystem->getFilamentScene();
 
@@ -124,8 +123,7 @@ void LightSystem::vRemoveLightFromScene(const Light& light) {
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vAddLightToScene(const Light& light) {
   const auto filamentSystem =
-      ecs->getSystem<FilamentSystem>(
-          "lightManager::vAddLightToScene");
+      ecs->getSystem<FilamentSystem>("lightManager::vAddLightToScene");
 
   const auto scene = filamentSystem->getFilamentScene();
 
@@ -150,7 +148,8 @@ void LightSystem::vOnInitSystem() {
 
         // find the entity in our list:
         const auto theLight = ecs->getComponent<Light>(guid);
-        runtime_assert(theLight != nullptr, fmt::format("Entity({}): Light not found", guid));
+        runtime_assert(theLight != nullptr,
+                       fmt::format("Entity({}): Light not found", guid));
 
         theLight->SetIntensity(intensityValue);
         theLight->SetColor(colorValue);
@@ -174,7 +173,8 @@ void LightSystem::vOnInitSystem() {
 
         // find the entity in our list:
         const auto theLight = ecs->getComponent<Light>(guid);
-        runtime_assert(theLight != nullptr, fmt::format("Entity({}): Light not found", guid));
+        runtime_assert(theLight != nullptr,
+                       fmt::format("Entity({}): Light not found", guid));
         theLight->SetPosition(position);
         theLight->SetDirection(rotation);
 
@@ -191,7 +191,8 @@ void LightSystem::vUpdate(float /*fElapsedTime*/) {}
 ////////////////////////////////////////////////////////////////////////////////////
 void LightSystem::vShutdownSystem() {
   if (m_poDefaultLight != nullptr) {
-    const auto component = ecs->getComponent<Light>(m_poDefaultLight->GetGuid());
+    const auto component =
+        ecs->getComponent<Light>(m_poDefaultLight->GetGuid());
     vRemoveLightFromScene(*component);
 
     m_poDefaultLight.reset();
