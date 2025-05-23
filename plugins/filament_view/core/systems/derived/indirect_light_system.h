@@ -29,46 +29,40 @@ class KtxIndirectLight;
 class HdrIndirectLight;
 
 class IndirectLightSystem : public ECSystem {
- public:
-  IndirectLightSystem() = default;
+  public:
+    IndirectLightSystem() = default;
 
-  void setDefaultIndirectLight();
+    void setDefaultIndirectLight();
 
-  std::future<Resource<std::string_view>> setIndirectLightFromKtxAsset(
-      const std::string& path,
-      double intensity);
+    std::future<Resource<std::string_view>>
+    setIndirectLightFromKtxAsset(const std::string& path, double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromKtxUrl(
-      const std::string& url,
-      double intensity);
+    std::future<Resource<std::string_view>>
+    setIndirectLightFromKtxUrl(const std::string& url, double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromHdrAsset(
-      const std::string& path,
-      double intensity);
+    std::future<Resource<std::string_view>>
+    setIndirectLightFromHdrAsset(const std::string& path, double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLightFromHdrUrl(
-      const std::string& url,
-      double intensity);
+    std::future<Resource<std::string_view>>
+    setIndirectLightFromHdrUrl(const std::string& url, double intensity);
 
-  Resource<std::string_view> loadIndirectLightHdrFromFile(
-      const std::string& asset_path,
-      double intensity);
+    Resource<std::string_view>
+    loadIndirectLightHdrFromFile(const std::string& asset_path, double intensity);
 
-  std::future<Resource<std::string_view>> setIndirectLight(
-      DefaultIndirectLight* indirectLight);
+    std::future<Resource<std::string_view>> setIndirectLight(DefaultIndirectLight* indirectLight);
 
-  // Disallow copy and assign.
-  IndirectLightSystem(const IndirectLightSystem&) = delete;
-  IndirectLightSystem& operator=(const IndirectLightSystem&) = delete;
+    // Disallow copy and assign.
+    IndirectLightSystem(const IndirectLightSystem&) = delete;
+    IndirectLightSystem& operator=(const IndirectLightSystem&) = delete;
 
-  ~IndirectLightSystem() override;
+    ~IndirectLightSystem() override;
 
-  void vOnInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  std::unique_ptr<DefaultIndirectLight> indirect_light_;
+  private:
+    std::unique_ptr<DefaultIndirectLight> indirect_light_;
 };
 }  // namespace plugin_filament_view

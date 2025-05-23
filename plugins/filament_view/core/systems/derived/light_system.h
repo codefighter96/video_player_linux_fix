@@ -26,32 +26,32 @@ namespace plugin_filament_view {
 class NonRenderableEntityObject;
 
 class LightSystem : public ECSystem {
-  friend class SceneTextDeserializer;
-  friend class EntityObject;
+    friend class SceneTextDeserializer;
+    friend class EntityObject;
 
- public:
-  LightSystem() = default;
+  public:
+    LightSystem() = default;
 
-  // if after deserialization is complete, and there isn't a light made
-  // this will be called to create a simple direct light
-  void vCreateDefaultLight();
-  void vBuildLight(Light& light);
-  void vBuildLightAndAddToScene(Light& light);
+    // if after deserialization is complete, and there isn't a light made
+    // this will be called to create a simple direct light
+    void vCreateDefaultLight();
+    void vBuildLight(Light& light);
+    void vBuildLightAndAddToScene(Light& light);
 
-  // Disallow copy and assign.
-  LightSystem(const LightSystem&) = delete;
-  LightSystem& operator=(const LightSystem&) = delete;
+    // Disallow copy and assign.
+    LightSystem(const LightSystem&) = delete;
+    LightSystem& operator=(const LightSystem&) = delete;
 
-  void vOnInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  // These change the lights in filaments scene
-  void vRemoveLightFromScene(const Light& light);
-  void vAddLightToScene(const Light& light);
+  private:
+    // These change the lights in filaments scene
+    void vRemoveLightFromScene(const Light& light);
+    void vAddLightToScene(const Light& light);
 
-  std::shared_ptr<NonRenderableEntityObject> m_poDefaultLight;
+    std::shared_ptr<NonRenderableEntityObject> m_poDefaultLight;
 };
 }  // namespace plugin_filament_view

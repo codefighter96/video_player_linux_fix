@@ -32,12 +32,12 @@ class Exposure;
 class Projection;
 
 class Camera {
- public:
-  explicit Camera(const flutter::EncodableMap& params);
+  public:
+    explicit Camera(const flutter::EncodableMap& params);
 
-  void DebugPrint(const char* tag);
+    void DebugPrint(const char* tag);
 
-  Camera(const Camera& other)
+    Camera(const Camera& other)
       : mode_(other.mode_),
         eCustomCameraMode_(other.eCustomCameraMode_),
         forceSingleFrameUpdate_(other.forceSingleFrameUpdate_),
@@ -53,214 +53,207 @@ class Camera {
         current_zoom_radius_(other.current_zoom_radius_),
         current_pitch_addition_(other.current_pitch_addition_),
         current_yaw_addition_(other.current_yaw_addition_) {
-    // Deep copy unique_ptr members
-    if (other.exposure_) {
-      exposure_ = std::make_unique<Exposure>(*other.exposure_);
-    }
-    if (other.projection_) {
-      projection_ = std::make_unique<Projection>(*other.projection_);
-    }
-    if (other.lensProjection_) {
-      lensProjection_ =
-          std::make_unique<LensProjection>(*other.lensProjection_);
-    }
-    if (other.scaling_) {
-      scaling_ = std::make_unique<std::vector<double>>(*other.scaling_);
-    }
-    if (other.shift_) {
-      shift_ = std::make_unique<std::vector<double>>(*other.shift_);
-    }
-    if (other.targetPosition_) {
-      targetPosition_ =
-          std::make_unique<::filament::math::float3>(*other.targetPosition_);
-    }
-    if (other.upVector_) {
-      upVector_ = std::make_unique<::filament::math::float3>(*other.upVector_);
-    }
-    if (other.orbitHomePosition_) {
-      orbitHomePosition_ =
-          std::make_unique<::filament::math::float3>(*other.orbitHomePosition_);
-    }
-    if (other.flightStartPosition_) {
-      flightStartPosition_ = std::make_unique<::filament::math::float3>(
-          *other.flightStartPosition_);
-    }
-    if (other.flightStartOrientation_) {
-      flightStartOrientation_ =
+      // Deep copy unique_ptr members
+      if (other.exposure_) {
+        exposure_ = std::make_unique<Exposure>(*other.exposure_);
+      }
+      if (other.projection_) {
+        projection_ = std::make_unique<Projection>(*other.projection_);
+      }
+      if (other.lensProjection_) {
+        lensProjection_ = std::make_unique<LensProjection>(*other.lensProjection_);
+      }
+      if (other.scaling_) {
+        scaling_ = std::make_unique<std::vector<double>>(*other.scaling_);
+      }
+      if (other.shift_) {
+        shift_ = std::make_unique<std::vector<double>>(*other.shift_);
+      }
+      if (other.targetPosition_) {
+        targetPosition_ = std::make_unique<::filament::math::float3>(*other.targetPosition_);
+      }
+      if (other.upVector_) {
+        upVector_ = std::make_unique<::filament::math::float3>(*other.upVector_);
+      }
+      if (other.orbitHomePosition_) {
+        orbitHomePosition_ = std::make_unique<::filament::math::float3>(*other.orbitHomePosition_);
+      }
+      if (other.flightStartPosition_) {
+        flightStartPosition_ =
+          std::make_unique<::filament::math::float3>(*other.flightStartPosition_);
+      }
+      if (other.flightStartOrientation_) {
+        flightStartOrientation_ =
           std::make_unique<std::vector<float>>(*other.flightStartOrientation_);
+      }
+      if (other.orbitSpeed_) {
+        orbitSpeed_ = std::make_unique<std::vector<float>>(*other.orbitSpeed_);
+      }
     }
-    if (other.orbitSpeed_) {
-      orbitSpeed_ = std::make_unique<std::vector<float>>(*other.orbitSpeed_);
+
+    Camera& operator=(const Camera&) = delete;
+
+    [[nodiscard]] std::unique_ptr<Camera> clone() const {
+      return std::make_unique<Camera>(*this);  // Calls the custom copy constructor
     }
-  }
 
-  Camera& operator=(const Camera&) = delete;
+    [[nodiscard]] static const char* getTextForMode(::filament::camutils::Mode mode);
 
-  [[nodiscard]] std::unique_ptr<Camera> clone() const {
-    return std::make_unique<Camera>(
-        *this);  // Calls the custom copy constructor
-  }
+    [[nodiscard]] static ::filament::camutils::Mode getModeForText(const std::string& mode);
 
-  [[nodiscard]] static const char* getTextForMode(
-      ::filament::camutils::Mode mode);
+    [[nodiscard]] static const char* getTextForFov(::filament::camutils::Fov fov);
 
-  [[nodiscard]] static ::filament::camutils::Mode getModeForText(
-      const std::string& mode);
+    [[nodiscard]] static ::filament::camutils::Fov getFovForText(const std::string& fov);
 
-  [[nodiscard]] static const char* getTextForFov(::filament::camutils::Fov fov);
+    friend class CameraManager;
+    friend class ViewTargetSystem;
 
-  [[nodiscard]] static ::filament::camutils::Fov getFovForText(
-      const std::string& fov);
+    void vSetCurrentCameraOrbitAngle(float fValue) {
+      fCurrentOrbitAngle_ = fValue;
+      forceSingleFrameUpdate_ = true;
+    }
 
-  friend class CameraManager;
-  friend class ViewTargetSystem;
+    void vResetInertiaCameraToDefaultValues() {
+      current_zoom_radius_ = flightStartPosition_->x;
+      current_pitch_addition_ = 0;
+      current_yaw_addition_ = 0;
 
-  void vSetCurrentCameraOrbitAngle(float fValue) {
-    fCurrentOrbitAngle_ = fValue;
-    forceSingleFrameUpdate_ = true;
-  }
+      vSetCurrentCameraOrbitAngle(0.0f);
+    }
 
-  void vResetInertiaCameraToDefaultValues() {
-    current_zoom_radius_ = flightStartPosition_->x;
-    current_pitch_addition_ = 0;
-    current_yaw_addition_ = 0;
+  private:
+    static constexpr char kModeOrbit[] = "ORBIT";
+    static constexpr char kModeMap[] = "MAP";
+    static constexpr char kModeFreeFlight[] = "FREE_FLIGHT";
+    static constexpr char kFovVertical[] = "VERTICAL";
+    static constexpr char kFovHorizontal[] = "HORIZONTAL";
+    /// Auto orbit is a 'camera feature', where it will auto orbit around
+    /// a targetPosition_ Camera features are updated from camera_manager.cc:
+    /// updateCamerasFeatures() currently.
+    static constexpr char kModeAutoOrbit[] = "AUTO_ORBIT";
+    static constexpr char kModeInertiaAndGestures[] = "INERTIA_AND_GESTURES";
 
-    vSetCurrentCameraOrbitAngle(0.0f);
-  }
+    enum CustomCameraMode { Unset, AutoOrbit, InertiaAndGestures };
 
- private:
-  static constexpr char kModeOrbit[] = "ORBIT";
-  static constexpr char kModeMap[] = "MAP";
-  static constexpr char kModeFreeFlight[] = "FREE_FLIGHT";
-  static constexpr char kFovVertical[] = "VERTICAL";
-  static constexpr char kFovHorizontal[] = "HORIZONTAL";
-  /// Auto orbit is a 'camera feature', where it will auto orbit around
-  /// a targetPosition_ Camera features are updated from camera_manager.cc:
-  /// updateCamerasFeatures() currently.
-  static constexpr char kModeAutoOrbit[] = "AUTO_ORBIT";
-  static constexpr char kModeInertiaAndGestures[] = "INERTIA_AND_GESTURES";
+    /// An object that control camera Exposure.
+    std::unique_ptr<Exposure> exposure_;
 
-  enum CustomCameraMode { Unset, AutoOrbit, InertiaAndGestures };
+    /// An object that controls camera projection matrix.
+    std::unique_ptr<Projection> projection_;
 
-  /// An object that control camera Exposure.
-  std::unique_ptr<Exposure> exposure_;
+    /// An object that control camera and set it's projection matrix from the
+    /// focal length.
+    std::unique_ptr<LensProjection> lensProjection_;
 
-  /// An object that controls camera projection matrix.
-  std::unique_ptr<Projection> projection_;
+    /// Sets an additional matrix that scales the projection matrix.
+    /// This is useful to adjust the aspect ratio of the camera independent from
+    /// its projection.
+    /// Its sent as List of 2 double elements :
+    ///     * xscaling  horizontal scaling to be applied after the projection
+    ///     matrix.
+    //      * yscaling vertical scaling to be applied after the projection
+    //      matrix.
+    std::unique_ptr<std::vector<double>> scaling_;
 
-  /// An object that control camera and set it's projection matrix from the
-  /// focal length.
-  std::unique_ptr<LensProjection> lensProjection_;
+    ///      Sets an additional matrix that shifts (translates) the projection
+    ///      matrix.
+    ///     The shift parameters are specified in NDC coordinates.
+    /// Its sent as List of 2 double elements :
+    ///      *  xshift    horizontal shift in NDC coordinates applied after the
+    ///      projection
+    ///      *  yshift    vertical shift in NDC coordinates applied after the
+    ///      projection
+    std::unique_ptr<std::vector<double>> shift_;
 
-  /// Sets an additional matrix that scales the projection matrix.
-  /// This is useful to adjust the aspect ratio of the camera independent from
-  /// its projection.
-  /// Its sent as List of 2 double elements :
-  ///     * xscaling  horizontal scaling to be applied after the projection
-  ///     matrix.
-  //      * yscaling vertical scaling to be applied after the projection
-  //      matrix.
-  std::unique_ptr<std::vector<double>> scaling_;
+    /// Mode of the camera that operates on.
+    ::filament::camutils::Mode mode_;
+    /// if we have a mode specified not in filament - auto orbit, to texture, PiP
+    CustomCameraMode eCustomCameraMode_;
+    bool forceSingleFrameUpdate_;
 
-  ///      Sets an additional matrix that shifts (translates) the projection
-  ///      matrix.
-  ///     The shift parameters are specified in NDC coordinates.
-  /// Its sent as List of 2 double elements :
-  ///      *  xshift    horizontal shift in NDC coordinates applied after the
-  ///      projection
-  ///      *  yshift    vertical shift in NDC coordinates applied after the
-  ///      projection
-  std::unique_ptr<std::vector<double>> shift_;
+    /// The world-space position of interest, which defaults to (x:0,y:0,z:-4).
+    std::unique_ptr<::filament::math::float3> targetPosition_;
 
-  /// Mode of the camera that operates on.
-  ::filament::camutils::Mode mode_;
-  /// if we have a mode specified not in filament - auto orbit, to texture, PiP
-  CustomCameraMode eCustomCameraMode_;
-  bool forceSingleFrameUpdate_;
+    /// The orientation for the home position, which defaults to (x:0,y:1,z:0).
+    std::unique_ptr<::filament::math::float3> upVector_;
 
-  /// The world-space position of interest, which defaults to (x:0,y:0,z:-4).
-  std::unique_ptr<::filament::math::float3> targetPosition_;
+    /// The scroll delta multiplier, which defaults to 0.01.
+    std::optional<float> zoomSpeed_;
 
-  /// The orientation for the home position, which defaults to (x:0,y:1,z:0).
-  std::unique_ptr<::filament::math::float3> upVector_;
+    // orbit
+    /// The initial eye position in world space for ORBIT mode & autoorbit mode
+    /// This defaults to (x:0,y:0,z:1).
+    std::unique_ptr<::filament::math::float3> orbitHomePosition_;
+    // used with autoorbit mode for determining where to go next
+    float fCurrentOrbitAngle_;
 
-  /// The scroll delta multiplier, which defaults to 0.01.
-  std::optional<float> zoomSpeed_;
+    /// Sets the multiplier with viewport delta for ORBIT mode.This defaults to
+    /// 0.01 List of 2 double :[x,y]
+    std::unique_ptr<std::vector<float>> orbitSpeed_;
 
-  // orbit
-  /// The initial eye position in world space for ORBIT mode & autoorbit mode
-  /// This defaults to (x:0,y:0,z:1).
-  std::unique_ptr<::filament::math::float3> orbitHomePosition_;
-  // used with autoorbit mode for determining where to go next
-  float fCurrentOrbitAngle_;
+    /// The FOV axis that's held constant when the viewport changes.
+    /// This defaults to Vertical.
+    ::filament::camutils::Fov fovDirection_;
 
-  /// Sets the multiplier with viewport delta for ORBIT mode.This defaults to
-  /// 0.01 List of 2 double :[x,y]
-  std::unique_ptr<std::vector<float>> orbitSpeed_;
+    /// The full FOV (not the half-angle) in the degrees.
+    /// This defaults to 33.
+    std::optional<float> fovDegrees_;
 
-  /// The FOV axis that's held constant when the viewport changes.
-  /// This defaults to Vertical.
-  ::filament::camutils::Fov fovDirection_;
+    /// The distance to the far plane, which defaults to 5000.
+    std::optional<float> farPlane_;
 
-  /// The full FOV (not the half-angle) in the degrees.
-  /// This defaults to 33.
-  std::optional<float> fovDegrees_;
+    /// The initial eye position in world space for FREE_FLIGHT mode.
+    /// Defaults to (x:0,y:0,z:0).
+    std::unique_ptr<::filament::math::float3> flightStartPosition_;
 
-  /// The distance to the far plane, which defaults to 5000.
-  std::optional<float> farPlane_;
+    /// The initial orientation in pitch and yaw for FREE_FLIGHT mode.
+    /// Defaults to [0,0].
+    std::unique_ptr<std::vector<float>> flightStartOrientation_;
 
-  /// The initial eye position in world space for FREE_FLIGHT mode.
-  /// Defaults to (x:0,y:0,z:0).
-  std::unique_ptr<::filament::math::float3> flightStartPosition_;
+    /// The maximum camera translation speed in world units per second for
+    /// FREE_FLIGHT mode. Defaults to 10.
+    std::optional<float> flightMaxMoveSpeed_;
 
-  /// The initial orientation in pitch and yaw for FREE_FLIGHT mode.
-  /// Defaults to [0,0].
-  std::unique_ptr<std::vector<float>> flightStartOrientation_;
+    /// The number of speed steps adjustable with scroll wheel for FREE_FLIGHT
+    /// mode.
+    ///  Defaults to 80.
+    std::optional<int> flightSpeedSteps_;
 
-  /// The maximum camera translation speed in world units per second for
-  /// FREE_FLIGHT mode. Defaults to 10.
-  std::optional<float> flightMaxMoveSpeed_;
+    /// Applies a deceleration to camera movement in FREE_FLIGHT mode. Defaults to
+    /// 0 (no damping). Lower values give slower damping times. A good default
+    /// is 15.0. Too high a value may lead to instability.
+    std::optional<float> flightMoveDamping_;
 
-  /// The number of speed steps adjustable with scroll wheel for FREE_FLIGHT
-  /// mode.
-  ///  Defaults to 80.
-  std::optional<int> flightSpeedSteps_;
+    // how much ongoing rotation velocity effects, default 0.05
+    double inertia_rotationSpeed_;
 
-  /// Applies a deceleration to camera movement in FREE_FLIGHT mode. Defaults to
-  /// 0 (no damping). Lower values give slower damping times. A good default
-  /// is 15.0. Too high a value may lead to instability.
-  std::optional<float> flightMoveDamping_;
+    // 0-1 how much of a flick distance / delta gets multiplied, default 0.2
+    double inertia_velocityFactor_;
 
-  // how much ongoing rotation velocity effects, default 0.05
-  double inertia_rotationSpeed_;
+    // 0-1 larger number means it takes longer for it to decay, default 0.86
+    double inertia_decayFactor_;
 
-  // 0-1 how much of a flick distance / delta gets multiplied, default 0.2
-  double inertia_velocityFactor_;
+    // when panning the max angle we let them go to the edge L/R
+    double pan_angleCapX_;
 
-  // 0-1 larger number means it takes longer for it to decay, default 0.86
-  double inertia_decayFactor_;
+    // when panning the max angle we let them go to the edge U/D
+    double pan_angleCapY_;
 
-  // when panning the max angle we let them go to the edge L/R
-  double pan_angleCapX_;
+    // when zooming the limit they're able to go 'into' the object before unable
+    // to go any further in
+    double zoom_minCap_;
 
-  // when panning the max angle we let them go to the edge U/D
-  double pan_angleCapY_;
+    // when zooming the limit they're able to go from the object before unable to
+    // go any further out
+    double zoom_maxCap_;
 
-  // when zooming the limit they're able to go 'into' the object before unable
-  // to go any further in
-  double zoom_minCap_;
+    // used by camera manager to go between zoom min and max cap.
+    float current_zoom_radius_;
 
-  // when zooming the limit they're able to go from the object before unable to
-  // go any further out
-  double zoom_maxCap_;
+    // used with pan angle caps
+    float current_pitch_addition_;
 
-  // used by camera manager to go between zoom min and max cap.
-  float current_zoom_radius_;
-
-  // used with pan angle caps
-  float current_pitch_addition_;
-
-  // used with pan angle caps
-  float current_yaw_addition_;
+    // used with pan angle caps
+    float current_yaw_addition_;
 };
 }  // namespace plugin_filament_view

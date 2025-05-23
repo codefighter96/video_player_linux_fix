@@ -38,62 +38,66 @@ class ModelSystem;
 // NonRenderables are great for items like 'Global Light', Camera, hidden
 // collision
 class RenderableEntityObject : public EntityObject {
-  friend class MaterialSystem;
-  friend class ModelSystem;
+    friend class MaterialSystem;
+    friend class ModelSystem;
 
- public:
-  RenderableEntityObject() : EntityObject() {}
-  explicit RenderableEntityObject(const flutter::EncodableMap& params)
+  public:
+    RenderableEntityObject()
+      : EntityObject() {}
+    explicit RenderableEntityObject(const flutter::EncodableMap& params)
       : EntityObject(params) {}
 
-  explicit RenderableEntityObject(const std::string& name)
+    explicit RenderableEntityObject(const std::string& name)
       : EntityObject(name) {}
 
-  explicit RenderableEntityObject(const EntityGUID guid) : EntityObject(guid) {}
-  explicit RenderableEntityObject(const std::string& name,
-                                  const EntityGUID guid)
+    explicit RenderableEntityObject(const EntityGUID guid)
+      : EntityObject(guid) {}
+    explicit RenderableEntityObject(const std::string& name, const EntityGUID guid)
       : EntityObject(name, guid) {}
 
-  virtual void DebugPrint() const override {};
+    virtual void DebugPrint() const override {};
 
-  void onInitialize() override;
+    void onInitialize() override;
 
-  /*
-   * Deserialization
-   */
-  virtual void deserializeFrom(const flutter::EncodableMap& params) override;
+    /*
+     * Deserialization
+     */
+    virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-  // These are expected to have Material instances in base class after we go
-  // from Uber shader to <?more interchangeable?> on models. For now these are
-  // not implemented on Models, but are on BaseShapes.
+    // These are expected to have Material instances in base class after we go
+    // from Uber shader to <?more interchangeable?> on models. For now these are
+    // not implemented on Models, but are on BaseShapes.
 
-  // This is a heavy lift function as it will recreate / load a material
-  // if it doesn't exist and reset everything from scratch.
-  virtual void vChangeMaterialDefinitions(const flutter::EncodableMap& params,
-                                          const TextureMap& loadedTextures) {};
-  virtual void vChangeMaterialInstanceProperty(
+    // This is a heavy lift function as it will recreate / load a material
+    // if it doesn't exist and reset everything from scratch.
+    virtual void vChangeMaterialDefinitions(
+      const flutter::EncodableMap& params,
+      const TextureMap& loadedTextures
+    ) {};
+    virtual void vChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures) {};
+      const TextureMap& loadedTextures
+    ) {};
 
-  /// material to be used for the renderable - instantiated from material
-  /// definition Only after a run time request to change has been made. This
-  /// should probably be on the entity level as renderable would use this in
-  /// future as well.
-  Resource<filament::MaterialInstance*> m_poMaterialInstance =
+    /// material to be used for the renderable - instantiated from material
+    /// definition Only after a run time request to change has been made. This
+    /// should probably be on the entity level as renderable would use this in
+    /// future as well.
+    Resource<filament::MaterialInstance*> m_poMaterialInstance =
       Resource<filament::MaterialInstance*>::Error("Unset");
 
-  void vLoadMaterialDefinitionsToMaterialInstance();
+    void vLoadMaterialDefinitionsToMaterialInstance();
 
- public:
-  /// TODO: use those in the addCollidable rewrite
-  /// @returns The AABB of the entity
-  [[nodiscard]] virtual AABB getAABB() const;
+  public:
+    /// TODO: use those in the addCollidable rewrite
+    /// @returns The AABB of the entity
+    [[nodiscard]] virtual AABB getAABB() const;
 
-  /// The default implementation just returns a sphere with the max radius
-  /// covering the AABB
-  /// @returns The radius of the bounding sphere
-  [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
-    return BoundingSphere(getAABB());
-  }
+    /// The default implementation just returns a sphere with the max radius
+    /// covering the AABB
+    /// @returns The radius of the bounding sphere
+    [[nodiscard]] inline BoundingSphere getBoundingSphere() const {
+      return BoundingSphere(getAABB());
+    }
 };
 }  // namespace plugin_filament_view

@@ -20,48 +20,35 @@ namespace plugin_filament_view {
 
 // Messages.cc usage from Dart->C++
 static constexpr char kChangeAnimationByIndex[] = "CHANGE_ANIMATION_BY_INDEX";
-static constexpr char kChangeLightTransformByGUID[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID";
-static constexpr char kChangeLightTransformByGUIDPosx[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSX";
-static constexpr char kChangeLightTransformByGUIDPosy[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSY";
-static constexpr char kChangeLightTransformByGUIDPosz[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSZ";
-static constexpr char kChangeLightTransformByGUIDDirx[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRX";
-static constexpr char kChangeLightTransformByGUIDDiry[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRY";
-static constexpr char kChangeLightTransformByGUIDDirz[] =
-    "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRZ";
+static constexpr char kChangeLightTransformByGUID[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID";
+static constexpr char kChangeLightTransformByGUIDPosx[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSX";
+static constexpr char kChangeLightTransformByGUIDPosy[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSY";
+static constexpr char kChangeLightTransformByGUIDPosz[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_POSZ";
+static constexpr char kChangeLightTransformByGUIDDirx[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRX";
+static constexpr char kChangeLightTransformByGUIDDiry[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRY";
+static constexpr char kChangeLightTransformByGUIDDirz[] = "CHANGE_LIGHT_TRANSFORM_BY_GUID_DIRZ";
 
 static constexpr char kChangeLightColorByGUID[] = "CHANGE_LIGHT_COLOR_BY_GUID";
-static constexpr char kChangeLightColorByGUIDColor[] =
-    "CHANGE_LIGHT_COLOR_BY_GUID_COLOR";
-static constexpr char kChangeLightColorByGUIDIntensity[] =
-    "CHANGE_LIGHT_COLOR_BY_GUID_INTENSITY";
+static constexpr char kChangeLightColorByGUIDColor[] = "CHANGE_LIGHT_COLOR_BY_GUID_COLOR";
+static constexpr char kChangeLightColorByGUIDIntensity[] = "CHANGE_LIGHT_COLOR_BY_GUID_INTENSITY";
 
 static constexpr char kToggleShapesInScene[] = "TOGGLE_SHAPES_IN_SCENE";
-static constexpr char kToggleShapesInSceneValue[] =
-    "TOGGLE_SHAPES_IN_SCENE_VALUE";
-static constexpr char kToggleCollidableVisualsInScene[] =
-    "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE";
+static constexpr char kToggleShapesInSceneValue[] = "TOGGLE_SHAPES_IN_SCENE_VALUE";
+static constexpr char kToggleCollidableVisualsInScene[] = "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE";
 static constexpr char kToggleCollidableVisualsInSceneValue[] =
-    "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE_VALUE";
+  "TOGGLE_COLLIDABLE_VISUALS_IN_SCENE_VALUE";
 static constexpr char kChangeCameraMode[] = "CHANGE_CAMERA_MODE";
 static constexpr char kChangeCameraModeValue[] = "CHANGE_CAMERA_MODE_VALUE";
 static constexpr char kChangeCameraRotation[] = "ROTATE_CAMERA";
 static constexpr char kChangeCameraRotationValue[] = "ROTATE_CAMERA_VALUE";
-static constexpr char kResetInertiaCameraToDefaultValues[] =
-    "RESET_INERTIA_TO_DEFAULTS";
+static constexpr char kResetInertiaCameraToDefaultValues[] = "RESET_INERTIA_TO_DEFAULTS";
 static constexpr char kChangeQualitySettings[] = "CHANGE_QUALITY_SETTINGS";
 
 static constexpr char kAnimationEnqueue[] = "ANIMATION_ENQUEUE";
 static constexpr char kAnimationClearQueue[] = "ANIMATION_CLEAR_QUEUE";
 static constexpr char kAnimationPlay[] = "ANIMATION_PLAY";
 static constexpr char kAnimationChangeSpeed[] = "ANIMATION_CHANGE_SPEED";
-static constexpr char kAnimationChangeSpeedValue[] =
-    "ANIMATION_CHANGE_SPEED_VALUE";
+static constexpr char kAnimationChangeSpeedValue[] = "ANIMATION_CHANGE_SPEED_VALUE";
 static constexpr char kAnimationPause[] = "ANIMATION_PAUSE";
 static constexpr char kAnimationResume[] = "ANIMATION_RESUME";
 static constexpr char kAnimationSetLooping[] = "ANIMATION_SET_LOOPING";
@@ -70,34 +57,24 @@ static constexpr char kEntityGUID[] = "ENTITY_GUID";
 
 // Collision Requests
 static constexpr char kCollisionRayRequest[] = "COLLISION_RAY_REQUEST";
-static constexpr char kCollisionRayRequestOriginX[] =
-    "COLLISION_RAY_REQUEST_ORIGIN_X";
-static constexpr char kCollisionRayRequestOriginY[] =
-    "COLLISION_RAY_REQUEST_ORIGIN_Y";
-static constexpr char kCollisionRayRequestOriginZ[] =
-    "COLLISION_RAY_REQUEST_ORIGIN_Z";
-static constexpr char kCollisionRayRequestDirectionX[] =
-    "COLLISION_RAY_REQUEST_DIRECTION_X";
-static constexpr char kCollisionRayRequestDirectionY[] =
-    "COLLISION_RAY_REQUEST_DIRECTION_Y";
-static constexpr char kCollisionRayRequestDirectionZ[] =
-    "COLLISION_RAY_REQUEST_DIRECTION_Z";
-static constexpr char kCollisionRayRequestLength[] =
-    "COLLISION_RAY_REQUEST_LENGTH";
+static constexpr char kCollisionRayRequestOriginX[] = "COLLISION_RAY_REQUEST_ORIGIN_X";
+static constexpr char kCollisionRayRequestOriginY[] = "COLLISION_RAY_REQUEST_ORIGIN_Y";
+static constexpr char kCollisionRayRequestOriginZ[] = "COLLISION_RAY_REQUEST_ORIGIN_Z";
+static constexpr char kCollisionRayRequestDirectionX[] = "COLLISION_RAY_REQUEST_DIRECTION_X";
+static constexpr char kCollisionRayRequestDirectionY[] = "COLLISION_RAY_REQUEST_DIRECTION_Y";
+static constexpr char kCollisionRayRequestDirectionZ[] = "COLLISION_RAY_REQUEST_DIRECTION_Z";
+static constexpr char kCollisionRayRequestLength[] = "COLLISION_RAY_REQUEST_LENGTH";
 static constexpr char kCollisionRayRequestGUID[] = "COLLISION_RAY_REQUEST_GUID";
 
 static constexpr char kChangeMaterialParameter[] = "CHANGE_MATERIAL_PARAMETER";
-static constexpr char kChangeMaterialParameterData[] =
-    "CHANGE_MATERIAL_PARAMETER_DATA";
+static constexpr char kChangeMaterialParameterData[] = "CHANGE_MATERIAL_PARAMETER_DATA";
 static constexpr char kChangeMaterialParameterEntityGuid[] =
-    "CHANGE_MATERIAL_PARAMETER_ENTITY_GUID";
+  "CHANGE_MATERIAL_PARAMETER_ENTITY_GUID";
 
-static constexpr char kChangeMaterialDefinition[] =
-    "CHANGE_MATERIAL_DEFINITION";
-static constexpr char kChangeMaterialDefinitionData[] =
-    "CHANGE_MATERIAL_DEFINITION_DATA";
+static constexpr char kChangeMaterialDefinition[] = "CHANGE_MATERIAL_DEFINITION";
+static constexpr char kChangeMaterialDefinitionData[] = "CHANGE_MATERIAL_DEFINITION_DATA";
 static constexpr char kChangeMaterialDefinitionEntityGuid[] =
-    "CHANGE_MATERIAL_DEFINITION_ENTITY_GUID";
+  "CHANGE_MATERIAL_DEFINITION_ENTITY_GUID";
 
 // Deserialization
 static constexpr char kId[] = "id";
@@ -187,15 +164,14 @@ static constexpr char kCollidableIsStatic[] = "collidable_isStatic";
 static constexpr char kCollidableLayer[] = "collidable_layer";
 static constexpr char kCollidableMask[] = "collidable_mask";
 static constexpr char kCollidableShouldMatchAttachedObject[] =
-    "collidable_shouldMatchAttachedObject";
+  "collidable_shouldMatchAttachedObject";
 
 // Custom model viewer for sending frames to dart.
 static constexpr char kUpdateFrame[] = "updateFrame";
 static constexpr char kPreRenderFrame[] = "preRenderFrame";
 static constexpr char kRenderFrame[] = "renderFrame";
 static constexpr char kPostRenderFrame[] = "postRenderFrame";
-static constexpr char kParam_TimeSinceLastRenderedSec[] =
-    "timeSinceLastRenderedSec";
+static constexpr char kParam_TimeSinceLastRenderedSec[] = "timeSinceLastRenderedSec";
 static constexpr char kParam_FPS[] = "fps";
 static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
 
@@ -203,8 +179,7 @@ static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
 static constexpr char kCollisionEvent[] = "collision_event";
 static constexpr char kCollisionEventSourceGuid[] = "collision_event_source";
 static constexpr char kCollisionEventHitCount[] = "collision_event_hit_count";
-static constexpr char kCollisionEventHitResult[] =
-    "collision_event_hit_result_";
+static constexpr char kCollisionEventHitResult[] = "collision_event_hit_result_";
 static constexpr char kCollisionEventType[] = "collision_event_type";
 enum CollisionEventType {
   eFromNonNative,
@@ -223,8 +198,7 @@ enum AnimationEventType {
 static constexpr char kAnimationEventData[] = "animation_event_data";
 
 static constexpr char kCamera_Inertia_RotationSpeed[] = "inertia_rotationSpeed";
-static constexpr char kCamera_Inertia_VelocityFactor[] =
-    "inertia_velocityFactor";
+static constexpr char kCamera_Inertia_VelocityFactor[] = "inertia_velocityFactor";
 static constexpr char kCamera_Inertia_DecayFactor[] = "inertia_decayFactor";
 
 static constexpr char kCamera_Pan_angleCapX[] = "pan_angleCapX";

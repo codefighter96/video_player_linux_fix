@@ -28,33 +28,30 @@ class EntityObject;
 namespace plugin_filament_view {
 
 class Component : public IdentifiableType {
-  friend class EntityObject;
+    friend class EntityObject;
 
- public:
-  [[nodiscard]] inline const EntityObject* GetOwner() const {
-    return entityOwner_;
-  }
+  public:
+    [[nodiscard]] inline const EntityObject* GetOwner() const { return entityOwner_; }
 
-  [[nodiscard]] virtual const std::type_info& GetType() const {
-    return typeid(*this);
-  }
+    [[nodiscard]] virtual const std::type_info& GetType() const { return typeid(*this); }
 
-  virtual void DebugPrint(const std::string& tabPrefix) const = 0;
+    virtual void DebugPrint(const std::string& tabPrefix) const = 0;
 
-  [[nodiscard]] virtual Component* Clone() const = 0;
+    [[nodiscard]] virtual Component* Clone() const = 0;
 
-  virtual ~Component() = default;
+    virtual ~Component() = default;
 
- protected:
-  explicit Component(std::string name)
-      : name_(std::move(name)), entityOwner_(nullptr) {}
+  protected:
+    explicit Component(std::string name)
+      : name_(std::move(name)),
+        entityOwner_(nullptr) {}
 
- private:
-  /// @deprecated Instead use GetTypeName()
-  std::string name_;
+  private:
+    /// @deprecated Instead use GetTypeName()
+    std::string name_;
 
- public:
-  EntityObject* entityOwner_ = nullptr;
+  public:
+    EntityObject* entityOwner_ = nullptr;
 };
 
 }  // namespace plugin_filament_view

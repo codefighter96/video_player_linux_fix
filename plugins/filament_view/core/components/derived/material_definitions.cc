@@ -20,8 +20,8 @@
 #include <core/systems/ecs.h>
 #include <filament/Material.h>
 #include <filament/TextureSampler.h>
-#include <plugins/common/common.h>
 #include <filesystem>
+#include <plugins/common/common.h>
 
 namespace plugin_filament_view {
 
@@ -30,10 +30,9 @@ using MagFilter = filament::TextureSampler::MagFilter;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
-    : Component(std::string(__FUNCTION__)) {
+  : Component(std::string(__FUNCTION__)) {
   SPDLOG_TRACE("++{}", __FUNCTION__);
-  const auto flutterAssetPath =
-      ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+  const auto flutterAssetPath = ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
   // TODO: rewrite this without the for
   for (const auto& [fst, snd] : params) {
@@ -54,14 +53,12 @@ MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
       assetPath_ = std::get<std::string>(snd);
     } else if (key == "url" && std::holds_alternative<std::string>(snd)) {
       url_ = std::get<std::string>(snd);
-    } else if (key == "parameters" &&
-               std::holds_alternative<flutter::EncodableList>(snd)) {
+    } else if (key == "parameters" && std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& it_ : list) {
-        auto parameter = MaterialParameter::Deserialize(
-            flutterAssetPath, std::get<flutter::EncodableMap>(it_));
-        parameters_.insert(
-            std::pair(parameter->szGetParameterName(), std::move(parameter)));
+        auto parameter =
+          MaterialParameter::Deserialize(flutterAssetPath, std::get<flutter::EncodableMap>(it_));
+        parameters_.insert(std::pair(parameter->szGetParameterName(), std::move(parameter)));
       }
     } else if (!snd.IsNull()) {
       spdlog::debug("[Material] Unhandled Parameter {}", key.c_str());
@@ -86,11 +83,12 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
     spdlog::debug(tabPrefix + "assetPath: [{}]", assetPath_);
 
     const auto flutterAssetPath =
-        ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+      ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
 
     const std::filesystem::path asset_folder(flutterAssetPath);
-    spdlog::debug(tabPrefix + "asset_path {} valid",
-                  exists(asset_folder / assetPath_) ? "is" : "is not");
+    spdlog::debug(
+      tabPrefix + "asset_path {} valid", exists(asset_folder / assetPath_) ? "is" : "is not"
+    );
   }
   if (!url_.empty()) {
     spdlog::debug(tabPrefix + "url: [{}]", url_);
@@ -100,8 +98,10 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
   for (const auto& [fst, snd] : parameters_) {
     if (snd != nullptr)
       // snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
-      spdlog::debug(tabPrefix + "parameter: {} type: {}",
-                    snd->szGetParameterName(), static_cast<int>(snd->type_));
+      spdlog::debug(
+        tabPrefix + "parameter: {} type: {}", snd->szGetParameterName(),
+        static_cast<int>(snd->type_)
+      );
   }
 
   spdlog::debug("-------- (MaterialDefinitions) --------");
@@ -119,8 +119,7 @@ std::string MaterialDefinitions::szGetMaterialDefinitionLookupName() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<MaterialParameter*>
-MaterialDefinitions::vecGetTextureMaterialParameters() const {
+std::vector<MaterialParameter*> MaterialDefinitions::vecGetTextureMaterialParameters() const {
   std::vector<MaterialParameter*> returnVector;
 
   for (const auto& [fst, snd] : parameters_) {
@@ -135,16 +134,18 @@ MaterialDefinitions::vecGetTextureMaterialParameters() const {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::vApplyMaterialParameterToInstance(
-    filament::MaterialInstance* materialInstance,
-    const MaterialParameter* param,
-    const TextureMap& loadedTextures) {
+  filament::MaterialInstance* materialInstance,
+  const MaterialParameter* param,
+  const TextureMap& loadedTextures
+) {
   const std::string paramName = param->szGetParameterName();
   const char* szParamName = paramName.c_str();
 
   switch (param->type_) {
     case MaterialParameter::MaterialType::COLOR: {
-      materialInstance->setParameter(szParamName, filament::RgbaType::LINEAR,
-                                     param->colorValue_.value());
+      materialInstance->setParameter(
+        szParamName, filament::RgbaType::LINEAR, param->colorValue_.value()
+      );
     } break;
 
     case MaterialParameter::MaterialType::FLOAT: {
@@ -153,14 +154,12 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
 
     case MaterialParameter::MaterialType::TEXTURE: {
       // make sure we have the texture:
-      const auto foundResource =
-          loadedTextures.find(param->getTextureValueAssetPath());
+      const auto foundResource = loadedTextures.find(param->getTextureValueAssetPath());
 
       if (foundResource == loadedTextures.end()) {
         // log and continue
-        spdlog::warn(
-            "Got to a case where a texture was not loaded before trying to "
-            "apply to a material.");
+        spdlog::warn("Got to a case where a texture was not loaded before trying to "
+                     "apply to a material.");
         return;
       }
 
@@ -175,8 +174,7 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
         // values");
         sampler.setMinFilter(textureSampler->getMinFilter());
         sampler.setMagFilter(textureSampler->getMagFilter());
-        sampler.setAnisotropy(
-            static_cast<float>(textureSampler->getAnisotropy()));
+        sampler.setAnisotropy(static_cast<float>(textureSampler->getAnisotropy()));
 
         // Currently leaving this commented out, but this is for 3d
         // textures, which are not currently expected to be loaded
@@ -188,10 +186,9 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
       }
 
       if (!foundResource->second.getData().has_value()) {
-        spdlog::warn(
-            "Got to a case where a texture resource data was not loaded "
-            "before trying to "
-            "apply to a material.");
+        spdlog::warn("Got to a case where a texture resource data was not loaded "
+                     "before trying to "
+                     "apply to a material.");
         return;
       }
 
@@ -207,38 +204,34 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
-    const filament::Material* materialResult,
-    filament::MaterialInstance* materialInstance,
-    const TextureMap& loadedTextures) const {
+  const filament::Material* materialResult,
+  filament::MaterialInstance* materialInstance,
+  const TextureMap& loadedTextures
+) const {
   const auto count = materialResult->getParameterCount();
   std::vector<filament::Material::ParameterInfo> parameters(count);
 
-  if (const auto actual =
-          materialResult->getParameters(parameters.data(), count);
+  if (const auto actual = materialResult->getParameters(parameters.data(), count);
       count != actual || actual != parameters.size()) {
-    spdlog::warn(
-        "Count of parameters from the material instance and loaded material do "
-        "not match; doesn't technically need to, but not ideal and could leave "
-        "to undefined results.");
+    spdlog::warn("Count of parameters from the material instance and loaded material do "
+                 "not match; doesn't technically need to, but not ideal and could leave "
+                 "to undefined results.");
   }
 
   for (const auto& param : parameters) {
     if (param.name) {
-      SPDLOG_TRACE("[Material] name: {}, type: {}", param.name,
-                   static_cast<int>(param.type));
+      SPDLOG_TRACE("[Material] name: {}, type: {}", param.name, static_cast<int>(param.type));
 
       const auto& iter = parameters_.find(param.name);
       if (iter == parameters_.end() || iter->second == nullptr) {
         // This can get pretty spammy, but good if needing to debug further into
         // parameter values.
-        SPDLOG_INFO("No default parameter value available for {} {}",
-                    __FUNCTION__, param.name);
+        SPDLOG_INFO("No default parameter value available for {} {}", __FUNCTION__, param.name);
         continue;
       }
       SPDLOG_TRACE("Setting material param {}", param.name);
 
-      vApplyMaterialParameterToInstance(materialInstance, iter->second.get(),
-                                        loadedTextures);
+      vApplyMaterialParameterToInstance(materialInstance, iter->second.get(), loadedTextures);
     }
   }
 }

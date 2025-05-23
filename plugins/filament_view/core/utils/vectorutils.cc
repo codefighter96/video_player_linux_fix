@@ -26,38 +26,41 @@
 namespace plugin_filament_view {
 
 filament::math::mat3f VectorUtils::identity3x3() {
-  return {filament::math::float3{1.0f, 0.0f, 0.0f},
-          filament::math::float3{0.0f, 1.0f, 0.0f},
-          filament::math::float3{0.0f, 0.0f, 1.0f}};
+  return {
+    filament::math::float3{1.0f, 0.0f, 0.0f}, filament::math::float3{0.0f, 1.0f, 0.0f},
+    filament::math::float3{0.0f, 0.0f, 1.0f}
+  };
 }
 
 filament::math::mat4f VectorUtils::identity4x4() {
-  return {filament::math::float4(1.0f, 0.0f, 0.0f, 0.0f),
-          filament::math::float4(0.0f, 1.0f, 0.0f, 0.0f),
-          filament::math::float4(0.0f, 0.0f, 1.0f, 0.0f),
-          filament::math::float4(0.0f, 0.0f, 0.0f, 1.0f)};
+  return {
+    filament::math::float4(1.0f, 0.0f, 0.0f, 0.0f), filament::math::float4(0.0f, 1.0f, 0.0f, 0.0f),
+    filament::math::float4(0.0f, 0.0f, 1.0f, 0.0f), filament::math::float4(0.0f, 0.0f, 0.0f, 1.0f)
+  };
 }
 
 filament::math::float3 VectorUtils::transformPositionVector(
-    const filament::math::float3& pos,
-    const filament::math::mat4f& transform) {
+  const filament::math::float3& pos,
+  const filament::math::mat4f& transform
+) {
   // Apply the transformation matrix to the position vector
-  return {transform[0].x * pos.x + transform[1].x * pos.y +
-              transform[2].x * pos.z + transform[3].x,
-          transform[0].y * pos.x + transform[1].y * pos.y +
-              transform[2].y * pos.z + transform[3].y,
-          transform[0].z * pos.x + transform[1].z * pos.y +
-              transform[2].z * pos.z + transform[3].z};
+  return {
+    transform[0].x * pos.x + transform[1].x * pos.y + transform[2].x * pos.z + transform[3].x,
+    transform[0].y * pos.x + transform[1].y * pos.y + transform[2].y * pos.z + transform[3].y,
+    transform[0].z * pos.x + transform[1].z * pos.y + transform[2].z * pos.z + transform[3].z
+  };
 }
 
 filament::math::float3 VectorUtils::transformScaleVector(
-    const filament::math::float3& scale,
-    const filament::math::mat4f& transform) {
+  const filament::math::float3& scale,
+  const filament::math::mat4f& transform
+) {
   // Extract the scaling factors from the transformation matrix
   // Apply the scaling factors to the scale vector
-  return {scale.x * length(transform[0].xyz),
-          scale.y * length(transform[1].xyz),
-          scale.z * length(transform[2].xyz)};
+  return {
+    scale.x * length(transform[0].xyz), scale.y * length(transform[1].xyz),
+    scale.z * length(transform[2].xyz)
+  };
 }
 
 }  // namespace plugin_filament_view

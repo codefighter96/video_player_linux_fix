@@ -18,9 +18,9 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
+#include "filament_system.h"
 #include <filament/Engine.h>
 #include <filament/Scene.h>
-#include "filament_system.h"
 
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/systems/base/ecsystem.h>
@@ -34,46 +34,46 @@ class BaseShape;
 }
 
 class ShapeSystem : public ECSystem {
- public:
-  ShapeSystem() = default;
+  public:
+    ShapeSystem() = default;
 
-  void addShapesToScene(
-      std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
+    void addShapesToScene(std::vector<std::shared_ptr<shapes::BaseShape>>* shapes);
 
-  void addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape);
+    void addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shape);
 
-  // Disallow copy and assign.
-  ShapeSystem(const ShapeSystem&) = delete;
-  ShapeSystem& operator=(const ShapeSystem&) = delete;
+    // Disallow copy and assign.
+    ShapeSystem(const ShapeSystem&) = delete;
+    ShapeSystem& operator=(const ShapeSystem&) = delete;
 
-  // will add/remove already made entities to/from the scene
-  void vToggleAllShapesInScene(bool enable) const;
-  void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
+    // will add/remove already made entities to/from the scene
+    void vToggleAllShapesInScene(bool enable) const;
+    void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
-  void vRemoveAllShapesInScene();
+    void vRemoveAllShapesInScene();
 
-  // Creates the derived class of BaseShape based on the map data sent in, does
-  // not add it to any list only returns the shape for you, Also does not build
-  // the data out, only stores it for building when ready.
-  static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
-      const flutter::EncodableMap& mapData);
+    // Creates the derived class of BaseShape based on the map data sent in, does
+    // not add it to any list only returns the shape for you, Also does not build
+    // the data out, only stores it for building when ready.
+    static std::unique_ptr<shapes::BaseShape> poDeserializeShapeFromData(
+      const flutter::EncodableMap& mapData
+    );
 
-  void vOnInitSystem() override;
-  void vUpdate(float fElapsedTime) override;
-  void vShutdownSystem() override;
-  void DebugPrint() override;
+    void vOnInitSystem() override;
+    void vUpdate(float fElapsedTime) override;
+    void vShutdownSystem() override;
+    void DebugPrint() override;
 
- private:
-  // filamentEngine, RenderableManager, EntityManager, TransformManager
-  smarter_shared_ptr<FilamentSystem> _filament;
-  smarter_raw_ptr<filament::Engine> _engine;
-  smarter_raw_ptr<filament::RenderableManager> _rcm;
-  smarter_raw_ptr<utils::EntityManager> _em;
-  smarter_raw_ptr<filament::TransformManager> _tm;
+  private:
+    // filamentEngine, RenderableManager, EntityManager, TransformManager
+    smarter_shared_ptr<FilamentSystem> _filament;
+    smarter_raw_ptr<filament::Engine> _engine;
+    smarter_raw_ptr<filament::RenderableManager> _rcm;
+    smarter_raw_ptr<utils::EntityManager> _em;
+    smarter_raw_ptr<filament::TransformManager> _tm;
 
-  bool hasShape(const EntityGUID guid) const;
-  shapes::BaseShape* getShape(const EntityGUID guid) const;
+    bool hasShape(const EntityGUID guid) const;
+    shapes::BaseShape* getShape(const EntityGUID guid) const;
 
-  std::vector<EntityGUID> _shapes;
+    std::vector<EntityGUID> _shapes;
 };
 }  // namespace plugin_filament_view

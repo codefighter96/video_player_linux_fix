@@ -41,183 +41,173 @@ constexpr EntityGUID kNullGuid = 0;
 /// @brief EntityDescriptor is a struct that holds the name and guid of an
 /// entity.
 struct EntityDescriptor {
-  std::string name = "";
-  EntityGUID guid = kNullGuid;
+    std::string name = "";
+    EntityGUID guid = kNullGuid;
 };
 
 class ECSManager;
 
 /// @brief EntityObject is the base class for all entities in the system.
 class EntityObject : public std::enable_shared_from_this<EntityObject> {
-  friend class ECSManager;
-  // TODO: do we need to expose these?
-  friend class CollisionSystem;
-  friend class MaterialSystem;
-  friend class ModelSystem;
-  friend class ShapeSystem;
-  friend class AnimationSystem;
-  friend class LightSystem;
-  friend class SceneTextDeserializer;
-  friend class TransformSystem;
+    friend class ECSManager;
+    // TODO: do we need to expose these?
+    friend class CollisionSystem;
+    friend class MaterialSystem;
+    friend class ModelSystem;
+    friend class ShapeSystem;
+    friend class AnimationSystem;
+    friend class LightSystem;
+    friend class SceneTextDeserializer;
+    friend class TransformSystem;
 
- public:
-  FilamentEntity _fEntity;
+  public:
+    FilamentEntity _fEntity;
 
-  // Overloading the == operator to compare based on guid_
-  bool operator==(const EntityObject& other) const {
-    return guid_ == other.guid_;
-  }
+    // Overloading the == operator to compare based on guid_
+    bool operator==(const EntityObject& other) const { return guid_ == other.guid_; }
 
-  [[nodiscard]] inline bool isInitialized() const { return _isInitialized; }
+    [[nodiscard]] inline bool isInitialized() const { return _isInitialized; }
 
-  /// @brief Checks if the entity is initialized. Throws an exception if not.
-  /// @throws std::runtime_error if the entity is not initialized.
-  void checkInitialized() const {
-    // TODO: mutex?
+    /// @brief Checks if the entity is initialized. Throws an exception if not.
+    /// @throws std::runtime_error if the entity is not initialized.
+    void checkInitialized() const {
+      // TODO: mutex?
 
-    if (!_isInitialized) {
-      throw std::runtime_error(
+      if (!_isInitialized) {
+        throw std::runtime_error(
           // fmt::format("[{}] EntityObject ({}) is not initialized",
           // __FUNCTION__, guid_));
-          "EntityObject is not initialized");
+          "EntityObject is not initialized"
+        );
+      }
     }
-  }
 
-  // TODO: remove this, change guid to const and expose as public
-  [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
+    // TODO: remove this, change guid to const and expose as public
+    [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
 
-  EntityObject(const EntityObject&) = delete;
-  EntityObject& operator=(const EntityObject&) = delete;
+    EntityObject(const EntityObject&) = delete;
+    EntityObject& operator=(const EntityObject&) = delete;
 
-  virtual void DebugPrint() const = 0;
+    virtual void DebugPrint() const = 0;
 
-  /// TODO: remove this, expose name as public
-  [[nodiscard]] inline const std::string& GetName() const { return name_; }
+    /// TODO: remove this, expose name as public
+    [[nodiscard]] inline const std::string& GetName() const { return name_; }
 
- protected:
-  smarter_raw_ptr<ECSManager> ecs = nullptr;
-  /// Temporary storage for components that are being added to the entity
-  /// before it's initialized within ECS.
-  /// After the entity is initialized, these components are moved to the ECS'
-  /// memory and the temporary storage is cleared.
-  std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
+  protected:
+    smarter_raw_ptr<ECSManager> ecs = nullptr;
+    /// Temporary storage for components that are being added to the entity
+    /// before it's initialized within ECS.
+    /// After the entity is initialized, these components are moved to the ECS'
+    /// memory and the temporary storage is cleared.
+    std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
 
-  /// GUID of the entity.
-  /// This is used for identifying the entity, and must be unique.
-  /// Also used as a key in the entity object locator system.
-  EntityGUID guid_;
+    /// GUID of the entity.
+    /// This is used for identifying the entity, and must be unique.
+    /// Also used as a key in the entity object locator system.
+    EntityGUID guid_;
 
-  /// Name of the entity.
-  /// This is used only for debugging and logging purposes.
-  /// It is not used for identifying the entity, and does not need to be unique.
-  std::string name_;
+    /// Name of the entity.
+    /// This is used only for debugging and logging purposes.
+    /// It is not used for identifying the entity, and does not need to be unique.
+    std::string name_;
 
-  /// @brief Constructor for EntityObject. Generates a GUID and has an empty
-  /// name.
-  explicit EntityObject();
-  /// @brief Constructor for EntityObject with a name. Generates a unique GUID.
-  explicit EntityObject(std::string name);
-  /// @brief Constructor for EntityObject with GUID. Name is empty.
-  explicit EntityObject(EntityGUID guid);
-  /// @brief Constructor for EntityObject with a name and GUID.
-  EntityObject(std::string name, EntityGUID guid);
-  /// @brief Constructor for EntityObject based on an EntityDescriptor,
-  /// containing a name and GUID.
-  explicit EntityObject(const EntityDescriptor& descriptor);
-  /// @brief Constructor for EntityObject based on an EncodableMap. Deserializes
-  /// the name and GUID.
-  explicit EntityObject(const flutter::EncodableMap& params);
+    /// @brief Constructor for EntityObject. Generates a GUID and has an empty
+    /// name.
+    explicit EntityObject();
+    /// @brief Constructor for EntityObject with a name. Generates a unique GUID.
+    explicit EntityObject(std::string name);
+    /// @brief Constructor for EntityObject with GUID. Name is empty.
+    explicit EntityObject(EntityGUID guid);
+    /// @brief Constructor for EntityObject with a name and GUID.
+    EntityObject(std::string name, EntityGUID guid);
+    /// @brief Constructor for EntityObject based on an EntityDescriptor,
+    /// containing a name and GUID.
+    explicit EntityObject(const EntityDescriptor& descriptor);
+    /// @brief Constructor for EntityObject based on an EncodableMap. Deserializes
+    /// the name and GUID.
+    explicit EntityObject(const flutter::EncodableMap& params);
 
-  virtual ~EntityObject() = default;
+    virtual ~EntityObject() = default;
 
-  /// Called immediately after the entity is registered in the ECSManager.
-  /// NOTE: this is a good place to initialize components and children.
-  virtual void onInitialize();
-  /// Called immediately before the entity is unregistered in the ECSManager.
-  /// NOTE: it doesn't need to deallocate components or children, the ECSManager
-  /// will do that.
-  virtual void onDestroy() {};
+    /// Called immediately after the entity is registered in the ECSManager.
+    /// NOTE: this is a good place to initialize components and children.
+    virtual void onInitialize();
+    /// Called immediately before the entity is unregistered in the ECSManager.
+    /// NOTE: it doesn't need to deallocate components or children, the ECSManager
+    /// will do that.
+    virtual void onDestroy() {};
 
- public:
-  /// @brief Adds a component to the entity.
-  /// If called before the entity is initialized, the component is batched
-  /// and added to the entity after initialization.
-  template <typename T>
-  inline void addComponent(const T& component) {
-    addComponent(Component::StaticGetTypeID<T>(),
-                 std::make_shared<T>(component));
-  }
+  public:
+    /// @brief Adds a component to the entity.
+    /// If called before the entity is initialized, the component is batched
+    /// and added to the entity after initialization.
+    template<typename T> inline void addComponent(const T& component) {
+      addComponent(Component::StaticGetTypeID<T>(), std::make_shared<T>(component));
+    }
 
-  /// Called by [ECSManager] when a component is added to the entity.
-  /// This is called after the entity is initialized.
-  /// If a component is added before the entity is initialized, this will be
-  /// called after the entity is initialized.
-  virtual void onAddComponent(const std::shared_ptr<Component>& component);
+    /// Called by [ECSManager] when a component is added to the entity.
+    /// This is called after the entity is initialized.
+    /// If a component is added before the entity is initialized, this will be
+    /// called after the entity is initialized.
+    virtual void onAddComponent(const std::shared_ptr<Component>& component);
 
-  template <typename T>
-  [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
-    return std::dynamic_pointer_cast<T>(
-        getComponent(Component::StaticGetTypeID<T>()));
-  }
+    template<typename T> [[nodiscard]] inline std::shared_ptr<T> getComponent() const {
+      return std::dynamic_pointer_cast<T>(getComponent(Component::StaticGetTypeID<T>()));
+    }
 
-  template <typename T>
-  [[nodiscard]] inline bool hasComponent() const {
-    return hasComponent(Component::StaticGetTypeID<T>());
-  }
+    template<typename T> [[nodiscard]] inline bool hasComponent() const {
+      return hasComponent(Component::StaticGetTypeID<T>());
+    }
 
-  void vDebugPrintComponents() const;
+    void vDebugPrintComponents() const;
 
-  // finds the size_t staticTypeID in the component list
-  // and creates a copy and assigns to the others list
-  void vShallowCopyComponentToOther(size_t staticTypeID,
-                                    EntityObject& other) const;
+    // finds the size_t staticTypeID in the component list
+    // and creates a copy and assigns to the others list
+    void vShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const;
 
-  static EntityDescriptor DeserializeNameAndGuid(
-      const flutter::EncodableMap& params);
+    static EntityDescriptor DeserializeNameAndGuid(const flutter::EncodableMap& params);
 
-  /// @brief Deserializes the entity from a map of parameters.
-  virtual void deserializeFrom(const flutter::EncodableMap& params);
+    /// @brief Deserializes the entity from a map of parameters.
+    virtual void deserializeFrom(const flutter::EncodableMap& params);
 
- private:
-  std::mutex _initMutex;
-  bool _isInitialized = false;
+  private:
+    std::mutex _initMutex;
+    bool _isInitialized = false;
 
-  /// Called by ECSManager when the entity is registered.
-  void initialize(ECSManager* ecsManager) {
-    std::lock_guard lock(_initMutex);
+    /// Called by ECSManager when the entity is registered.
+    void initialize(ECSManager* ecsManager) {
+      std::lock_guard lock(_initMutex);
 
-    // Make sure it's not already initialized
-    assert(_isInitialized == false);
+      // Make sure it's not already initialized
+      assert(_isInitialized == false);
 
-    ecs = ecsManager;
-    _isInitialized = true;
-    onInitialize();
-  }
+      ecs = ecsManager;
+      _isInitialized = true;
+      onInitialize();
+    }
 
-  /// Called by ECSManager when the entity is unregistered.
-  void uninitialize() {
-    std::lock_guard lock(_initMutex);
+    /// Called by ECSManager when the entity is unregistered.
+    void uninitialize() {
+      std::lock_guard lock(_initMutex);
 
-    // Make sure it's not already uninitialized
-    assert(_isInitialized == true);
+      // Make sure it's not already uninitialized
+      assert(_isInitialized == true);
 
-    onDestroy();
-    ecs = nullptr;
-    _isInitialized = false;
-  }
+      onDestroy();
+      ecs = nullptr;
+      _isInitialized = false;
+    }
 
-  void addComponent(TypeID staticTypeID,
-                    const std::shared_ptr<Component>& component);
+    void addComponent(TypeID staticTypeID, const std::shared_ptr<Component>& component);
 
-  /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
-  /// @returns component if valid, nullptr if not found.
-  [[nodiscard]] std::shared_ptr<Component> getComponent(
-      TypeID staticTypeID) const;
+    /// @brief Pass in the Component::StaticGetTypeID<DerivedClass>()
+    /// @returns component if valid, nullptr if not found.
+    [[nodiscard]] std::shared_ptr<Component> getComponent(TypeID staticTypeID) const;
 
-  /// @brief Checks if the entity has a component of the given type.
-  /// @param staticTypeID The static type ID of the component ->
-  /// [Component::StaticGetTypeID<DerivedClass>()]
-  /// @returns true if the entity has the component, false otherwise.
-  [[nodiscard]] bool hasComponent(TypeID staticTypeID) const;
+    /// @brief Checks if the entity has a component of the given type.
+    /// @param staticTypeID The static type ID of the component ->
+    /// [Component::StaticGetTypeID<DerivedClass>()]
+    /// @returns true if the entity has the component, false otherwise.
+    [[nodiscard]] bool hasComponent(TypeID staticTypeID) const;
 };
 }  // namespace plugin_filament_view

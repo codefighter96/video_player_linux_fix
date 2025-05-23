@@ -24,49 +24,48 @@
 
 namespace plugin_filament_view {
 class LensProjection {
- public:
-  LensProjection(float cameraFocalLength, float aspect);
+  public:
+    LensProjection(float cameraFocalLength, float aspect);
 
-  explicit LensProjection(const flutter::EncodableMap& params);
+    explicit LensProjection(const flutter::EncodableMap& params);
 
-  void DebugPrint(const char* tag);
+    void DebugPrint(const char* tag);
 
-  [[nodiscard]] float getFocalLength() const { return focalLength_; }
+    [[nodiscard]] float getFocalLength() const { return focalLength_; }
 
-  [[nodiscard]] std::optional<float> getAspect() const { return aspect_; }
+    [[nodiscard]] std::optional<float> getAspect() const { return aspect_; }
 
-  [[nodiscard]] std::optional<float> getNear() const { return near_; }
+    [[nodiscard]] std::optional<float> getNear() const { return near_; }
 
-  [[nodiscard]] std::optional<float> getFar() const { return far_; }
+    [[nodiscard]] std::optional<float> getFar() const { return far_; }
 
-  LensProjection(const LensProjection& other)  // NOLINT
+    LensProjection(const LensProjection& other)  // NOLINT
       : focalLength_(other.focalLength_),
         aspect_(other.aspect_),
         near_(other.near_),
         far_(other.far_) {}
 
-  // Implement the assignment operator for deep copy.
-  LensProjection& operator=(const LensProjection& other) {
-    if (this == &other) {
-      return *this;  // Handle self-assignment.
+    // Implement the assignment operator for deep copy.
+    LensProjection& operator=(const LensProjection& other) {
+      if (this == &other) {
+        return *this;  // Handle self-assignment.
+      }
+      focalLength_ = other.focalLength_;
+      aspect_ = other.aspect_;
+      near_ = other.near_;
+      far_ = other.far_;
+      return *this;
     }
-    focalLength_ = other.focalLength_;
-    aspect_ = other.aspect_;
-    near_ = other.near_;
-    far_ = other.far_;
-    return *this;
-  }
 
-  // Add a clone method for creating a deep copy.
-  [[nodiscard]] std::unique_ptr<LensProjection> clone() const {
-    return std::make_unique<LensProjection>(
-        *this);  // Calls the copy constructor
-  }
+    // Add a clone method for creating a deep copy.
+    [[nodiscard]] std::unique_ptr<LensProjection> clone() const {
+      return std::make_unique<LensProjection>(*this);  // Calls the copy constructor
+    }
 
- private:
-  float focalLength_;
-  std::optional<float> aspect_;
-  std::optional<float> near_;
-  std::optional<float> far_;
+  private:
+    float focalLength_;
+    std::optional<float> aspect_;
+    std::optional<float> near_;
+    std::optional<float> far_;
 };
 }  // namespace plugin_filament_view

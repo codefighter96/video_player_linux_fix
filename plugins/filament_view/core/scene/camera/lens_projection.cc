@@ -23,10 +23,10 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const float cameraFocalLength, float aspect)
-    : focalLength_(cameraFocalLength),
-      aspect_(aspect),
-      near_(0.0f),
-      far_(0.0f) {}
+  : focalLength_(cameraFocalLength),
+    aspect_(aspect),
+    near_(0.0f),
+    far_(0.0f) {}
 
 ////////////////////////////////////////////////////////////////////////////
 LensProjection::LensProjection(const flutter::EncodableMap& params) {

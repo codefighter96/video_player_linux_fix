@@ -15,6 +15,7 @@
  */
 #include "scene_text_deserializer.h"
 
+#include <asio/post.hpp>
 #include <core/entity/derived/nonrenderable_entityobject.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
@@ -26,7 +27,6 @@
 #include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
-#include <asio/post.hpp>
 
 #include "shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 
@@ -34,10 +34,9 @@ namespace plugin_filament_view {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
-    : _ecs(nullptr) {
+  : _ecs(nullptr) {
   _ecs = ECSManager::GetInstance();
-  const std::string& flutterAssetsPath =
-      _ecs->getConfigValue<std::string>(kAssetPath);
+  const std::string& flutterAssetsPath = _ecs->getConfigValue<std::string>(kAssetPath);
 
   // kick off process...
   spdlog::debug("[{}] deserializing root...", __FUNCTION__);
@@ -47,18 +46,17 @@ SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vDeserializeRootLevel(
-    const std::vector<uint8_t>& params,
-    const std::string& flutterAssetsPath) {
+  const std::vector<uint8_t>& params,
+  const std::string& flutterAssetsPath
+) {
   auto& codec = flutter::StandardMessageCodec::GetInstance();
   const auto decoded = codec.DecodeMessage(params.data(), params.size());
-  const auto& creationParams =
-      std::get_if<flutter::EncodableMap>(decoded.get());
+  const auto& creationParams = std::get_if<flutter::EncodableMap>(decoded.get());
 
   for (const auto& [fst, snd] : *creationParams) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {}", key.c_str(),
-                   __FUNCTION__);
+      SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {}", key.c_str(), __FUNCTION__);
       continue;
     }
 
@@ -71,8 +69,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           spdlog::warn("CreationParamName unable to cast {}", key.c_str());
           continue;
         }
-        auto deserializedModel =
-            Model::Deserialize(std::get<flutter::EncodableMap>(iter));
+        auto deserializedModel = Model::Deserialize(std::get<flutter::EncodableMap>(iter));
         if (deserializedModel == nullptr) {
           spdlog::error("Unable to load model");
           continue;
@@ -83,8 +80,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
     } else if (key == kScene) {
       spdlog::debug("===== Deserializing Scene {} ...", key);
       vDeserializeSceneLevel(snd);
-    } else if (key == kShapes &&
-               std::holds_alternative<flutter::EncodableList>(snd)) {
+    } else if (key == kShapes && std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
 
       spdlog::debug("===== Deserializing multiple Shapes {} ...", key);
@@ -94,28 +90,26 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           continue;
         }
 
-        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
-            std::get<flutter::EncodableMap>(iter));
+        auto deserializedShape =
+          ShapeSystem::poDeserializeShapeFromData(std::get<flutter::EncodableMap>(iter));
 
         shapes_.emplace_back(std::move(deserializedShape));
       }
     } else {
-      spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}",
-                   key.c_str());
+      spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void SceneTextDeserializer::vDeserializeSceneLevel(
-    const flutter::EncodableValue& params) {
+void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue& params) {
   for (const auto& [fst, snd] : std::get<flutter::EncodableMap>(params)) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
       SPDLOG_WARN(
-          "vDeserializeSceneLevel Param ITER is null key:{} function:{}", key,
-          __FUNCTION__);
+        "vDeserializeSceneLevel Param ITER is null key:{} function:{}", key, __FUNCTION__
+      );
       continue;
     }
 
@@ -131,16 +125,16 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
 
         // This will get placed on an entity
         EntityGUID overWriteGuid;
-        Deserialize::DecodeParameterWithDefaultInt64(kGuid, &overWriteGuid,
-                                                     encodableMap, kNullGuid);
+        Deserialize::DecodeParameterWithDefaultInt64(
+          kGuid, &overWriteGuid, encodableMap, kNullGuid
+        );
 
         if (overWriteGuid == kNullGuid) {
           spdlog::warn("Light is missing a GUID, will not add to scene");
           continue;
         }
 
-        lights_.insert(
-            std::pair(overWriteGuid, std::make_shared<Light>(encodableMap)));
+        lights_.insert(std::pair(overWriteGuid, std::make_shared<Light>(encodableMap)));
       }
 
       continue;
@@ -163,12 +157,10 @@ void SceneTextDeserializer::vDeserializeSceneLevel(
     } else if (key == kCamera) {
       camera_ = new Camera(encodableMap);
     } else if (key == "ground") {
-      spdlog::warn(
-          "Specifying a ground is no longer supporting, a ground is now a "
-          "plane in shapes.");
+      spdlog::warn("Specifying a ground is no longer supporting, a ground is now a "
+                   "plane in shapes.");
     } else if (!snd.IsNull()) {
-      spdlog::debug("[SceneTextDeserializer] Unhandled Parameter {}",
-                    key.c_str());
+      spdlog::debug("[SceneTextDeserializer] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
     }
   }
@@ -191,8 +183,7 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
 
   // note Camera* is deleted on the other side, freeing up the memory.
   ECSMessage viewTargetCameraSet;
-  viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad,
-                              camera_);
+  viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad, camera_);
   ECSManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
 
   indirect_light_.reset();
@@ -223,8 +214,8 @@ void SceneTextDeserializer::setUpShapes() {
   const auto collisionSystem = _ecs->getSystem<CollisionSystem>("setUpShapes");
 
   if (shapeSystem == nullptr || collisionSystem == nullptr) {
-    throw std::runtime_error(
-        "[SceneTextDeserializer] Error.ShapeSystem or collisionSystem is null");
+    throw std::runtime_error("[SceneTextDeserializer] Error.ShapeSystem or collisionSystem is null"
+    );
   }
 
   for (const auto& shape : shapes_) {
@@ -253,8 +244,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
   const auto& strand = *_ecs->GetStrand();
 
   post(strand, [model = std::move(model)]() mutable {
-    const auto modelSystem =
-        ECSManager::GetInstance()->getSystem<ModelSystem>("loadModel");
+    const auto modelSystem = ECSManager::GetInstance()->getSystem<ModelSystem>("loadModel");
 
     if (modelSystem == nullptr) {
       spdlog::error("Unable to find the model system.");
@@ -268,8 +258,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
       spdlog::error("Model has no asset path, unable to load");
     }
 
-    spdlog::trace("[loadModel] Model {} queued for loading",
-                  glb_model->getAssetPath());
+    spdlog::trace("[loadModel] Model {} queued for loading", glb_model->getAssetPath());
   });
 }
 
@@ -277,8 +266,7 @@ void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
 void SceneTextDeserializer::setUpSkybox() const {
   // Todo move to a message.
 
-  auto skyboxSystem =
-      ECSManager::GetInstance()->getSystem<SkyboxSystem>(__FUNCTION__);
+  auto skyboxSystem = ECSManager::GetInstance()->getSystem<SkyboxSystem>(__FUNCTION__);
 
   if (!skybox_) {
     skyboxSystem->setDefaultSkybox();
@@ -288,17 +276,18 @@ void SceneTextDeserializer::setUpSkybox() const {
       if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
           !hdr_skybox->getAssetPath().empty()) {
         const auto shouldUpdateLight =
-            hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
+          hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
 
         skyboxSystem->setSkyboxFromHdrAsset(
-            hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(),
-            shouldUpdateLight, indirect_light_->getIntensity());
+          hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(), shouldUpdateLight,
+          indirect_light_->getIntensity()
+        );
       } else if (!skybox->getUrl().empty()) {
-        const auto shouldUpdateLight =
-            hdr_skybox->szGetURLPath() == indirect_light_->getUrl();
+        const auto shouldUpdateLight = hdr_skybox->szGetURLPath() == indirect_light_->getUrl();
         skyboxSystem->setSkyboxFromHdrUrl(
-            hdr_skybox->szGetURLPath(), hdr_skybox->getShowSun(),
-            shouldUpdateLight, indirect_light_->getIntensity());
+          hdr_skybox->szGetURLPath(), hdr_skybox->getShowSun(), shouldUpdateLight,
+          indirect_light_->getIntensity()
+        );
       }
     } else if (dynamic_cast<KxtSkybox*>(skybox)) {
       if (const auto kxt_skybox = dynamic_cast<KxtSkybox*>(skybox);
@@ -323,8 +312,8 @@ void SceneTextDeserializer::setUpLights() {
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
-    const auto newEntity = std::make_shared<NonRenderableEntityObject>(
-        "SceneTextDeserializer::setUpLights", fst);
+    const auto newEntity =
+      std::make_shared<NonRenderableEntityObject>("SceneTextDeserializer::setUpLights", fst);
 
     _ecs->addEntity(newEntity);
     _ecs->addComponent(newEntity->GetGuid(), snd);
@@ -346,7 +335,7 @@ void SceneTextDeserializer::setUpLights() {
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
   auto indirectlightSystem =
-      ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
+    ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.
@@ -356,17 +345,20 @@ void SceneTextDeserializer::setUpIndirectLight() const {
         dynamic_cast<KtxIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         indirectlightSystem->setIndirectLightFromKtxAsset(
-            indirectLight->getAssetPath(), indirectLight->getIntensity());
+          indirectLight->getAssetPath(), indirectLight->getIntensity()
+        );
       } else if (!indirectLight->getUrl().empty()) {
         indirectlightSystem->setIndirectLightFromKtxUrl(
-            indirectLight->getAssetPath(), indirectLight->getIntensity());
+          indirectLight->getAssetPath(), indirectLight->getIntensity()
+        );
       }
     } else if (dynamic_cast<HdrIndirectLight*>(indirectLight)) {
       if (!indirectLight->getAssetPath().empty()) {
         // val shouldUpdateLight = indirectLight->getAssetPath() !=
         // scene?.skybox?.assetPath if (shouldUpdateLight) {
         indirectlightSystem->setIndirectLightFromHdrAsset(
-            indirectLight->getAssetPath(), indirectLight->getIntensity());
+          indirectLight->getAssetPath(), indirectLight->getIntensity()
+        );
         //}
 
       } else if (!indirectLight->getUrl().empty()) {
@@ -374,12 +366,12 @@ void SceneTextDeserializer::setUpIndirectLight() const {
         // scene?.skybox?.url;
         //  if (shouldUpdateLight) {
         indirectlightSystem->setIndirectLightFromHdrUrl(
-            indirectLight->getUrl(), indirectLight->getIntensity());
+          indirectLight->getUrl(), indirectLight->getIntensity()
+        );
         //}
       }
     } else if (dynamic_cast<DefaultIndirectLight*>(indirectLight)) {
-      indirectlightSystem->setIndirectLight(
-          dynamic_cast<DefaultIndirectLight*>(indirectLight));
+      indirectlightSystem->setIndirectLight(dynamic_cast<DefaultIndirectLight*>(indirectLight));
     } else {
       // Already called in the default constructor.
       // plugin_filament_view::indirectlightSystem->setDefaultIndirectLight();

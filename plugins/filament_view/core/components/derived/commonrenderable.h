@@ -22,55 +22,46 @@
 
 namespace plugin_filament_view {
 
-using FilamentRenderableInstance =
-    utils::EntityInstance<filament::RenderableManager>;
+using FilamentRenderableInstance = utils::EntityInstance<filament::RenderableManager>;
 
 class CommonRenderable : public Component {
- public:
-  // Constructor
-  CommonRenderable()
+  public:
+    // Constructor
+    CommonRenderable()
       : Component(std::string(__FUNCTION__)),
         m_bCullingOfObjectEnabled(true),
         m_bReceiveShadows(true),
         m_bCastShadows(true) {}
-  explicit CommonRenderable(const flutter::EncodableMap& params);
+    explicit CommonRenderable(const flutter::EncodableMap& params);
 
-  FilamentRenderableInstance _fInstance;
+    FilamentRenderableInstance _fInstance;
 
-  // Getters
-  [[nodiscard]] inline bool IsCullingOfObjectEnabled() const {
-    return m_bCullingOfObjectEnabled;
-  }
+    // Getters
+    [[nodiscard]] inline bool IsCullingOfObjectEnabled() const { return m_bCullingOfObjectEnabled; }
 
-  [[nodiscard]] inline bool IsReceiveShadowsEnabled() const {
-    return m_bReceiveShadows;
-  }
+    [[nodiscard]] inline bool IsReceiveShadowsEnabled() const { return m_bReceiveShadows; }
 
-  [[nodiscard]] inline bool IsCastShadowsEnabled() const {
-    return m_bCastShadows;
-  }
+    [[nodiscard]] inline bool IsCastShadowsEnabled() const { return m_bCastShadows; }
 
-  // Setters
-  inline void SetCullingOfObjectEnabled(bool enabled) {
-    m_bCullingOfObjectEnabled = enabled;
-  }
+    // Setters
+    inline void SetCullingOfObjectEnabled(bool enabled) { m_bCullingOfObjectEnabled = enabled; }
 
-  inline void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
+    inline void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
 
-  inline void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
+    inline void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-  void DebugPrint(const std::string& tabPrefix) const override;
+    void DebugPrint(const std::string& tabPrefix) const override;
 
-  [[nodiscard]] inline Component* Clone() const override {
-    /// TODO: fix this
-    // return new CommonRenderable(*this);  // Copy constructor is called here
-    return nullptr;
-  }
+    [[nodiscard]] inline Component* Clone() const override {
+      /// TODO: fix this
+      // return new CommonRenderable(*this);  // Copy constructor is called here
+      return nullptr;
+    }
 
- private:
-  bool m_bCullingOfObjectEnabled;
-  bool m_bReceiveShadows;
-  bool m_bCastShadows;
+  private:
+    bool m_bCullingOfObjectEnabled;
+    bool m_bReceiveShadows;
+    bool m_bCastShadows;
 };
 
 }  // namespace plugin_filament_view

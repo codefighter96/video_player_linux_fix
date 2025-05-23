@@ -35,16 +35,16 @@ namespace plugin_filament_view {
 flutter::EncodableValue HitResult::Encode() const {
   // Convert float3 to a list of floats
   flutter::EncodableList hitPosition = {
-      flutter::EncodableValue(hitPosition_.x),
-      flutter::EncodableValue(hitPosition_.y),
-      flutter::EncodableValue(hitPosition_.z)};
+    flutter::EncodableValue(hitPosition_.x), flutter::EncodableValue(hitPosition_.y),
+    flutter::EncodableValue(hitPosition_.z)
+  };
 
   // Create a map to represent the HitResult
   flutter::EncodableMap encodableMap = {
-      {flutter::EncodableValue("guid"), flutter::EncodableValue(guid_)},
-      {flutter::EncodableValue("name"), flutter::EncodableValue(name_)},
-      {flutter::EncodableValue("hitPosition"),
-       flutter::EncodableValue(hitPosition)}};
+    {flutter::EncodableValue("guid"), flutter::EncodableValue(guid_)},
+    {flutter::EncodableValue("name"), flutter::EncodableValue(name_)},
+    {flutter::EncodableValue("hitPosition"), flutter::EncodableValue(hitPosition)}
+  };
 
   return flutter::EncodableValue(encodableMap);
 }
@@ -81,14 +81,11 @@ void CollisionSystem::DebugPrint() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-inline float fLength2(const filament::math::float3& v) {
-  return v.x * v.x + v.y * v.y + v.z * v.z;
-}
+inline float fLength2(const filament::math::float3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::list<HitResult> CollisionSystem::lstCheckForCollidable(
-    Ray& rayCast,
-    int64_t /*collisionLayer*/) const {
+std::list<HitResult>
+CollisionSystem::lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
   std::list<HitResult> hitResults;
 
   const auto collidables = ecs->getEntitiesWithComponent<Collidable>();
@@ -97,10 +94,8 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
   for (const auto& entity : collidables) {
     const EntityGUID guid = entity->GetGuid();
     auto collidable = ecs->getComponent<Collidable>(guid);
-    debug_assert(!!collidable,
-                 fmt::format("Collidable missing for entity: {}", guid));
-    if (!collidable->enabled)
-      continue;
+    debug_assert(!!collidable, fmt::format("Collidable missing for entity: {}", guid));
+    if (!collidable->enabled) continue;
 
     // Check if the collision layer matches (if a specific layer was provided)
     // if (collisionLayer != 0 && (collidable->GetCollisionLayer() &
@@ -142,20 +137,19 @@ std::list<HitResult> CollisionSystem::lstCheckForCollidable(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::SendCollisionInformationCallback(
-    const std::list<HitResult>& lstHitResults,
-    std::string sourceQuery,
-    const CollisionEventType eType) const {
+  const std::list<HitResult>& lstHitResults,
+  std::string sourceQuery,
+  const CollisionEventType eType
+) const {
   flutter::EncodableMap encodableMap;
 
   // event type
-  encodableMap[flutter::EncodableValue(kCollisionEventType)] =
-      static_cast<int>(eType);
+  encodableMap[flutter::EncodableValue(kCollisionEventType)] = static_cast<int>(eType);
   // source guid
-  encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] =
-      sourceQuery;
+  encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] = sourceQuery;
   // hit count
   encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] =
-      static_cast<int>(lstHitResults.size());
+    static_cast<int>(lstHitResults.size());
 
   int iter = 0;
   for (const auto& arg : lstHitResults) {
@@ -172,53 +166,47 @@ void CollisionSystem::SendCollisionInformationCallback(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vOnInitSystem() {
-  vRegisterMessageHandler(
-      ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
-        auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
-        const auto requestor =
-            msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
-        const auto type = msg.getData<CollisionEventType>(
-            ECSMessageType::CollisionRequestType);
+  vRegisterMessageHandler(ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
+    auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
+    const auto requestor = msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
+    const auto type = msg.getData<CollisionEventType>(ECSMessageType::CollisionRequestType);
 
-        const auto hitList = lstCheckForCollidable(rayInfo, 0);
+    const auto hitList = lstCheckForCollidable(rayInfo, 0);
 
-        SendCollisionInformationCallback(hitList, requestor, type);
-      });
+    SendCollisionInformationCallback(hitList, requestor, type);
+  });
 
   vRegisterMessageHandler(
-      ECSMessageType::ToggleDebugCollidableViewsInScene,
-      [this](const ECSMessage& msg) {
-        spdlog::debug("ToggleDebugCollidableViewsInScene");
+    ECSMessageType::ToggleDebugCollidableViewsInScene,
+    [this](const ECSMessage& msg) {
+      spdlog::debug("ToggleDebugCollidableViewsInScene");
 
-        const auto value = msg.getData<bool>(
-            ECSMessageType::ToggleDebugCollidableViewsInScene);
+      const auto value = msg.getData<bool>(ECSMessageType::ToggleDebugCollidableViewsInScene);
 
-        if (!value) {
-          vTurnOffRenderingOfCollidables();
-        } else {
-          vTurnOnRenderingOfCollidables();
-        }
+      if (!value) {
+        vTurnOffRenderingOfCollidables();
+      } else {
+        vTurnOnRenderingOfCollidables();
+      }
 
-        spdlog::debug("ToggleDebugCollidableViewsInScene Complete");
-      });
+      spdlog::debug("ToggleDebugCollidableViewsInScene Complete");
+    }
+  );
 
-  vRegisterMessageHandler(
-      ECSMessageType::ToggleCollisionForEntity, [this](const ECSMessage& msg) {
-        const auto guid =
-            msg.getData<EntityGUID>(ECSMessageType::ToggleCollisionForEntity);
-        const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
+  vRegisterMessageHandler(ECSMessageType::ToggleCollisionForEntity, [this](const ECSMessage& msg) {
+    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ToggleCollisionForEntity);
+    const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-        if (const auto collidable = ecs->getComponent<Collidable>(guid);
-            !!collidable) {
-          collidable->enabled = value;
-        }
-      });
+    if (const auto collidable = ecs->getComponent<Collidable>(guid); !!collidable) {
+      collidable->enabled = value;
+    }
+  });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
   TransformSystem* transformSystem =
-      ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
+    ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
 
   // Iterate over all collidables
   const auto colliders = ecs->getComponentsOfType<Collidable>();
@@ -233,15 +221,16 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
         const auto entity = collidable->entityOwner_;
         spdlog::trace("Collidable entity({}) has no AABB", entity->GetGuid());
         // Get AABB if it's a RenderableEntityObject
-        if (const auto renderableEntity =
-                dynamic_cast<RenderableEntityObject*>(entity)) {
+        if (const auto renderableEntity = dynamic_cast<RenderableEntityObject*>(entity)) {
           aabb = renderableEntity->getAABB();
-          spdlog::trace("  Adding AABB to collidable entity({})",
-                        entity->GetGuid());
-          spdlog::trace("  AABB.pos: x={}, y={}, z={}", aabb.center.x,
-                        aabb.center.y, aabb.center.z);
-          spdlog::trace("  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2,
-                        aabb.halfExtent.y * 2, aabb.halfExtent.z * 2);
+          spdlog::trace("  Adding AABB to collidable entity({})", entity->GetGuid());
+          spdlog::trace(
+            "  AABB.pos: x={}, y={}, z={}", aabb.center.x, aabb.center.y, aabb.center.z
+          );
+          spdlog::trace(
+            "  AABB.size: x={}, y={}, z={}", aabb.halfExtent.x * 2, aabb.halfExtent.y * 2,
+            aabb.halfExtent.z * 2
+          );
 #if SPDLOG_LEVEL == trace
 // renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
 #endif
@@ -258,13 +247,11 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
         auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
         cubeChild->m_bIsWireframe = true;
         cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
-        const auto shapeSystem =
-            ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
+        const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
         ecs->addEntity(cubeChild);
         shapeSystem->addShapeToScene(cubeChild);
         auto childTransform = cubeChild->getComponent<BaseTransform>();
-        childTransform->SetTransform(aabb.center, aabb.halfExtent * 2,
-                                     kQuatfIdentity);
+        childTransform->SetTransform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
 
         childTransform->setParent(entity->GetGuid());
 

@@ -24,8 +24,8 @@
 #include <core/utils/deserialize.h>
 #include <filament/RenderableManager.h>
 #include <plugins/common/common.h>
-#include <utils/Slice.h>
 #include <utility>
+#include <utils/Slice.h>
 
 namespace plugin_filament_view {
 
@@ -44,10 +44,10 @@ const char* modelInstancingModeToString(ModelInstancingMode mode) {
 
 ////////////////////////////////////////////////////////////////////////////
 Model::Model()
-    : RenderableEntityObject(),
-      assetPath_(),
-      m_poAsset(nullptr),
-      m_poAssetInstance(nullptr) {}
+  : RenderableEntityObject(),
+    assetPath_(),
+    m_poAsset(nullptr),
+    m_poAssetInstance(nullptr) {}
 
 void Model::deserializeFrom(const flutter::EncodableMap& params) {
   RenderableEntityObject::deserializeFrom(params);
@@ -57,16 +57,16 @@ void Model::deserializeFrom(const flutter::EncodableMap& params) {
 
   // is_glb
   bool is_glb = Deserialize::DecodeParameter<bool>(kIsGlb, params);
-  runtime_assert(is_glb,
-                 "Model::deserializeFrom - is_glb must be true for Model");
+  runtime_assert(is_glb, "Model::deserializeFrom - is_glb must be true for Model");
 
   // _instancingMode
-  Deserialize::DecodeEnumParameterWithDefault(kModelInstancingMode,
-                                              &_instancingMode, params,
-                                              ModelInstancingMode::none);
+  Deserialize::DecodeEnumParameterWithDefault(
+    kModelInstancingMode, &_instancingMode, params, ModelInstancingMode::none
+  );
 
-  spdlog::trace("Model({}), instanceMode: {}", assetPath_,
-                modelInstancingModeToString(_instancingMode));
+  spdlog::trace(
+    "Model({}), instanceMode: {}", assetPath_, modelInstancingModeToString(_instancingMode)
+  );
 
   // Animation (optional)
   spdlog::trace("Making Animation...");
@@ -87,9 +87,7 @@ std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::DebugPrint() const {
-  vDebugPrintComponents();
-}
+void Model::DebugPrint() const { vDebugPrintComponents(); }
 
 AABB Model::getAABB() const {
   AABB aabb;
@@ -108,8 +106,10 @@ AABB Model::getAABB() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
-                                       const TextureMap& /*loadedTextures*/) {
+void Model::vChangeMaterialDefinitions(
+  const flutter::EncodableMap& params,
+  const TextureMap& /*loadedTextures*/
+) {
   // if we have a materialdefinitions component, we need to remove it
   // and remake / add a new one.
   ecs->removeComponent<MaterialDefinitions>(guid_);
@@ -130,25 +130,22 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
   vLoadMaterialDefinitionsToMaterialInstance();
 
   if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error(
-        "Unable to load material definition to instance, bailing out.");
+    spdlog::error("Unable to load material definition to instance, bailing out.");
     return;
   }
 
   // now, reload / rebuild the material?
   const auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>(
-          "BaseShape::vChangeMaterialDefinitions");
+    ECSManager::GetInstance()->getSystem<FilamentSystem>("BaseShape::vChangeMaterialDefinitions");
 
   // If your entity has multiple primitives, you’ll need to call
   // setMaterialInstanceAt for each primitive you want to update.
-  auto& renderManager =
-      filamentSystem->getFilamentEngine()->getRenderableManager();
+  auto& renderManager = filamentSystem->getFilamentEngine()->getRenderableManager();
 
   if (getAsset()) {
-    utils::Slice const listOfRenderables{
-        getAsset()->getRenderableEntities(),
-        getAsset()->getRenderableEntityCount()};
+    const utils::Slice listOfRenderables{
+      getAsset()->getRenderableEntities(), getAsset()->getRenderableEntityCount()
+    };
 
     // Note this will apply to EVERYTHING currently. You might want a custom
     // <only effect these pieces> type functionality.
@@ -157,8 +154,7 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
 
       // I dont know about primitive index being non zero if our tree has
       // multiple nodes getting from the asset.
-      renderManager.setMaterialInstanceAt(ri, 0,
-                                          *m_poMaterialInstance.getData());
+      renderManager.setMaterialInstanceAt(ri, 0, *m_poMaterialInstance.getData());
     }
   } else if (getAssetInstance()) {
     const FilamentEntity* instanceEntities = getAssetInstance()->getEntities();
@@ -166,16 +162,14 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
 
     for (size_t i = 0; i < instanceEntityCount; i++) {
       // Check if this entity has a Renderable component
-      if (const FilamentEntity entity = instanceEntities[i];
-          renderManager.hasComponent(entity)) {
+      if (const FilamentEntity entity = instanceEntities[i]; renderManager.hasComponent(entity)) {
         const auto ri = renderManager.getInstance(entity);
 
         // A Renderable can have multiple primitives (submeshes)
         const size_t submeshCount = renderManager.getPrimitiveCount(ri);
         for (size_t sm = 0; sm < submeshCount; sm++) {
           // Give the submesh our new material instance
-          renderManager.setMaterialInstanceAt(ri, sm,
-                                              *m_poMaterialInstance.getData());
+          renderManager.setMaterialInstanceAt(ri, sm, *m_poMaterialInstance.getData());
         }
       }
     }
@@ -184,12 +178,12 @@ void Model::vChangeMaterialDefinitions(const flutter::EncodableMap& params,
 
 ////////////////////////////////////////////////////////////////////////////
 void Model::vChangeMaterialInstanceProperty(
-    const MaterialParameter* materialParam,
-    const TextureMap& loadedTextures) {
+  const MaterialParameter* materialParam,
+  const TextureMap& loadedTextures
+) {
   if (m_poMaterialInstance.getStatus() != Status::Success) {
-    spdlog::error(
-        "No material definition set for model, set one first that's not the "
-        "uber shader.");
+    spdlog::error("No material definition set for model, set one first that's not the "
+                  "uber shader.");
     return;
   }
 
@@ -200,8 +194,7 @@ void Model::vChangeMaterialInstanceProperty(
     return;
   }
 
-  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam,
-                                                         loadedTextures);
+  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
 }
 
 }  // namespace plugin_filament_view

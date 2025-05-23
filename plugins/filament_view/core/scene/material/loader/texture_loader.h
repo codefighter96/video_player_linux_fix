@@ -25,28 +25,24 @@ namespace plugin_filament_view {
 class TextureDefinitions;
 
 class TextureLoader {
- public:
-  TextureLoader();
-  ~TextureLoader() = default;
+  public:
+    TextureLoader();
+    ~TextureLoader() = default;
 
-  static Resource<::filament::Texture*> loadTexture(
-      const TextureDefinitions* texture);
+    static Resource<::filament::Texture*> loadTexture(const TextureDefinitions* texture);
 
-  // Disallow copy and assign.
-  TextureLoader(const TextureLoader&) = delete;
-  TextureLoader& operator=(const TextureLoader&) = delete;
+    // Disallow copy and assign.
+    TextureLoader(const TextureLoader&) = delete;
+    TextureLoader& operator=(const TextureLoader&) = delete;
 
- private:
-  static ::filament::Texture* createTextureFromImage(
-      const std::string& file_path,
-      TextureDefinitions::TextureType type);
+  private:
+    static ::filament::Texture*
+    createTextureFromImage(const std::string& file_path, TextureDefinitions::TextureType type);
 
-  static ::filament::Texture* loadTextureFromStream(
-      const std::string& file_path,
-      TextureDefinitions::TextureType type);
+    static ::filament::Texture*
+    loadTextureFromStream(const std::string& file_path, TextureDefinitions::TextureType type);
 
-  static ::filament::Texture* loadTextureFromUrl(
-      const std::string& url,
-      TextureDefinitions::TextureType type);
+    static ::filament::Texture*
+    loadTextureFromUrl(const std::string& url, TextureDefinitions::TextureType type);
 };
 }  // namespace plugin_filament_view

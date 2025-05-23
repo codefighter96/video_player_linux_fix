@@ -41,77 +41,77 @@ class ECSManager;
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
 class ECSystem : public IdentifiableType {
- public:
-  virtual ~ECSystem() = default;
+  public:
+    virtual ~ECSystem() = default;
 
-  // Send a message to the system
-  void vSendMessage(const ECSMessage& msg);
+    // Send a message to the system
+    void vSendMessage(const ECSMessage& msg);
 
-  // Register a message handler for a specific message type
-  void vRegisterMessageHandler(ECSMessageType type,
-                               const ECSMessageHandler& handler);
+    // Register a message handler for a specific message type
+    void vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler);
 
-  // Unregister all handlers for a specific message type
-  void vUnregisterMessageHandler(ECSMessageType type);
+    // Unregister all handlers for a specific message type
+    void vUnregisterMessageHandler(ECSMessageType type);
 
-  // Clear all message handlers
-  void vClearMessageHandlers();
+    // Clear all message handlers
+    void vClearMessageHandlers();
 
-  // Process incoming messages
-  virtual void vProcessMessages();
+    // Process incoming messages
+    virtual void vProcessMessages();
 
-  void vInitSystem(const plugin_filament_view::ECSManager& ecsManager) {
-    ecs = const_cast<ECSManager*>(&ecsManager);
-    vOnInitSystem();
-  }
-
-  /// @deprecated To be replaced by `LifecycleParticipant`
-  [[nodiscard]] inline bool isInitialized() const { return ecs != nullptr; }
-
-  /// @deprecated To be replaced by `LifecycleParticipant`
-  /// @throws std::runtime_error if not initialized
-  void checkInitialized() const {
-    if (!isInitialized()) {
-      throw std::runtime_error(
-          "ECSManager is not initialized. Call vInitSystem() first.");
+    void vInitSystem(const plugin_filament_view::ECSManager& ecsManager) {
+      ecs = const_cast<ECSManager*>(&ecsManager);
+      vOnInitSystem();
     }
-  }
 
-  virtual void vOnInitSystem() = 0;
+    /// @deprecated To be replaced by `LifecycleParticipant`
+    [[nodiscard]] inline bool isInitialized() const { return ecs != nullptr; }
 
-  virtual void vUpdate(float /*deltaTime*/) = 0;
+    /// @deprecated To be replaced by `LifecycleParticipant`
+    /// @throws std::runtime_error if not initialized
+    void checkInitialized() const {
+      if (!isInitialized()) {
+        throw std::runtime_error("ECSManager is not initialized. Call vInitSystem() first.");
+      }
+    }
 
-  virtual void vShutdownSystem() = 0;
+    virtual void vOnInitSystem() = 0;
 
-  virtual void DebugPrint() = 0;
+    virtual void vUpdate(float /*deltaTime*/) = 0;
 
-  void vSetupMessageChannels(flutter::PluginRegistrar* poPluginRegistrar,
-                             const std::string& szChannelName);
+    virtual void vShutdownSystem() = 0;
 
-  void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
+    virtual void DebugPrint() = 0;
 
- protected:
-  smarter_raw_ptr<ECSManager> ecs = nullptr;
+    void vSetupMessageChannels(
+      flutter::PluginRegistrar* poPluginRegistrar,
+      const std::string& szChannelName
+    );
 
-  // Handle a specific message type by invoking the registered handlers
-  virtual void vHandleMessage(const ECSMessage& msg);
+    void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
- private:
-  std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages
-  std::unordered_map<ECSMessageType,
-                     std::vector<ECSMessageHandler>,
-                     EnumClassHash>
+  protected:
+    smarter_raw_ptr<ECSManager> ecs = nullptr;
+
+    // Handle a specific message type by invoking the registered handlers
+    virtual void vHandleMessage(const ECSMessage& msg);
+
+  private:
+    std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages
+    std::unordered_map<
+      ECSMessageType,
+      std::vector<ECSMessageHandler>,
+      EnumClassHash>
       handlers_;  // Registered handlers
 
-  std::mutex messagesMutex;
-  std::mutex handlersMutex;
+    std::mutex messagesMutex;
+    std::mutex handlersMutex;
 
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      event_channel_;
+    std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> event_channel_;
 
-  // The internal Flutter event sink instance, used to send events to the Dart
-  // side.
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+    // The internal Flutter event sink instance, used to send events to the Dart
+    // side.
+    std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
 };
 
 }  // namespace plugin_filament_view

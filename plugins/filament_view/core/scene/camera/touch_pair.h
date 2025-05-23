@@ -21,42 +21,44 @@
 namespace plugin_filament_view {
 
 class TouchPair {
- public:
-  TouchPair()
+  public:
+    TouchPair()
       : pt0_(filament::math::float2(0.0f)),
         pt1_(filament::math::float2(0.0f)),
         count_(0) {};
 
-  TouchPair(int32_t pointer_count,
-            const size_t /* point_data_size */,
-            const double* point_data,
-            uint32_t height) {
-    if (pointer_count >= 1) {
-      pt0_ = filament::math::float2(
+    TouchPair(
+      int32_t pointer_count,
+      const size_t /* point_data_size */,
+      const double* point_data,
+      uint32_t height
+    ) {
+      if (pointer_count >= 1) {
+        pt0_ = filament::math::float2(
           static_cast<float>(point_data[7]),
-          static_cast<float>(height) - static_cast<float>(point_data[8]));
-      pt1_ = pt0_;
-      count_++;
-    }
-    if (pointer_count >= 2) {
-      pt1_ = filament::math::float2(
+          static_cast<float>(height) - static_cast<float>(point_data[8])
+        );
+        pt1_ = pt0_;
+        count_++;
+      }
+      if (pointer_count >= 2) {
+        pt1_ = filament::math::float2(
           static_cast<float>(point_data[9]),
-          static_cast<float>(height) - static_cast<float>(point_data[10]));
-      count_++;
-    }
-  };
+          static_cast<float>(height) - static_cast<float>(point_data[10])
+        );
+        count_++;
+      }
+    };
 
-  float separation() { return distance(pt0_, pt1_); };
-  [[nodiscard]] filament::math::float2 midpoint() const {
-    return mix(pt0_, pt1_, 0.5f);
-  };
-  [[nodiscard]] int x() const { return static_cast<int>(midpoint().x); }
-  [[nodiscard]] int y() const { return static_cast<int>(midpoint().y); }
+    float separation() { return distance(pt0_, pt1_); };
+    [[nodiscard]] filament::math::float2 midpoint() const { return mix(pt0_, pt1_, 0.5f); };
+    [[nodiscard]] int x() const { return static_cast<int>(midpoint().x); }
+    [[nodiscard]] int y() const { return static_cast<int>(midpoint().y); }
 
- private:
-  filament::math::float2 pt0_{};
-  filament::math::float2 pt1_{};
-  uint32_t count_{};
+  private:
+    filament::math::float2 pt0_{};
+    filament::math::float2 pt1_{};
+    uint32_t count_{};
 };
 
 }  // namespace plugin_filament_view

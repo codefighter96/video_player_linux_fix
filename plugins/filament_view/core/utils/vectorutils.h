@@ -29,17 +29,19 @@
 namespace plugin_filament_view {
 
 class VectorUtils {
- public:
-  // Utility functions to create identity matrices
-  static filament::math::mat3f identity3x3();
-  static filament::math::mat4f identity4x4();
+  public:
+    // Utility functions to create identity matrices
+    static filament::math::mat3f identity3x3();
+    static filament::math::mat4f identity4x4();
 
-  static filament::math::float3 transformPositionVector(
+    static filament::math::float3 transformPositionVector(
       const filament::math::float3& pos,
-      const filament::math::mat4f& transform);
-  static filament::math::float3 transformScaleVector(
+      const filament::math::mat4f& transform
+    );
+    static filament::math::float3 transformScaleVector(
       const filament::math::float3& scale,
-      const filament::math::mat4f& transform);
+      const filament::math::mat4f& transform
+    );
 };
 
 }  // namespace plugin_filament_view

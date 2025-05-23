@@ -32,140 +32,139 @@ namespace plugin_filament_view {
 // Generated class from Pigeon.
 
 class FlutterError {
- public:
-  explicit FlutterError(const std::string& code) : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-      : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code,
-                        const std::string& message,
-                        const flutter::EncodableValue& details)
-      : code_(code), message_(message), details_(details) {}
+  public:
+    explicit FlutterError(const std::string& code)
+      : code_(code) {}
+    explicit FlutterError(const std::string& code, const std::string& message)
+      : code_(code),
+        message_(message) {}
+    explicit FlutterError(
+      const std::string& code,
+      const std::string& message,
+      const flutter::EncodableValue& details
+    )
+      : code_(code),
+        message_(message),
+        details_(details) {}
 
-  const std::string& code() const { return code_; }
-  const std::string& message() const { return message_; }
-  const flutter::EncodableValue& details() const { return details_; }
+    const std::string& code() const { return code_; }
+    const std::string& message() const { return message_; }
+    const flutter::EncodableValue& details() const { return details_; }
 
- private:
-  std::string code_;
-  std::string message_;
-  flutter::EncodableValue details_;
+  private:
+    std::string code_;
+    std::string message_;
+    flutter::EncodableValue details_;
 };
 
-template <class T>
-class ErrorOr {
- public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
-  ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
+template<class T> class ErrorOr {
+  public:
+    ErrorOr(const T& rhs)
+      : v_(rhs) {}
+    ErrorOr(const T&& rhs)
+      : v_(std::move(rhs)) {}
+    ErrorOr(const FlutterError& rhs)
+      : v_(rhs) {}
+    ErrorOr(const FlutterError&& rhs)
+      : v_(std::move(rhs)) {}
 
-  bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
-  const T& value() const { return std::get<T>(v_); };
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
+    bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
+    const T& value() const { return std::get<T>(v_); };
+    const FlutterError& error() const { return std::get<FlutterError>(v_); };
 
- private:
-  friend class FilamentViewApi;
-  ErrorOr() = default;
-  T TakeValue() && { return std::get<T>(std::move(v_)); }
+  private:
+    friend class FilamentViewApi;
+    ErrorOr() = default;
+    T TakeValue() && { return std::get<T>(std::move(v_)); }
 
-  std::variant<T, FlutterError> v_;
+    std::variant<T, FlutterError> v_;
 };
 
 class PigeonInternalCodecSerializer : public flutter::StandardCodecSerializer {
- public:
-  PigeonInternalCodecSerializer();
-  inline static PigeonInternalCodecSerializer& GetInstance() {
-    static PigeonInternalCodecSerializer sInstance;
-    return sInstance;
-  }
+  public:
+    PigeonInternalCodecSerializer();
+    inline static PigeonInternalCodecSerializer& GetInstance() {
+      static PigeonInternalCodecSerializer sInstance;
+      return sInstance;
+    }
 
-  void WriteValue(const flutter::EncodableValue& value,
-                  flutter::ByteStreamWriter* stream) const override;
+    void WriteValue(const flutter::EncodableValue& value, flutter::ByteStreamWriter* stream)
+      const override;
 
- protected:
-  flutter::EncodableValue ReadValueOfType(
-      uint8_t type,
-      flutter::ByteStreamReader* stream) const override;
+  protected:
+    flutter::EncodableValue ReadValueOfType(uint8_t type, flutter::ByteStreamReader* stream)
+      const override;
 };
 
 // Generated interface from Pigeon that represents a handler of messages from
 // Flutter.
 class FilamentViewApi {
- public:
-  FilamentViewApi(const FilamentViewApi&) = delete;
-  FilamentViewApi& operator=(const FilamentViewApi&) = delete;
-  virtual ~FilamentViewApi() {}
-  // Change material parameters for the given entity.
-  virtual std::optional<FlutterError> ChangeMaterialParameter(
-      const flutter::EncodableMap& params,
-      int64_t id) = 0;
-  // Change material definition for the given entity.
-  virtual std::optional<FlutterError> ChangeMaterialDefinition(
-      const flutter::EncodableMap& params,
-      int64_t id) = 0;
-  // Toggle shapes visibility in the scene.
-  virtual std::optional<FlutterError> ToggleShapesInScene(bool value) = 0;
-  // Set shape's transform by GUID.
-  virtual std::optional<FlutterError> SetShapeTransform(int64_t id,
-                                                        double posx,
-                                                        double posy,
-                                                        double posz,
-                                                        double rotx,
-                                                        double roty,
-                                                        double rotz,
-                                                        double rotw,
-                                                        double sclx,
-                                                        double scly,
-                                                        double sclz) = 0;
-  // Cycle between view quality settings presets.
-  virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
-  // Set fog options
-  virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
-  // Change the camera mode by name.
-  virtual std::optional<FlutterError> ChangeCameraMode(
-      const std::string& mode) = 0;
-  virtual std::optional<FlutterError>
-  ChangeCameraOrbitHomePosition(double x, double y, double z) = 0;
-  virtual std::optional<FlutterError> ChangeCameraTargetPosition(double x,
-                                                                 double y,
-                                                                 double z) = 0;
-  virtual std::optional<FlutterError>
-  ChangeCameraFlightStartPosition(double x, double y, double z) = 0;
-  // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
-  virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
-  // Set camera rotation by a float value.
-  virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
-  // Set a light's color and intensity by GUID.
-  virtual std::optional<FlutterError> ChangeLightColorByGUID(
+  public:
+    FilamentViewApi(const FilamentViewApi&) = delete;
+    FilamentViewApi& operator=(const FilamentViewApi&) = delete;
+    virtual ~FilamentViewApi() {}
+    // Change material parameters for the given entity.
+    virtual std::optional<FlutterError>
+    ChangeMaterialParameter(const flutter::EncodableMap& params, int64_t id) = 0;
+    // Change material definition for the given entity.
+    virtual std::optional<FlutterError>
+    ChangeMaterialDefinition(const flutter::EncodableMap& params, int64_t id) = 0;
+    // Toggle shapes visibility in the scene.
+    virtual std::optional<FlutterError> ToggleShapesInScene(bool value) = 0;
+    // Set shape's transform by GUID.
+    virtual std::optional<FlutterError> SetShapeTransform(
       int64_t id,
-      const std::string& color,
-      int64_t intensity) = 0;
-  // Set a light's transform by GUID. Deprecated.
-  virtual std::optional<FlutterError> ChangeLightTransformByGUID(
+      double posx,
+      double posy,
+      double posz,
+      double rotx,
+      double roty,
+      double rotz,
+      double rotw,
+      double sclx,
+      double scly,
+      double sclz
+    ) = 0;
+    // Cycle between view quality settings presets.
+    virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
+    // Set fog options
+    virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
+    // Change the camera mode by name.
+    virtual std::optional<FlutterError> ChangeCameraMode(const std::string& mode) = 0;
+    virtual std::optional<FlutterError>
+    ChangeCameraOrbitHomePosition(double x, double y, double z) = 0;
+    virtual std::optional<FlutterError>
+    ChangeCameraTargetPosition(double x, double y, double z) = 0;
+    virtual std::optional<FlutterError>
+    ChangeCameraFlightStartPosition(double x, double y, double z) = 0;
+    // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
+    virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
+    // Set camera rotation by a float value.
+    virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
+    // Set a light's color and intensity by GUID.
+    virtual std::optional<FlutterError>
+    ChangeLightColorByGUID(int64_t id, const std::string& color, int64_t intensity) = 0;
+    // Set a light's transform by GUID. Deprecated.
+    virtual std::optional<FlutterError> ChangeLightTransformByGUID(
       int64_t id,
       double posx,
       double posy,
       double posz,
       double dirx,
       double diry,
-      double dirz) = 0;
-  virtual std::optional<FlutterError> EnqueueAnimation(
-      int64_t id,
-      int64_t animation_index) = 0;
-  virtual std::optional<FlutterError> ClearAnimationQueue(int64_t id) = 0;
-  virtual std::optional<FlutterError> PlayAnimation(
-      int64_t id,
-      int64_t animation_index) = 0;
-  virtual std::optional<FlutterError> ChangeAnimationSpeed(int64_t id,
-                                                           double speed) = 0;
-  virtual std::optional<FlutterError> PauseAnimation(int64_t id) = 0;
-  virtual std::optional<FlutterError> ResumeAnimation(int64_t id) = 0;
-  virtual std::optional<FlutterError> SetAnimationLooping(int64_t id,
-                                                          bool looping) = 0;
-  // Perform a raycast query.
-  // The result will be sent back to the client via the collision_info event
-  // channel.
-  virtual std::optional<FlutterError> RequestCollisionCheckFromRay(
+      double dirz
+    ) = 0;
+    virtual std::optional<FlutterError> EnqueueAnimation(int64_t id, int64_t animation_index) = 0;
+    virtual std::optional<FlutterError> ClearAnimationQueue(int64_t id) = 0;
+    virtual std::optional<FlutterError> PlayAnimation(int64_t id, int64_t animation_index) = 0;
+    virtual std::optional<FlutterError> ChangeAnimationSpeed(int64_t id, double speed) = 0;
+    virtual std::optional<FlutterError> PauseAnimation(int64_t id) = 0;
+    virtual std::optional<FlutterError> ResumeAnimation(int64_t id) = 0;
+    virtual std::optional<FlutterError> SetAnimationLooping(int64_t id, bool looping) = 0;
+    // Perform a raycast query.
+    // The result will be sent back to the client via the collision_info event
+    // channel.
+    virtual std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_i_d,
       double origin_x,
       double origin_y,
@@ -173,48 +172,40 @@ class FilamentViewApi {
       double direction_x,
       double direction_y,
       double direction_z,
-      double length) = 0;
-  // Disable raycast checks for the given entity.
-  // NOTE: this will not hide the collider debug visual.
-  virtual std::optional<FlutterError> TurnOffCollisionChecksForEntity(
-      int64_t id) = 0;
-  // Enable raycast checks for the given entity.
-  // NOTE: this will not show the collider debug visual.
-  virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(
-      int64_t id) = 0;
-  // Enable/disable debug collidable visuals in the scene.
-  virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(
-      bool value) = 0;
-  virtual std::optional<FlutterError> ChangeScaleByGUID(int64_t id,
-                                                        double x,
-                                                        double y,
-                                                        double z) = 0;
-  virtual std::optional<FlutterError> ChangeTranslationByGUID(int64_t id,
-                                                              double x,
-                                                              double y,
-                                                              double z) = 0;
-  virtual std::optional<FlutterError> ChangeRotationByGUID(int64_t id,
-                                                           double x,
-                                                           double y,
-                                                           double z,
-                                                           double w) = 0;
-  virtual std::optional<FlutterError> TurnOffVisualForEntity(int64_t id) = 0;
-  virtual std::optional<FlutterError> TurnOnVisualForEntity(int64_t id) = 0;
+      double length
+    ) = 0;
+    // Disable raycast checks for the given entity.
+    // NOTE: this will not hide the collider debug visual.
+    virtual std::optional<FlutterError> TurnOffCollisionChecksForEntity(int64_t id) = 0;
+    // Enable raycast checks for the given entity.
+    // NOTE: this will not show the collider debug visual.
+    virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(int64_t id) = 0;
+    // Enable/disable debug collidable visuals in the scene.
+    virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) = 0;
+    virtual std::optional<FlutterError>
+    ChangeScaleByGUID(int64_t id, double x, double y, double z) = 0;
+    virtual std::optional<FlutterError>
+    ChangeTranslationByGUID(int64_t id, double x, double y, double z) = 0;
+    virtual std::optional<FlutterError>
+    ChangeRotationByGUID(int64_t id, double x, double y, double z, double w) = 0;
+    virtual std::optional<FlutterError> TurnOffVisualForEntity(int64_t id) = 0;
+    virtual std::optional<FlutterError> TurnOnVisualForEntity(int64_t id) = 0;
 
-  // The codec used by FilamentViewApi.
-  static const flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `FilamentViewApi` to handle messages through the
-  // `binary_messenger`.
-  static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api);
-  static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    FilamentViewApi* api,
-                    const std::string& message_channel_suffix);
-  static flutter::EncodableValue WrapError(std::string_view error_message);
-  static flutter::EncodableValue WrapError(const FlutterError& error);
+    // The codec used by FilamentViewApi.
+    static const flutter::StandardMessageCodec& GetCodec();
+    // Sets up an instance of `FilamentViewApi` to handle messages through the
+    // `binary_messenger`.
+    static void SetUp(flutter::BinaryMessenger* binary_messenger, FilamentViewApi* api);
+    static void SetUp(
+      flutter::BinaryMessenger* binary_messenger,
+      FilamentViewApi* api,
+      const std::string& message_channel_suffix
+    );
+    static flutter::EncodableValue WrapError(std::string_view error_message);
+    static flutter::EncodableValue WrapError(const FlutterError& error);
 
- protected:
-  FilamentViewApi() = default;
+  protected:
+    FilamentViewApi() = default;
 };
 }  // namespace plugin_filament_view
 #endif  // PIGEON_MESSAGES_G_H_
