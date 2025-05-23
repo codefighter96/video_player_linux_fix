@@ -37,8 +37,11 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
                                           kFloat3One);
   Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params,
                                           kQuatfIdentity);
-  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params,
-                                               kNullGuid);
+
+  Deserialize::DecodeParameterWithDefaultInt64(kParentId, &_parentId, params, kNullGuid);
+  if (_parentId != kNullGuid) {
+    _isParentDirty = true;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////

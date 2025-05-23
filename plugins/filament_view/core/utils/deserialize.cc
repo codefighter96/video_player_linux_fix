@@ -163,7 +163,7 @@ void Deserialize::DecodeParameterWithDefaultInt64(
   } else {
     // get type as string
     // auto type = std::string(it->second.type().name());
-    spdlog::warn("Unhandled type for key: {}", key);
+    spdlog::debug("Unhandled type for key: {}", key);
     *out_value = default_value;
   }
 }

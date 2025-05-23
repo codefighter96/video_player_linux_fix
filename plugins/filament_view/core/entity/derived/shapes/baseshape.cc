@@ -51,7 +51,7 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
   // normal
   Deserialize::DecodeParameterWithDefault(kNormal, &m_f3Normal, params, float3(0, 0, 0));
 
-  // isDoubleSided
+  // doubleSided
   m_bDoubleSided = Deserialize::DecodeParameterWithDefault<bool>(kDoubleSided, params, false);
 
   // MaterialDefinitions (optional)

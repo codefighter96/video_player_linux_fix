@@ -167,7 +167,7 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
 void Sphere::createDoubleSidedSphere(filament::Engine* /*engine_*/) {
   // createDoubleSidedSphere - Same geometry, but do stack winding opposite and
   // positive on indice creation.
-  spdlog::warn("createDoubleSidedSphere not implemented.");
+  throw std::runtime_error("createDoubleSidedSphere not implemented");
 }
 
 ////////////////////////////////////////////////////////////////////////////
