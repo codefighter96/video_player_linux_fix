@@ -656,68 +656,6 @@ void ModelSystem::vOnInitSystem() {
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
   // TODO: add support for other texture formats here
 
-  // ChangeTranslationByGUID
-  // TODO: move to TransformSystem
-  vRegisterMessageHandler(ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeTranslationByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
-
-    const auto position = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
-
-    // find the model in our list:
-    if (const auto ourEntity = _models.find(guid); ourEntity != _models.end()) {
-      const auto model = ourEntity->second;
-      const auto transform = model->getComponent<BaseTransform>();
-
-      // change stuff.
-      transform->SetPosition(position);
-    }
-
-    spdlog::trace("ChangeTranslationByGUID Complete");
-  });
-
-  // ChangeRotationByGUID
-  // TODO: move to TransformSystem
-  vRegisterMessageHandler(ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeRotationByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
-
-    const auto values = msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
-    filament::math::quatf rotation(values);
-
-    // find the model in our list:
-    if (const auto ourEntity = _models.find(guid); ourEntity != _models.end()) {
-      const auto model = ourEntity->second;
-      const auto transform = model->getComponent<BaseTransform>();
-
-      transform->SetRotation(rotation);
-    }
-
-    spdlog::trace("ChangeRotationByGUID Complete");
-  });
-
-  // ChangeScaleByGUID
-  // TODO: move to TransformSystem
-  vRegisterMessageHandler(ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeScaleByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
-
-    const auto values = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
-
-    // find the model in our list:
-    if (const auto ourEntity = _models.find(guid); ourEntity != _models.end()) {
-      const auto model = ourEntity->second;
-      const auto transform = model->getComponent<BaseTransform>();
-
-      transform->SetScale(values);
-    }
-
-    spdlog::trace("ChangeScaleByGUID Complete");
-  });
-
   vRegisterMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
     spdlog::debug("ToggleVisualForEntity");
 

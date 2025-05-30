@@ -232,66 +232,6 @@ void ShapeSystem::vOnInitSystem() {
 
     spdlog::trace("ToggleVisualForEntity Complete");
   });
-
-  // ChangeTranslationByGUID
-  vRegisterMessageHandler(ECSMessageType::ChangeTranslationByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeTranslationByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeTranslationByGUID);
-
-    const auto position = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
-
-    // find the entity in our list:
-    if (hasShape(guid)) {
-      const auto entity = getShape(guid);
-      const auto baseTransform = entity->getComponent<BaseTransform>();
-      const auto collidable = entity->getComponent<Collidable>();
-
-      baseTransform->SetPosition(position);
-    }
-
-    SPDLOG_TRACE("ChangeTranslationByGUID Complete");
-  });
-
-  // ChangeRotationByGUID
-  vRegisterMessageHandler(ECSMessageType::ChangeRotationByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeRotationByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeRotationByGUID);
-
-    const auto values = msg.getData<filament::math::float4>(ECSMessageType::floatVec4);
-    filament::math::quatf rotation(values);
-
-    // find the entity in our list:
-    if (hasShape(guid)) {
-      const auto entity = getShape(guid);
-      const auto baseTransform = entity->getComponent<BaseTransform>();
-
-      baseTransform->SetRotation(rotation);
-    }
-
-    SPDLOG_TRACE("ChangeRotationByGUID Complete");
-  });
-
-  // ChangeScaleByGUID
-  vRegisterMessageHandler(ECSMessageType::ChangeScaleByGUID, [this](const ECSMessage& msg) {
-    SPDLOG_TRACE("ChangeScaleByGUID");
-
-    const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeScaleByGUID);
-
-    const auto values = msg.getData<filament::math::float3>(ECSMessageType::floatVec3);
-
-    // find the entity in our list:
-    if (hasShape(guid)) {
-      const auto entity = getShape(guid);
-      const auto baseTransform = entity->getComponent<BaseTransform>();
-      const auto collidable = entity->getComponent<Collidable>();
-
-      baseTransform->SetScale(values);
-    }
-
-    SPDLOG_TRACE("ChangeScaleByGUID Complete");
-  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

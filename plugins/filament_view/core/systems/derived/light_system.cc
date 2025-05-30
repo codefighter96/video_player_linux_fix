@@ -45,7 +45,7 @@ void LightSystem::vCreateDefaultLight() {
 
   oLightComp->SetIntensity(200);
   oLightComp->SetDirection({0, -1, 0});
-  oLightComp->SetPosition({0, 5, 0});
+  oLightComp->setPosition({0, 5, 0});
   oLightComp->SetCastLight(true);
   // if you're in an closed space (IE Garage), it will self shadow cast
   oLightComp->SetCastShadows(false);
@@ -167,7 +167,7 @@ void LightSystem::vOnInitSystem() {
     // find the entity in our list:
     const auto theLight = ecs->getComponent<Light>(guid);
     runtime_assert(theLight != nullptr, fmt::format("Entity({}): Light not found", guid));
-    theLight->SetPosition(position);
+    theLight->setPosition(position);
     theLight->SetDirection(rotation);
 
     vRemoveLightFromScene(*theLight);

@@ -96,8 +96,7 @@ class PigeonInternalCodecSerializer : public flutter::StandardCodecSerializer {
       const override;
 };
 
-// Generated interface from Pigeon that represents a handler of messages from
-// Flutter.
+// Generated interface from Pigeon that represents a handler of messages from Flutter.
 class FilamentViewApi {
   public:
     FilamentViewApi(const FilamentViewApi&) = delete;
@@ -111,20 +110,6 @@ class FilamentViewApi {
     ChangeMaterialDefinition(const flutter::EncodableMap& params, int64_t id) = 0;
     // Toggle shapes visibility in the scene.
     virtual std::optional<FlutterError> ToggleShapesInScene(bool value) = 0;
-    // Set shape's transform by GUID.
-    virtual std::optional<FlutterError> SetShapeTransform(
-      int64_t id,
-      double posx,
-      double posy,
-      double posz,
-      double rotx,
-      double roty,
-      double rotz,
-      double rotw,
-      double sclx,
-      double scly,
-      double sclz
-    ) = 0;
     // Cycle between view quality settings presets.
     virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
     // Set fog options
@@ -162,8 +147,7 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> ResumeAnimation(int64_t id) = 0;
     virtual std::optional<FlutterError> SetAnimationLooping(int64_t id, bool looping) = 0;
     // Perform a raycast query.
-    // The result will be sent back to the client via the collision_info event
-    // channel.
+    // The result will be sent back to the client via the collision_info event channel.
     virtual std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_i_d,
       double origin_x,
@@ -183,18 +167,17 @@ class FilamentViewApi {
     // Enable/disable debug collidable visuals in the scene.
     virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) = 0;
     virtual std::optional<FlutterError>
-    ChangeScaleByGUID(int64_t id, double x, double y, double z) = 0;
+    SetEntityTransformScale(int64_t id, const std::vector<double>& scl) = 0;
     virtual std::optional<FlutterError>
-    ChangeTranslationByGUID(int64_t id, double x, double y, double z) = 0;
+    SetEntityTransformPosition(int64_t id, const std::vector<double>& pos) = 0;
     virtual std::optional<FlutterError>
-    ChangeRotationByGUID(int64_t id, double x, double y, double z, double w) = 0;
+    SetEntityTransformRotation(int64_t id, const std::vector<double>& rot) = 0;
     virtual std::optional<FlutterError> TurnOffVisualForEntity(int64_t id) = 0;
     virtual std::optional<FlutterError> TurnOnVisualForEntity(int64_t id) = 0;
 
     // The codec used by FilamentViewApi.
     static const flutter::StandardMessageCodec& GetCodec();
-    // Sets up an instance of `FilamentViewApi` to handle messages through the
-    // `binary_messenger`.
+    // Sets up an instance of `FilamentViewApi` to handle messages through the `binary_messenger`.
     static void SetUp(flutter::BinaryMessenger* binary_messenger, FilamentViewApi* api);
     static void SetUp(
       flutter::BinaryMessenger* binary_messenger,

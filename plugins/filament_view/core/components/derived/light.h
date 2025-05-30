@@ -68,7 +68,7 @@ class Light : public Component {
     inline void SetColor(const std::string& color) { m_szColor = color; }
     inline void SetColorTemperature(float temperature) { m_fColorTemperature = temperature; }
     inline void SetIntensity(float intensity) { m_fIntensity = intensity; }
-    inline void SetPosition(const filament::math::float3& position) { m_f3Position = position; }
+    inline void setPosition(const filament::math::float3& position) { m_f3Position = position; }
     inline void SetDirection(const filament::math::float3& direction) { m_f3Direction = direction; }
     inline void SetCastLight(bool castLight) { m_bCastLight = castLight; }
     inline void SetCastShadows(bool castShadows) { m_bCastShadows = castShadows; }
