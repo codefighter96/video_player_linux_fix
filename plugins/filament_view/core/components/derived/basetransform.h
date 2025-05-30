@@ -140,12 +140,12 @@ class BaseTransform : public Component {
     [[nodiscard]] inline const filament::math::quatf& GetRotation() const { return local.rotation; }
 
     // Setters
-    inline void SetPosition(const filament::math::float3& position) {
+    inline void setPosition(const filament::math::float3& position) {
       local.position = position;
       _isDirty = true;
     }
 
-    inline void SetScale(const filament::math::float3& scale) {
+    inline void setScale(const filament::math::float3& scale) {
       // assert positive scale
       /// TODO: if interested in supporting e.g. negative scalings and shear
       ///       should look at Graphics Gems II §VII.1.
@@ -155,7 +155,7 @@ class BaseTransform : public Component {
       _isDirty = true;
     }
 
-    inline void SetRotation(const filament::math::quatf& rotation) {
+    inline void setRotation(const filament::math::quatf& rotation) {
       local.rotation = rotation;
       _isDirty = true;
     }

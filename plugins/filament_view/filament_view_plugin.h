@@ -75,20 +75,6 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     ChangeMaterialDefinition(const flutter::EncodableMap& params, const int64_t guid) override;
     // Toggle shapes visibility in the scene.
     std::optional<FlutterError> ToggleShapesInScene(bool value) override;
-    // Set shape transform
-    std::optional<FlutterError> SetShapeTransform(
-      const int64_t guid,
-      double posx,
-      double posy,
-      double posz,
-      double rotx,
-      double roty,
-      double rotz,
-      double rotw,
-      double sclx,
-      double scly,
-      double sclz
-    ) override;
     // Toggle debug collidable visuals in the scene.
     std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) override;
     // Change the camera mode by name.
@@ -139,12 +125,12 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
       double length
     ) override;
 
-    std::optional<FlutterError> ChangeScaleByGUID(const int64_t guid, double x, double y, double z)
-      override;
     std::optional<FlutterError>
-    ChangeTranslationByGUID(const int64_t guid, double x, double y, double z) override;
+    SetEntityTransformScale(const int64_t guid, const std::vector<double>& scl) override;
     std::optional<FlutterError>
-    ChangeRotationByGUID(const int64_t guid, double x, double y, double z, double w) override;
+    SetEntityTransformPosition(const int64_t guid, const std::vector<double>& pos) override;
+    std::optional<FlutterError>
+    SetEntityTransformRotation(const int64_t guid, const std::vector<double>& rot) override;
 
     std::optional<FlutterError> TurnOffVisualForEntity(const int64_t guid) override;
     std::optional<FlutterError> TurnOnVisualForEntity(const int64_t guid) override;

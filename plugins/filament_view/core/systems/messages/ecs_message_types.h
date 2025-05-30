@@ -74,9 +74,6 @@ enum class ECSMessageType {
   AnimationResume,
   AnimationSetLooping,
 
-  ChangeTranslationByGUID,
-  ChangeRotationByGUID,
-  ChangeScaleByGUID,
   floatVec3,
   floatVec4,
 

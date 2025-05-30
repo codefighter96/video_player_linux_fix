@@ -17,6 +17,7 @@
 #include "filament_view_plugin.h"
 
 #include <asio/post.hpp>
+#include <core/components/derived/basetransform.h>
 #include <core/scene/serialization/scene_text_deserializer.h>
 #include <core/systems/derived/animation_system.h>
 #include <core/systems/derived/collision_system.h>
@@ -334,42 +335,6 @@ std::optional<FlutterError> FilamentViewPlugin::ToggleShapesInScene(const bool v
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::SetShapeTransform(
-  const int64_t guid,
-  const double posx,
-  const double posy,
-  const double posz,
-  const double rotx,
-  const double roty,
-  const double rotz,
-  const double rotw,
-  const double sclx,
-  const double scly,
-  const double sclz
-) {
-  filament::math::float3 position(
-    static_cast<float>(posx), static_cast<float>(posy), static_cast<float>(posz)
-  );
-  // quaternion
-  filament::math::quatf rotation(
-    static_cast<float>(rotx), static_cast<float>(roty), static_cast<float>(rotz),
-    static_cast<float>(rotw)
-  );
-  filament::math::float3 scale(
-    static_cast<float>(sclx), static_cast<float>(scly), static_cast<float>(sclz)
-  );
-
-  ECSMessage shapeData;
-  shapeData.addData(ECSMessageType::SetShapeTransform, guid);
-  shapeData.addData(ECSMessageType::Position, position);
-  shapeData.addData(ECSMessageType::Rotation, rotation);
-  shapeData.addData(ECSMessageType::Scale, scale);
-  ECSManager::GetInstance()->vRouteMessage(shapeData);
-
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ToggleDebugCollidableViewsInScene(const bool value
 ) {
   ECSMessage toggleMessage;
@@ -622,59 +587,28 @@ std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeScaleByGUID(
-  const int64_t guid,
-  const double x,
-  const double y,
-  const double z
-) {
-  const filament::math::float3 values(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
-  );
-
-  ECSMessage changeRequest;
-  changeRequest.addData(ECSMessageType::ChangeScaleByGUID, guid);
-  changeRequest.addData(ECSMessageType::floatVec3, values);
-  ECSManager::GetInstance()->vRouteMessage(changeRequest);
+std::optional<FlutterError>
+FilamentViewPlugin::SetEntityTransformScale(const int64_t guid, const std::vector<double>& scl) {
+  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setScale({scl[0], scl[1], scl[2]});
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeTranslationByGUID(
-  const int64_t guid,
-  const double x,
-  const double y,
-  const double z
-) {
-  const filament::math::float3 values(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
+std::optional<FlutterError>
+FilamentViewPlugin::SetEntityTransformPosition(const int64_t guid, const std::vector<double>& pos) {
+  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setPosition({pos[0], pos[1], pos[2]}
   );
-
-  ECSMessage changeRequest;
-  changeRequest.addData(ECSMessageType::ChangeTranslationByGUID, guid);
-  changeRequest.addData(ECSMessageType::floatVec3, values);
-  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeRotationByGUID(
-  const int64_t guid,
-  const double x,
-  const double y,
-  const double z,
-  const double w
-) {
-  const filament::math::float4 values(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w)
+std::optional<FlutterError>
+FilamentViewPlugin::SetEntityTransformRotation(const int64_t guid, const std::vector<double>& rot) {
+  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setRotation(
+    {rot[0], rot[1], rot[2], rot[3]}
   );
-
-  ECSMessage changeRequest;
-  changeRequest.addData(ECSMessageType::ChangeRotationByGUID, guid);
-  changeRequest.addData(ECSMessageType::floatVec4, values);
-  ECSManager::GetInstance()->vRouteMessage(changeRequest);
 
   return std::nullopt;
 }

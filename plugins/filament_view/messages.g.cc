@@ -64,8 +64,7 @@ const flutter::StandardMessageCodec& FilamentViewApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(&PigeonInternalCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `FilamentViewApi` to handle messages through the
-// `binary_messenger`.
+// Sets up an instance of `FilamentViewApi` to handle messages through the `binary_messenger`.
 void FilamentViewApi::SetUp(flutter::BinaryMessenger* binary_messenger, FilamentViewApi* api) {
   FilamentViewApi::SetUp(binary_messenger, api, "");
 }
@@ -80,8 +79,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeMaterialParameter"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeMaterialParameter"
         + prepended_suffix,
       &GetCodec()
     );
@@ -122,8 +120,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeMaterialDefinition"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeMaterialDefinition"
         + prepended_suffix,
       &GetCodec()
     );
@@ -164,9 +161,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.toggleShapesInScene"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.toggleShapesInScene" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -200,105 +195,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setShapeTransform" + prepended_suffix,
-      &GetCodec()
-    );
-    if (api != nullptr) {
-      channel.SetMessageHandler(
-        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-          try {
-            const auto& args = std::get<EncodableList>(message);
-            const auto& encodable_id_arg = args.at(0);
-            if (encodable_id_arg.IsNull()) {
-              reply(WrapError("id_arg unexpectedly null."));
-              return;
-            }
-            const int64_t id_arg = encodable_id_arg.LongValue();
-            const auto& encodable_posx_arg = args.at(1);
-            if (encodable_posx_arg.IsNull()) {
-              reply(WrapError("posx_arg unexpectedly null."));
-              return;
-            }
-            const auto& posx_arg = std::get<double>(encodable_posx_arg);
-            const auto& encodable_posy_arg = args.at(2);
-            if (encodable_posy_arg.IsNull()) {
-              reply(WrapError("posy_arg unexpectedly null."));
-              return;
-            }
-            const auto& posy_arg = std::get<double>(encodable_posy_arg);
-            const auto& encodable_posz_arg = args.at(3);
-            if (encodable_posz_arg.IsNull()) {
-              reply(WrapError("posz_arg unexpectedly null."));
-              return;
-            }
-            const auto& posz_arg = std::get<double>(encodable_posz_arg);
-            const auto& encodable_rotx_arg = args.at(4);
-            if (encodable_rotx_arg.IsNull()) {
-              reply(WrapError("rotx_arg unexpectedly null."));
-              return;
-            }
-            const auto& rotx_arg = std::get<double>(encodable_rotx_arg);
-            const auto& encodable_roty_arg = args.at(5);
-            if (encodable_roty_arg.IsNull()) {
-              reply(WrapError("roty_arg unexpectedly null."));
-              return;
-            }
-            const auto& roty_arg = std::get<double>(encodable_roty_arg);
-            const auto& encodable_rotz_arg = args.at(6);
-            if (encodable_rotz_arg.IsNull()) {
-              reply(WrapError("rotz_arg unexpectedly null."));
-              return;
-            }
-            const auto& rotz_arg = std::get<double>(encodable_rotz_arg);
-            const auto& encodable_rotw_arg = args.at(7);
-            if (encodable_rotw_arg.IsNull()) {
-              reply(WrapError("rotw_arg unexpectedly null."));
-              return;
-            }
-            const auto& rotw_arg = std::get<double>(encodable_rotw_arg);
-            const auto& encodable_sclx_arg = args.at(8);
-            if (encodable_sclx_arg.IsNull()) {
-              reply(WrapError("sclx_arg unexpectedly null."));
-              return;
-            }
-            const auto& sclx_arg = std::get<double>(encodable_sclx_arg);
-            const auto& encodable_scly_arg = args.at(9);
-            if (encodable_scly_arg.IsNull()) {
-              reply(WrapError("scly_arg unexpectedly null."));
-              return;
-            }
-            const auto& scly_arg = std::get<double>(encodable_scly_arg);
-            const auto& encodable_sclz_arg = args.at(10);
-            if (encodable_sclz_arg.IsNull()) {
-              reply(WrapError("sclz_arg unexpectedly null."));
-              return;
-            }
-            const auto& sclz_arg = std::get<double>(encodable_sclz_arg);
-            std::optional<FlutterError> output = api->SetShapeTransform(
-              id_arg, posx_arg, posy_arg, posz_arg, rotx_arg, roty_arg, rotz_arg, rotw_arg,
-              sclx_arg, scly_arg, sclz_arg
-            );
-            if (output.has_value()) {
-              reply(WrapError(output.value()));
-              return;
-            }
-            EncodableList wrapped;
-            wrapped.emplace_back();
-            reply(EncodableValue(std::move(wrapped)));
-          } catch (const std::exception& exception) {
-            reply(WrapError(exception.what()));
-          }
-        }
-      );
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(
-      binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeViewQualitySettings"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeViewQualitySettings"
         + prepended_suffix,
       &GetCodec()
     );
@@ -394,8 +291,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "changeCameraOrbitHomePosition"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeCameraOrbitHomePosition"
         + prepended_suffix,
       &GetCodec()
     );
@@ -443,8 +339,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeCameraTargetPosition"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeCameraTargetPosition"
         + prepended_suffix,
       &GetCodec()
     );
@@ -492,8 +387,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "changeCameraFlightStartPosition"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeCameraFlightStartPosition"
         + prepended_suffix,
       &GetCodec()
     );
@@ -541,8 +435,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "resetInertiaCameraToDefaultValues"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.resetInertiaCameraToDefaultValues"
         + prepended_suffix,
       &GetCodec()
     );
@@ -604,9 +497,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeLightColorByGUID"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeLightColorByGUID" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -653,8 +544,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeLightTransformByGUID"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeLightTransformByGUID"
         + prepended_suffix,
       &GetCodec()
     );
@@ -767,9 +657,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.clearAnimationQueue"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.clearAnimationQueue" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -843,9 +731,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeAnimationSpeed"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeAnimationSpeed" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -953,9 +839,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.setAnimationLooping"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setAnimationLooping" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -995,8 +879,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "requestCollisionCheckFromRay"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.requestCollisionCheckFromRay"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1076,8 +959,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "turnOffCollisionChecksForEntity"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.turnOffCollisionChecksForEntity"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1112,8 +994,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "turnOnCollisionChecksForEntity"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.turnOnCollisionChecksForEntity"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1148,8 +1029,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi."
-      "toggleDebugCollidableViewsInScene"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.toggleDebugCollidableViewsInScene"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1184,7 +1064,8 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi.changeScaleByGUID" + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setEntityTransformScale"
+        + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -1198,26 +1079,13 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t id_arg = encodable_id_arg.LongValue();
-            const auto& encodable_x_arg = args.at(1);
-            if (encodable_x_arg.IsNull()) {
-              reply(WrapError("x_arg unexpectedly null."));
+            const auto& encodable_scl_arg = args.at(1);
+            if (encodable_scl_arg.IsNull()) {
+              reply(WrapError("scl_arg unexpectedly null."));
               return;
             }
-            const auto& x_arg = std::get<double>(encodable_x_arg);
-            const auto& encodable_y_arg = args.at(2);
-            if (encodable_y_arg.IsNull()) {
-              reply(WrapError("y_arg unexpectedly null."));
-              return;
-            }
-            const auto& y_arg = std::get<double>(encodable_y_arg);
-            const auto& encodable_z_arg = args.at(3);
-            if (encodable_z_arg.IsNull()) {
-              reply(WrapError("z_arg unexpectedly null."));
-              return;
-            }
-            const auto& z_arg = std::get<double>(encodable_z_arg);
-            std::optional<FlutterError> output =
-              api->ChangeScaleByGUID(id_arg, x_arg, y_arg, z_arg);
+            const auto& scl_arg = std::get<std::vector<double>>(encodable_scl_arg);
+            std::optional<FlutterError> output = api->SetEntityTransformScale(id_arg, scl_arg);
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;
@@ -1237,8 +1105,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeTranslationByGUID"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setEntityTransformPosition"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1253,26 +1120,13 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t id_arg = encodable_id_arg.LongValue();
-            const auto& encodable_x_arg = args.at(1);
-            if (encodable_x_arg.IsNull()) {
-              reply(WrapError("x_arg unexpectedly null."));
+            const auto& encodable_pos_arg = args.at(1);
+            if (encodable_pos_arg.IsNull()) {
+              reply(WrapError("pos_arg unexpectedly null."));
               return;
             }
-            const auto& x_arg = std::get<double>(encodable_x_arg);
-            const auto& encodable_y_arg = args.at(2);
-            if (encodable_y_arg.IsNull()) {
-              reply(WrapError("y_arg unexpectedly null."));
-              return;
-            }
-            const auto& y_arg = std::get<double>(encodable_y_arg);
-            const auto& encodable_z_arg = args.at(3);
-            if (encodable_z_arg.IsNull()) {
-              reply(WrapError("z_arg unexpectedly null."));
-              return;
-            }
-            const auto& z_arg = std::get<double>(encodable_z_arg);
-            std::optional<FlutterError> output =
-              api->ChangeTranslationByGUID(id_arg, x_arg, y_arg, z_arg);
+            const auto& pos_arg = std::get<std::vector<double>>(encodable_pos_arg);
+            std::optional<FlutterError> output = api->SetEntityTransformPosition(id_arg, pos_arg);
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;
@@ -1292,8 +1146,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.changeRotationByGUID"
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setEntityTransformRotation"
         + prepended_suffix,
       &GetCodec()
     );
@@ -1308,32 +1161,13 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t id_arg = encodable_id_arg.LongValue();
-            const auto& encodable_x_arg = args.at(1);
-            if (encodable_x_arg.IsNull()) {
-              reply(WrapError("x_arg unexpectedly null."));
+            const auto& encodable_rot_arg = args.at(1);
+            if (encodable_rot_arg.IsNull()) {
+              reply(WrapError("rot_arg unexpectedly null."));
               return;
             }
-            const auto& x_arg = std::get<double>(encodable_x_arg);
-            const auto& encodable_y_arg = args.at(2);
-            if (encodable_y_arg.IsNull()) {
-              reply(WrapError("y_arg unexpectedly null."));
-              return;
-            }
-            const auto& y_arg = std::get<double>(encodable_y_arg);
-            const auto& encodable_z_arg = args.at(3);
-            if (encodable_z_arg.IsNull()) {
-              reply(WrapError("z_arg unexpectedly null."));
-              return;
-            }
-            const auto& z_arg = std::get<double>(encodable_z_arg);
-            const auto& encodable_w_arg = args.at(4);
-            if (encodable_w_arg.IsNull()) {
-              reply(WrapError("w_arg unexpectedly null."));
-              return;
-            }
-            const auto& w_arg = std::get<double>(encodable_w_arg);
-            std::optional<FlutterError> output =
-              api->ChangeRotationByGUID(id_arg, x_arg, y_arg, z_arg, w_arg);
+            const auto& rot_arg = std::get<std::vector<double>>(encodable_rot_arg);
+            std::optional<FlutterError> output = api->SetEntityTransformRotation(id_arg, rot_arg);
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;
@@ -1353,9 +1187,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.turnOffVisualForEntity"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.turnOffVisualForEntity" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -1389,9 +1221,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene."
-      "FilamentViewApi.turnOnVisualForEntity"
-        + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.turnOnVisualForEntity" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
