@@ -55,8 +55,10 @@ class Deserialize {
     /// @returns std::optional<T> containing the value if found, or std::nullopt
     /// if not.
     template<typename T>
-    static std::optional<T>
-    DecodeOptionalParameter(const char* key, const flutter::EncodableMap& params) {
+    static std::optional<T> DecodeOptionalParameter(
+      const char* key,
+      const flutter::EncodableMap& params
+    ) {
       auto it = params.find(flutter::EncodableValue(key));
       if (it != params.end() && std::holds_alternative<T>(it->second)) {
         return std::get<T>(it->second);

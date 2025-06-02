@@ -353,8 +353,11 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeCameraMode(const std::stri
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::ChangeCameraOrbitHomePosition(const double x, const double y, const double z) {
+std::optional<FlutterError> FilamentViewPlugin::ChangeCameraOrbitHomePosition(
+  const double x,
+  const double y,
+  const double z
+) {
   const filament::math::float3 position(
     static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
   );
@@ -366,8 +369,11 @@ FilamentViewPlugin::ChangeCameraOrbitHomePosition(const double x, const double y
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::ChangeCameraTargetPosition(const double x, const double y, const double z) {
+std::optional<FlutterError> FilamentViewPlugin::ChangeCameraTargetPosition(
+  const double x,
+  const double y,
+  const double z
+) {
   const filament::math::float3 position(
     static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
   );
@@ -477,8 +483,10 @@ std::optional<FlutterError> FilamentViewPlugin::ChangeLightColorByGUID(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::EnqueueAnimation(const int64_t guid, const int64_t animation_index) {
+std::optional<FlutterError> FilamentViewPlugin::EnqueueAnimation(
+  const int64_t guid,
+  const int64_t animation_index
+) {
   ECSMessage enqueueMessage;
   enqueueMessage.addData(ECSMessageType::AnimationEnqueue, static_cast<int32_t>(animation_index));
   enqueueMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -498,8 +506,10 @@ std::optional<FlutterError> FilamentViewPlugin::ClearAnimationQueue(const int64_
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::PlayAnimation(const int64_t guid, const int64_t animation_index) {
+std::optional<FlutterError> FilamentViewPlugin::PlayAnimation(
+  const int64_t guid,
+  const int64_t animation_index
+) {
   ECSMessage playMessage;
   playMessage.addData(ECSMessageType::AnimationPlay, static_cast<int32_t>(animation_index));
   playMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -509,8 +519,10 @@ FilamentViewPlugin::PlayAnimation(const int64_t guid, const int64_t animation_in
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::ChangeAnimationSpeed(const int64_t guid, const double speed) {
+std::optional<FlutterError> FilamentViewPlugin::ChangeAnimationSpeed(
+  const int64_t guid,
+  const double speed
+) {
   ECSMessage changeSpeedMessage;
   changeSpeedMessage.addData(ECSMessageType::AnimationChangeSpeed, static_cast<float>(speed));
   changeSpeedMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -540,8 +552,10 @@ std::optional<FlutterError> FilamentViewPlugin::ResumeAnimation(const int64_t gu
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::SetAnimationLooping(const int64_t guid, const bool looping) {
+std::optional<FlutterError> FilamentViewPlugin::SetAnimationLooping(
+  const int64_t guid,
+  const bool looping
+) {
   ECSMessage setLoopingMessage;
   setLoopingMessage.addData(ECSMessageType::AnimationSetLooping, looping);
   setLoopingMessage.addData(ECSMessageType::EntityToTarget, guid);
@@ -587,16 +601,20 @@ std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::SetEntityTransformScale(const int64_t guid, const std::vector<double>& scl) {
+std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformScale(
+  const int64_t guid,
+  const std::vector<double>& scl
+) {
   ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setScale({scl[0], scl[1], scl[2]});
 
   return std::nullopt;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::SetEntityTransformPosition(const int64_t guid, const std::vector<double>& pos) {
+std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformPosition(
+  const int64_t guid,
+  const std::vector<double>& pos
+) {
   ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setPosition({pos[0], pos[1], pos[2]}
   );
 
@@ -604,8 +622,10 @@ FilamentViewPlugin::SetEntityTransformPosition(const int64_t guid, const std::ve
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError>
-FilamentViewPlugin::SetEntityTransformRotation(const int64_t guid, const std::vector<double>& rot) {
+std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformRotation(
+  const int64_t guid,
+  const std::vector<double>& rot
+) {
   ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setRotation(
     {rot[0], rot[1], rot[2], rot[3]}
   );

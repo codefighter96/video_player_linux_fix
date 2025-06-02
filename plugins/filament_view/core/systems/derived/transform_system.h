@@ -100,8 +100,10 @@ class TransformSystem : public ECSystem {
   protected:
     void applyParent(const FilamentEntity& child, const FilamentEntity* parent = nullptr);
 
-    void
-    applyParent(const FilamentTransformInstance& child, const FilamentTransformInstance& parent);
+    void applyParent(
+      const FilamentTransformInstance& child,
+      const FilamentTransformInstance& parent
+    );
 };
 
 }  // namespace plugin_filament_view

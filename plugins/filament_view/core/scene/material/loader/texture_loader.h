@@ -36,13 +36,19 @@ class TextureLoader {
     TextureLoader& operator=(const TextureLoader&) = delete;
 
   private:
-    static ::filament::Texture*
-    createTextureFromImage(const std::string& file_path, TextureDefinitions::TextureType type);
+    static ::filament::Texture* createTextureFromImage(
+      const std::string& file_path,
+      TextureDefinitions::TextureType type
+    );
 
-    static ::filament::Texture*
-    loadTextureFromStream(const std::string& file_path, TextureDefinitions::TextureType type);
+    static ::filament::Texture* loadTextureFromStream(
+      const std::string& file_path,
+      TextureDefinitions::TextureType type
+    );
 
-    static ::filament::Texture*
-    loadTextureFromUrl(const std::string& url, TextureDefinitions::TextureType type);
+    static ::filament::Texture* loadTextureFromUrl(
+      const std::string& url,
+      TextureDefinitions::TextureType type
+    );
 };
 }  // namespace plugin_filament_view

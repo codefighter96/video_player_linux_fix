@@ -54,8 +54,10 @@ class MaterialParameter {
     MaterialParameter(std::string name, MaterialType type, MaterialFloatValue value);
     MaterialParameter(std::string name, MaterialType type, MaterialColorValue value);
 
-    static std::unique_ptr<MaterialParameter>
-    Deserialize(const std::string& flutter_assets_path, const flutter::EncodableMap& params);
+    static std::unique_ptr<MaterialParameter> Deserialize(
+      const std::string& flutter_assets_path,
+      const flutter::EncodableMap& params
+    );
 
     ~MaterialParameter();
 

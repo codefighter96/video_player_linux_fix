@@ -181,8 +181,10 @@ class ECSManager {
       );
     }
 
-    [[nodiscard]] std::shared_ptr<Component>
-    getComponent(const EntityGUID& entityGuid, TypeID componentTypeId);
+    [[nodiscard]] std::shared_ptr<Component> getComponent(
+      const EntityGUID& entityGuid,
+      TypeID componentTypeId
+    );
 
     /// Returns all the components of the given type
     template<typename T>
@@ -243,8 +245,10 @@ class ECSManager {
       return std::dynamic_pointer_cast<T>(getSystem(ECSystem::StaticGetTypeID<T>(), where));
     }
 
-    [[nodiscard]] std::shared_ptr<ECSystem>
-    getSystem(TypeID systemTypeID, const std::string& where);
+    [[nodiscard]] std::shared_ptr<ECSystem> getSystem(
+      TypeID systemTypeID,
+      const std::string& where
+    );
 
     //
     //  Threading

@@ -41,7 +41,7 @@ PackConstructorInitializers: Never
 
 BreakAfterAttributes: Never
 AlwaysBreakAfterReturnType: None
-PenaltyReturnTypeOnItsOwnLine: 200 # default: 60
+PenaltyReturnTypeOnItsOwnLine: 1000 # default: 60
 BreakBeforeConceptDeclarations: Always
 SpaceAfterTemplateKeyword: false
 

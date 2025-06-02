@@ -103,11 +103,15 @@ class FilamentViewApi {
     FilamentViewApi& operator=(const FilamentViewApi&) = delete;
     virtual ~FilamentViewApi() {}
     // Change material parameters for the given entity.
-    virtual std::optional<FlutterError>
-    ChangeMaterialParameter(const flutter::EncodableMap& params, int64_t id) = 0;
+    virtual std::optional<FlutterError> ChangeMaterialParameter(
+      const flutter::EncodableMap& params,
+      int64_t id
+    ) = 0;
     // Change material definition for the given entity.
-    virtual std::optional<FlutterError>
-    ChangeMaterialDefinition(const flutter::EncodableMap& params, int64_t id) = 0;
+    virtual std::optional<FlutterError> ChangeMaterialDefinition(
+      const flutter::EncodableMap& params,
+      int64_t id
+    ) = 0;
     // Toggle shapes visibility in the scene.
     virtual std::optional<FlutterError> ToggleShapesInScene(bool value) = 0;
     // Cycle between view quality settings presets.
@@ -116,19 +120,31 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
     // Change the camera mode by name.
     virtual std::optional<FlutterError> ChangeCameraMode(const std::string& mode) = 0;
-    virtual std::optional<FlutterError>
-    ChangeCameraOrbitHomePosition(double x, double y, double z) = 0;
-    virtual std::optional<FlutterError>
-    ChangeCameraTargetPosition(double x, double y, double z) = 0;
-    virtual std::optional<FlutterError>
-    ChangeCameraFlightStartPosition(double x, double y, double z) = 0;
+    virtual std::optional<FlutterError> ChangeCameraOrbitHomePosition(
+      double x,
+      double y,
+      double z
+    ) = 0;
+    virtual std::optional<FlutterError> ChangeCameraTargetPosition(
+      double x,
+      double y,
+      double z
+    ) = 0;
+    virtual std::optional<FlutterError> ChangeCameraFlightStartPosition(
+      double x,
+      double y,
+      double z
+    ) = 0;
     // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
     virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
     // Set camera rotation by a float value.
     virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
     // Set a light's color and intensity by GUID.
-    virtual std::optional<FlutterError>
-    ChangeLightColorByGUID(int64_t id, const std::string& color, int64_t intensity) = 0;
+    virtual std::optional<FlutterError> ChangeLightColorByGUID(
+      int64_t id,
+      const std::string& color,
+      int64_t intensity
+    ) = 0;
     // Set a light's transform by GUID. Deprecated.
     virtual std::optional<FlutterError> ChangeLightTransformByGUID(
       int64_t id,
@@ -166,12 +182,18 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(int64_t id) = 0;
     // Enable/disable debug collidable visuals in the scene.
     virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) = 0;
-    virtual std::optional<FlutterError>
-    SetEntityTransformScale(int64_t id, const std::vector<double>& scl) = 0;
-    virtual std::optional<FlutterError>
-    SetEntityTransformPosition(int64_t id, const std::vector<double>& pos) = 0;
-    virtual std::optional<FlutterError>
-    SetEntityTransformRotation(int64_t id, const std::vector<double>& rot) = 0;
+    virtual std::optional<FlutterError> SetEntityTransformScale(
+      int64_t id,
+      const std::vector<double>& scl
+    ) = 0;
+    virtual std::optional<FlutterError> SetEntityTransformPosition(
+      int64_t id,
+      const std::vector<double>& pos
+    ) = 0;
+    virtual std::optional<FlutterError> SetEntityTransformRotation(
+      int64_t id,
+      const std::vector<double>& rot
+    ) = 0;
     virtual std::optional<FlutterError> TurnOffVisualForEntity(int64_t id) = 0;
     virtual std::optional<FlutterError> TurnOnVisualForEntity(int64_t id) = 0;
 

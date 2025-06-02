@@ -40,8 +40,10 @@ class HDRLoader {
   private:
     static ::filament::Texture* deleteImageAndLogError(const image::LinearImage* image);
 
-    static ::filament::Texture*
-    createTextureFromImage(::filament::Engine* engine, image::LinearImage* image);
+    static ::filament::Texture* createTextureFromImage(
+      ::filament::Engine* engine,
+      image::LinearImage* image
+    );
 };
 
 }  // namespace plugin_filament_view

@@ -57,8 +57,12 @@ class CameraManager {
     void destroyCamera() const;
 
     // Camera control
-    void
-    onAction(int32_t action, int32_t point_count, size_t point_data_size, const double* point_data);
+    void onAction(
+      int32_t action,
+      int32_t point_count,
+      size_t point_data_size,
+      const double* point_data
+    );
 
     [[nodiscard]] float calculateAspectRatio() const;
 

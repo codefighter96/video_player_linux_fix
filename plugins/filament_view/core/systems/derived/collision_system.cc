@@ -84,8 +84,8 @@ void CollisionSystem::DebugPrint() {
 inline float fLength2(const filament::math::float3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::list<HitResult>
-CollisionSystem::lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
+std::list<HitResult> CollisionSystem::
+  lstCheckForCollidable(Ray& rayCast, int64_t /*collisionLayer*/) const {
   std::list<HitResult> hitResults;
 
   const auto collidables = ecs->getEntitiesWithComponent<Collidable>();

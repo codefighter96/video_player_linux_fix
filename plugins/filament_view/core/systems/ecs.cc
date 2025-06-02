@@ -288,8 +288,10 @@ std::vector<std::shared_ptr<EntityObject>> ECSManager::getEntitiesWithComponent(
 // Component
 //
 
-std::shared_ptr<Component>
-ECSManager::getComponent(const EntityGUID& entityGuid, TypeID componentTypeId) {
+std::shared_ptr<Component> ECSManager::getComponent(
+  const EntityGUID& entityGuid,
+  TypeID componentTypeId
+) {
   std::unique_lock lock(_componentsMutex);
   auto componentMap = _components[componentTypeId];
   auto it = componentMap.find(entityGuid);

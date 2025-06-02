@@ -68,11 +68,15 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     static void setupMessageChannels(flutter::PluginRegistrar* registrar);
     static void sendReadyEvent();
 
-    std::optional<FlutterError>
-    ChangeMaterialParameter(const flutter::EncodableMap& params, const int64_t guid) override;
+    std::optional<FlutterError> ChangeMaterialParameter(
+      const flutter::EncodableMap& params,
+      const int64_t guid
+    ) override;
     // Change material definition for the given entity.
-    std::optional<FlutterError>
-    ChangeMaterialDefinition(const flutter::EncodableMap& params, const int64_t guid) override;
+    std::optional<FlutterError> ChangeMaterialDefinition(
+      const flutter::EncodableMap& params,
+      const int64_t guid
+    ) override;
     // Toggle shapes visibility in the scene.
     std::optional<FlutterError> ToggleShapesInScene(bool value) override;
     // Toggle debug collidable visuals in the scene.
@@ -125,12 +129,18 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
       double length
     ) override;
 
-    std::optional<FlutterError>
-    SetEntityTransformScale(const int64_t guid, const std::vector<double>& scl) override;
-    std::optional<FlutterError>
-    SetEntityTransformPosition(const int64_t guid, const std::vector<double>& pos) override;
-    std::optional<FlutterError>
-    SetEntityTransformRotation(const int64_t guid, const std::vector<double>& rot) override;
+    std::optional<FlutterError> SetEntityTransformScale(
+      const int64_t guid,
+      const std::vector<double>& scl
+    ) override;
+    std::optional<FlutterError> SetEntityTransformPosition(
+      const int64_t guid,
+      const std::vector<double>& pos
+    ) override;
+    std::optional<FlutterError> SetEntityTransformRotation(
+      const int64_t guid,
+      const std::vector<double>& rot
+    ) override;
 
     std::optional<FlutterError> TurnOffVisualForEntity(const int64_t guid) override;
     std::optional<FlutterError> TurnOnVisualForEntity(const int64_t guid) override;
