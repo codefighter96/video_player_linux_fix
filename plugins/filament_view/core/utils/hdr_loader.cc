@@ -68,8 +68,11 @@ Texture* HDRLoader::createTextureFromImage(Engine* engine, LinearImage* image) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-Texture*
-HDRLoader::createTexture(Engine* engine, const std::string& asset_path, const std::string& name) {
+Texture* HDRLoader::createTexture(
+  Engine* engine,
+  const std::string& asset_path,
+  const std::string& name
+) {
   SPDLOG_DEBUG("Loading {}", asset_path.c_str());
   std::ifstream ins(asset_path, std::ios::binary);
   auto* image = new LinearImage(ImageDecoder::decode(ins, name));

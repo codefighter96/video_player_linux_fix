@@ -42,8 +42,11 @@ class ViewTargetSystem : public ECSystem {
     [[nodiscard]] filament::View* getFilamentView(size_t nWhich) const;
 
     // Returns the current iter that you put into the list.
-    size_t
-    nSetupViewTargetFromDesktopState(int32_t top, int32_t left, FlutterDesktopEngineState* state);
+    size_t nSetupViewTargetFromDesktopState(
+      int32_t top,
+      int32_t left,
+      FlutterDesktopEngineState* state
+    );
     void vInitializeFilamentInternalsWithViewTargets(size_t nWhich, uint32_t width, uint32_t height)
       const;
     void vKickOffFrameRenderingLoops() const;

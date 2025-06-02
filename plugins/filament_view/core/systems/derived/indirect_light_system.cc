@@ -94,8 +94,8 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>>
-IndirectLightSystem::setIndirectLightFromKtxUrl(const std::string& /*url*/, double /*intensity*/) {
+std::future<Resource<std::string_view>> IndirectLightSystem::
+  setIndirectLightFromKtxUrl(const std::string& /*url*/, double /*intensity*/) {
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
@@ -142,8 +142,10 @@ Resource<std::string_view> IndirectLightSystem::loadIndirectLightHdrFromFile(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>>
-IndirectLightSystem::setIndirectLightFromHdrAsset(const std::string& path, double intensity) {
+std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLightFromHdrAsset(
+  const std::string& path,
+  double intensity
+) {
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
@@ -167,8 +169,8 @@ IndirectLightSystem::setIndirectLightFromHdrAsset(const std::string& path, doubl
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-std::future<Resource<std::string_view>>
-IndirectLightSystem::setIndirectLightFromHdrUrl(const std::string& /*url*/, double /*intensity*/) {
+std::future<Resource<std::string_view>> IndirectLightSystem::
+  setIndirectLightFromHdrUrl(const std::string& /*url*/, double /*intensity*/) {
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
 
   const asio::io_context::strand& strand_(*ecs->GetStrand());

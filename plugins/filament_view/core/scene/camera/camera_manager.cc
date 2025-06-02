@@ -495,8 +495,8 @@ Ray CameraManager::oGetRayInformationFromOnTouchPosition(TouchPair touch) const 
 }
 
 ////////////////////////////////////////////////////////////////////////////
-std::pair<filament::math::float3, filament::math::float3>
-CameraManager::aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
+std::pair<filament::math::float3, filament::math::float3> CameraManager::
+  aGetRayInformationFromOnTouchPosition(TouchPair touch) const {
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
     "CameraManager::aGetRayInformationFromOnTouchPosition"
   );

@@ -22,8 +22,10 @@
 
 namespace plugin_filament_view {
 
-inline std::filesystem::path
-getAbsolutePath(const std::string& dependent_path, const std::string& main_path) {
+inline std::filesystem::path getAbsolutePath(
+  const std::string& dependent_path,
+  const std::string& main_path
+) {
   std::filesystem::path path(main_path);
   path /= dependent_path;
   return path;
@@ -54,14 +56,18 @@ inline std::optional<std::ifstream> readFileContent(const std::filesystem::path&
   return file;
 }
 
-inline std::vector<uint8_t>
-returnErrorMessageAndBuffer(const std::filesystem::path& path, const std::string& message) {
+inline std::vector<uint8_t> returnErrorMessageAndBuffer(
+  const std::filesystem::path& path,
+  const std::string& message
+) {
   spdlog::error("[{}] {}", path.c_str(), message);
   return {};
 }
 
-inline std::vector<uint8_t>
-readBinaryFile(const std::string& dependent_path, const std::string& main_path) {
+inline std::vector<uint8_t> readBinaryFile(
+  const std::string& dependent_path,
+  const std::string& main_path
+) {
   const std::filesystem::path filePath = getAbsolutePath(dependent_path, main_path);
 
   if (!isValidFilePath(filePath)) {
