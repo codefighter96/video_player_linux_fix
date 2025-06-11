@@ -246,7 +246,4 @@ void Plane::createSingleSidedPlane(filament::Engine* engine_) {
   vBuildRenderable(engine_);
 }
 
-////////////////////////////////////////////////////////////////////////////
-void Plane::DebugPrint(const char* tag) const { BaseShape::DebugPrint(tag); }
-
 }  // namespace plugin_filament_view::shapes

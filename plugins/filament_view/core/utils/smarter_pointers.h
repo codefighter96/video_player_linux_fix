@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
@@ -121,8 +122,8 @@ class smarter_ptr {
       return pointer_access<P>::get(_ptr) == pointer_access<P>::get(o._ptr);
     }
     bool operator!=(const smarter_ptr& o) const { return !(*this == o); }
-    bool operator==(nullptr_t) const { return pointer_access<P>::get(_ptr) == nullptr; }
-    bool operator!=(nullptr_t) const { return pointer_access<P>::get(_ptr) != nullptr; }
+    bool operator==(std::nullptr_t) const { return pointer_access<P>::get(_ptr) == nullptr; }
+    bool operator!=(std::nullptr_t) const { return pointer_access<P>::get(_ptr) != nullptr; }
 };
 
 //==============================================================================

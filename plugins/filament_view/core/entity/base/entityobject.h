@@ -16,6 +16,7 @@
 #pragma once
 
 #include <encodable_value.h>
+#include <mutex>
 #include <string>
 #include <vector>
 

@@ -43,8 +43,6 @@ class Plane : public BaseShape {
     Plane(const Plane&) = delete;
     Plane& operator=(const Plane&) = delete;
 
-    void DebugPrint(const char* tag) const override;
-
     bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) override;
 
   private:
