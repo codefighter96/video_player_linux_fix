@@ -20,7 +20,6 @@
 
 #include <core/entity/derived/model/model.h>
 #include <core/entity/derived/shapes/baseshape.h>
-#include <core/scene/camera/camera.h>
 #include <core/scene/indirect_light/indirect_light.h>
 #include <core/scene/skybox/skybox.h>
 #include <encodable_value.h>
@@ -63,7 +62,6 @@ class SceneTextDeserializer {
     std::unique_ptr<Skybox> skybox_;
     std::unique_ptr<IndirectLight> indirect_light_;
     std::map<EntityGUID, std::shared_ptr<Light>> lights_;
-    Camera* camera_{};
 };
 
 }  // namespace plugin_filament_view

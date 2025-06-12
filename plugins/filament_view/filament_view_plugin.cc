@@ -344,70 +344,6 @@ std::optional<FlutterError> FilamentViewPlugin::ToggleDebugCollidableViewsInScen
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeCameraMode(const std::string& mode) {
-  const auto viewTargetSystem =
-    ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
-
-  viewTargetSystem->vChangePrimaryCameraMode(0, mode);
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeCameraOrbitHomePosition(
-  const double x,
-  const double y,
-  const double z
-) {
-  const filament::math::float3 position(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
-  );
-
-  ECSMessage data;
-  data.addData(ECSMessageType::ChangeCameraOrbitHomePosition, position);
-  ECSManager::GetInstance()->vRouteMessage(data);
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeCameraTargetPosition(
-  const double x,
-  const double y,
-  const double z
-) {
-  const filament::math::float3 position(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
-  );
-  ECSMessage data;
-  data.addData(ECSMessageType::ChangeCameraTargetPosition, position);
-  ECSManager::GetInstance()->vRouteMessage(data);
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ChangeCameraFlightStartPosition(
-  const double x,
-  const double y,
-  const double z
-) {
-  const filament::math::float3 position(
-    static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)
-  );
-  ECSMessage data;
-  data.addData(ECSMessageType::ChangeCameraFlightStartPosition, position);
-  ECSManager::GetInstance()->vRouteMessage(data);
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::ResetInertiaCameraToDefaultValues() {
-  const auto viewTargetSystem =
-    ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
-
-  viewTargetSystem->vResetInertiaCameraToDefaultValues(0);
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
 std::optional<FlutterError> FilamentViewPlugin::ChangeViewQualitySettings() {
   static int qualitySettingsVal = 0;
   ECSMessage qualitySettings;
@@ -427,15 +363,6 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(const bool enabled
   fogData.addData(ECSMessageType::SetFogOptions, enabled);
   ECSManager::GetInstance()->vRouteMessage(fogData);
 
-  return std::nullopt;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-std::optional<FlutterError> FilamentViewPlugin::SetCameraRotation(const double value) {
-  const auto viewTargetSystem =
-    ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
-
-  viewTargetSystem->vSetCurrentCameraOrbitAngle(0, static_cast<float>(value));
   return std::nullopt;
 }
 
@@ -717,7 +644,7 @@ void FilamentViewPlugin::on_touch(
       ECSManager::GetInstance()->getSystem<ViewTargetSystem>("FilamentViewPlugin::on_touch");
 
     // has to be changed to 'which' on touch was hit
-    viewTargetSystem->vOnTouch(0, action, point_count, point_data_size, point_data);
+    viewTargetSystem->getMainViewTarget()->vOnTouch(action, point_count, point_data_size, point_data);
   }
 }
 

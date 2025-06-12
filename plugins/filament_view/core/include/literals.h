@@ -169,7 +169,6 @@ static constexpr char kCollidableShouldMatchAttachedObject[] =
 // Custom model viewer for sending frames to dart.
 static constexpr char kUpdateFrame[] = "updateFrame";
 static constexpr char kPreRenderFrame[] = "preRenderFrame";
-static constexpr char kRenderFrame[] = "renderFrame";
 static constexpr char kPostRenderFrame[] = "postRenderFrame";
 static constexpr char kParam_TimeSinceLastRenderedSec[] = "timeSinceLastRenderedSec";
 static constexpr char kParam_FPS[] = "fps";

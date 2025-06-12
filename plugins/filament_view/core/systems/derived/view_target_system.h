@@ -35,11 +35,9 @@ class ViewTargetSystem : public ECSystem {
     ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
     void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
+    void vUpdate(float deltaTime) override;
     void vShutdownSystem() override;
     void DebugPrint() override;
-
-    [[nodiscard]] filament::View* getFilamentView(size_t nWhich) const;
 
     // Returns the current iter that you put into the list.
     size_t nSetupViewTargetFromDesktopState(
@@ -47,31 +45,19 @@ class ViewTargetSystem : public ECSystem {
       int32_t left,
       FlutterDesktopEngineState* state
     );
-    void vInitializeFilamentInternalsWithViewTargets(size_t nWhich, uint32_t width, uint32_t height)
-      const;
+
     void vKickOffFrameRenderingLoops() const;
-    void vSetCameraFromSerializedData() const;
-    void vResizeViewTarget(size_t nWhich, double width, double height) const;
-    void vSetViewTargetOffSet(size_t nWhich, double left, double top) const;
 
-    void vOnTouch(
-      size_t nWhich,
-      int32_t action,
-      int32_t point_count,
-      size_t point_data_size,
-      const double* point_data
-    ) const;
+    /// Returns the view target at the specified index.
+    [[nodiscard]] ViewTarget* getViewTarget(size_t index) const;
 
-    void vChangePrimaryCameraMode(size_t nWhich, const std::string& szValue) const;
-    void vResetInertiaCameraToDefaultValues(size_t nWhich) const;
-    void vSetCurrentCameraOrbitAngle(size_t nWhich, float fValue) const;
+    /// Returns the main view target, which is the first one in the list.
+    [[nodiscard]] inline ViewTarget* getMainViewTarget() const {
+        return getViewTarget(0);
+    }
 
-    void vChangeViewQualitySettings(size_t nWhich, ViewTarget::ePredefinedQualitySettings settings)
-      const;
 
   private:
-    std::vector<std::unique_ptr<ViewTarget>> m_lstViewTargets;
-
-    std::unique_ptr<Camera> m_poCamera;
+    std::vector<std::unique_ptr<ViewTarget>> _viewTargets;
 };
 }  // namespace plugin_filament_view

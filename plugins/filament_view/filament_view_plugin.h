@@ -81,21 +81,10 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     std::optional<FlutterError> ToggleShapesInScene(bool value) override;
     // Toggle debug collidable visuals in the scene.
     std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) override;
-    // Change the camera mode by name.
-    std::optional<FlutterError> ChangeCameraMode(const std::string& mode) override;
-    std::optional<FlutterError> ChangeCameraOrbitHomePosition(double x, double y, double z)
-      override;
-    std::optional<FlutterError> ChangeCameraTargetPosition(double x, double y, double z) override;
-    std::optional<FlutterError> ChangeCameraFlightStartPosition(double x, double y, double z)
-      override;
-    // Reset inertia camera to default values.
-    std::optional<FlutterError> ResetInertiaCameraToDefaultValues() override;
     // Change view quality settings.
     std::optional<FlutterError> ChangeViewQualitySettings() override;
     // Set fog options
     std::optional<FlutterError> SetFogOptions(const bool enabled) override;
-    // Set camera rotation by a float value.
-    std::optional<FlutterError> SetCameraRotation(double value) override;
     std::optional<FlutterError> ChangeLightTransformByGUID(
       const int64_t guid,
       double posx,

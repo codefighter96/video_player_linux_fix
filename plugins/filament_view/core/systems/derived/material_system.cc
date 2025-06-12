@@ -202,7 +202,7 @@ void MaterialSystem::vOnInitSystem() {
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::vShutdownSystem");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

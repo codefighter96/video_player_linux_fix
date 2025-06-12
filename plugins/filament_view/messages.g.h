@@ -118,27 +118,6 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
     // Set fog options
     virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
-    // Change the camera mode by name.
-    virtual std::optional<FlutterError> ChangeCameraMode(const std::string& mode) = 0;
-    virtual std::optional<FlutterError> ChangeCameraOrbitHomePosition(
-      double x,
-      double y,
-      double z
-    ) = 0;
-    virtual std::optional<FlutterError> ChangeCameraTargetPosition(
-      double x,
-      double y,
-      double z
-    ) = 0;
-    virtual std::optional<FlutterError> ChangeCameraFlightStartPosition(
-      double x,
-      double y,
-      double z
-    ) = 0;
-    // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
-    virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
-    // Set camera rotation by a float value.
-    virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
     // Set a light's color and intensity by GUID.
     virtual std::optional<FlutterError> ChangeLightColorByGUID(
       int64_t id,

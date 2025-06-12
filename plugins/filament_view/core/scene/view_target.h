@@ -17,8 +17,11 @@
 #pragma once
 
 #include <asio/io_context_strand.hpp>
-#include <core/scene/camera/camera.h>
-#include <core/scene/camera/camera_manager.h>
+#include <core/components/derived/basetransform.h>
+#include <core/components/derived/camera.h>
+#include <core/scene/camera/touch_pair.h>
+#include <core/scene/geometry/ray.h>
+
 #include <cstdint>
 #include <event_channel.h>
 #include <filament/Engine.h>
@@ -29,10 +32,12 @@
 namespace plugin_filament_view {
 
 class Camera;
-class CameraManager;
 
+/// TODO: add missing docs on everything here
 class ViewTarget {
   public:
+    static constexpr size_t kNullViewId = -1;
+
     ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
     ~ViewTarget();
@@ -43,14 +48,6 @@ class ViewTarget {
     ViewTarget(const ViewTarget&) = delete;
     ViewTarget& operator=(const ViewTarget&) = delete;
 
-    void setAnimator(filament::gltfio::Animator* animator) { fanimator_ = animator; }
-
-    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
-
-    filament::viewer::Settings& getSettings() { return settings_; }
-
-    filament::gltfio::FilamentAsset* getAsset() { return asset_; }
-
     void setInitialized() {
       if (initialized_) return;
 
@@ -58,16 +55,34 @@ class ViewTarget {
       OnFrame(this, nullptr, 0);
     }
 
-    [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
 
-    void setOffset(double left, double top);
-
-    void resize(double width, double height);
-
+    /*
+     *  Filament stuff
+     */
     void InitializeFilamentInternals(uint32_t width, uint32_t height);
+    [[nodiscard]] ::filament::View* getFilamentView() const { return fview_; }
+    filament::gltfio::FilamentAsset* getAsset() { return asset_; }
+    void setAnimator(filament::gltfio::Animator* animator) { fanimator_ = animator; }
 
-    void vSetupCameraManagerWithDeserializedCamera(std::unique_ptr<Camera> camera) const;
+    /*
+     *  Viewport
+     */
+    /// Sets the native window offset for this view target.
+    void setOffset(double left, double top);
+    /// Sets the native window size for this view target.
+    void resize(double width, double height);
+    [[nodiscard]] float calculateAspectRatio() const;
+    /// Converts a [TouchPair] to a [Ray] to run a raycast with.
+    Ray touchToRay(TouchPair touch) const;
 
+
+    /*
+     *  Camera
+     */
+    /// Called by [ViewTargetSystem] on every frame
+    void updateCameraSettings(Camera& cameraData, BaseTransform& transform);
+    /// Called by Flutter when a touch event occurs.
+    /// TODO: return touch result directly here, don't do callbacks
     void vOnTouch(
       int32_t action,
       int32_t point_count,
@@ -75,13 +90,44 @@ class ViewTarget {
       const double* point_data
     ) const;
 
-    [[nodiscard]] CameraManager* getCameraManager() const { return cameraManager_.get(); }
-
-    void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings) const;
-
-    void vSetFogOptions(const filament::View::FogOptions& fogOptions) const;
+    /*
+     *  Rendering
+     */
+    /// Sets the quality setting preset for the view target.
+    void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings);
+    /// Sets the fog options for the view target.
+    void vSetFogOptions(const filament::View::FogOptions& fogOptions);
+    /// Returns the current render settings for the view target.
+    filament::viewer::Settings& getSettings() { return settings_; }
 
   private:
+    /*
+     *  Camera
+     */
+    static constexpr float kNearPlane = 0.05f;   // 5 cm
+    static constexpr float kFarPlane = 1000.0f;  // 1 km
+    static constexpr float kAperture = 16.0f;
+    static constexpr float kShutterSpeed = 1.0f / 125;
+    static constexpr float kSensitivity = 100.0f;
+    static constexpr float kDefaultFocalLength = 28.0f;
+
+    filament::Camera* camera_;
+    utils::Entity cameraEntity_;
+    filament::Engine* _engine = nullptr;
+
+    /// Initializes the camera
+    void _initCamera();
+
+    void _setExposure(const Exposure& exposure);
+    void _setProjection(const Projection& projection);
+    void _setLens(const LensProjection& lensProjection);
+    /// Sets the eyes view matrices for stereoscopic rendering (if applicable).
+    void _setEyes(const float ipd);
+
+
+    /*
+     *  Wayland
+     */
     void setupWaylandSubsurface();
 
     FlutterDesktopEngineState* state_;
@@ -108,7 +154,7 @@ class ViewTarget {
     ::filament::SwapChain* fswapChain_{};
     ::filament::View* fview_{};
 
-    // todo to be moved
+    // todo to be moved?
     ::filament::gltfio::Animator* fanimator_;
 
     static void SendFrameViewCallback(
@@ -124,13 +170,7 @@ class ViewTarget {
 
     void setupView(uint32_t width, uint32_t height);
 
-    // elapsed time / deltatime needs to be moved to its own global namespace like
-    // class similar to unitys, elapsedtime/total time etc.
-    void doCameraFeatures(float fDeltaTime) const;
-
     uint32_t m_LastTime = 0;
-
-    std::unique_ptr<CameraManager> cameraManager_;
 };
 
 }  // namespace plugin_filament_view

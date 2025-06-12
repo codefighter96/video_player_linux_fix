@@ -154,11 +154,6 @@ void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue
       skybox_ = Skybox::Deserialize(encodableMap);
     } else if (key == kIndirectLight) {
       indirect_light_ = IndirectLight::Deserialize(encodableMap);
-    } else if (key == kCamera) {
-      camera_ = new Camera(encodableMap);
-    } else if (key == "ground") {
-      spdlog::warn("Specifying a ground is no longer supporting, a ground is now a "
-                   "plane in shapes.");
     } else if (!snd.IsNull()) {
       spdlog::debug("[SceneTextDeserializer] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
@@ -180,11 +175,6 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
   setUpShapes();
 
   spdlog::trace("setups done!");
-
-  // note Camera* is deleted on the other side, freeing up the memory.
-  ECSMessage viewTargetCameraSet;
-  viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad, camera_);
-  ECSManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
 
   indirect_light_.reset();
   skybox_.reset();
