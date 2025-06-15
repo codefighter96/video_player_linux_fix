@@ -356,8 +356,10 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   // - postRenderFrame - Called after we've drawn natively, right after
   // drawing a frame.
 
+  // cast time to int32_t, since EncodableValue does not support uint32_t
+  int32_t s_lastTime = m_LastTime;  // NOLINT
   SendFrameViewCallback(
-    kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(m_LastTime))}
+    kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(s_lastTime))}
   );
 
   // Render the scene, unless the renderer wants to skip the frame.
