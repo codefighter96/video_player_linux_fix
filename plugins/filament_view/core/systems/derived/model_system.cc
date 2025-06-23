@@ -20,7 +20,7 @@
 #include <asio/post.hpp>
 #include <cassert>
 #include <core/components/derived/collidable.h>
-#include <core/entity/derived/nonrenderable_entityobject.h>
+#include <core/entity/base/entityobject.h>
 #include <core/include/file_utils.h>
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/ecs.h>

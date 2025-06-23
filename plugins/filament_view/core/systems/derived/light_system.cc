@@ -18,7 +18,7 @@
 
 #include <asio/post.hpp>
 #include <core/components/derived/light.h>
-#include <core/entity/derived/nonrenderable_entityobject.h>
+#include <core/entity/base/entityobject.h>
 #include <core/include/color.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/ecs.h>
@@ -39,7 +39,7 @@ using filament::math::mat4f;
 void LightSystem::vCreateDefaultLight() {
   SPDLOG_DEBUG("{}", __FUNCTION__);
 
-  m_poDefaultLight = std::make_shared<NonRenderableEntityObject>("DefaultLight", generateUUID());
+  m_poDefaultLight = std::make_shared<EntityObject>("DefaultLight", generateUUID());
   const auto oLightComp = std::make_shared<Light>();
   ecs->addComponent(m_poDefaultLight->GetGuid(), oLightComp);
 

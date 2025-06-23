@@ -106,6 +106,14 @@ void EntityObject::vDebugPrintComponents() const {
   );
 }
 
+void EntityObject::DebugPrint() const {
+  spdlog::debug(
+    "EntityObject '{}'({}), {}initialized", name_, guid_,
+    isInitialized() ? "" : "not "
+  );
+  vDebugPrintComponents();
+}
+
 std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
   return ecs->getComponent(guid_, staticTypeID);
 }

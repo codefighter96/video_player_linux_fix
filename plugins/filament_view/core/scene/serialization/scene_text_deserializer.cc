@@ -16,7 +16,7 @@
 #include "scene_text_deserializer.h"
 
 #include <asio/post.hpp>
-#include <core/entity/derived/nonrenderable_entityobject.h>
+#include <core/entity/base/entityobject.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/indirect_light_system.h>
@@ -229,6 +229,18 @@ void SceneTextDeserializer::setUpShapes() {
   shapes_.clear();
 }
 
+// void SceneTextDeserializer::setUpCameras() {
+//   spdlog::debug("{} {}", __FUNCTION__, __LINE__);
+
+//   // For each camera, do the following:
+//   // 1. Create a new entity (parent) to act as the camera holder/dolly
+//   // 2. Create a child entity for the camera itself
+//   // 3. Add the camera component to the child entity
+//   // 4. Add the child entity to the parent entity
+
+
+// }
+
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
   const auto& strand = *_ecs->GetStrand();
@@ -303,7 +315,7 @@ void SceneTextDeserializer::setUpLights() {
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
     const auto newEntity =
-      std::make_shared<NonRenderableEntityObject>("SceneTextDeserializer::setUpLights", fst);
+      std::make_shared<EntityObject>("SceneTextDeserializer::setUpLights", fst);
 
     _ecs->addEntity(newEntity);
     _ecs->addComponent(newEntity->GetGuid(), snd);

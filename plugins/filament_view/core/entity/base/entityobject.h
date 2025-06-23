@@ -61,6 +61,24 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     friend class SceneTextDeserializer;
     friend class TransformSystem;
 
+  protected:
+    smarter_raw_ptr<ECSManager> ecs = nullptr;
+    /// Temporary storage for components that are being added to the entity
+    /// before it's initialized within ECS.
+    /// After the entity is initialized, these components are moved to the ECS'
+    /// memory and the temporary storage is cleared.
+    std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
+
+    /// GUID of the entity.
+    /// This is used for identifying the entity, and must be unique.
+    /// Also used as a key in the entity object locator system.
+    EntityGUID guid_;
+
+    /// Name of the entity.
+    /// This is used only for debugging and logging purposes.
+    /// It is not used for identifying the entity, and does not need to be unique.
+    std::string name_;
+
   public:
     FilamentEntity _fEntity;
 
@@ -89,28 +107,10 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     EntityObject(const EntityObject&) = delete;
     EntityObject& operator=(const EntityObject&) = delete;
 
-    virtual void DebugPrint() const = 0;
+    virtual void DebugPrint() const;
 
     /// TODO: remove this, expose name as public
     [[nodiscard]] inline const std::string& GetName() const { return name_; }
-
-  protected:
-    smarter_raw_ptr<ECSManager> ecs = nullptr;
-    /// Temporary storage for components that are being added to the entity
-    /// before it's initialized within ECS.
-    /// After the entity is initialized, these components are moved to the ECS'
-    /// memory and the temporary storage is cleared.
-    std::map<TypeID, std::shared_ptr<Component>> _tmpComponents;
-
-    /// GUID of the entity.
-    /// This is used for identifying the entity, and must be unique.
-    /// Also used as a key in the entity object locator system.
-    EntityGUID guid_;
-
-    /// Name of the entity.
-    /// This is used only for debugging and logging purposes.
-    /// It is not used for identifying the entity, and does not need to be unique.
-    std::string name_;
 
     /// @brief Constructor for EntityObject. Generates a GUID and has an empty
     /// name.
