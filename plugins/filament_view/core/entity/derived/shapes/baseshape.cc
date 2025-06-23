@@ -146,7 +146,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
       break;
   }
 
-  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, GetName(), GetGuid());
+  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, name, GetGuid());
 
   const auto transform = getComponent<BaseTransform>();
 #if SPDLOG_LEVEL == trace

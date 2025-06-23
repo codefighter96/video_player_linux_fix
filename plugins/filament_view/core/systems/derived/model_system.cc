@@ -132,7 +132,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   if (isInScene) {
     spdlog::warn(
       "[{}] model '{}'({}) is already in scene (asset {}), skipping add", __FUNCTION__,
-      model->GetName(), modelGuid, model->assetPath_
+      model->name, modelGuid, model->assetPath_
     );
     return;
   }
@@ -287,10 +287,10 @@ void ModelSystem::setupRenderable(
   // Create a RenderableEntityObject child
   const auto child = std::make_shared<RenderableEntityObject>();
   child->_fEntity = fEntity;
-  child->name_ = asset->getName(fEntity);
+  child->name = asset->getName(fEntity);
   spdlog::trace(
-    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->GetName(), child->GetGuid(),
-    fEntity.getId(), model->GetName(), model->GetGuid()
+    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->name, child->GetGuid(),
+    fEntity.getId(), model->name, model->GetGuid()
   );
   model->_childrenEntities[fEntity] = child->GetGuid();
 
@@ -439,7 +439,7 @@ void ModelSystem::updateAsyncAssetLoading() {
         }
 
         if (model->isInScene()) {
-          spdlog::warn("Model {} is already in scene, skipping load", model->GetName());
+          spdlog::warn("Model {} is already in scene, skipping load", model->name);
           continue;
         }
 

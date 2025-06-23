@@ -26,27 +26,27 @@ namespace plugin_filament_view {
 
 EntityObject::EntityObject()
   : guid_(generateUUID()),
-    name_(std::string()) {}
+    name(std::string()) {}
 
 EntityObject::EntityObject(std::string name)
   : guid_(generateUUID()),
-    name_(std::move(name)) {}
+    name(std::move(name)) {}
 
 EntityObject::EntityObject(EntityGUID guid)
   : guid_(guid),
-    name_(std::string()) {}
+    name(std::string()) {}
 
 EntityObject::EntityObject(std::string name, EntityGUID guid)
   : guid_(guid),
-    name_(std::move(name)) {}
+    name(std::move(name)) {}
 
 EntityObject::EntityObject(const EntityDescriptor& descriptor)
   : guid_(descriptor.guid),
-    name_(descriptor.name) {}
+    name(descriptor.name) {}
 
 EntityObject::EntityObject(const flutter::EncodableMap& params)
   : guid_(kNullGuid),
-    name_(std::string()) {
+    name(std::string()) {
   deserializeFrom(params);
   assert(guid_ != kNullGuid);
 }
@@ -78,14 +78,14 @@ EntityDescriptor EntityObject::DeserializeNameAndGuid(const flutter::EncodableMa
 void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
   // Deserialize name and guid
   auto descriptor = DeserializeNameAndGuid(params);
-  name_ = descriptor.name;
+  name = descriptor.name;
   guid_ = descriptor.guid;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void EntityObject::vDebugPrintComponents() const {
   if (!isInitialized()) {
-    spdlog::debug("EntityObject '{}'({}) is not initialized", name_, guid_);
+    spdlog::debug("EntityObject '{}'({}) is not initialized", name, guid_);
     return;
   }
 
@@ -101,14 +101,14 @@ void EntityObject::vDebugPrintComponents() const {
   }
 
   spdlog::debug(
-    "EntityObject '{}'({}) has {} components: {}", name_, guid_, componentNames.size(),
+    "EntityObject '{}'({}) has {} components: {}", name, guid_, componentNames.size(),
     fmt::join(componentNames, ", ")
   );
 }
 
 void EntityObject::DebugPrint() const {
   spdlog::debug(
-    "EntityObject '{}'({}), {}initialized", name_, guid_,
+    "EntityObject '{}'({}), {}initialized", name, guid_,
     isInitialized() ? "" : "not "
   );
   vDebugPrintComponents();

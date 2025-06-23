@@ -74,13 +74,13 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     /// Also used as a key in the entity object locator system.
     EntityGUID guid_;
 
+  public:
+    FilamentEntity _fEntity;
+
     /// Name of the entity.
     /// This is used only for debugging and logging purposes.
     /// It is not used for identifying the entity, and does not need to be unique.
-    std::string name_;
-
-  public:
-    FilamentEntity _fEntity;
+    std::string name;
 
     // Overloading the == operator to compare based on guid_
     bool operator==(const EntityObject& other) const { return guid_ == other.guid_; }
@@ -108,9 +108,6 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     EntityObject& operator=(const EntityObject&) = delete;
 
     virtual void DebugPrint() const;
-
-    /// TODO: remove this, expose name as public
-    [[nodiscard]] inline const std::string& GetName() const { return name_; }
 
     /// @brief Constructor for EntityObject. Generates a GUID and has an empty
     /// name.
