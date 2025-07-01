@@ -47,7 +47,7 @@ SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vDeserializeRootLevel(
   const std::vector<uint8_t>& params,
-  const std::string& flutterAssetsPath
+  const std::string& /* flutterAssetsPath */
 ) {
   auto& codec = flutter::StandardMessageCodec::GetInstance();
   const auto decoded = codec.DecodeMessage(params.data(), params.size());

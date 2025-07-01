@@ -192,7 +192,6 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   if (parentId != kNullGuid) {
     // Get the parent entity object
     auto parentEntity = ecs->getEntity(parentId);
-    auto parentFilamentEntity = parentEntity->_fEntity;
 
     transform->setParent(parentEntity->GetGuid());
   }

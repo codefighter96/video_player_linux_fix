@@ -200,22 +200,23 @@ void FilamentViewApi::SetUp(
       &GetCodec()
     );
     if (api != nullptr) {
-      channel.SetMessageHandler(
-        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-          try {
-            std::optional<FlutterError> output = api->ChangeViewQualitySettings();
-            if (output.has_value()) {
-              reply(WrapError(output.value()));
-              return;
-            }
-            EncodableList wrapped;
-            wrapped.emplace_back();
-            reply(EncodableValue(std::move(wrapped)));
-          } catch (const std::exception& exception) {
-            reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](
+                                  const EncodableValue& /* message */,
+                                  const flutter::MessageReply<EncodableValue>& reply
+                                ) {
+        try {
+          std::optional<FlutterError> output = api->ChangeViewQualitySettings();
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
           }
+          EncodableList wrapped;
+          wrapped.emplace_back();
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
         }
-      );
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
@@ -440,22 +441,23 @@ void FilamentViewApi::SetUp(
       &GetCodec()
     );
     if (api != nullptr) {
-      channel.SetMessageHandler(
-        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-          try {
-            std::optional<FlutterError> output = api->ResetInertiaCameraToDefaultValues();
-            if (output.has_value()) {
-              reply(WrapError(output.value()));
-              return;
-            }
-            EncodableList wrapped;
-            wrapped.emplace_back();
-            reply(EncodableValue(std::move(wrapped)));
-          } catch (const std::exception& exception) {
-            reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](
+                                  const EncodableValue& /* message */,
+                                  const flutter::MessageReply<EncodableValue>& reply
+                                ) {
+        try {
+          std::optional<FlutterError> output = api->ResetInertiaCameraToDefaultValues();
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
           }
+          EncodableList wrapped;
+          wrapped.emplace_back();
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
         }
-      );
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }

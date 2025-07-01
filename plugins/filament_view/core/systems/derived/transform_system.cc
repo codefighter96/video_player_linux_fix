@@ -43,7 +43,7 @@ void TransformSystem::vProcessMessages() {
   // spdlog::debug("TransformSystem processing messages");
 }
 
-void TransformSystem::vHandleMessage(const ECSMessage& msg) {
+void TransformSystem::vHandleMessage(const ECSMessage& /* msg */) {
   // Handle incoming messages
   // spdlog::debug("TransformSystem handling message");
 }
