@@ -94,7 +94,7 @@ std::list<HitResult> CollisionSystem::
   for (const auto& entity : collidables) {
     const EntityGUID guid = entity->GetGuid();
     auto collidable = ecs->getComponent<Collidable>(guid);
-    debug_assert(!!collidable, fmt::format("Collidable missing for entity: {}", guid));
+    debug_assert(!!collidable, ((fmt::format("Collidable missing for entity: {}", guid)).data()));
     if (!collidable->enabled) continue;
 
     // Check if the collision layer matches (if a specific layer was provided)
@@ -205,8 +205,6 @@ void CollisionSystem::vOnInitSystem() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
-  TransformSystem* transformSystem =
-    ecs->getSystem<TransformSystem>("CollisionSystem::vUpdate").get();
 
   // Iterate over all collidables
   const auto colliders = ecs->getComponentsOfType<Collidable>();

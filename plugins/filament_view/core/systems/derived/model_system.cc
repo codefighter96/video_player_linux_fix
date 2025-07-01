@@ -374,8 +374,6 @@ void ModelSystem::setupRenderable(
         //                     std::abs(sizeY - sizeZ) < epsilon;
         // spdlog::trace("isCube: {}", isCube);
 
-        AABB aabb = _rcm->getAxisAlignedBoundingBox(ri);
-
         // attach collidable
         auto collidable = Collidable();
         collidable.SetIsStatic(false);

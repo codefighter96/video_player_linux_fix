@@ -40,9 +40,9 @@ class TransformSystem : public ECSystem {
     void vHandleMessage(const ECSMessage& msg) override;
     void DebugPrint() override;
 
-    void vUpdate(float deltaTime) override {
+    void vUpdate(float /* deltaTime */) override {
       //   Filament transform transaction:
-      // updating the transforms and the parent tree can be
+      // updating the transforms, and the parent tree can be
       // quite expensive, so we want to batch them
       tm->openLocalTransformTransaction();
 

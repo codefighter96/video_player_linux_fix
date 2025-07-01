@@ -71,12 +71,12 @@ class RenderableEntityObject : public EntityObject {
     // This is a heavy lift function as it will recreate / load a material
     // if it doesn't exist and reset everything from scratch.
     virtual void vChangeMaterialDefinitions(
-      const flutter::EncodableMap& params,
-      const TextureMap& loadedTextures
+      const flutter::EncodableMap& /* params */,
+      const TextureMap& /* loadedTextures */
     ) {};
     virtual void vChangeMaterialInstanceProperty(
-      const MaterialParameter* materialParam,
-      const TextureMap& loadedTextures
+      const MaterialParameter* /* materialParam */,
+      const TextureMap& /* loadedTextures */
     ) {};
 
     /// material to be used for the renderable - instantiated from material
