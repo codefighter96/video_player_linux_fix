@@ -26,8 +26,8 @@ class ViewTarget;
 namespace plugin_filament_view {
 
 class Exposure {
-  friend class ViewTarget;
-  
+    friend class ViewTarget;
+
   public:
     explicit Exposure(const flutter::EncodableMap& params);
 

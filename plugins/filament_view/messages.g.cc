@@ -244,7 +244,124 @@ void FilamentViewApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.emplace_back();
+            wrapped.push_back(EncodableValue());
+            reply(EncodableValue(std::move(wrapped)));
+          } catch (const std::exception& exception) {
+            reply(WrapError(exception.what()));
+          }
+        }
+      );
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+      binary_messenger,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraTarget" + prepended_suffix,
+      &GetCodec()
+    );
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+          try {
+            const auto& args = std::get<EncodableList>(message);
+            const auto& encodable_id_arg = args.at(0);
+            if (encodable_id_arg.IsNull()) {
+              reply(WrapError("id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t id_arg = encodable_id_arg.LongValue();
+            const auto& encodable_target_entity_id_arg = args.at(1);
+            if (encodable_target_entity_id_arg.IsNull()) {
+              reply(WrapError("target_entity_id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t target_entity_id_arg = encodable_target_entity_id_arg.LongValue();
+            std::optional<FlutterError> output = api->SetCameraTarget(id_arg, target_entity_id_arg);
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
+            }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue());
+            reply(EncodableValue(std::move(wrapped)));
+          } catch (const std::exception& exception) {
+            reply(WrapError(exception.what()));
+          }
+        }
+      );
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+      binary_messenger,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setActiveCamera" + prepended_suffix,
+      &GetCodec()
+    );
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+          try {
+            const auto& args = std::get<EncodableList>(message);
+            const auto& encodable_view_id_arg = args.at(0);
+            const auto* view_id_arg = std::get_if<int64_t>(&encodable_view_id_arg);
+            const auto& encodable_camera_id_arg = args.at(1);
+            if (encodable_camera_id_arg.IsNull()) {
+              reply(WrapError("camera_id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t camera_id_arg = encodable_camera_id_arg.LongValue();
+            std::optional<FlutterError> output = api->SetActiveCamera(view_id_arg, camera_id_arg);
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
+            }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue());
+            reply(EncodableValue(std::move(wrapped)));
+          } catch (const std::exception& exception) {
+            reply(WrapError(exception.what()));
+          }
+        }
+      );
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+      binary_messenger,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraDolly" + prepended_suffix,
+      &GetCodec()
+    );
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+          try {
+            const auto& args = std::get<EncodableList>(message);
+            const auto& encodable_id_arg = args.at(0);
+            if (encodable_id_arg.IsNull()) {
+              reply(WrapError("id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t id_arg = encodable_id_arg.LongValue();
+            const auto& encodable_dolly_offset_arg = args.at(1);
+            if (encodable_dolly_offset_arg.IsNull()) {
+              reply(WrapError("dolly_offset_arg unexpectedly null."));
+              return;
+            }
+            const auto& dolly_offset_arg =
+              std::get<std::vector<double>>(encodable_dolly_offset_arg);
+            std::optional<FlutterError> output = api->SetCameraDolly(id_arg, dolly_offset_arg);
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
+            }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue());
             reply(EncodableValue(std::move(wrapped)));
           } catch (const std::exception& exception) {
             reply(WrapError(exception.what()));

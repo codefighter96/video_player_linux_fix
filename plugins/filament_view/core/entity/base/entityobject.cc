@@ -107,10 +107,7 @@ void EntityObject::vDebugPrintComponents() const {
 }
 
 void EntityObject::DebugPrint() const {
-  spdlog::debug(
-    "EntityObject '{}'({}), {}initialized", name, guid_,
-    isInitialized() ? "" : "not "
-  );
+  spdlog::debug("EntityObject '{}'({}), {}initialized", name, guid_, isInitialized() ? "" : "not ");
   vDebugPrintComponents();
 }
 

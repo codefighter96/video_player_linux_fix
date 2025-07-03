@@ -28,7 +28,7 @@ class Camera;
 class ViewTarget;
 
 class Projection {
-  friend class ViewTarget;
+    friend class ViewTarget;
 
   public:
     explicit Projection(const flutter::EncodableMap& params);

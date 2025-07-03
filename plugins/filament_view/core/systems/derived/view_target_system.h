@@ -26,6 +26,8 @@ namespace plugin_filament_view {
 class ViewTarget;
 class Camera;
 
+constexpr size_t kMainViewId = 0;  // The main view target is always the first one in the list.
+
 class ViewTargetSystem : public ECSystem {
   public:
     ViewTargetSystem() = default;
@@ -53,9 +55,11 @@ class ViewTargetSystem : public ECSystem {
 
     /// Returns the main view target, which is the first one in the list.
     [[nodiscard]] inline ViewTarget* getMainViewTarget() const {
-        return getViewTarget(0);
+      return getViewTarget(kMainViewId);
     }
 
+    /// Sets a camera as the main camera for the given view target.
+    void setViewCamera(size_t viewId, EntityGUID cameraGuid);
 
   private:
     std::vector<std::unique_ptr<ViewTarget>> _viewTargets;

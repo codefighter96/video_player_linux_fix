@@ -18,6 +18,7 @@
 
 #include <asio/post.hpp>
 #include <core/components/derived/basetransform.h>
+#include <core/components/derived/camera.h>
 #include <core/scene/serialization/scene_text_deserializer.h>
 #include <core/systems/derived/animation_system.h>
 #include <core/systems/derived/collision_system.h>
@@ -362,6 +363,56 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(const bool enabled
   ECSMessage fogData;
   fogData.addData(ECSMessageType::SetFogOptions, enabled);
   ECSManager::GetInstance()->vRouteMessage(fogData);
+
+  return std::nullopt;
+}
+
+/*
+ *  Camera
+ */
+std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
+  int64_t id,
+  int64_t target_entity_id
+) {
+  spdlog::debug("SetCameraTarget");
+
+  const auto ecs = ECSManager::GetInstance();
+  // Get camera component
+  const auto camera = ecs->getComponent<Camera>(id);
+
+  camera->targetEntity = target_entity_id;
+}
+
+std::optional<FlutterError> FilamentViewPlugin::SetActiveCamera(
+  const int64_t* view_id,
+  int64_t camera_id
+) {
+  spdlog::debug("SetActiveCamera");
+
+  size_t viewIndex = view_id != nullptr ? static_cast<size_t>(*view_id) : 0;
+  EntityGUID cameraId = camera_id;
+
+  const auto viewSystem = ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
+  viewSystem->setViewCamera(viewIndex, cameraId);
+
+  return std::nullopt;
+}
+
+std::optional<FlutterError> FilamentViewPlugin::SetCameraDolly(
+  int64_t id,
+  const std::vector<double>& dolly_offset
+) {
+  spdlog::debug("SetCameraDolly");
+
+  const auto ecs = ECSManager::GetInstance();
+  // Get camera component
+  const auto camera = ecs->getComponent<Camera>(id);
+
+  camera->setDollyOffset(filament::math::float3(
+    dolly_offset[0],
+    dolly_offset[1],
+    dolly_offset[2]
+  ));
 
   return std::nullopt;
 }

@@ -55,7 +55,6 @@ class ViewTarget {
       OnFrame(this, nullptr, 0);
     }
 
-
     /*
      *  Filament stuff
      */
@@ -74,7 +73,6 @@ class ViewTarget {
     [[nodiscard]] float calculateAspectRatio() const;
     /// Converts a [TouchPair] to a [Ray] to run a raycast with.
     Ray touchToRay(TouchPair touch) const;
-
 
     /*
      *  Camera
@@ -122,8 +120,7 @@ class ViewTarget {
     void _setProjection(const Projection& projection);
     void _setLens(const LensProjection& lensProjection);
     /// Sets the eyes view matrices for stereoscopic rendering (if applicable).
-    void _setEyes(const float ipd);
-
+    void _setEyes(const double ipd, const filament::math::float3& dollyOffset);
 
     /*
      *  Wayland

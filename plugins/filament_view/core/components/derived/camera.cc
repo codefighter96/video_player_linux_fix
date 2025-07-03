@@ -24,11 +24,7 @@
 namespace plugin_filament_view {
 
 void Camera::DebugPrint(const std::string& tabPrefix) const {
-  spdlog::debug(
-    "{}: Camera {{ viewId: {} }",
-    tabPrefix,
-    _viewId
-  );
-} // DebugPrint
+  spdlog::debug("{}: Camera {{ viewId: {} }", tabPrefix, _viewId);
+}  // DebugPrint
 
-} // plugin_filament_view
+}  // namespace plugin_filament_view

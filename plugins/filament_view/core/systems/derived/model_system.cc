@@ -131,7 +131,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
 
   if (isInScene) {
     spdlog::warn(
-      "[{}] model '{}'({}) is already in scene (asset {}), skipping add", __FUNCTION__,
+      "[{}] model '{}'({}) is already in scene (asset {}), skipping add", __FUNCTION__,  // 
       model->name, modelGuid, model->assetPath_
     );
     return;

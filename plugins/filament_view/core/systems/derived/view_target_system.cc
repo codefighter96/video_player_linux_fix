@@ -16,10 +16,10 @@
 
 #include "view_target_system.h"
 
-#include <core/include/literals.h>
 #include <core/components/derived/basetransform.h>
-#include <core/systems/ecs.h>
+#include <core/include/literals.h>
 #include <core/scene/view_target.h>
+#include <core/systems/ecs.h>
 
 #include <iomanip>
 #include <iostream>
@@ -143,20 +143,23 @@ void ViewTargetSystem::vOnInitSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
+  // Get all cameras
+  const auto& cameras = ecs->getComponentsOfType<Camera>();
+
   // Update each camera's view target
-  //  The process is camera-driven, as not every view target might have a Camera entity associated with it
+  //  The process is camera-driven, as not every view target might have a Camera entity associated
+  //  with it
   //  - which is fine! We might want some view targets to have a static camera,
   //  also this way we're updating the camera in a 'push' manner rather than polling it
 
   // Keep track of whether a view target has already been set on this frame
   std::map<size_t, EntityGUID> viewTargetSetBy;
 
-  // Get all cameras
-  const auto& cameras = ecs->getComponentsOfType<Camera>();
   for (const auto& camera : cameras) {
     const EntityGUID cameraId = camera->GetOwner()->GetGuid();
     const size_t viewId = camera->getViewId();
-    if( viewId == ViewTarget::kNullViewId ) continue; // camera has no view target associated with it, skip it
+    if (viewId == ViewTarget::kNullViewId)
+      continue;  // camera has no view target associated with it, skip it
 
     auto* viewTarget = getViewTarget(viewId);
     if (viewTarget == nullptr) {
@@ -167,7 +170,8 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
     // Check if this view target has already been set for this frame
     if (viewTargetSetBy[viewId]) {
       spdlog::warn(
-        "View target {} has already been set for this frame by camera({}) - another camera({}) is setting it again, skipping",
+        "View target {} has already been set for this frame by camera({}) - another camera({}) is "
+        "setting it again, skipping",
         viewId, viewTargetSetBy[viewId], cameraId
       );
       continue;
@@ -176,18 +180,40 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
     // Update the camera settings for the view target
     const auto transform = ecs->getComponent<BaseTransform>(cameraId);
     viewTarget->updateCameraSettings(*camera, *transform);
-    spdlog::trace(
-      "Updating camera settings for view target {} by camera {}",
-      viewId, cameraId
-    );
+    spdlog::trace("Updating camera settings for view target {} by camera {}", viewId, cameraId);
 
     // Set the flag
     viewTargetSetBy[viewId] = cameraId;
   }
+
+  // Update each camera's targeting
+  //  When a camera has its targetEntityGuid set, this will set
+  //  the position of the camera's parent rig to match the target entity's position
+  /// TODO:
+}
+
+void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {
+  // Get all the cameras
+  const auto& cameras = ecs->getComponentsOfType<Camera>();
+  for (const auto& camera : cameras) {
+    // Found the camera, set it as the main camera for the view target
+    if (camera->GetOwner()->GetGuid() == cameraId) {
+      camera->setViewId(viewId);
+      spdlog::debug("Setting camera {} as main camera for view target {}", cameraId, viewId);
+    }
+    // If found another camera with the same viewId, unset it
+    else if (camera->getViewId() == viewId) {
+      camera->setViewId(ViewTarget::kNullViewId);
+      spdlog::trace(
+        "Unsetting camera {} from view target {} - not main camera", camera->GetOwner()->GetGuid(),
+        viewId
+      );
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vShutdownSystem() {  }
+void ViewTargetSystem::vShutdownSystem() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::DebugPrint() {}
