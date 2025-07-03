@@ -61,6 +61,9 @@ class ViewTargetSystem : public ECSystem {
     /// Sets a camera as the main camera for the given view target.
     void setViewCamera(size_t viewId, EntityGUID cameraGuid);
 
+    /// Initializes a camera entity
+    void initializeEntity(EntityGUID entityGuid);
+
   private:
     std::vector<std::unique_ptr<ViewTarget>> _viewTargets;
 };

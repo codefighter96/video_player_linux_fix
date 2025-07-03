@@ -38,10 +38,10 @@ class SceneTextDeserializer {
   private:
     smarter_raw_ptr<ECSManager> _ecs;
 
-    // These get released to the Model_system / obj locator
     std::vector<std::shared_ptr<Model>> models_;
-    // These get released to the Shape_System / obj locator
     std::vector<std::shared_ptr<shapes::BaseShape>> shapes_;
+
+    std::vector<std::shared_ptr<EntityObject>> entities_;
 
     void vDeserializeRootLevel(
       const std::vector<uint8_t>& params,
@@ -56,6 +56,7 @@ class SceneTextDeserializer {
     void setUpLights();
     void setUpIndirectLight() const;
     void setUpShapes();
+    void setUpEntities();
 
     void loadModel(std::shared_ptr<Model>& model);
 

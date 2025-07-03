@@ -93,6 +93,10 @@ class Camera : public Component {
       );
     }
 
+    /// Constructs a Camera component from the given parameters.
+    /// TODO(kerberjg): move to deserializer
+    explicit Camera(const flutter::EncodableMap& params);
+
     void DebugPrint(const std::string& tabPrefix) const override;
 
     /*

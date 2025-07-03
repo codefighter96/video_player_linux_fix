@@ -381,6 +381,9 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
   const auto camera = ecs->getComponent<Camera>(id);
 
   camera->targetEntity = target_entity_id;
+
+  spdlog::debug("Camera target set to entity: {}", target_entity_id);
+  return std::nullopt;
 }
 
 std::optional<FlutterError> FilamentViewPlugin::SetActiveCamera(
@@ -395,6 +398,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetActiveCamera(
   const auto viewSystem = ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
   viewSystem->setViewCamera(viewIndex, cameraId);
 
+  spdlog::debug("Camera {} set as active for view {}", cameraId, viewIndex);
   return std::nullopt;
 }
 
@@ -408,11 +412,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraDolly(
   // Get camera component
   const auto camera = ecs->getComponent<Camera>(id);
 
-  camera->setDollyOffset(filament::math::float3(
-    dolly_offset[0],
-    dolly_offset[1],
-    dolly_offset[2]
-  ));
+  camera->setDollyOffset(filament::math::float3(dolly_offset[0], dolly_offset[1], dolly_offset[2]));
 
   return std::nullopt;
 }

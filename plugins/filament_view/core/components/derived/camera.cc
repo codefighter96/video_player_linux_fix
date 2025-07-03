@@ -23,6 +23,50 @@
 
 namespace plugin_filament_view {
 
+Camera::Camera(const flutter::EncodableMap& params)
+  : Component(std::string(__FUNCTION__)) {
+  // Camera (head)
+  auto exposureParams =
+    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kExposure, params);
+  if (exposureParams.has_value()) {
+    _exposure = Exposure(exposureParams.value());
+    _dirtyExposure = true;
+  }
+
+  auto projectionParams =
+    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kProjection, params);
+  if (projectionParams.has_value()) {
+    _projection = Projection(projectionParams.value());
+    _dirtyProjection = true;
+  }
+
+  auto lensParams =
+    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kLensProjection, params);
+  if (lensParams.has_value()) {
+    _lens = LensProjection(lensParams.value());
+    _dirtyProjection = true;
+
+    // Reset projection if lens is set
+    if (_projection.has_value()) {
+      spdlog::warn(
+        "LensProjection is set, resetting Projection. LensProjection will be used instead."
+      );
+      _projection.reset();
+    }
+  }
+
+  // _ipd = 0; // leave default in header, currently not supported in Dart
+  Deserialize::DecodeParameterWithDefault(kPosition, &_dollyOffset, params, kFloat3Zero);
+  _dirtyEyes = true;
+
+  int64_t tmpViewId = 0;
+  Deserialize::DecodeParameterWithDefaultInt64(kViewId, &tmpViewId, params, kDefaultViewId);
+  _viewId = static_cast<size_t>(tmpViewId);
+
+  Deserialize::DecodeParameterWithDefaultInt64(kTargetEntity, &targetEntity, params, kNullGuid);
+
+}  // Camera
+
 void Camera::DebugPrint(const std::string& tabPrefix) const {
   spdlog::debug("{}: Camera {{ viewId: {} }", tabPrefix, _viewId);
 }  // DebugPrint
