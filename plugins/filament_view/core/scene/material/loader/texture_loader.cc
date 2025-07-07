@@ -50,8 +50,9 @@ filament::Texture* TextureLoader::createTextureFromImage(
   int w, h, n;
   const unsigned char* data = stbi_load(file_path.c_str(), &w, &h, &n, 4);
 
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("createTextureFromImage");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "createTextureFromImage"
+  );
   const auto engine = filamentSystem->getFilamentEngine();
 
   filament::Texture* texture = filament::Texture::Builder()

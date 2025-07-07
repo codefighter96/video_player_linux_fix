@@ -54,8 +54,9 @@ void ViewTargetSystem::vOnInitSystem() {
   vRegisterMessageHandler(ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
     spdlog::trace("ViewTargetCreateRequest");
 
-    const auto state =
-      msg.getData<FlutterDesktopEngineState*>(ECSMessageType::ViewTargetCreateRequest);
+    const auto state = msg.getData<FlutterDesktopEngineState*>(
+      ECSMessageType::ViewTargetCreateRequest
+    );
     const auto top = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestTop);
     const auto left = msg.getData<int>(ECSMessageType::ViewTargetCreateRequestLeft);
     const auto width = msg.getData<uint32_t>(ECSMessageType::ViewTargetCreateRequestWidth);

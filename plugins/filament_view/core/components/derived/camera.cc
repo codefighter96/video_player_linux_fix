@@ -26,22 +26,25 @@ namespace plugin_filament_view {
 Camera::Camera(const flutter::EncodableMap& params)
   : Component(std::string(__FUNCTION__)) {
   // Camera (head)
-  auto exposureParams =
-    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kExposure, params);
+  auto exposureParams = Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(
+    kExposure, params
+  );
   if (exposureParams.has_value()) {
     _exposure = Exposure(exposureParams.value());
     _dirtyExposure = true;
   }
 
-  auto projectionParams =
-    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kProjection, params);
+  auto projectionParams = Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(
+    kProjection, params
+  );
   if (projectionParams.has_value()) {
     _projection = Projection(projectionParams.value());
     _dirtyProjection = true;
   }
 
-  auto lensParams =
-    Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(kLensProjection, params);
+  auto lensParams = Deserialize::DecodeOptionalParameter<flutter::EncodableMap>(
+    kLensProjection, params
+  );
   if (lensParams.has_value()) {
     _lens = LensProjection(lensParams.value());
     _dirtyProjection = true;

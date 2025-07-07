@@ -164,8 +164,9 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width, const uint32_
 
   native_window_ = {.display = display_, .surface = surface_, .width = width, .height = height};
 
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("ViewTarget::Initialize");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "ViewTarget::Initialize"
+  );
 
   _engine = filamentSystem->getFilamentEngine();
   fswapChain_ = _engine->createSwapChain(&native_window_);
@@ -325,7 +326,7 @@ void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transfo
 
   // Update transform
   // Calculate matrices
-  auto headMatrix =  //
+  auto headMatrix =
     // Fulcrum position - camera rotates around this point
     filament::math::mat4f::translation(transform.local.position)
     // Rig rotation - camera rig rotates around fulcrum
@@ -456,8 +457,8 @@ void ViewTarget::SendFrameViewCallback(
     encodableMap[EncodableValue(fst)] = snd;  // NOLINT
   }
 
-  const auto viewTargetSystem =
-    ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
+  const auto viewTargetSystem = ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__
+  );
 
   viewTargetSystem->vSendDataToEventChannel(encodableMap);
 }
@@ -500,8 +501,8 @@ void ViewTarget::DrawFrame(const uint32_t time) {
     //
     // Future tasking for making a more featured timing / frame info class.
     const uint32_t deltaTimeMS = time - m_LastTime;
-    float timeSinceLastRenderedSec =
-      static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
+    float timeSinceLastRenderedSec = static_cast<float>(deltaTimeMS)
+                                     / 1000.0f;  // convert to seconds
     if (timeSinceLastRenderedSec == 0.0f) {
       timeSinceLastRenderedSec += 1.0f;
     }

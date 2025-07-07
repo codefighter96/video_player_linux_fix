@@ -92,8 +92,9 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           continue;
         }
 
-        auto deserializedShape =
-          ShapeSystem::poDeserializeShapeFromData(std::get<flutter::EncodableMap>(iter));
+        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
+          std::get<flutter::EncodableMap>(iter)
+        );
 
         shapes_.emplace_back(std::move(deserializedShape));
       }
@@ -320,8 +321,8 @@ void SceneTextDeserializer::setUpSkybox() const {
     if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
       if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
           !hdr_skybox->getAssetPath().empty()) {
-        const auto shouldUpdateLight =
-          hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
+        const auto shouldUpdateLight = hdr_skybox->getAssetPath()
+                                       == indirect_light_->getAssetPath();
 
         skyboxSystem->setSkyboxFromHdrAsset(
           hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(), shouldUpdateLight,
@@ -357,8 +358,9 @@ void SceneTextDeserializer::setUpLights() {
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
-    const auto newEntity =
-      std::make_shared<EntityObject>("SceneTextDeserializer::setUpLights", fst);
+    const auto newEntity = std::make_shared<EntityObject>(
+      "SceneTextDeserializer::setUpLights", fst
+    );
 
     _ecs->addEntity(newEntity);
     _ecs->addComponent(newEntity->GetGuid(), snd);
@@ -379,8 +381,8 @@ void SceneTextDeserializer::setUpLights() {
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
-  auto indirectlightSystem =
-    ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
+  auto indirectlightSystem = ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__
+  );
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.

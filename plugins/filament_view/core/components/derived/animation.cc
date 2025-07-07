@@ -61,8 +61,9 @@ void Animation::vUpdate(const float fElapsedTime) {
     m_fTimeSinceStart = 0.0f;
 
     if (m_bNotifyOfAnimationEvents) {
-      const auto animationSystem =
-        ECSManager::GetInstance()->getSystem<AnimationSystem>("Animation::vUpdate");
+      const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
+        "Animation::vUpdate"
+      );
       animationSystem->vNotifyOfAnimationEvent(
         GetOwner()->GetGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
       );
@@ -78,13 +79,15 @@ void Animation::vUpdate(const float fElapsedTime) {
   m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex), m_fTimeSinceStart);
   m_poAnimator->updateBoneMatrices();
 
-  const auto currentAnimDuration =
-    m_poAnimator->getAnimationDuration(static_cast<size_t>(m_nCurrentPlayingIndex));
+  const auto currentAnimDuration = m_poAnimator->getAnimationDuration(
+    static_cast<size_t>(m_nCurrentPlayingIndex)
+  );
   if (m_fTimeSinceStart > currentAnimDuration) {
     if (m_bNotifyOfAnimationEvents) {
       // send message here to dart
-      const auto animationSystem =
-        ECSManager::GetInstance()->getSystem<AnimationSystem>("Animation::vUpdate");
+      const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
+        "Animation::vUpdate"
+      );
 
       animationSystem->vNotifyOfAnimationEvent(
         GetOwner()->GetGuid(), eAnimationEnded, std::to_string(m_nCurrentPlayingIndex)
@@ -99,8 +102,9 @@ void Animation::vUpdate(const float fElapsedTime) {
 
       if (m_bNotifyOfAnimationEvents) {
         // send message here to dart
-        const auto animationSystem =
-          ECSManager::GetInstance()->getSystem<AnimationSystem>("Animation::vUpdate");
+        const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
+          "Animation::vUpdate"
+        );
 
         animationSystem->vNotifyOfAnimationEvent(
           GetOwner()->GetGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)

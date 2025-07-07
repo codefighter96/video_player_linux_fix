@@ -135,8 +135,9 @@ void Model::vChangeMaterialDefinitions(
   }
 
   // now, reload / rebuild the material?
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("BaseShape::vChangeMaterialDefinitions");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "BaseShape::vChangeMaterialDefinitions"
+  );
 
   // If your entity has multiple primitives, you’ll need to call
   // setMaterialInstanceAt for each primitive you want to update.

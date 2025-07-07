@@ -74,8 +74,9 @@ void FilamentViewApi::SetUp(
   FilamentViewApi* api,
   const std::string& message_channel_suffix
 ) {
-  const std::string prepended_suffix =
-    !message_channel_suffix.empty() ? std::string(".") + message_channel_suffix : "";
+  const std::string prepended_suffix = !message_channel_suffix.empty()
+                                         ? std::string(".") + message_channel_suffix
+                                         : "";
   {
     BasicMessageChannel<> channel(
       binary_messenger,
@@ -353,8 +354,8 @@ void FilamentViewApi::SetUp(
               reply(WrapError("dolly_offset_arg unexpectedly null."));
               return;
             }
-            const auto& dolly_offset_arg =
-              std::get<std::vector<double>>(encodable_dolly_offset_arg);
+            const auto& dolly_offset_arg = std::get<std::vector<double>>(encodable_dolly_offset_arg
+            );
             std::optional<FlutterError> output = api->SetCameraDolly(id_arg, dolly_offset_arg);
             if (output.has_value()) {
               reply(WrapError(output.value()));
@@ -401,8 +402,9 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t intensity_arg = encodable_intensity_arg.LongValue();
-            std::optional<FlutterError> output =
-              api->ChangeLightColorByGUID(id_arg, color_arg, intensity_arg);
+            std::optional<FlutterError> output = api->ChangeLightColorByGUID(
+              id_arg, color_arg, intensity_arg
+            );
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;

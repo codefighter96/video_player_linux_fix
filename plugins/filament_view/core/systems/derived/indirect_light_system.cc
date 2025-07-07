@@ -191,8 +191,9 @@ void IndirectLightSystem::vOnInitSystem() {
     [this](const ECSMessage& msg) {
       spdlog::debug("ChangeSceneIndirectLightProperties");
 
-      const auto intensityValue =
-        msg.getData<float>(ECSMessageType::ChangeSceneIndirectLightPropertiesIntensity);
+      const auto intensityValue = msg.getData<float>(
+        ECSMessageType::ChangeSceneIndirectLightPropertiesIntensity
+      );
       indirect_light_->setIntensity(intensityValue);
       setIndirectLight(indirect_light_.get());
 

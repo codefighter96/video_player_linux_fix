@@ -95,8 +95,8 @@ void* getNativeWindow(SDL_Window* sdlWindow) {
  * @return SDL_Window* The created window. Returns nullptr in case of failure.
  */
 SDL_Window* createWindow() {
-  const uint32_t windowFlags =
-    SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+  const uint32_t windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+                               | SDL_WINDOW_ALLOW_HIGHDPI;
   SDL_Window* win = SDL_CreateWindow("Hello Filament!", 0, 0, 800, 600, windowFlags);
   if (win == nullptr) {
     std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -176,8 +176,9 @@ void addQuadToScene() {
     VertexBuffer::BufferDescriptor(normals, vertexBuffer->getVertexCount() * sizeof(normals[0]))
   );
 
-  auto indexBuffer = gContext.quad.indexBuffer =
-    IndexBuffer::Builder().indexCount(6).build(*gContext.engine);
+  auto indexBuffer = gContext.quad.indexBuffer = IndexBuffer::Builder().indexCount(6).build(
+    *gContext.engine
+  );
 
   indexBuffer->setBuffer(
     *gContext.engine,

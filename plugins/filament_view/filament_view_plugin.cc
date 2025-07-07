@@ -696,8 +696,9 @@ void FilamentViewPlugin::on_touch(
       *ECSManager::GetInstance()->GetStrand(),
       [&, action, point_count, point_data_size, point_data] {
         const auto ecs = ECSManager::GetInstance();
-        const auto viewTargetSystem =
-          ecs->getSystem<ViewTargetSystem>("FilamentViewPlugin::on_touch");
+        const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(
+          "FilamentViewPlugin::on_touch"
+        );
         viewTargetSystem->getMainViewTarget()->vOnTouch(
           action, point_count, point_data_size, point_data
         );

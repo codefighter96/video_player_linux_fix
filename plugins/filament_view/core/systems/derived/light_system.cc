@@ -135,11 +135,13 @@ void LightSystem::vOnInitSystem() {
 
       const auto guid = msg.getData<EntityGUID>(ECSMessageType::ChangeSceneLightProperties);
 
-      const auto colorValue =
-        msg.getData<std::string>(ECSMessageType::ChangeSceneLightPropertiesColorValue);
+      const auto colorValue = msg.getData<std::string>(
+        ECSMessageType::ChangeSceneLightPropertiesColorValue
+      );
 
-      const auto intensityValue =
-        msg.getData<float>(ECSMessageType::ChangeSceneLightPropertiesIntensity);
+      const auto intensityValue = msg.getData<float>(
+        ECSMessageType::ChangeSceneLightPropertiesIntensity
+      );
 
       // find the entity in our list:
       const auto theLight = ecs->getComponent<Light>(guid);
