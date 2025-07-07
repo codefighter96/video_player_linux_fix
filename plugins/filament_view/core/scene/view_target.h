@@ -110,7 +110,7 @@ class ViewTarget {
     static constexpr float kDefaultSensitivity = 100.0f;
     static constexpr float kDefaultFocalLength = 28.0f;
 
-    filament::Camera* camera_;
+    filament::Camera* camera_ = nullptr;
     utils::Entity cameraEntity_;
     filament::Engine* _engine = nullptr;
 

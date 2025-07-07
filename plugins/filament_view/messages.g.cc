@@ -245,7 +245,7 @@ void FilamentViewApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           } catch (const std::exception& exception) {
             reply(WrapError(exception.what()));
@@ -285,7 +285,7 @@ void FilamentViewApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           } catch (const std::exception& exception) {
             reply(WrapError(exception.what()));
@@ -321,7 +321,7 @@ void FilamentViewApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           } catch (const std::exception& exception) {
             reply(WrapError(exception.what()));
@@ -362,7 +362,7 @@ void FilamentViewApi::SetUp(
               return;
             }
             EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
+            wrapped.emplace_back();
             reply(EncodableValue(std::move(wrapped)));
           } catch (const std::exception& exception) {
             reply(WrapError(exception.what()));

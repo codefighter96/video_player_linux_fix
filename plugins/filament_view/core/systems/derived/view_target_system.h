@@ -59,7 +59,7 @@ class ViewTargetSystem : public ECSystem {
     }
 
     /// Sets a camera as the main camera for the given view target.
-    void setViewCamera(size_t viewId, EntityGUID cameraGuid);
+    void setViewCamera(size_t viewId, EntityGUID cameraId);
 
     /// Initializes a camera entity
     void initializeEntity(EntityGUID entityGuid);

@@ -565,7 +565,7 @@ void ViewTarget::resize(const double width, const double height) {
 
   // Update lens projection
   const auto aspect = calculateAspectRatio();
-  const float focalLength = camera_->getFocalLength();
+  const auto focalLength = static_cast<float>(camera_->getFocalLength());
   const LensProjection lensProjection = {focalLength, aspect};
   _setLens(lensProjection);
 }
@@ -636,11 +636,11 @@ Ray ViewTarget::touchToRay(const TouchPair touch) const {
 
   /// TODO: this should be the real distance to the object
   constexpr float defaultLength = 1000.0f;
-  return Ray(
+  return {
     filament::math::float3(rayOrigin.x, rayOrigin.y, rayOrigin.z),
     filament::math::float3(rayDirection.x, rayDirection.y, rayDirection.z),  //
     defaultLength
-  );
+  };
 }
 
 }  // namespace plugin_filament_view
