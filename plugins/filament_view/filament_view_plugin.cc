@@ -374,7 +374,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
   int64_t id,
   int64_t target_entity_id
 ) {
-  spdlog::debug("SetCameraTarget");
+  spdlog::trace("SetCameraTarget");
 
   const auto ecs = ECSManager::GetInstance();
   // Get camera component
@@ -390,7 +390,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetActiveCamera(
   const int64_t* view_id,
   int64_t camera_id
 ) {
-  spdlog::debug("SetActiveCamera");
+  spdlog::trace("SetActiveCamera");
 
   size_t viewIndex = view_id != nullptr ? static_cast<size_t>(*view_id) : 0;
   EntityGUID cameraId = camera_id;
@@ -406,7 +406,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraDolly(
   int64_t id,
   const std::vector<double>& dolly_offset
 ) {
-  spdlog::debug("SetCameraDolly");
+  spdlog::trace("SetCameraDolly");
 
   const auto ecs = ECSManager::GetInstance();
   // Get camera component

@@ -178,7 +178,8 @@ void ViewTargetSystem::initializeEntity(EntityGUID entityGuid) {
 
   // Set up entity + camera in Filament
   entity->_fEntity = _em->create();
-  camera->_fCamera = _engine->createCamera(entity->_fEntity);
+  // Our [Camera] component does not wrap a Filament camera! [ViewTarget] takes care of that
+  _engine->getTransformManager().create(entity->_fEntity);
   transform->_fInstance = _engine->getTransformManager().getInstance(entity->_fEntity);
 }
 
@@ -281,8 +282,9 @@ size_t ViewTargetSystem::nSetupViewTargetFromDesktopState(
   int32_t left,
   FlutterDesktopEngineState* state
 ) {
-  _viewTargets.emplace_back(std::make_unique<ViewTarget>(top, left, state));
-  return _viewTargets.size() - 1;
+  size_t id = _viewTargets.size();
+  _viewTargets.emplace_back(std::make_unique<ViewTarget>(id, top, left, state));
+  return id;
 }
 
 }  // namespace plugin_filament_view

@@ -53,8 +53,14 @@ class FilamentViewPlugin;
 
 namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(const int32_t top, const int32_t left, FlutterDesktopEngineState* state)
-  : state_(state),
+ViewTarget::ViewTarget(
+  const size_t id,
+  const int32_t top,
+  const int32_t left,
+  FlutterDesktopEngineState* state
+)
+  : id(id),
+    state_(state),
     left_(left),
     top_(top),
     callback_(nullptr),
@@ -95,11 +101,9 @@ void ViewTarget::_initCamera() {
   cameraEntity_ = _engine->getEntityManager().create();
   camera_ = _engine->createCamera(cameraEntity_);
 
-  /// With the default parameters, the scene must contain at least one Light
-  /// of intensity similar to the sun (e.g.: a 100,000 lux directional light).
-  camera_->setExposure(kAperture, kShutterSpeed, kSensitivity);
+  // Set defaults
+  camera_->setExposure(kDefaultAperture, kDefaultShutterSpeed, kDefaultSensitivity);
   camera_->setModelMatrix(filament::math::mat4f());
-
   fview_->setCamera(camera_);
 }
 
@@ -317,8 +321,19 @@ void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
 }
 
 void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transform) {
+  // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
+
   // Update transform
-  camera_->setModelMatrix(transform.global.matrix);
+  // Calculate matrices
+  auto headMatrix =  //
+    // Fulcrum position - camera rotates around this point
+    filament::math::mat4f::translation(transform.local.position)
+    // Rig rotation - camera rig rotates around fulcrum
+    * filament::math::mat4f(transform.local.rotation)
+    // Dolly offset - camera is offset from the rig arm
+    * filament::math::mat4f::translation(cameraData._dollyOffset);
+
+  camera_->setModelMatrix(headMatrix);
 
   // Update exposure
   if (cameraData._dirtyExposure) {
@@ -332,16 +347,15 @@ void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transfo
     } else if (cameraData._lens != std::nullopt) {
       _setLens(*cameraData.getLens());
     } else {
-      throw std::runtime_error(
-        "Camera projection or lens must be set before updating the camera."
-      );
+      throw std::runtime_error("Camera projection or lens must be set before updating the camera.");
     }
   }
 
   // Update eyes
-  if (cameraData._dirtyEyes) {
-    _setEyes(cameraData._ipd, cameraData._dollyOffset);
-  }
+  // NOTE: currently disabled, unnecessary until we support stereo rendering
+  // if (cameraData._dirtyEyes) {
+  //   _setEyes(cameraData._ipd);
+  // }
 
   cameraData.clearDirtyFlags();
 }
@@ -351,9 +365,10 @@ void ViewTarget::_setExposure(const Exposure& e) {
     SPDLOG_DEBUG("[setExposure] exposure: {}", e.exposure_.value());
     camera_->setExposure(e.exposure_.value());
   } else {
-    auto aperture = e.aperture_.has_value() ? e.aperture_.value() : kAperture;
-    auto shutterSpeed = e.shutterSpeed_.has_value() ? e.shutterSpeed_.value() : kShutterSpeed;
-    auto sensitivity = e.sensitivity_.has_value() ? e.sensitivity_.value() : kSensitivity;
+    auto aperture = e.aperture_.has_value() ? e.aperture_.value() : kDefaultAperture;
+    auto shutterSpeed = e.shutterSpeed_.has_value() ? e.shutterSpeed_.value()
+                                                    : kDefaultShutterSpeed;
+    auto sensitivity = e.sensitivity_.has_value() ? e.sensitivity_.value() : kDefaultSensitivity;
     SPDLOG_DEBUG(
       "[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",  //
       aperture, shutterSpeed, sensitivity
@@ -372,8 +387,8 @@ void ViewTarget::_setProjection(const Projection& p) {
     auto right = p.right_.value();
     auto top = p.top_.value();
     auto bottom = p.bottom_.value();
-    auto near = p.near_.has_value() ? p.near_.value() : kNearPlane;
-    auto far = p.far_.has_value() ? p.far_.value() : kFarPlane;
+    auto near = p.near_.has_value() ? p.near_.value() : kDefaultNearPlane;
+    auto far = p.far_.has_value() ? p.far_.value() : kDefaultFarPlane;
     SPDLOG_DEBUG(
       "[setProjection] left: {}, right: {}, bottom: {}, top: {}, near: {}, far: {}",  //
       left, right, bottom, top, near, far
@@ -384,8 +399,8 @@ void ViewTarget::_setProjection(const Projection& p) {
   else if (p.fovInDegrees_.has_value() && p.fovDirection_.has_value()) {
     auto fovInDegrees = p.fovInDegrees_.value();
     auto aspect = p.aspect_.has_value() ? p.aspect_.value() : calculateAspectRatio();
-    auto near = p.near_.has_value() ? p.near_.value() : kNearPlane;
-    auto far = p.far_.has_value() ? p.far_.value() : kFarPlane;
+    auto near = p.near_.has_value() ? p.near_.value() : kDefaultNearPlane;
+    auto far = p.far_.has_value() ? p.far_.value() : kDefaultFarPlane;
     const auto fovDirection = p.fovDirection_.value();
     SPDLOG_DEBUG(
       "[setProjection] fovInDegress: {}, aspect: {}, near: {}, far: {}, direction: {}",  //
@@ -401,8 +416,8 @@ void ViewTarget::_setLens(const LensProjection& l) {
 
   const auto aspect = l.getAspect().has_value() ? l.getAspect().value() : calculateAspectRatio();
 
-  const auto near = l.getNear().has_value() ? l.getNear().value() : kNearPlane;
-  const auto far = l.getFar().has_value() ? l.getFar().value() : kFarPlane;
+  const auto near = l.getNear().has_value() ? l.getNear().value() : kDefaultNearPlane;
+  const auto far = l.getFar().has_value() ? l.getFar().value() : kDefaultFarPlane;
   SPDLOG_DEBUG(
     "[setLens] focalLength: {}, aspect: {}, near: {}, far: {}",  //
     focalLength, aspect, near, far
@@ -411,27 +426,23 @@ void ViewTarget::_setLens(const LensProjection& l) {
   camera_->setLensProjection(focalLength, aspect, near, far);
 }
 
-void ViewTarget::_setEyes(const double ipd, const filament::math::float3& dollyOffset) {
+void ViewTarget::_setEyes(const double ipd) {
   // initialized to identity
   filament::math::mat4 leftEye = {};
   filament::math::mat4 rightEye = {};
 
   if (ipd != 0.0f) {
     filament::math::double3 ipdOffset = {ipd / 2.0, 0.0, 0.0};
-    filament::math::double3 eyeOffset = {dollyOffset.x, dollyOffset.y, dollyOffset.z};
 
-    leftEye = filament::math::mat4::translation(eyeOffset - ipdOffset);
-    rightEye = filament::math::mat4::translation(eyeOffset + ipdOffset);
+    leftEye = filament::math::mat4::translation(ipdOffset);
+    rightEye = filament::math::mat4::translation(ipdOffset);
     // TODO: add support for focus distance (rotate both eyes towards the focal point)
   }
 
-  SPDLOG_DEBUG(
-    "[setEyes] ipd: {}, dollyOffset: ({}, {}, {})",  //
-    ipd, dollyOffset.x, dollyOffset.y, dollyOffset.z
-  );
-  camera_->setEyeModelMatrix(0, leftEye);
+  spdlog::trace("[setEyes] ipd: {}m", ipd);
   /// TODO: to enable stereo 3D rendering, check Engine for `stereoscopicEyeCount` first
-  // camera_->setEyeModelMatrix(1, rightEye);
+  camera_->setEyeModelMatrix(0, leftEye);
+  camera_->setEyeModelMatrix(1, rightEye);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -626,7 +637,7 @@ Ray ViewTarget::touchToRay(const TouchPair touch) const {
   constexpr float defaultLength = 1000.0f;
   return Ray(
     filament::math::float3(rayOrigin.x, rayOrigin.y, rayOrigin.z),
-    filament::math::float3(rayDirection.x, rayDirection.y, rayDirection.z),  // 
+    filament::math::float3(rayDirection.x, rayDirection.y, rayDirection.z),  //
     defaultLength
   );
 }

@@ -37,8 +37,9 @@ class Camera;
 class ViewTarget {
   public:
     static constexpr size_t kNullViewId = -1;
+    const size_t id;
 
-    ViewTarget(int32_t top, int32_t left, FlutterDesktopEngineState* state);
+    ViewTarget(size_t id, int32_t top, int32_t left, FlutterDesktopEngineState* state);
 
     ~ViewTarget();
 
@@ -102,11 +103,11 @@ class ViewTarget {
     /*
      *  Camera
      */
-    static constexpr float kNearPlane = 0.05f;   // 5 cm
-    static constexpr float kFarPlane = 1000.0f;  // 1 km
-    static constexpr float kAperture = 16.0f;
-    static constexpr float kShutterSpeed = 1.0f / 125;
-    static constexpr float kSensitivity = 100.0f;
+    static constexpr float kDefaultNearPlane = 0.05f;   // 5 cm
+    static constexpr float kDefaultFarPlane = 1000.0f;  // 1 km
+    static constexpr float kDefaultAperture = 16.0f;
+    static constexpr float kDefaultShutterSpeed = 1.0f / 125;
+    static constexpr float kDefaultSensitivity = 100.0f;
     static constexpr float kDefaultFocalLength = 28.0f;
 
     filament::Camera* camera_;
@@ -120,7 +121,7 @@ class ViewTarget {
     void _setProjection(const Projection& projection);
     void _setLens(const LensProjection& lensProjection);
     /// Sets the eyes view matrices for stereoscopic rendering (if applicable).
-    void _setEyes(const double ipd, const filament::math::float3& dollyOffset);
+    void _setEyes(const double ipd);
 
     /*
      *  Wayland
