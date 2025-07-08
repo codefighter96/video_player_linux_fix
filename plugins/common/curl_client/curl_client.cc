@@ -31,8 +31,8 @@ namespace plugin_common_curl {
 
 CurlClient::CurlClient() : mCode(CURLE_OK) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
-  mConn = curl_easy_init();
-  std::make_unique<char>(CURL_ERROR_SIZE);
+  mErrorBuffer = std::make_unique<char[]>(CURL_ERROR_SIZE);
+  mErrorBuffer[0] = '\0';
 }
 
 CurlClient::~CurlClient() {
@@ -80,12 +80,12 @@ bool CurlClient::Init(
     const bool follow_location) {
   mCode = CURLE_OK;
 
+  mConn = curl_easy_init();
   if (mConn == nullptr) {
     spdlog::error("[CurlClient] Failed to create CURL connection");
     return false;
   }
 
-  curl_easy_reset(mConn);
   mStringBuffer.clear();
   mVectorBuffer.clear();
   mPostFields.clear();
@@ -94,14 +94,14 @@ bool CurlClient::Init(
     curl_slist_free_all(mHeadersList);
     mHeadersList = nullptr;
   }
-/*
+
   mCode = curl_easy_setopt(mConn, CURLOPT_ERRORBUFFER, mErrorBuffer.get());
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set error buffer [{}]",
                   static_cast<int>(mCode));
     return false;
   }
-*/
+
   mUrl = url;
   spdlog::trace("[CurlClient] URL: {}", mUrl);
 
@@ -112,21 +112,22 @@ bool CurlClient::Init(
   }
 
   if (!url_form.empty()) {
-    for (const auto& [fst, snd] : url_form) {
+    for (const auto& [key, value] : url_form) {
       if (!mPostFields.empty()) {
         mPostFields += "&";
       }
-      char* encoded_Key = curl_easy_escape(mConn,fst.c_str(), fst.length());
-      char* encoded_value = curl_easy_escape(mConn,snd.c_str(), snd.length());
+      char* encoded_Key = curl_easy_escape(mConn,key.c_str(), key.length());
+      char* encoded_value = curl_easy_escape(mConn,value.c_str(), value.length());
       if(encoded_Key && encoded_value){
-        mPostFields.append(encoded_Key);
-        mPostFields.append("=");
-        mPostFields.append(encoded_value);
+        mPostFields += encoded_Key;
+        mPostFields += "=";
+        mPostFields += encoded_value;
       }
       curl_free(encoded_Key);
       curl_free(encoded_value);
     }
     spdlog::trace("[CurlClient] PostFields: {}", mPostFields);
+    curl_easy_setopt(mConn, CURLOPT_POSTFIELDSIZE, mPostFields.length());
     // libcurl does not copy
     curl_easy_setopt(mConn, CURLOPT_POSTFIELDS, mPostFields.c_str());
   }

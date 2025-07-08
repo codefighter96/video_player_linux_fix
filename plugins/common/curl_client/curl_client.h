@@ -117,7 +117,7 @@ class CurlClient {
   std::string mUrl;
   std::string mAuthHeader;
   std::string mPostFields;
-  std::unique_ptr<char> mErrorBuffer;
+  std::unique_ptr<char[]> mErrorBuffer;
   std::string mStringBuffer;
   std::vector<uint8_t> mVectorBuffer;
 
