@@ -18,15 +18,16 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <core/scene/camera/camera_manager.h>
 #include <memory>
 #include <optional>
 
+class ViewTarget;
+
 namespace plugin_filament_view {
 
-class CameraManager;
-
 class Exposure {
+    friend class ViewTarget;
+
   public:
     explicit Exposure(const flutter::EncodableMap& params);
 
@@ -48,8 +49,6 @@ class Exposure {
     [[nodiscard]] std::unique_ptr<Exposure> clone() const {
       return std::make_unique<Exposure>(*this);  // Calls the copy constructor
     }
-
-    friend class CameraManager;
 
   private:
     /// Aperture in f-stops, clamped between 0.5 and 64. A lower aperture value

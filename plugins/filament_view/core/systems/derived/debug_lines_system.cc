@@ -168,8 +168,9 @@ void DebugLinesSystem::vAddLine(
   utils::EntityManager& oEntitymanager = engine->getEntityManager();
   auto oEntity = oEntitymanager.create();
 
-  auto newDebugLine =
-    std::make_unique<DebugLine>(startPoint, endPoint, engine, oEntity, secondsTimeout);
+  auto newDebugLine = std::make_unique<DebugLine>(
+    startPoint, endPoint, engine, oEntity, secondsTimeout
+  );
 
   filamentSystem->getFilamentScene()->addEntity(oEntity);
 

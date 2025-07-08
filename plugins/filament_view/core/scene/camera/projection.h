@@ -18,17 +18,18 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <core/scene/camera/camera_manager.h>
 #include <filament/Camera.h>
+
 #include <optional>
 
 namespace plugin_filament_view {
 
 class Camera;
-
-class CameraManager;
+class ViewTarget;
 
 class Projection {
+    friend class ViewTarget;
+
   public:
     explicit Projection(const flutter::EncodableMap& params);
 
@@ -76,8 +77,6 @@ class Projection {
     static const char* getTextForFov(::filament::Camera::Fov fov);
 
     static ::filament::Camera::Fov getFovForText(const std::string& fov);
-
-    friend class CameraManager;
 
   private:
     static constexpr char kTypePerspective[] = "PERSPECTIVE";

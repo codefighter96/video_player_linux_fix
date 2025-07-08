@@ -35,8 +35,9 @@ Collidable::Collidable(const flutter::EncodableMap& params)
   if (const auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
       itCollidableSpecific != params.end()) {
     try {
-      const auto collidableSpecificParams =
-        std::get<flutter::EncodableMap>(itCollidableSpecific->second);
+      const auto collidableSpecificParams = std::get<flutter::EncodableMap>(
+        itCollidableSpecific->second
+      );
 
       // Deserialize the collision layer, defaulting to 0
       Deserialize::DecodeParameterWithDefaultInt64(

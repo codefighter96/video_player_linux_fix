@@ -23,7 +23,12 @@
 #include <memory>
 
 namespace plugin_filament_view {
+
+class ViewTarget;
+
 class LensProjection {
+    friend class ViewTarget;
+
   public:
     LensProjection(float cameraFocalLength, float aspect);
 

@@ -16,15 +16,23 @@
 
 #include "view_target.h"
 
-#include <asio/post.hpp>
+#include <core/include/additionalmath.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
+#include <core/systems/derived/transform_system.h>
 #include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
+
 #include <filament/Renderer.h>
 #include <filament/SwapChain.h>
 #include <filament/View.h>
 #include <filament/Viewport.h>
+#include <filament/math/TMatHelpers.h>
+#include <filament/math/mat4.h>
+#include <filament/math/vec4.h>
+#include <filament/utils/EntityManager.h>
+
+#include <asio/post.hpp>
 #include <flutter/encodable_value.h>
 #include <gltfio/Animator.h>
 #include <plugins/common/common.h>
@@ -45,21 +53,25 @@ class FilamentViewPlugin;
 
 namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
-ViewTarget::ViewTarget(const int32_t top, const int32_t left, FlutterDesktopEngineState* state)
-  : state_(state),
+ViewTarget::ViewTarget(
+  const size_t id,
+  const int32_t top,
+  const int32_t left,
+  FlutterDesktopEngineState* state
+)
+  : id(id),
+    state_(state),
     left_(left),
     top_(top),
     callback_(nullptr),
-    fanimator_(nullptr),
-    cameraManager_(nullptr) {
+    fanimator_(nullptr) {
   /* Setup Wayland subsurface */
   setupWaylandSubsurface();
 }
 
 ////////////////////////////////////////////////////////////////////////////
 ViewTarget::~ViewTarget() {
-  cameraManager_->destroyCamera();
-  cameraManager_.reset();
+  _engine->destroyCameraComponent(cameraEntity_);
 
   SPDLOG_TRACE("++{}", __FUNCTION__);
 
@@ -68,11 +80,8 @@ ViewTarget::~ViewTarget() {
     callback_ = nullptr;
   }
 
-  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>("~ViewTarget");
-  const auto engine = filamentSystem->getFilamentEngine();
-
-  engine->destroy(fview_);
-  engine->destroy(fswapChain_);
+  _engine->destroy(fview_);
+  _engine->destroy(fswapChain_);
 
   if (subsurface_) {
     wl_subsurface_destroy(subsurface_);
@@ -84,6 +93,18 @@ ViewTarget::~ViewTarget() {
     surface_ = nullptr;
   }
   SPDLOG_TRACE("--{}", __FUNCTION__);
+}
+
+void ViewTarget::_initCamera() {
+  runtime_assert(fview_, "Filament view must be initialized before setting up the camera");
+
+  cameraEntity_ = _engine->getEntityManager().create();
+  camera_ = _engine->createCamera(cameraEntity_);
+
+  // Set defaults
+  camera_->setExposure(kDefaultAperture, kDefaultShutterSpeed, kDefaultSensitivity);
+  camera_->setModelMatrix(filament::math::mat4f());
+  fview_->setCamera(camera_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -143,12 +164,13 @@ void ViewTarget::InitializeFilamentInternals(const uint32_t width, const uint32_
 
   native_window_ = {.display = display_, .surface = surface_, .width = width, .height = height};
 
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("ViewTarget::Initialize");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "ViewTarget::Initialize"
+  );
 
-  const auto engine = filamentSystem->getFilamentEngine();
-  fswapChain_ = engine->createSwapChain(&native_window_);
-  fview_ = engine->createView();
+  _engine = filamentSystem->getFilamentEngine();
+  fswapChain_ = _engine->createSwapChain(&native_window_);
+  fview_ = _engine->createView();
 
   setupView(width, height);
 
@@ -197,19 +219,13 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 
   vChangeQualitySettings(ViewTarget::ePredefinedQualitySettings::Ultra);
 
-  cameraManager_ = std::make_unique<CameraManager>(this);
+  _initCamera();
 
   SPDLOG_TRACE("--{}", __FUNCTION__);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vSetupCameraManagerWithDeserializedCamera(std::unique_ptr<Camera> camera) const {
-  cameraManager_->updateCamera(camera.get());
-  cameraManager_->setPrimaryCamera(std::move(camera));
-}
-
-////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings qualitySettings) const {
+void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings qualitySettings) {
   // Reset the settings for each quality setting
   filament::viewer::ViewSettings settings = settings_.view;
 
@@ -296,16 +312,138 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
       break;
   }
 
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("Change Quality Settings");
-
   // Now apply the settings to the Filament engine and view
-  applySettings(filamentSystem->getFilamentEngine(), settings, fview_);
+  applySettings(_engine, settings, fview_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) const {
+void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
   fview_->setFogOptions(fogOptions);
+}
+
+void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transform) {
+  // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
+
+  // Update transform
+  // Calculate matrices
+  auto headMatrix =
+    // Fulcrum position - camera rotates around this point
+    filament::math::mat4f::translation(transform.local.position)
+    // Rig rotation - camera rig rotates around fulcrum
+    * filament::math::mat4f(transform.local.rotation)
+    // Dolly offset - camera is offset from the rig arm
+    * filament::math::mat4f::translation(cameraData._dollyOffset);
+
+  camera_->setModelMatrix(headMatrix);
+
+  // Update exposure
+  if (cameraData._dirtyExposure) {
+    _setExposure(*cameraData.getExposure());
+  }
+
+  // Update projection
+  if (cameraData._dirtyProjection) {
+    if (cameraData._projection != std::nullopt) {
+      _setProjection(*cameraData.getProjection());
+    } else if (cameraData._lens != std::nullopt) {
+      _setLens(*cameraData.getLens());
+    } else {
+      throw std::runtime_error("Camera projection or lens must be set before updating the camera.");
+    }
+  }
+
+  // Update eyes
+  // NOTE: currently disabled, unnecessary until we support stereo rendering
+  // if (cameraData._dirtyEyes) {
+  //   _setEyes(cameraData._ipd);
+  // }
+
+  cameraData.clearDirtyFlags();
+}
+
+void ViewTarget::_setExposure(const Exposure& e) {
+  if (e.exposure_.has_value()) {
+    SPDLOG_DEBUG("[setExposure] exposure: {}", e.exposure_.value());
+    camera_->setExposure(e.exposure_.value());
+  } else {
+    auto aperture = e.aperture_.has_value() ? e.aperture_.value() : kDefaultAperture;
+    auto shutterSpeed = e.shutterSpeed_.has_value() ? e.shutterSpeed_.value()
+                                                    : kDefaultShutterSpeed;
+    auto sensitivity = e.sensitivity_.has_value() ? e.sensitivity_.value() : kDefaultSensitivity;
+    SPDLOG_DEBUG(
+      "[setExposure] aperture: {}, shutterSpeed: {}, sensitivity: {}",  //
+      aperture, shutterSpeed, sensitivity
+    );
+
+    camera_->setExposure(aperture, shutterSpeed, sensitivity);
+  }
+}
+
+void ViewTarget::_setProjection(const Projection& p) {
+  // Sets projection from raw values if present
+  if (p.projection_.has_value() && p.left_.has_value() && p.right_.has_value() && p.top_.has_value()
+      && p.bottom_.has_value()) {
+    const auto project = p.projection_.value();
+    auto left = p.left_.value();
+    auto right = p.right_.value();
+    auto top = p.top_.value();
+    auto bottom = p.bottom_.value();
+    auto near = p.near_.has_value() ? p.near_.value() : kDefaultNearPlane;
+    auto far = p.far_.has_value() ? p.far_.value() : kDefaultFarPlane;
+    SPDLOG_DEBUG(
+      "[setProjection] left: {}, right: {}, bottom: {}, top: {}, near: {}, far: {}",  //
+      left, right, bottom, top, near, far
+    );
+    camera_->setProjection(project, left, right, bottom, top, near, far);
+  }
+  // ...else calculate & set from FOV
+  else if (p.fovInDegrees_.has_value() && p.fovDirection_.has_value()) {
+    auto fovInDegrees = p.fovInDegrees_.value();
+    auto aspect = p.aspect_.has_value() ? p.aspect_.value() : calculateAspectRatio();
+    auto near = p.near_.has_value() ? p.near_.value() : kDefaultNearPlane;
+    auto far = p.far_.has_value() ? p.far_.value() : kDefaultFarPlane;
+    const auto fovDirection = p.fovDirection_.value();
+    SPDLOG_DEBUG(
+      "[setProjection] fovInDegress: {}, aspect: {}, near: {}, far: {}, direction: {}",  //
+      fovInDegrees, aspect, near, far, Projection::getTextForFov(fovDirection)
+    );
+
+    camera_->setProjection(fovInDegrees, aspect, near, far, fovDirection);
+  }
+}
+
+void ViewTarget::_setLens(const LensProjection& l) {
+  const float focalLength = l.getFocalLength();
+
+  const auto aspect = l.getAspect().has_value() ? l.getAspect().value() : calculateAspectRatio();
+
+  const auto near = l.getNear().has_value() ? l.getNear().value() : kDefaultNearPlane;
+  const auto far = l.getFar().has_value() ? l.getFar().value() : kDefaultFarPlane;
+  SPDLOG_DEBUG(
+    "[setLens] focalLength: {}, aspect: {}, near: {}, far: {}",  //
+    focalLength, aspect, near, far
+  );
+
+  camera_->setLensProjection(focalLength, aspect, near, far);
+}
+
+void ViewTarget::_setEyes(const double ipd) {
+  // initialized to identity
+  filament::math::mat4 leftEye = {};
+  filament::math::mat4 rightEye = {};
+
+  if (ipd != 0.0f) {
+    filament::math::double3 ipdOffset = {ipd / 2.0, 0.0, 0.0};
+
+    leftEye = filament::math::mat4::translation(ipdOffset);
+    rightEye = filament::math::mat4::translation(ipdOffset);
+    // TODO: add support for focus distance (rotate both eyes towards the focal point)
+  }
+
+  spdlog::trace("[setEyes] ipd: {}m", ipd);
+  /// TODO: to enable stereo 3D rendering, check Engine for `stereoscopicEyeCount` first
+  camera_->setEyeModelMatrix(0, leftEye);
+  camera_->setEyeModelMatrix(1, rightEye);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -319,8 +457,8 @@ void ViewTarget::SendFrameViewCallback(
     encodableMap[EncodableValue(fst)] = snd;  // NOLINT
   }
 
-  const auto viewTargetSystem =
-    ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__);
+  const auto viewTargetSystem = ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__
+  );
 
   viewTargetSystem->vSendDataToEventChannel(encodableMap);
 }
@@ -335,14 +473,6 @@ const wl_callback_listener ViewTarget::frame_listener = {.done = OnFrame};
  * rendered
  */
 void ViewTarget::DrawFrame(const uint32_t time) {
-  static bool bonce = true;
-  if (bonce) {
-    bonce = false;
-
-    // will set the first frame of a cameras features.
-    doCameraFeatures(0);
-  }
-
   if (m_LastTime == 0) {
     m_LastTime = time;
   }
@@ -371,8 +501,8 @@ void ViewTarget::DrawFrame(const uint32_t time) {
     //
     // Future tasking for making a more featured timing / frame info class.
     const uint32_t deltaTimeMS = time - m_LastTime;
-    float timeSinceLastRenderedSec =
-      static_cast<float>(deltaTimeMS) / 1000.0f;  // convert to seconds
+    float timeSinceLastRenderedSec = static_cast<float>(deltaTimeMS)
+                                     / 1000.0f;  // convert to seconds
     if (timeSinceLastRenderedSec == 0.0f) {
       timeSinceLastRenderedSec += 1.0f;
     }
@@ -380,14 +510,6 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
     SendFrameViewCallback(
       kPreRenderFrame,
-      {std::make_pair(kParam_TimeSinceLastRenderedSec, EncodableValue(timeSinceLastRenderedSec)),
-       std::make_pair(kParam_FPS, EncodableValue(fps))}
-    );
-
-    doCameraFeatures(timeSinceLastRenderedSec);
-
-    SendFrameViewCallback(
-      kRenderFrame,
       {std::make_pair(kParam_TimeSinceLastRenderedSec, EncodableValue(timeSinceLastRenderedSec)),
        std::make_pair(kParam_FPS, EncodableValue(fps))}
     );
@@ -430,12 +552,6 @@ void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time)
   });
 }
 
-/////////////////////////////////////////////////////////////////////////
-void ViewTarget::doCameraFeatures(const float fDeltaTime) const {
-  if (cameraManager_ == nullptr) return;
-  cameraManager_->updateCamerasFeatures(fDeltaTime);
-}
-
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::setOffset(const double left, const double top) {
   left_ = static_cast<int32_t>(left);
@@ -447,7 +563,19 @@ void ViewTarget::resize(const double width, const double height) {
   // Will need to determine what bottom should be
   fview_->setViewport({left_, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)});
 
-  cameraManager_->updateCameraOnResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+  // Update lens projection
+  const auto aspect = calculateAspectRatio();
+  const auto focalLength = static_cast<float>(camera_->getFocalLength());
+  const LensProjection lensProjection = {focalLength, aspect};
+  _setLens(lensProjection);
+}
+
+float ViewTarget::calculateAspectRatio() const {
+  const auto viewport = fview_->getViewport();
+  if (viewport.height == 0) {
+    return 1.0f;  // Avoid division by zero
+  }
+  return static_cast<float>(viewport.width) / static_cast<float>(viewport.height);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -457,8 +585,6 @@ void ViewTarget::vOnTouch(
   const size_t point_data_size,
   const double* point_data
 ) const {
-  auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(__FUNCTION__);
-
   // if action is 0, then on 'first' touch, cast ray from camera;
   const auto viewport = fview_->getViewport();
   const auto touch = TouchPair(point_count, point_data_size, point_data, viewport.height);
@@ -466,7 +592,7 @@ void ViewTarget::vOnTouch(
   static constexpr int ACTION_DOWN = 0;
 
   if (action == ACTION_DOWN) {
-    const auto rayInfo = cameraManager_->oGetRayInformationFromOnTouchPosition(touch);
+    const auto rayInfo = touchToRay(touch);
 
     ECSMessage rayInformation;
     rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
@@ -478,9 +604,43 @@ void ViewTarget::vOnTouch(
     collisionRequest.addData(ECSMessageType::CollisionRequestType, eNativeOnTouchBegin);
     ECSManager::GetInstance()->vRouteMessage(collisionRequest);
   }
-
-  if (cameraManager_) {
-    cameraManager_->onAction(action, point_count, point_data_size, point_data);
-  }
 }
+
+Ray ViewTarget::touchToRay(const TouchPair touch) const {
+  const auto viewport = fview_->getViewport();
+
+  // Note at time of writing on a 800*600 resolution this seems like the 10%
+  // edges aren't super accurate this might need to be looked at more.
+  float ndcX = (2.0f * static_cast<float>(touch.x())) /  // NOLINT
+                 static_cast<float>(viewport.width)
+               -                                         // NOLINT
+               1.0f;
+  float ndcY = 1.0f
+               - (2.0f * static_cast<float>(touch.y())) /  // NOLINT
+                   static_cast<float>(viewport.height);    // NOLINT
+  ndcY = -ndcY;
+
+  filament::math::vec4<float> rayClip(ndcX, ndcY, -1.0f, 1.0f);
+
+  // Get inverse projection and view matrices
+  filament::math::mat4 invProj = inverse(camera_->getProjectionMatrix());
+  filament::math::vec4<double> rayView = invProj * rayClip;
+  rayView = filament::math::vec4<double>(rayView.x, rayView.y, -1.0f, 0.0f);
+
+  filament::math::mat4 invView = inverse(camera_->getViewMatrix());
+  filament::math::vec3<double> rayDirection = (invView * rayView).xyz;
+  rayDirection = normalize(rayDirection);
+
+  // Camera position
+  filament::math::vec3<double> rayOrigin = invView[3].xyz;
+
+  /// TODO: this should be the real distance to the object
+  constexpr float defaultLength = 1000.0f;
+  return {
+    filament::math::float3(rayOrigin.x, rayOrigin.y, rayOrigin.z),
+    filament::math::float3(rayDirection.x, rayDirection.y, rayDirection.z),  //
+    defaultLength
+  };
+}
+
 }  // namespace plugin_filament_view

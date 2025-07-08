@@ -77,19 +77,17 @@ add_library(plugin_filament_view STATIC
 
         core/scene/serialization/scene_text_deserializer.cc
         core/components/derived/basetransform.cc
+        core/components/derived/camera.cc
         core/components/derived/commonrenderable.cc
         core/components/derived/collidable.cc
         core/components/derived/animation.cc
         core/components/derived/light.cc
-        core/entity/derived/nonrenderable_entityobject.cc
         core/entity/derived/renderable_entityobject.cc
         core/systems/base/ecsystem.cc
         core/systems/ecs.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc
         core/entity/derived/model/model.cc
-        core/scene/camera/camera.cc
-        core/scene/camera/camera_manager.cc
         core/scene/camera/exposure.cc
         core/scene/camera/lens_projection.cc
         core/scene/camera/projection.cc

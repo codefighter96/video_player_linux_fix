@@ -62,8 +62,8 @@ void KVTree<Key, Value>::reparent(const Key& key, const Key* parentKey) {
     throw std::runtime_error("Key not found");
   }
 
-  auto* parent =
-    parentKey ? get(const_cast<Key&>(key)) : nullptr;  // nullptr if parent not found or is root.
+  auto* parent = parentKey ? get(const_cast<Key&>(key))
+                           : nullptr;  // nullptr if parent not found or is root.
   // Exception: parent key not found.
   if (parentKey && !parent) {
     throw std::runtime_error("Parent key not found");

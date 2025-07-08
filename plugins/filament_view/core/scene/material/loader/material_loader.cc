@@ -36,8 +36,9 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromAsset(const std::s
   const auto buffer = readBinaryFile(path, assetPath);
 
   if (!buffer.empty()) {
-    const auto filamentSystem =
-      ECSManager::GetInstance()->getSystem<FilamentSystem>("loadMaterialFromAsset");
+    const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+      "loadMaterialFromAsset"
+    );
     const auto engine = filamentSystem->getFilamentEngine();
 
     const auto material =
@@ -59,8 +60,9 @@ Resource<filament::Material*> MaterialLoader::loadMaterialFromUrl(const std::str
     return Resource<filament::Material*>::Error("Failed to load material from " + url);
   }
 
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("loadMaterialFromUrl");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "loadMaterialFromUrl"
+  );
   const auto engine = filamentSystem->getFilamentEngine();
 
   if (!buffer.empty()) {

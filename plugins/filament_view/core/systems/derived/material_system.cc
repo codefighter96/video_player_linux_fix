@@ -151,8 +151,9 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     }
   }
 
-  const auto materialInstance =
-    setupMaterialInstance(materialToInstanceFrom.getData().value(), materialDefinitions);
+  const auto materialInstance = setupMaterialInstance(
+    materialToInstanceFrom.getData().value(), materialDefinitions
+  );
 
   SPDLOG_TRACE("--MaterialManager::getMaterialInstance");
   return materialInstance;
@@ -163,8 +164,9 @@ void MaterialSystem::vOnInitSystem() {
   vRegisterMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialParameter");
 
-    const flutter::EncodableMap& params =
-      msg.getData<flutter::EncodableMap>(ECSMessageType::ChangeMaterialParameter);
+    const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
+      ECSMessageType::ChangeMaterialParameter
+    );
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
     if (const auto entityObject = ecs->getEntity(guid); entityObject != nullptr) {
@@ -182,8 +184,9 @@ void MaterialSystem::vOnInitSystem() {
   vRegisterMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialDefinitions");
 
-    const flutter::EncodableMap& params =
-      msg.getData<flutter::EncodableMap>(ECSMessageType::ChangeMaterialDefinitions);
+    const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
+      ECSMessageType::ChangeMaterialDefinitions
+    );
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
@@ -202,7 +205,7 @@ void MaterialSystem::vOnInitSystem() {
 void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::vShutdownSystem() {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("CameraManager::setDefaultCamera");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::vShutdownSystem");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

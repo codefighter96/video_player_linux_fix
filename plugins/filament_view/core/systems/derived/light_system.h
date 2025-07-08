@@ -23,7 +23,6 @@
 #include <core/systems/base/ecsystem.h>
 
 namespace plugin_filament_view {
-class NonRenderableEntityObject;
 
 class LightSystem : public ECSystem {
     friend class SceneTextDeserializer;
@@ -52,6 +51,6 @@ class LightSystem : public ECSystem {
     void vRemoveLightFromScene(const Light& light);
     void vAddLightToScene(const Light& light);
 
-    std::shared_ptr<NonRenderableEntityObject> m_poDefaultLight;
+    std::shared_ptr<EntityObject> m_poDefaultLight;
 };
 }  // namespace plugin_filament_view

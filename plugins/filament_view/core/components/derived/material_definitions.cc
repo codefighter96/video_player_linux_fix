@@ -56,8 +56,9 @@ MaterialDefinitions::MaterialDefinitions(const flutter::EncodableMap& params)
     } else if (key == "parameters" && std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
       for (const auto& it_ : list) {
-        auto parameter =
-          MaterialParameter::Deserialize(flutterAssetPath, std::get<flutter::EncodableMap>(it_));
+        auto parameter = MaterialParameter::Deserialize(
+          flutterAssetPath, std::get<flutter::EncodableMap>(it_)
+        );
         parameters_.insert(std::pair(parameter->szGetParameterName(), std::move(parameter)));
       }
     } else if (!snd.IsNull()) {
@@ -82,8 +83,8 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
   if (!assetPath_.empty()) {
     spdlog::debug(tabPrefix + "assetPath: [{}]", assetPath_);
 
-    const auto flutterAssetPath =
-      ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath);
+    const auto flutterAssetPath = ECSManager::GetInstance()->getConfigValue<std::string>(kAssetPath
+    );
 
     const std::filesystem::path asset_folder(flutterAssetPath);
     spdlog::debug(

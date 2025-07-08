@@ -263,8 +263,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrFile(
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        const auto reflections =
-          filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
+        const auto reflections = filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture
+        );
         const auto ibl = filament::IndirectLight::Builder()
                            .reflections(reflections)
                            .intensity(intensity)
@@ -314,8 +314,8 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 
       // updates scene light with skybox when loaded with the same hdr file
       if (shouldUpdateLight) {
-        const auto reflections =
-          filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture);
+        const auto reflections = filamentSystem->getIBLProfiler()->getLightReflection(skyboxTexture
+        );
         const auto ibl = filament::IndirectLight::Builder()
                            .reflections(reflections)
                            .intensity(intensity)

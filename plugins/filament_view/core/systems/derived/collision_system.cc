@@ -148,8 +148,9 @@ void CollisionSystem::SendCollisionInformationCallback(
   // source guid
   encodableMap[flutter::EncodableValue(kCollisionEventSourceGuid)] = sourceQuery;
   // hit count
-  encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] =
-    static_cast<int>(lstHitResults.size());
+  encodableMap[flutter::EncodableValue(kCollisionEventHitCount)] = static_cast<int>(
+    lstHitResults.size()
+  );
 
   int iter = 0;
   for (const auto& arg : lstHitResults) {

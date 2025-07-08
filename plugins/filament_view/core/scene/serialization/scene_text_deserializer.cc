@@ -16,7 +16,7 @@
 #include "scene_text_deserializer.h"
 
 #include <asio/post.hpp>
-#include <core/entity/derived/nonrenderable_entityobject.h>
+#include <core/entity/base/entityobject.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/collision_system.h>
 #include <core/systems/derived/indirect_light_system.h>
@@ -24,6 +24,7 @@
 #include <core/systems/derived/model_system.h>
 #include <core/systems/derived/shape_system.h>
 #include <core/systems/derived/skybox_system.h>
+#include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
 #include <core/utils/deserialize.h>
 #include <plugins/common/common.h>
@@ -77,6 +78,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
         models_.emplace_back(std::move(deserializedModel));
       }
 
+      spdlog::debug("Deserialized {} models", models_.size());
     } else if (key == kScene) {
       spdlog::debug("===== Deserializing Scene {} ...", key);
       vDeserializeSceneLevel(snd);
@@ -90,11 +92,41 @@ void SceneTextDeserializer::vDeserializeRootLevel(
           continue;
         }
 
-        auto deserializedShape =
-          ShapeSystem::poDeserializeShapeFromData(std::get<flutter::EncodableMap>(iter));
+        auto deserializedShape = ShapeSystem::poDeserializeShapeFromData(
+          std::get<flutter::EncodableMap>(iter)
+        );
 
         shapes_.emplace_back(std::move(deserializedShape));
       }
+
+      spdlog::debug("Deserialized {} shapes", shapes_.size());
+    } else if (key == kCameras) {
+      spdlog::debug("===== Deserializing Cameras {} ...", key);
+      auto list = std::get<flutter::EncodableList>(snd);
+
+      for (const auto& iter : list) {
+        if (iter.IsNull()) {
+          spdlog::warn("CreationParamName unable to cast {}", key.c_str());
+          continue;
+        }
+
+        // Deserialize entity
+        auto cameraEntity = std::make_shared<EntityObject>(std::get<flutter::EncodableMap>(iter));
+
+        // Deserialize transform component
+        cameraEntity->addComponent(BaseTransform(std::get<flutter::EncodableMap>(iter)));
+
+        // Deserialize camera component
+        cameraEntity->addComponent(Camera(std::get<flutter::EncodableMap>(iter)));
+
+        entities_.emplace_back(std::move(cameraEntity));
+      }
+
+      spdlog::debug("Deserialized {} cameras", entities_.size());
+    } else if (key == kSkybox) {
+      skybox_ = Skybox::Deserialize(std::get<flutter::EncodableMap>(snd));
+    } else if (key == kIndirectLight) {
+      indirect_light_ = IndirectLight::Deserialize(std::get<flutter::EncodableMap>(snd));
     } else {
       spdlog::warn("[SceneTextDeserializer] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
@@ -154,11 +186,6 @@ void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue
       skybox_ = Skybox::Deserialize(encodableMap);
     } else if (key == kIndirectLight) {
       indirect_light_ = IndirectLight::Deserialize(encodableMap);
-    } else if (key == kCamera) {
-      camera_ = new Camera(encodableMap);
-    } else if (key == "ground") {
-      spdlog::warn("Specifying a ground is no longer supporting, a ground is now a "
-                   "plane in shapes.");
     } else if (!snd.IsNull()) {
       spdlog::debug("[SceneTextDeserializer] Unhandled Parameter {}", key.c_str());
       plugin_common::Encodable::PrintFlutterEncodableValue(key.c_str(), snd);
@@ -168,6 +195,8 @@ void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::vRunPostSetupLoad() {
+  spdlog::debug("Running post setup load...");
+
   spdlog::trace("setUpLoadingModels");
   setUpLoadingModels();
   spdlog::trace("setUpSkybox");
@@ -178,13 +207,10 @@ void SceneTextDeserializer::vRunPostSetupLoad() {
   setUpIndirectLight();
   spdlog::trace("setUpShapes");
   setUpShapes();
+  spdlog::trace("setUpEntities");
+  setUpEntities();
 
-  spdlog::trace("setups done!");
-
-  // note Camera* is deleted on the other side, freeing up the memory.
-  ECSMessage viewTargetCameraSet;
-  viewTargetCameraSet.addData(ECSMessageType::SetCameraFromDeserializedLoad, camera_);
-  ECSManager::GetInstance()->vRouteMessage(viewTargetCameraSet);
+  spdlog::debug("setups done!");
 
   indirect_light_.reset();
   skybox_.reset();
@@ -239,6 +265,26 @@ void SceneTextDeserializer::setUpShapes() {
   shapes_.clear();
 }
 
+void SceneTextDeserializer::setUpEntities() {
+  spdlog::debug("{} {}", __FUNCTION__, __LINE__);
+
+  const auto viewTargetSystem = _ecs->getSystem<ViewTargetSystem>("setUpEntities");
+
+  // For each entity
+  for (const auto& entity : entities_) {
+    const auto entityGuid = entity->GetGuid();
+    // Add the entity to the ECS
+    spdlog::trace("Adding entity '{}'({}) to ECS", entity->name, entityGuid);
+    _ecs->addEntity(entity);
+
+    // If camera, use ViewTargetSystem to set it up
+    if (_ecs->hasComponent<Camera>(entityGuid)) {
+      viewTargetSystem->initializeEntity(entityGuid);
+      spdlog::trace("Camera '{}'({}) initialized", entity->name, entityGuid);
+    }
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
   const auto& strand = *_ecs->GetStrand();
@@ -275,8 +321,8 @@ void SceneTextDeserializer::setUpSkybox() const {
     if (const auto skybox = skybox_.get(); dynamic_cast<HdrSkybox*>(skybox)) {
       if (const auto hdr_skybox = dynamic_cast<HdrSkybox*>(skybox);
           !hdr_skybox->getAssetPath().empty()) {
-        const auto shouldUpdateLight =
-          hdr_skybox->getAssetPath() == indirect_light_->getAssetPath();
+        const auto shouldUpdateLight = hdr_skybox->getAssetPath()
+                                       == indirect_light_->getAssetPath();
 
         skyboxSystem->setSkyboxFromHdrAsset(
           hdr_skybox->getAssetPath(), hdr_skybox->getShowSun(), shouldUpdateLight,
@@ -312,8 +358,9 @@ void SceneTextDeserializer::setUpLights() {
   // Note, this introduces a fire and forget functionality for entities
   // there's no "one" owner system, but its propagated to whomever cares for it.
   for (const auto& [fst, snd] : lights_) {
-    const auto newEntity =
-      std::make_shared<NonRenderableEntityObject>("SceneTextDeserializer::setUpLights", fst);
+    const auto newEntity = std::make_shared<EntityObject>(
+      "SceneTextDeserializer::setUpLights", fst
+    );
 
     _ecs->addEntity(newEntity);
     _ecs->addComponent(newEntity->GetGuid(), snd);
@@ -334,8 +381,8 @@ void SceneTextDeserializer::setUpLights() {
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::setUpIndirectLight() const {
   // Todo move to a message.
-  auto indirectlightSystem =
-    ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__);
+  auto indirectlightSystem = ECSManager::GetInstance()->getSystem<IndirectLightSystem>(__FUNCTION__
+  );
 
   if (!indirect_light_) {
     // This was called in the constructor of indirectLightManager_ anyway.

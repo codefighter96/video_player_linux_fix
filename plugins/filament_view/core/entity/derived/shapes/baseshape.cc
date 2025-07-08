@@ -56,8 +56,9 @@ void BaseShape::deserializeFrom(const flutter::EncodableMap& params) {
 
   // MaterialDefinitions (optional)
   if (Deserialize::HasKey(params, kMaterial)) {
-    auto matdefParams =
-      std::get<flutter::EncodableMap>(params.find(flutter::EncodableValue(kMaterial))->second);
+    auto matdefParams = std::get<flutter::EncodableMap>(
+      params.find(flutter::EncodableValue(kMaterial))->second
+    );
     addComponent(MaterialDefinitions(matdefParams));
   } else {
     spdlog::debug("This entity params has no material definitions");
@@ -83,8 +84,9 @@ BaseShape::~BaseShape() {
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::vDestroyBuffers() {
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("BaseShape::vDestroyBuffers");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "BaseShape::vDestroyBuffers"
+  );
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
   if (m_poMaterialInstance.getStatus() == Status::Success
@@ -120,8 +122,9 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 
   const std::shared_ptr<BaseTransform> baseTransformPtr = ecs->getComponent<BaseTransform>(guid_);
 
-  const std::shared_ptr<CommonRenderable> commonRenderablePtr =
-    ecs->getComponent<CommonRenderable>(guid_);
+  const std::shared_ptr<CommonRenderable> commonRenderablePtr = ecs->getComponent<CommonRenderable>(
+    guid_
+  );
 
   /// TODO: ecs->addComponent
 }
@@ -146,7 +149,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
       break;
   }
 
-  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, GetName(), GetGuid());
+  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, name, GetGuid());
 
   const auto transform = getComponent<BaseTransform>();
 #if SPDLOG_LEVEL == trace
@@ -276,8 +279,9 @@ void BaseShape::vChangeMaterialDefinitions(
   }
 
   // now, reload / rebuild the material?
-  const auto filamentSystem =
-    ECSManager::GetInstance()->getSystem<FilamentSystem>("BaseShape::vChangeMaterialDefinitions");
+  const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
+    "BaseShape::vChangeMaterialDefinitions"
+  );
 
   // If your entity has multiple primitives, you’ll need to call
   // setMaterialInstanceAt for each primitive you want to update.
@@ -293,8 +297,8 @@ void BaseShape::vChangeMaterialInstanceProperty(
 ) {
   const auto data = m_poMaterialInstance.getData().value();
 
-  const auto matDefs =
-    dynamic_cast<MaterialDefinitions*>(getComponent<MaterialDefinitions>().get());
+  const auto matDefs = dynamic_cast<MaterialDefinitions*>(getComponent<MaterialDefinitions>().get()
+  );
   if (matDefs == nullptr) {
     return;
   }

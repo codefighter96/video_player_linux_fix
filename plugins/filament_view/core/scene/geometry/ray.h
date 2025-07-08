@@ -26,7 +26,7 @@ namespace plugin_filament_view {
 
 class Ray {
   public:
-    Ray(Position& pos, Direction& dir, float length)
+    Ray(const Position& pos, const Direction& dir, float length)
       : direction_(dir),
         position_(pos),
         length_(length) {}

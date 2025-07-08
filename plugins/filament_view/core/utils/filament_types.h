@@ -15,5 +15,6 @@ using FilamentEntity = utils::Entity;
 template<typename T> using FilamentEntityInstance = utils::EntityInstance<T>;
 using FilamentTransformInstance = FilamentEntityInstance<filament::TransformManager>;
 using FilamentRenderableInstance = FilamentEntityInstance<filament::RenderableManager>;
+using FilamentCameraComponent = filament::Camera;
 
 };  // namespace plugin_filament_view

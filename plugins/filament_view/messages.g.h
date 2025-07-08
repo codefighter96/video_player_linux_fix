@@ -118,27 +118,20 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
     // Set fog options
     virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
-    // Change the camera mode by name.
-    virtual std::optional<FlutterError> ChangeCameraMode(const std::string& mode) = 0;
-    virtual std::optional<FlutterError> ChangeCameraOrbitHomePosition(
-      double x,
-      double y,
-      double z
+    // Set the camera's targeting
+    virtual std::optional<FlutterError> SetCameraTarget(int64_t id, int64_t target_entity_id) = 0;
+    // Set a given camera as the active camera for a view
+    virtual std::optional<FlutterError> SetActiveCamera(
+      const int64_t* view_id,
+      int64_t camera_id
     ) = 0;
-    virtual std::optional<FlutterError> ChangeCameraTargetPosition(
-      double x,
-      double y,
-      double z
+    // Set the camera's dolly offset.
+    // The dolly offset is the camera's position relative to its target.
+    virtual std::optional<FlutterError> SetCameraDolly(
+      int64_t id,
+      const std::vector<double>& dolly_offset
     ) = 0;
-    virtual std::optional<FlutterError> ChangeCameraFlightStartPosition(
-      double x,
-      double y,
-      double z
-    ) = 0;
-    // (For `INERTIA_AND_GESTURES` mode) Reset inertia camera to default values.
-    virtual std::optional<FlutterError> ResetInertiaCameraToDefaultValues() = 0;
-    // Set camera rotation by a float value.
-    virtual std::optional<FlutterError> SetCameraRotation(double value) = 0;
+    // TODO(kerberjg): add setCameraIpd to support stereoscopic/VR cameras
     // Set a light's color and intensity by GUID.
     virtual std::optional<FlutterError> ChangeLightColorByGUID(
       int64_t id,

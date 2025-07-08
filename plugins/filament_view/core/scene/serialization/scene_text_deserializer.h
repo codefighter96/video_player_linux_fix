@@ -20,7 +20,6 @@
 
 #include <core/entity/derived/model/model.h>
 #include <core/entity/derived/shapes/baseshape.h>
-#include <core/scene/camera/camera.h>
 #include <core/scene/indirect_light/indirect_light.h>
 #include <core/scene/skybox/skybox.h>
 #include <encodable_value.h>
@@ -39,10 +38,10 @@ class SceneTextDeserializer {
   private:
     smarter_raw_ptr<ECSManager> _ecs;
 
-    // These get released to the Model_system / obj locator
     std::vector<std::shared_ptr<Model>> models_;
-    // These get released to the Shape_System / obj locator
     std::vector<std::shared_ptr<shapes::BaseShape>> shapes_;
+
+    std::vector<std::shared_ptr<EntityObject>> entities_;
 
     void vDeserializeRootLevel(
       const std::vector<uint8_t>& params,
@@ -57,13 +56,13 @@ class SceneTextDeserializer {
     void setUpLights();
     void setUpIndirectLight() const;
     void setUpShapes();
+    void setUpEntities();
 
     void loadModel(std::shared_ptr<Model>& model);
 
     std::unique_ptr<Skybox> skybox_;
     std::unique_ptr<IndirectLight> indirect_light_;
     std::map<EntityGUID, std::shared_ptr<Light>> lights_;
-    Camera* camera_{};
 };
 
 }  // namespace plugin_filament_view
