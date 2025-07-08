@@ -77,7 +77,7 @@ class CurlClient {
    * google_sign_in
    */
   [[nodiscard]] CURLcode GetCode() const { return mCode; }
-   
+
   /**
    * @brief Function sets the bearer token for the OAuth 2.0 authentication.
    * @param token The authentication token.
@@ -85,26 +85,27 @@ class CurlClient {
    * google_sign_in
    */
   void SetBearerToken(const std::string& token);
-  
+
   /**
    * @brief Performs an HTTP POST request with URL-encoded from data.
    * @param url The URL to post to.
    * @param additional_headers A vector of additional headers to send.
-   * @return std::string The response body. 
+   * @return std::string The response body.
    */
-  std::string Get(const std::string& url, const std::vector<std::string>& additional_headers = {});
+  std::string Get(const std::string& url,
+                  const std::vector<std::string>& additional_headers = {});
 
   /**
    * @brief Performs an HTTP POST request with URL-encoded from data.
    * @param url The URL to post to.
    * @param form_data A vector of key-valued pair for the form data.
    * @param additional_headers A vector of additional headers to send.
-   * @return std::string The response body.    
+   * @return std::string The response body.
    */
   std::string Post(
-    const std::string& url,
-    const std::vector<std::pair<std::string ,std::string>>& form_data,
-    const std::vector<std::string>& additional_headers = {});
+      const std::string& url,
+      const std::vector<std::pair<std::string, std::string>>& form_data,
+      const std::vector<std::string>& additional_headers = {});
 
   // Prevent copying.
   CurlClient(CurlClient const&) = delete;

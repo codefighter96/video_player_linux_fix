@@ -36,11 +36,11 @@ CurlClient::CurlClient() : mCode(CURLE_OK) {
 }
 
 CurlClient::~CurlClient() {
-  if(mConn){
+  if (mConn) {
     curl_easy_cleanup(mConn);
   }
 
-  if(mHeadersList){
+  if (mHeadersList) {
     curl_slist_free_all(mHeadersList);
   }
 
@@ -65,8 +65,8 @@ int CurlClient::VectorWriter(char* data,
   return static_cast<int>(size * num_mem_block);
 }
 
-void CurlClient::SetBearerToken(const std::string& token){
-  if(token.empty()){
+void CurlClient::SetBearerToken(const std::string& token) {
+  if (token.empty()) {
     mAuthHeader.clear();
   } else {
     mAuthHeader = "Authorization: Bearer " + token;
@@ -90,7 +90,7 @@ bool CurlClient::Init(
   mVectorBuffer.clear();
   mPostFields.clear();
 
-  if(mHeadersList){
+  if (mHeadersList) {
     curl_slist_free_all(mHeadersList);
     mHeadersList = nullptr;
   }
@@ -116,9 +116,10 @@ bool CurlClient::Init(
       if (!mPostFields.empty()) {
         mPostFields += "&";
       }
-      char* encoded_Key = curl_easy_escape(mConn,key.c_str(), key.length());
-      char* encoded_value = curl_easy_escape(mConn,value.c_str(), value.length());
-      if(encoded_Key && encoded_value){
+      char* encoded_Key = curl_easy_escape(mConn, key.c_str(), key.length());
+      char* encoded_value =
+          curl_easy_escape(mConn, value.c_str(), value.length());
+      if (encoded_Key && encoded_value) {
         mPostFields += encoded_Key;
         mPostFields += "=";
         mPostFields += encoded_value;
@@ -133,21 +134,21 @@ bool CurlClient::Init(
   }
 
   if (!mAuthHeader.empty()) {
-    mHeadersList = curl_slist_append(mHeadersList, mAuthHeader.c_str());  
+    mHeadersList = curl_slist_append(mHeadersList, mAuthHeader.c_str());
   }
   for (const auto& header : headers) {
     spdlog::trace("[CurlClient] Header: {}", header);
     mHeadersList = curl_slist_append(mHeadersList, header.c_str());
   }
-  if(mHeadersList){
+  if (mHeadersList) {
     mCode = curl_easy_setopt(mConn, CURLOPT_HTTPHEADER, mHeadersList);
-  }  
+  }
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set headers option [{}]",
                   mErrorBuffer.get());
     return false;
   }
-  
+
   mCode = curl_easy_setopt(mConn, CURLOPT_FOLLOWLOCATION,
                            follow_location ? 1L : 0L);
   if (mCode != CURLE_OK) {
@@ -159,9 +160,10 @@ bool CurlClient::Init(
   return true;
 }
 
-std::string CurlClient::Get(const std::string& url,
-  const std::vector<std::string>& additional_headers){
-  if(Init(url, additional_headers , {})) {
+std::string CurlClient::Get(
+    const std::string& url,
+    const std::vector<std::string>& additional_headers) {
+  if (Init(url, additional_headers, {})) {
     return RetrieveContentAsString();
   }
   return "";
@@ -169,8 +171,8 @@ std::string CurlClient::Get(const std::string& url,
 
 std::string CurlClient::Post(
     const std::string& url,
-    const std::vector<std::pair<std::string ,std::string>>& form_data,
-    const std::vector<std::string>& additional_headers){
+    const std::vector<std::pair<std::string, std::string>>& form_data,
+    const std::vector<std::string>& additional_headers) {
   if (Init(url, additional_headers, form_data)) {
     return RetrieveContentAsString();
   }
@@ -178,10 +180,10 @@ std::string CurlClient::Post(
 }
 
 std::string CurlClient::RetrieveContentAsString(const bool verbose) {
-  if(mConn == nullptr){
+  if (mConn == nullptr) {
     return "";
   }
-  
+
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",
@@ -204,7 +206,7 @@ std::string CurlClient::RetrieveContentAsString(const bool verbose) {
 
   mCode = curl_easy_perform(mConn);
   if (mCode != CURLE_OK) {
-    spdlog::error("[CurlClient] Failed to perform request : {}", 
+    spdlog::error("[CurlClient] Failed to perform request : {}",
                   curl_easy_strerror(mCode));
     return "";
   }
@@ -213,11 +215,11 @@ std::string CurlClient::RetrieveContentAsString(const bool verbose) {
 
 const std::vector<uint8_t>& CurlClient::RetrieveContentAsVector(
     const bool verbose) {
-  if(mConn == nullptr){
+  if (mConn == nullptr) {
     mVectorBuffer.clear();
     return mVectorBuffer;
   }
-  
+
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",
