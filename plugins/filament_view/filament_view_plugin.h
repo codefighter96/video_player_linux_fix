@@ -115,6 +115,7 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     std::optional<FlutterError> PauseAnimation(const int64_t guid) override;
     std::optional<FlutterError> ResumeAnimation(const int64_t guid) override;
     std::optional<FlutterError> SetAnimationLooping(const int64_t guid, bool looping) override;
+    std::optional<FlutterError> RaycastFromTap(double x, double y) override;
     std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_id,
       double origin_x,

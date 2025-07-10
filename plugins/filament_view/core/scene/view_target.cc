@@ -579,7 +579,7 @@ float ViewTarget::calculateAspectRatio() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vOnTouch(
+void ViewTarget::onTouch(
   const int32_t action,
   const int32_t point_count,
   const size_t point_data_size,
@@ -592,18 +592,31 @@ void ViewTarget::vOnTouch(
   static constexpr int ACTION_DOWN = 0;
 
   if (action == ACTION_DOWN) {
-    const auto rayInfo = touchToRay(touch);
-
-    ECSMessage rayInformation;
-    rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
-    ECSManager::GetInstance()->vRouteMessage(rayInformation);
-
-    ECSMessage collisionRequest;
-    collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
-    collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
-    collisionRequest.addData(ECSMessageType::CollisionRequestType, eNativeOnTouchBegin);
-    ECSManager::GetInstance()->vRouteMessage(collisionRequest);
+    return onTouch(touch);
   }
+}
+
+void ViewTarget::onTouch(const double x, const double y) const {
+  // Create a TouchPair from the x and y coordinates
+  const auto viewport = fview_->getViewport();
+  const auto touch = TouchPair(x, y, viewport.height);
+
+  // Call the overloaded onTouch method with the TouchPair
+  onTouch(touch);
+}
+
+void ViewTarget::onTouch(const TouchPair touch) const {
+  const auto rayInfo = touchToRay(touch);
+
+  ECSMessage rayInformation;
+  rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
+  ECSManager::GetInstance()->vRouteMessage(rayInformation);
+
+  ECSMessage collisionRequest;
+  collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
+  collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
+  collisionRequest.addData(ECSMessageType::CollisionRequestType, eNativeOnTouchBegin);
+  ECSManager::GetInstance()->vRouteMessage(collisionRequest);
 }
 
 Ray ViewTarget::touchToRay(const TouchPair touch) const {

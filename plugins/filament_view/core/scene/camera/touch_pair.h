@@ -50,6 +50,14 @@ class TouchPair {
       }
     };
 
+    TouchPair(const double x0, const double y0, uint32_t height) {
+      pt0_ = filament::math::float2(
+        static_cast<float>(x0), static_cast<float>(height) - static_cast<float>(y0)
+      );
+      pt1_ = pt0_;
+      count_ = 1;
+    }
+
     float separation() { return distance(pt0_, pt1_); };
     [[nodiscard]] filament::math::float2 midpoint() const { return mix(pt0_, pt1_, 0.5f); };
     [[nodiscard]] int x() const { return static_cast<int>(midpoint().x); }

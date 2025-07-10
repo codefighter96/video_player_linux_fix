@@ -542,7 +542,18 @@ std::optional<FlutterError> FilamentViewPlugin::SetAnimationLooping(
   return std::nullopt;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+std::optional<FlutterError> FilamentViewPlugin::RaycastFromTap(double x, double y) {
+  asio::post(*ECSManager::GetInstance()->GetStrand(), [&, x, y] {
+    const auto ecs = ECSManager::GetInstance();
+    const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(
+      "FilamentViewPlugin::RaycastFromTap"
+    );
+    viewTargetSystem->getMainViewTarget()->onTouch(x, y);
+  });
+
+  return std::nullopt;
+}
+
 std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
   const std::string& query_id,
   double origin_x,
@@ -699,7 +710,7 @@ void FilamentViewPlugin::on_touch(
         const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(
           "FilamentViewPlugin::on_touch"
         );
-        viewTargetSystem->getMainViewTarget()->vOnTouch(
+        viewTargetSystem->getMainViewTarget()->onTouch(
           action, point_count, point_data_size, point_data
         );
       }
