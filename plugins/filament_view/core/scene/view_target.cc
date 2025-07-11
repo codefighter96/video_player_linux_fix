@@ -22,6 +22,7 @@
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
+#include <core/utils/vectorutils.h>
 
 #include <filament/Renderer.h>
 #include <filament/SwapChain.h>
@@ -321,14 +322,34 @@ void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
   fview_->setFogOptions(fogOptions);
 }
 
-void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transform) {
+void ViewTarget::updateCameraSettings(
+  Camera& cameraData,
+  BaseTransform& transform,
+  BaseTransform* targetTransform
+) {
   // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
 
   // Update transform
+  const filament::math::float3* fulcrum = nullptr;
+  const filament::math::quatf* fulcrumRotation = nullptr;
+  constexpr auto neutralRotation = filament::math::quatf(1.0f, 0.0f, 0.0f, 0.0f);
+
+  if (targetTransform) {
+    // If a target transform is provided, use its position as the fulcrum
+    fulcrum = &targetTransform->GetGlobalPosition();
+    fulcrumRotation = &targetTransform->GetGlobalRotation();
+  } else {
+    // Otherwise, use the camera's own position as the fulcrum
+    fulcrum = &transform.local.position;
+    fulcrumRotation = &neutralRotation;  // use neutral rotation if no target transform is provided
+  }
+
   // Calculate matrices
   auto headMatrix =
     // Fulcrum position - camera rotates around this point
-    filament::math::mat4f::translation(transform.local.position)
+    filament::math::mat4f::translation(*fulcrum)
+    // Fulcrum rotation - camera rotates around this point
+    * filament::math::mat4f(*fulcrumRotation)
     // Rig rotation - camera rig rotates around fulcrum
     * filament::math::mat4f(transform.local.rotation)
     // Dolly offset - camera is offset from the rig arm

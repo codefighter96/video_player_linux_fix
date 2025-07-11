@@ -222,17 +222,13 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
 
     // Update the camera settings for the view target
     const auto transform = ecs->getComponent<BaseTransform>(cameraId);
-    viewTarget->updateCameraSettings(*camera, *transform);
+    const auto targetTransform = ecs->getComponent<BaseTransform>(camera->targetEntity);
+    viewTarget->updateCameraSettings(*camera, *transform, targetTransform.get());
     spdlog::trace("Updating camera settings for view target {} by camera {}", viewId, cameraId);
 
     // Set the flag
     viewTargetSetBy[viewId] = cameraId;
   }
-
-  // Update each camera's targeting
-  //  When a camera has its targetEntityGuid set, this will set
-  //  the position of the camera's parent rig to match the target entity's position
-  /// TODO:
 }
 
 void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {

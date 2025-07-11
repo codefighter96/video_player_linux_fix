@@ -79,7 +79,12 @@ class ViewTarget {
      *  Camera
      */
     /// Called by [ViewTargetSystem] on every frame
-    void updateCameraSettings(Camera& cameraData, BaseTransform& transform);
+    void updateCameraSettings(
+      Camera& cameraData,
+      BaseTransform& transform,
+      BaseTransform* targetTransform = nullptr
+    );
+
     /// Called by Flutter when a touch event occurs.
     /// TODO: return touch result directly here, don't do callbacks
     void onTouch(

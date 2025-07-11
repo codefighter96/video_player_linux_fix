@@ -30,6 +30,27 @@ namespace plugin_filament_view {
 
 class VectorUtils {
   public:
+    /// Static identity quaternion
+    static constexpr filament::math::quatf kIdentityQuat = 
+      filament::math::quatf(0.0f, 0.0f, 0.0f, 1.0f);
+
+    /// Static identity 3x3 matrix
+    static constexpr filament::math::mat3f kIdentity3x3 =
+      filament::math::mat3f(
+        1.0f, 0.0f, 0.0f,  //
+        0.0f, 1.0f, 0.0f,  //
+        0.0f, 0.0f, 1.0f   //
+      );
+
+    /// Static identity 4x4 matrix
+    static constexpr filament::math::mat4f kIdentity4x4 =
+      filament::math::mat4f(
+        1.0f, 0.0f, 0.0f, 0.0f,  //
+        0.0f, 1.0f, 0.0f, 0.0f,  //
+        0.0f, 0.0f, 1.0f, 0.0f,  //
+        0.0f, 0.0f, 0.0f, 1.0f   //
+      );
+
     // Utility functions to create identity matrices
     static filament::math::mat3f identity3x3();
     static filament::math::mat4f identity4x4();
