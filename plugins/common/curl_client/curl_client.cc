@@ -116,8 +116,10 @@ bool CurlClient::Init(
       if (!mPostFields.empty()) {
         mPostFields += "&";
       }
-      char* encoded_Key = curl_easy_escape(mConn, key.c_str(), static_cast<int>(key.length()));
-      char* encoded_value = curl_easy_escape(mConn, value.c_str(), static_cast<int>(value.length()));
+      char* encoded_Key =
+          curl_easy_escape(mConn, key.c_str(), static_cast<int>(key.length()));
+      char* encoded_value = curl_easy_escape(mConn, value.c_str(),
+                                             static_cast<int>(value.length()));
       if (encoded_Key && encoded_value) {
         mPostFields += encoded_Key;
         mPostFields += "=";
