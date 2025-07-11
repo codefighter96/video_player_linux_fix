@@ -58,4 +58,12 @@ void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
   _isDirty = true;
 }
 
+void BaseTransform::DecomposeGlobalMatrix() {
+  // Decompose the global matrix into position, scale, and rotation
+  filament::gltfio::decomposeMatrix(
+    global.matrix, &_globalVectors.position, &_globalVectors.rotation, &_globalVectors.scale
+  );
+  _isGlobalDirty = false;
+}
+
 }  // namespace plugin_filament_view
