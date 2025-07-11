@@ -31,11 +31,20 @@ namespace plugin_common_curl {
 
 CurlClient::CurlClient() : mCode(CURLE_OK) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
-  std::make_unique<char>(CURL_ERROR_SIZE);
+  mErrorBuffer = std::make_unique<char[]>(CURL_ERROR_SIZE);
+  mErrorBuffer[0] = '\0';
 }
 
 CurlClient::~CurlClient() {
-  curl_easy_cleanup(mConn);
+  if (mConn) {
+    curl_easy_cleanup(mConn);
+  }
+
+  if (mHeadersList) {
+    curl_slist_free_all(mHeadersList);
+  }
+
+  curl_global_cleanup();
   mErrorBuffer.reset();
 }
 
@@ -56,6 +65,14 @@ int CurlClient::VectorWriter(char* data,
   return static_cast<int>(size * num_mem_block);
 }
 
+void CurlClient::SetBearerToken(const std::string& token) {
+  if (token.empty()) {
+    mAuthHeader.clear();
+  } else {
+    mAuthHeader = "Authorization: Bearer " + token;
+  }
+}
+
 bool CurlClient::Init(
     const std::string& url,
     const std::vector<std::string>& headers,
@@ -67,6 +84,15 @@ bool CurlClient::Init(
   if (mConn == nullptr) {
     spdlog::error("[CurlClient] Failed to create CURL connection");
     return false;
+  }
+
+  mStringBuffer.clear();
+  mVectorBuffer.clear();
+  mPostFields.clear();
+
+  if (mHeadersList) {
+    curl_slist_free_all(mHeadersList);
+    mHeadersList = nullptr;
   }
 
   mCode = curl_easy_setopt(mConn, CURLOPT_ERRORBUFFER, mErrorBuffer.get());
@@ -86,16 +112,21 @@ bool CurlClient::Init(
   }
 
   if (!url_form.empty()) {
-    mPostFields.clear();
-    int count = 0;
-    for (const auto& [fst, snd] : url_form) {
-      if (count) {
+    for (const auto& [key, value] : url_form) {
+      if (!mPostFields.empty()) {
         mPostFields += "&";
       }
-      mPostFields.append(fst);
-      mPostFields.append("=");
-      mPostFields.append(snd);
-      count++;
+      char* encoded_Key =
+          curl_easy_escape(mConn, key.c_str(), static_cast<int>(key.length()));
+      char* encoded_value = curl_easy_escape(mConn, value.c_str(),
+                                             static_cast<int>(value.length()));
+      if (encoded_Key && encoded_value) {
+        mPostFields += encoded_Key;
+        mPostFields += "=";
+        mPostFields += encoded_value;
+      }
+      curl_free(encoded_Key);
+      curl_free(encoded_value);
     }
     spdlog::trace("[CurlClient] PostFields: {}", mPostFields);
     curl_easy_setopt(mConn, CURLOPT_POSTFIELDSIZE, mPostFields.length());
@@ -103,18 +134,20 @@ bool CurlClient::Init(
     curl_easy_setopt(mConn, CURLOPT_POSTFIELDS, mPostFields.c_str());
   }
 
-  if (!headers.empty()) {
-    curl_slist* curl_headers{};
-    for (const auto& header : headers) {
-      spdlog::trace("[CurlClient] Header: {}", header);
-      curl_headers = curl_slist_append(curl_headers, header.c_str());
-    }
-    mCode = curl_easy_setopt(mConn, CURLOPT_HTTPHEADER, curl_headers);
-    if (mCode != CURLE_OK) {
-      spdlog::error("[CurlClient] Failed to set headers option [{}]",
-                    mErrorBuffer.get());
-      return false;
-    }
+  if (!mAuthHeader.empty()) {
+    mHeadersList = curl_slist_append(mHeadersList, mAuthHeader.c_str());
+  }
+  for (const auto& header : headers) {
+    spdlog::trace("[CurlClient] Header: {}", header);
+    mHeadersList = curl_slist_append(mHeadersList, header.c_str());
+  }
+  if (mHeadersList) {
+    mCode = curl_easy_setopt(mConn, CURLOPT_HTTPHEADER, mHeadersList);
+  }
+  if (mCode != CURLE_OK) {
+    spdlog::error("[CurlClient] Failed to set headers option [{}]",
+                  mErrorBuffer.get());
+    return false;
   }
 
   mCode = curl_easy_setopt(mConn, CURLOPT_FOLLOWLOCATION,
@@ -128,7 +161,30 @@ bool CurlClient::Init(
   return true;
 }
 
+std::string CurlClient::Get(
+    const std::string& url,
+    const std::vector<std::string>& additional_headers) {
+  if (Init(url, additional_headers, {})) {
+    return RetrieveContentAsString();
+  }
+  return "";
+}
+
+std::string CurlClient::Post(
+    const std::string& url,
+    const std::vector<std::pair<std::string, std::string>>& form_data,
+    const std::vector<std::string>& additional_headers) {
+  if (Init(url, additional_headers, form_data)) {
+    return RetrieveContentAsString();
+  }
+  return "";
+}
+
 std::string CurlClient::RetrieveContentAsString(const bool verbose) {
+  if (mConn == nullptr) {
+    return "";
+  }
+
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",
@@ -149,19 +205,22 @@ std::string CurlClient::RetrieveContentAsString(const bool verbose) {
     return {};
   }
 
-  mStringBuffer.clear();
-
   mCode = curl_easy_perform(mConn);
   if (mCode != CURLE_OK) {
-    spdlog::error("[CurlClient] Failed to get '{}' [{}]\n", mUrl,
-                  mErrorBuffer.get());
-    return {};
+    spdlog::error("[CurlClient] Failed to perform request : {}",
+                  curl_easy_strerror(mCode));
+    return "";
   }
   return mStringBuffer;
 }
 
 const std::vector<uint8_t>& CurlClient::RetrieveContentAsVector(
     const bool verbose) {
+  if (mConn == nullptr) {
+    mVectorBuffer.clear();
+    return mVectorBuffer;
+  }
+
   curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set 'CURLOPT_VERBOSE' [{}]\n",
