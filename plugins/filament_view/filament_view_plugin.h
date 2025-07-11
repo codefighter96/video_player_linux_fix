@@ -115,6 +115,7 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     std::optional<FlutterError> PauseAnimation(const int64_t guid) override;
     std::optional<FlutterError> ResumeAnimation(const int64_t guid) override;
     std::optional<FlutterError> SetAnimationLooping(const int64_t guid, bool looping) override;
+    std::optional<FlutterError> RaycastFromTap(double x, double y) override;
     std::optional<FlutterError> RequestCollisionCheckFromRay(
       const std::string& query_id,
       double origin_x,
@@ -157,6 +158,7 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     static void on_resize(double width, double height, void* data);
     static void on_set_direction(int32_t direction, void* data);
     static void on_set_offset(double left, double top, void* data);
+    /// Called by the embedder when touches are passed to PlatformView in Flutter.
     static void on_touch(
       int32_t action,
       int32_t point_count,

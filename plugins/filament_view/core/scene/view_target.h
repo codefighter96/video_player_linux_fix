@@ -82,12 +82,16 @@ class ViewTarget {
     void updateCameraSettings(Camera& cameraData, BaseTransform& transform);
     /// Called by Flutter when a touch event occurs.
     /// TODO: return touch result directly here, don't do callbacks
-    void vOnTouch(
+    void onTouch(
       int32_t action,
       int32_t point_count,
       size_t point_data_size,
       const double* point_data
     ) const;
+
+    void onTouch(const double x, const double y) const;
+
+    void onTouch(const TouchPair touch) const;
 
     /*
      *  Rendering

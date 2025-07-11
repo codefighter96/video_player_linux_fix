@@ -155,6 +155,7 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> PauseAnimation(int64_t id) = 0;
     virtual std::optional<FlutterError> ResumeAnimation(int64_t id) = 0;
     virtual std::optional<FlutterError> SetAnimationLooping(int64_t id, bool looping) = 0;
+    virtual std::optional<FlutterError> RaycastFromTap(double x, double y) = 0;
     // Perform a raycast query.
     // The result will be sent back to the client via the collision_info event channel.
     virtual std::optional<FlutterError> RequestCollisionCheckFromRay(

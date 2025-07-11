@@ -542,7 +542,18 @@ std::optional<FlutterError> FilamentViewPlugin::SetAnimationLooping(
   return std::nullopt;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+std::optional<FlutterError> FilamentViewPlugin::RaycastFromTap(double x, double y) {
+  asio::post(*ECSManager::GetInstance()->GetStrand(), [&, x, y] {
+    const auto ecs = ECSManager::GetInstance();
+    const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(
+      "FilamentViewPlugin::RaycastFromTap"
+    );
+    viewTargetSystem->getMainViewTarget()->onTouch(x, y);
+  });
+
+  return std::nullopt;
+}
+
 std::optional<FlutterError> FilamentViewPlugin::RequestCollisionCheckFromRay(
   const std::string& query_id,
   double origin_x,
@@ -682,29 +693,14 @@ void FilamentViewPlugin::on_set_offset(const double left, const double top, void
   ECSManager::GetInstance()->vRouteMessage(moveMessage);
 }
 
-// TODO this function will need to change to say 'which' view is being changed.
 void FilamentViewPlugin::on_touch(
-  const int32_t action,
-  const int32_t point_count,
-  const size_t point_data_size,
-  const double* point_data,
-  void* data
+  const int32_t /*action*/,
+  const int32_t /*point_count*/,
+  const size_t /*point_data_size*/,
+  const double* /*point_data*/,
+  void* /*data*/
 ) {
-  if (const auto plugin = static_cast<FilamentViewPlugin*>(data); plugin) {
-    // has to be changed to 'which' on touch was hit
-    asio::post(
-      *ECSManager::GetInstance()->GetStrand(),
-      [&, action, point_count, point_data_size, point_data] {
-        const auto ecs = ECSManager::GetInstance();
-        const auto viewTargetSystem = ecs->getSystem<ViewTargetSystem>(
-          "FilamentViewPlugin::on_touch"
-        );
-        viewTargetSystem->getMainViewTarget()->vOnTouch(
-          action, point_count, point_data_size, point_data
-        );
-      }
-    );
-  }
+  // NOTE: unused! all touch events are handled by Flutter and passed to handlers as necessary
 }
 
 void FilamentViewPlugin::on_dispose(bool /* hybrid */, void* /* data */) {
