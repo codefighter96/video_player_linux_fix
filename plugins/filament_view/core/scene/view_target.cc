@@ -332,7 +332,6 @@ void ViewTarget::updateCameraSettings(
   // Update transform
   const filament::math::float3* fulcrum = nullptr;
   const filament::math::quatf* fulcrumRotation = nullptr;
-  constexpr auto neutralRotation = filament::math::quatf(1.0f, 0.0f, 0.0f, 0.0f);
 
   if (targetTransform) {
     // If a target transform is provided, use its position as the fulcrum
@@ -341,7 +340,7 @@ void ViewTarget::updateCameraSettings(
   } else {
     // Otherwise, use the camera's own position as the fulcrum
     fulcrum = &transform.local.position;
-    fulcrumRotation = &neutralRotation;  // use neutral rotation if no target transform is provided
+    fulcrumRotation = &VectorUtils::kIdentityQuat;
   }
 
   // Calculate matrices

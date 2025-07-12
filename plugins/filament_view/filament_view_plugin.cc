@@ -616,7 +616,9 @@ std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformRotation(
   const std::vector<double>& rot
 ) {
   ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setRotation(
-    {rot[0], rot[1], rot[2], rot[3]}
+    /// NOTE: Filament quat constructor takes WXYZ!!! It's still stored in memory as XYZW.
+    /// TODO: when Float32List is supported in pigeon, just cast the array to quatf
+    {rot[3], rot[0], rot[1], rot[2]}
   );
 
   return std::nullopt;

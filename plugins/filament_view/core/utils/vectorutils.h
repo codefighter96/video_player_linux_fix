@@ -31,8 +31,9 @@ namespace plugin_filament_view {
 class VectorUtils {
   public:
     /// Static identity quaternion
+    // NOTE: Filament's quaternion constructor takes WXYZ, not XYZW!!!
     static constexpr filament::math::quatf kIdentityQuat = 
-      filament::math::quatf(0.0f, 0.0f, 0.0f, 1.0f);
+      filament::math::quatf(1.0f, 0.0f, 0.0f, 0.0f);
 
     /// Static identity 3x3 matrix
     static constexpr filament::math::mat3f kIdentity3x3 =
