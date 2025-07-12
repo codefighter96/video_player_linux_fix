@@ -70,7 +70,7 @@ class Camera : public Component {
      */
     /// Entity that this camera is targeting.
     /// If a rig parent is present, the ViewTargetSystem will update the rig's position to match
-    EntityGUID targetEntity = kNullGuid;
+    EntityGUID orbitOriginEntity = kNullGuid;
 
   public:
     Camera(

@@ -66,7 +66,9 @@ Camera::Camera(const flutter::EncodableMap& params)
   Deserialize::DecodeParameterWithDefaultInt64(kViewId, &tmpViewId, params, kDefaultViewId);
   _viewId = static_cast<size_t>(tmpViewId);
 
-  Deserialize::DecodeParameterWithDefaultInt64(kTargetEntity, &targetEntity, params, kNullGuid);
+  Deserialize::DecodeParameterWithDefaultInt64(
+    kOrbitOriginEntity, &orbitOriginEntity, params, kNullGuid
+  );
 
 }  // Camera
 

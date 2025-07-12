@@ -370,19 +370,19 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(const bool enabled
 /*
  *  Camera
  */
-std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
+std::optional<FlutterError> FilamentViewPlugin::SetCameraOrigin(
   int64_t id,
-  int64_t target_entity_id
+  int64_t origin_entity_id
 ) {
-  spdlog::trace("SetCameraTarget");
+  spdlog::trace("SetCameraOrigin");
 
   const auto ecs = ECSManager::GetInstance();
   // Get camera component
   const auto camera = ecs->getComponent<Camera>(id);
 
-  camera->targetEntity = target_entity_id;
+  camera->orbitOriginEntity = origin_entity_id;
 
-  spdlog::debug("Camera target set to entity: {}", target_entity_id);
+  spdlog::debug("Camera target set to entity: {}", origin_entity_id);
   return std::nullopt;
 }
 

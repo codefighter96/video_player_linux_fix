@@ -222,7 +222,7 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
 
     // Update the camera settings for the view target
     const auto transform = ecs->getComponent<BaseTransform>(cameraId);
-    const auto targetTransform = ecs->getComponent<BaseTransform>(camera->targetEntity);
+    const auto targetTransform = ecs->getComponent<BaseTransform>(camera->orbitOriginEntity);
     viewTarget->updateCameraSettings(*camera, *transform, targetTransform.get());
     spdlog::trace("Updating camera settings for view target {} by camera {}", viewId, cameraId);
 

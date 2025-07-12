@@ -86,7 +86,7 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     // Set fog options
     std::optional<FlutterError> SetFogOptions(const bool enabled) override;
     // Set the camera's targeting
-    std::optional<FlutterError> SetCameraTarget(int64_t id, int64_t target_entity_id) override;
+    std::optional<FlutterError> SetCameraOrigin(int64_t id, int64_t origin_entity_id) override;
     // Set a given camera as the active camera for a view
     std::optional<FlutterError> SetActiveCamera(const int64_t* view_id, int64_t camera_id) override;
     // Set the camera's dolly offset.

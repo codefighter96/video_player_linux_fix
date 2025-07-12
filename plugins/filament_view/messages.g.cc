@@ -259,7 +259,7 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
-      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraTarget" + prepended_suffix,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraOrigin" + prepended_suffix,
       &GetCodec()
     );
     if (api != nullptr) {
@@ -273,13 +273,13 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t id_arg = encodable_id_arg.LongValue();
-            const auto& encodable_target_entity_id_arg = args.at(1);
-            if (encodable_target_entity_id_arg.IsNull()) {
-              reply(WrapError("target_entity_id_arg unexpectedly null."));
+            const auto& encodable_origin_entity_id_arg = args.at(1);
+            if (encodable_origin_entity_id_arg.IsNull()) {
+              reply(WrapError("origin_entity_id_arg unexpectedly null."));
               return;
             }
-            const int64_t target_entity_id_arg = encodable_target_entity_id_arg.LongValue();
-            std::optional<FlutterError> output = api->SetCameraTarget(id_arg, target_entity_id_arg);
+            const int64_t origin_entity_id_arg = encodable_origin_entity_id_arg.LongValue();
+            std::optional<FlutterError> output = api->SetCameraOrigin(id_arg, origin_entity_id_arg);
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;
