@@ -15,16 +15,14 @@
  */
 #pragma once
 
-#include <filament/TransformManager.h>
-#include <filament/gltfio/FilamentAsset.h>
 #include <filament/gltfio/math.h>
-#include <filament/math/TMatHelpers.h>
+#include <filament/math/mat3.h>
 #include <filament/math/mat4.h>
 #include <filament/math/quat.h>
+#include <filament/math/scalar.h>
+#include <filament/math/vec2.h>
 #include <filament/math/vec3.h>
-#include <memory>
-
-#include <core/utils/filament_types.h>
+#include <filament/math/vec4.h>
 
 namespace plugin_filament_view {
 

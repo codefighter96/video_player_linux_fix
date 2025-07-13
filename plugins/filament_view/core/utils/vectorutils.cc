@@ -16,11 +16,6 @@
 
 #include "vectorutils.h"
 
-#include <core/entity/derived/model/model.h>
-#include <core/systems/derived/filament_system.h>
-#include <core/systems/derived/transform_system.h>
-#include <core/systems/ecs.h>
-#include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
