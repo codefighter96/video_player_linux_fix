@@ -118,8 +118,18 @@ class FilamentViewApi {
     virtual std::optional<FlutterError> ChangeViewQualitySettings() = 0;
     // Set fog options
     virtual std::optional<FlutterError> SetFogOptions(bool enable) = 0;
-    // Set the camera's targeting
-    virtual std::optional<FlutterError> SetCameraTarget(int64_t id, int64_t target_entity_id) = 0;
+    // Set the camera orbit's anchoring/origin entity
+    virtual std::optional<FlutterError> SetCameraOrbit(
+      int64_t id,
+      int64_t origin_entity_id,
+      const std::vector<double>& orbit_rotation
+    ) = 0;
+    // Set the camera's look-at target entity.
+    virtual std::optional<FlutterError> SetCameraTarget(
+      int64_t id,
+      int64_t target_entity_id,
+      const std::vector<double>* target_position
+    ) = 0;
     // Set a given camera as the active camera for a view
     virtual std::optional<FlutterError> SetActiveCamera(
       const int64_t* view_id,

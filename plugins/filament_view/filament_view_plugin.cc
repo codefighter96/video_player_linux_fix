@@ -370,9 +370,30 @@ std::optional<FlutterError> FilamentViewPlugin::SetFogOptions(const bool enabled
 /*
  *  Camera
  */
+std::optional<FlutterError> FilamentViewPlugin::SetCameraOrbit(
+  int64_t id,
+  int64_t origin_entity_id,
+  const std::vector<double>& orbit_rotation
+) {
+  spdlog::trace("SetCameraOrbit");
+
+  const auto ecs = ECSManager::GetInstance();
+  // Get camera component
+  const auto camera = ecs->getComponent<Camera>(id);
+
+  camera->orbitOriginEntity = origin_entity_id;
+  camera->orbitRotation = filament::math::quatf(
+    orbit_rotation[3], orbit_rotation[0], orbit_rotation[1], orbit_rotation[2]
+  );
+
+  spdlog::debug("Camera target set to entity: {}", origin_entity_id);
+  return std::nullopt;
+}
+
 std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
   int64_t id,
-  int64_t target_entity_id
+  int64_t target_entity_id,
+  const std::vector<double>* target_position
 ) {
   spdlog::trace("SetCameraTarget");
 
@@ -380,7 +401,13 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
   // Get camera component
   const auto camera = ecs->getComponent<Camera>(id);
 
+  camera->enableTarget = !!target_position && target_entity_id != kNullGuid;
   camera->targetEntity = target_entity_id;
+  if (target_position) {
+    camera->targetPosition = filament::math::float3(
+      (*target_position)[0], (*target_position)[1], (*target_position)[2]
+    );
+  }
 
   spdlog::debug("Camera target set to entity: {}", target_entity_id);
   return std::nullopt;
@@ -412,7 +439,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraDolly(
   // Get camera component
   const auto camera = ecs->getComponent<Camera>(id);
 
-  camera->setDollyOffset(filament::math::float3(dolly_offset[0], dolly_offset[1], dolly_offset[2]));
+  camera->dollyOffset = filament::math::float3(dolly_offset[0], dolly_offset[1], dolly_offset[2]);
 
   return std::nullopt;
 }
@@ -616,7 +643,9 @@ std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformRotation(
   const std::vector<double>& rot
 ) {
   ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setRotation(
-    {rot[0], rot[1], rot[2], rot[3]}
+    /// NOTE: Filament quat constructor takes WXYZ!!! It's still stored in memory as XYZW.
+    /// TODO: when Float32List is supported in pigeon, just cast the array to quatf
+    {rot[3], rot[0], rot[1], rot[2]}
   );
 
   return std::nullopt;

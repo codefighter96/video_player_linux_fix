@@ -259,6 +259,56 @@ void FilamentViewApi::SetUp(
   {
     BasicMessageChannel<> channel(
       binary_messenger,
+      "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraOrbit" + prepended_suffix,
+      &GetCodec()
+    );
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+        [api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+          try {
+            const auto& args = std::get<EncodableList>(message);
+            const auto& encodable_id_arg = args.at(0);
+            if (encodable_id_arg.IsNull()) {
+              reply(WrapError("id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t id_arg = encodable_id_arg.LongValue();
+            const auto& encodable_origin_entity_id_arg = args.at(1);
+            if (encodable_origin_entity_id_arg.IsNull()) {
+              reply(WrapError("origin_entity_id_arg unexpectedly null."));
+              return;
+            }
+            const int64_t origin_entity_id_arg = encodable_origin_entity_id_arg.LongValue();
+            const auto& encodable_orbit_rotation_arg = args.at(2);
+            if (encodable_orbit_rotation_arg.IsNull()) {
+              reply(WrapError("orbit_rotation_arg unexpectedly null."));
+              return;
+            }
+            const auto& orbit_rotation_arg = std::get<std::vector<double>>(
+              encodable_orbit_rotation_arg
+            );
+            std::optional<FlutterError> output = api->SetCameraOrbit(
+              id_arg, origin_entity_id_arg, orbit_rotation_arg
+            );
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
+            }
+            EncodableList wrapped;
+            wrapped.emplace_back();
+            reply(EncodableValue(std::move(wrapped)));
+          } catch (const std::exception& exception) {
+            reply(WrapError(exception.what()));
+          }
+        }
+      );
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+      binary_messenger,
       "dev.flutter.pigeon.filament_scene.FilamentViewApi.setCameraTarget" + prepended_suffix,
       &GetCodec()
     );
@@ -279,7 +329,13 @@ void FilamentViewApi::SetUp(
               return;
             }
             const int64_t target_entity_id_arg = encodable_target_entity_id_arg.LongValue();
-            std::optional<FlutterError> output = api->SetCameraTarget(id_arg, target_entity_id_arg);
+            const auto& encodable_target_position_arg = args.at(2);
+            const auto* target_position_arg = std::get_if<std::vector<double>>(
+              &encodable_target_position_arg
+            );
+            std::optional<FlutterError> output = api->SetCameraTarget(
+              id_arg, target_entity_id_arg, target_position_arg
+            );
             if (output.has_value()) {
               reply(WrapError(output.value()));
               return;

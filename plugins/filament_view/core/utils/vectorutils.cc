@@ -16,11 +16,6 @@
 
 #include "vectorutils.h"
 
-#include <core/entity/derived/model/model.h>
-#include <core/systems/derived/filament_system.h>
-#include <core/systems/derived/transform_system.h>
-#include <core/systems/ecs.h>
-#include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
 namespace plugin_filament_view {
@@ -61,6 +56,34 @@ filament::math::float3 VectorUtils::transformScaleVector(
     scale.x * length(transform[0].xyz), scale.y * length(transform[1].xyz),
     scale.z * length(transform[2].xyz)
   };
+}
+
+filament::math::quatf VectorUtils::lookAt(
+  const filament::math::float3& position,
+  const filament::math::float3& target,
+  const filament::math::float3& up
+) {
+  const filament::math::float3 forward = normalize(target - position);
+  const float dotp = dot(forward, up);
+
+  constexpr float epsilon = 0.000001f;
+  // If the forward vector is almost opposite to the up vector
+  // we need to rotate 180 degrees around the up vector to avoid gimbal lock.
+  if (abs(dotp + 1.0f) < epsilon) {
+    /// TODO: might have to set global rotation instead of local
+    return {up.x, up.y, up.z, M_PI};
+  }
+  // If the forward vector is almost aligned with the up vector,
+  // we canset the rotation to identity.
+  if (abs(dotp - 1.0f) < epsilon) {
+    return kIdentityQuat;
+  }
+
+  // Regular case
+  const float rotAngle = std::acos(dotp);
+  const auto rotAxis = normalize(cross(VectorUtils::kForward3, forward));
+
+  return filament::math::quatf::fromAxisAngle(rotAxis, rotAngle);
 }
 
 }  // namespace plugin_filament_view

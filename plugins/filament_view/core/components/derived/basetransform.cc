@@ -21,6 +21,8 @@
 #include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
+#include <cmath>
+
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
@@ -48,14 +50,22 @@ void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   );
   spdlog::debug(tabPrefix + "Scl: x={}, y={}, z={}", local.scale.x, local.scale.y, local.scale.z);
   spdlog::debug(
-    tabPrefix + "Rot: w={} x={}, y={}, z={}", local.rotation.w, local.rotation.x, local.rotation.y,
-    local.rotation.z
+    tabPrefix + "Rot: x={}, y={}, z={} w={}", local.rotation.x, local.rotation.y, local.rotation.z,
+    local.rotation.w
   );
 }
 
 void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
   filament::gltfio::decomposeMatrix(localMatrix, &local.position, &local.rotation, &local.scale);
   _isDirty = true;
+}
+
+void BaseTransform::DecomposeGlobalMatrix() {
+  // Decompose the global matrix into position, scale, and rotation
+  filament::gltfio::decomposeMatrix(
+    global.matrix, &_globalVectors.position, &_globalVectors.rotation, &_globalVectors.scale
+  );
+  _isGlobalDirty = false;
 }
 
 }  // namespace plugin_filament_view

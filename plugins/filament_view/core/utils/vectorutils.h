@@ -15,21 +15,94 @@
  */
 #pragma once
 
-#include <filament/TransformManager.h>
-#include <filament/gltfio/FilamentAsset.h>
 #include <filament/gltfio/math.h>
-#include <filament/math/TMatHelpers.h>
+#include <filament/math/mat3.h>
 #include <filament/math/mat4.h>
 #include <filament/math/quat.h>
+#include <filament/math/scalar.h>
+#include <filament/math/vec2.h>
 #include <filament/math/vec3.h>
-#include <memory>
-
-#include <core/utils/filament_types.h>
+#include <filament/math/vec4.h>
 
 namespace plugin_filament_view {
 
 class VectorUtils {
   public:
+    /// Static identity quaternion
+    // NOTE: Filament's quaternion constructor takes WXYZ, not XYZW!!!
+    static constexpr filament::math::quatf kIdentityQuat =
+      filament::math::quatf(1.0f, 0.0f, 0.0f, 0.0f);
+
+    /// Static identity 3x3 matrix
+    static constexpr filament::math::mat3f kIdentityMat3f = filament::math::mat3f(
+      1.0f,
+      0.0f,
+      0.0f,  //
+      0.0f,
+      1.0f,
+      0.0f,  //
+      0.0f,
+      0.0f,
+      1.0f  //
+    );
+
+    /// Static identity 4x4 matrix
+    static constexpr filament::math::mat4f kIdentityMat4f = filament::math::mat4f(
+      1.0f,
+      0.0f,
+      0.0f,
+      0.0f,  //
+      0.0f,
+      1.0f,
+      0.0f,
+      0.0f,  //
+      0.0f,
+      0.0f,
+      1.0f,
+      0.0f,  //
+      0.0f,
+      0.0f,
+      0.0f,
+      1.0f  //
+    );
+
+    /// Vector3 zero
+    static constexpr filament::math::float3 kFloat3Zero = filament::math::float3(
+      0.0f,  // x
+      0.0f,  // y
+      0.0f   // z
+    );
+
+    /// Vector3 one
+    static constexpr filament::math::float3 kFloat3One = filament::math::float3(
+      1.0f,  // x
+      1.0f,  // y
+      1.0f   // z
+    );
+
+    /// Vector3 up direction
+    static constexpr filament::math::float3 kUp3 = filament::math::float3(
+      0.0f,  // x
+      1.0f,  // y
+      0.0f   // z
+    );
+
+    /// Vector3 down direction
+    static constexpr filament::math::float3 kDown3 = filament::math::float3(
+      0.0f,   // x
+      -1.0f,  // y
+      0.0f    // z
+    );
+
+    /// Vector3 forward direction
+    static constexpr filament::math::float3 kForward3 = filament::math::float3(
+      0.0f,  // x
+      0.0f,  // y
+      -1.0f  // z
+    );
+
+    /// Utility function to create an identity 3x3 matrix
+
     // Utility functions to create identity matrices
     static filament::math::mat3f identity3x3();
     static filament::math::mat4f identity4x4();
@@ -42,6 +115,18 @@ class VectorUtils {
       const filament::math::float3& scale,
       const filament::math::mat4f& transform
     );
+
+    static filament::math::quatf lookAt(
+      const filament::math::float3& position,
+      const filament::math::float3& target,
+      const filament::math::float3& up = kUp3
+    );
+
+    /// Returns the translation component of a transformation matrix.
+    static inline filament::math::float3 translationFromMatrix(const filament::math::mat4f& matrix
+    ) {
+      return filament::math::float3(matrix[3].x, matrix[3].y, matrix[3].z);
+    }
 };
 
 }  // namespace plugin_filament_view

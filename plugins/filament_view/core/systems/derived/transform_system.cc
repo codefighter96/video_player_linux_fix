@@ -111,7 +111,8 @@ void TransformSystem::applyTransform(BaseTransform& transform, const bool forceR
   // Set the transform
   tm->setTransform(_fInstance, localMatrix);
   transform.global.matrix = tm->getWorldTransform(_fInstance);
-  transform.SetDirty(false);  // reset
+  transform._isGlobalDirty = true;  // mark global as dirty
+  transform.SetDirty(false);        // reset
 }
 
 void TransformSystem::applyParent(BaseTransform& child, const BaseTransform* parent) {

@@ -24,8 +24,11 @@
 #include <core/entity/base/entityobject.h>
 #include <core/utils/asserts.h>
 #include <core/utils/filament_types.h>
+#include <core/utils/vectorutils.h>
 
 namespace plugin_filament_view {
+
+class TransformSystem;
 
 /// @brief TransformVectorData is a struct that holds position/scale/rotation
 /// data.
@@ -77,6 +80,8 @@ static constexpr filament::math::quatf kQuatfIdentity = {0, 0, 0, 1};
 static constexpr filament::math::mat4f kMat4fIdentity = filament::math::mat4f();
 
 class BaseTransform : public Component {
+    friend class TransformSystem;
+
   private:
     /// @brief _isDirty is a flag that indicates if the transform has been
     /// modified. If true, the transform will be updated by the [TransformSystem]
@@ -85,6 +90,9 @@ class BaseTransform : public Component {
     bool _isDirty = true;
     EntityGUID _parentId = kNullGuid;
     bool _isParentDirty = false;
+
+    TransformVectorData _globalVectors;
+    bool _isGlobalDirty = true;
 
   public:
     TransformVectorData local;
@@ -95,6 +103,7 @@ class BaseTransform : public Component {
 
     BaseTransform()
       : Component(std::string(__FUNCTION__)),
+        _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         global({kMat4fIdentity}) {}
 
@@ -104,11 +113,13 @@ class BaseTransform : public Component {
       const filament::math::quatf& rotation
     )
       : Component(std::string(__FUNCTION__)),
+        _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         local({{position}, {scale}, {rotation}}),
         global({kMat4fIdentity}) {}
 
     explicit BaseTransform(const TransformVectorData& localTransform)
       : Component(std::string(__FUNCTION__)),
+        _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         local(localTransform),
         global({kMat4fIdentity}) {}
 
@@ -158,6 +169,16 @@ class BaseTransform : public Component {
     inline void setRotation(const filament::math::quatf& rotation) {
       local.rotation = rotation;
       _isDirty = true;
+    }
+
+    /// @brief  Sets the rotation of the transform to look at a target point.
+    /// @param target World-space target position to look at.
+    /// @param up Up vector to use for the look-at operation. Defaults to Y+.
+    inline void lookAt(
+      const filament::math::float3& globalTarget,
+      const filament::math::float3& up = VectorUtils::kUp3
+    ) {
+      setRotation(VectorUtils::lookAt(GetGlobalPosition(), globalTarget, up));
     }
 
     /// Sets all transform values at once. All params are optional (nullptr)
@@ -216,20 +237,35 @@ class BaseTransform : public Component {
       return global.matrix;
     }
 
-    // TODO
-    // [[nodiscard]] const filament::math::float3& GetGlobalPosition() const {
+    /// @returns the XYZ position vector in global/world space.
+    /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
+    ///       into position, scale, and rotation.
+    ///       Use this only on as-needed basis.
+    [[nodiscard]] const filament::math::float3& GetGlobalPosition() {
+      if (_isGlobalDirty) DecomposeGlobalMatrix();
 
-    // }
+      return _globalVectors.position;
+    }
 
-    // TODO
-    // [[nodiscard]] const filament::math::float3& GetGlobalScale() const {
+    /// @returns the XYZ scale vector in global/world space.
+    /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
+    ///       into position, scale, and rotation.
+    ///       Use this only on as-needed basis.
+    [[nodiscard]] const filament::math::float3& GetGlobalScale() {
+      if (_isGlobalDirty) DecomposeGlobalMatrix();
 
-    // }
+      return _globalVectors.scale;
+    }
 
-    // TODO
-    // [[nodiscard]] const filament::math::quatf& GetGlobalRotation() const {
+    /// @returns the rotation quaternion in global/world space.
+    /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
+    ///       into position, scale, and rotation.
+    ///       Use this only on as-needed basis.
+    [[nodiscard]] const filament::math::quatf& GetGlobalRotation() {
+      if (_isGlobalDirty) DecomposeGlobalMatrix();
 
-    // }
+      return _globalVectors.rotation;
+    }
 
     // Setters
 
@@ -259,6 +295,12 @@ class BaseTransform : public Component {
     void DebugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override { return new BaseTransform(*this); }
+
+  private:
+    /// Decomposes the global matrix into position, scale, and rotation.
+    /// @note SLOW OPERATION! Use this only when the global matrix is dirty.
+    ///       This is called automatically when accessing the global position, scale, or rotation.
+    void DecomposeGlobalMatrix();
 };
 
 }  // namespace plugin_filament_view

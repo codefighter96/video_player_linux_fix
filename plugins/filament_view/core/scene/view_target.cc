@@ -22,6 +22,7 @@
 #include <core/systems/derived/transform_system.h>
 #include <core/systems/derived/view_target_system.h>
 #include <core/systems/ecs.h>
+#include <core/utils/vectorutils.h>
 
 #include <filament/Renderer.h>
 #include <filament/SwapChain.h>
@@ -321,18 +322,66 @@ void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
   fview_->setFogOptions(fogOptions);
 }
 
-void ViewTarget::updateCameraSettings(Camera& cameraData, BaseTransform& transform) {
+void ViewTarget::updateCameraSettings(
+  Camera& cameraData,
+  BaseTransform& transform,
+  BaseTransform* orbitOriginTransform,
+  const filament::math::float3* targetPosition
+) {
   // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
 
   // Update transform
-  // Calculate matrices
+  const filament::math::float3* fulcrum = nullptr;
+  const filament::math::quatf* fulcrumRotation = nullptr;
+
+  // TODO: move to BaseTransform::anchorTo ?
+  if (orbitOriginTransform) {
+    // If a target transform is provided, use its position as the fulcrum
+    fulcrum = &orbitOriginTransform->GetGlobalPosition();
+    // TODO: should we follow the origin rotation? let's make this optional
+    fulcrumRotation = &orbitOriginTransform->GetGlobalRotation();
+  } else {
+    // Otherwise, use the camera's own position as the fulcrum
+    fulcrum = &transform.local.position;
+    fulcrumRotation = &VectorUtils::kIdentityQuat;
+  }
+
+  // Head position
   auto headMatrix =
     // Fulcrum position - camera rotates around this point
-    filament::math::mat4f::translation(transform.local.position)
+    filament::math::mat4f::translation(*fulcrum)
+    // Fulcrum rotation - camera rotates around this point
+    * filament::math::mat4f(*fulcrumRotation)
     // Rig rotation - camera rig rotates around fulcrum
-    * filament::math::mat4f(transform.local.rotation)
-    // Dolly offset - camera is offset from the rig arm
-    * filament::math::mat4f::translation(cameraData._dollyOffset);
+    * filament::math::mat4f(cameraData.orbitRotation)
+    // Dolly offset - camera is offset from the rig arm (relative to forward direction)
+    * filament::math::mat4f::translation(cameraData.dollyOffset);
+
+  // Look at target
+  if (targetPosition) {
+    const auto headPosition = VectorUtils::translationFromMatrix(headMatrix);
+
+    // TODO: move to BaseTransform::lookAt ?
+    // TODO: consider using global rotation
+    filament::math::quatf headRotation = transform.local.rotation;
+    headRotation = VectorUtils::lookAt(
+      headPosition,
+      *targetPosition  // ,
+      // leave default up vector
+    );
+
+    // Recalculate head matrix with look direction
+    headMatrix = filament::gltfio::composeMatrix(
+      // Translation: use previous head
+      headPosition,
+      // Rotation: look at target
+      headRotation,
+      // Scale: none, identity
+      VectorUtils::kFloat3One
+    );
+  }
+  // else...
+  // TODO: consider case where "target" is off - sum orbitRotation + local.rotation
 
   camera_->setModelMatrix(headMatrix);
 
