@@ -59,16 +59,23 @@ Camera::Camera(const flutter::EncodableMap& params)
   }
 
   // _ipd = 0; // leave default in header, currently not supported in Dart
-  Deserialize::DecodeParameterWithDefault(kPosition, &_dollyOffset, params, kFloat3Zero);
-  _dirtyEyes = true;
+  _dirtyEyes = false;
 
   int64_t tmpViewId = 0;
   Deserialize::DecodeParameterWithDefaultInt64(kViewId, &tmpViewId, params, kDefaultViewId);
   _viewId = static_cast<size_t>(tmpViewId);
 
+  Deserialize::DecodeParameterWithDefault(kDollyOffset, &dollyOffset, params, kFloat3Zero);
+
   Deserialize::DecodeParameterWithDefaultInt64(
     kOrbitOriginEntity, &orbitOriginEntity, params, kNullGuid
   );
+
+  Deserialize::DecodeParameterWithDefault(
+    kOrbitRotation, &orbitRotation, params, VectorUtils::kIdentityQuat
+  );
+
+  Deserialize::DecodeParameterWithDefaultInt64(kTargetEntity, &targetEntity, params, kNullGuid);
 
 }  // Camera
 

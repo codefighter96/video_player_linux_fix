@@ -24,6 +24,7 @@
 #include <core/entity/base/entityobject.h>
 #include <core/utils/asserts.h>
 #include <core/utils/filament_types.h>
+#include <core/utils/vectorutils.h>
 
 #include <core/scene/camera/exposure.h>
 #include <core/scene/camera/lens_projection.h>
@@ -59,18 +60,34 @@ class Camera : public Component {
     /// Used in stereoscopic rendering, where the distance between the eyes is set to this value.
     /// Default value is 0.064 meters (64 mm), which is a common value for human.
     double _ipd = kDefaultIPD;
-    /// Offset of the camera (head) from its center (rig)
-    /// It's summed with the IPD to set the eyes' positions.
-    filament::math::float3 _dollyOffset = {0.0f, 0.0f, 0.0f};
     bool _dirtyEyes = true;
 
   public:
     /*
+     *  Orbit
+     */
+    /// Entity that this camera is orbiting around.
+    /// If not set, the camera will orbit around its own position.
+    EntityGUID orbitOriginEntity = kNullGuid;
+    /// Orbit rotation (azimuth and elevation) around the orbit origin.
+    filament::math::quatf orbitRotation = VectorUtils::kIdentityQuat;
+
+    /*
      *  Targeting
      */
-    /// Entity that this camera is targeting.
-    /// If a rig parent is present, the ViewTargetSystem will update the rig's position to match
-    EntityGUID orbitOriginEntity = kNullGuid;
+    /// Controls whether targeting is enabled.
+    bool enableTarget = false;
+    /// Entity that this camera is looking at.
+    EntityGUID targetEntity = kNullGuid;
+    /// The target position in world space.
+    /// Used only if targetEntity is equal to [kNullGuid].
+    filament::math::float3 targetPosition = VectorUtils::kFloat3Zero;
+
+    /*
+     *  Dolly
+     */
+    /// Offset of the camera (head) from its center (rig)
+    filament::math::float3 dollyOffset = {0.0f, 0.0f, 0.0f};
 
   public:
     Camera(
@@ -135,11 +152,6 @@ class Camera : public Component {
 
     inline void setIPD(float ipd) {
       _ipd = ipd;
-      _dirtyEyes = true;
-    }
-
-    inline void setDollyOffset(const filament::math::float3& offset) {
-      _dollyOffset = offset;
       _dirtyEyes = true;
     }
 

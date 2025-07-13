@@ -82,7 +82,8 @@ class ViewTarget {
     void updateCameraSettings(
       Camera& cameraData,
       BaseTransform& transform,
-      BaseTransform* targetTransform = nullptr
+      BaseTransform* orbitOriginTransform = nullptr,
+      const filament::math::float3* targetPosition = nullptr
     );
 
     /// Called by Flutter when a touch event occurs.

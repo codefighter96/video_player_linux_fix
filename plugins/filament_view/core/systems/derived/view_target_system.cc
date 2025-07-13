@@ -222,8 +222,24 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
 
     // Update the camera settings for the view target
     const auto transform = ecs->getComponent<BaseTransform>(cameraId);
-    const auto targetTransform = ecs->getComponent<BaseTransform>(camera->orbitOriginEntity);
-    viewTarget->updateCameraSettings(*camera, *transform, targetTransform.get());
+    const auto orbitOriginTransform = ecs->getComponent<BaseTransform>(camera->orbitOriginEntity);
+    const filament::math::float3* targetPosition = nullptr;
+
+    if (camera->enableTarget) {
+      // If the camera has a target entity, get its transform
+      if (camera->targetEntity != kNullGuid) {
+        targetPosition = &(
+          ecs->getComponent<BaseTransform>(camera->targetEntity)->GetGlobalPosition()
+        );
+      } else {
+        // If no target entity, use the target position directly
+        targetPosition = &camera->targetPosition;
+      }
+    }
+
+    viewTarget->updateCameraSettings(
+      *camera, *transform, orbitOriginTransform.get(), targetPosition
+    );
     spdlog::trace("Updating camera settings for view target {} by camera {}", viewId, cameraId);
 
     // Set the flag

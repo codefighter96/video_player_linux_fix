@@ -58,4 +58,32 @@ filament::math::float3 VectorUtils::transformScaleVector(
   };
 }
 
+filament::math::quatf VectorUtils::lookAt(
+  const filament::math::float3& position,
+  const filament::math::float3& target,
+  const filament::math::float3& up
+) {
+  const filament::math::float3 forward = normalize(target - position);
+  const float dotp = dot(forward, up);
+
+  constexpr float epsilon = 0.000001f;
+  // If the forward vector is almost opposite to the up vector
+  // we need to rotate 180 degrees around the up vector to avoid gimbal lock.
+  if (abs(dotp + 1.0f) < epsilon) {
+    /// TODO: might have to set global rotation instead of local
+    return {up.x, up.y, up.z, M_PI};
+  }
+  // If the forward vector is almost aligned with the up vector,
+  // we canset the rotation to identity.
+  if (abs(dotp - 1.0f) < epsilon) {
+    return kIdentityQuat;
+  }
+
+  // Regular case
+  const float rotAngle = std::acos(dotp);
+  const auto rotAxis = normalize(cross(VectorUtils::kForward3, forward));
+
+  return filament::math::quatf::fromAxisAngle(rotAxis, rotAngle);
+}
+
 }  // namespace plugin_filament_view

@@ -21,6 +21,8 @@
 #include <core/utils/vectorutils.h>
 #include <plugins/common/common.h>
 
+#include <cmath>
+
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////

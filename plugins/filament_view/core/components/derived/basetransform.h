@@ -24,6 +24,7 @@
 #include <core/entity/base/entityobject.h>
 #include <core/utils/asserts.h>
 #include <core/utils/filament_types.h>
+#include <core/utils/vectorutils.h>
 
 namespace plugin_filament_view {
 
@@ -168,6 +169,16 @@ class BaseTransform : public Component {
     inline void setRotation(const filament::math::quatf& rotation) {
       local.rotation = rotation;
       _isDirty = true;
+    }
+
+    /// @brief  Sets the rotation of the transform to look at a target point.
+    /// @param target World-space target position to look at.
+    /// @param up Up vector to use for the look-at operation. Defaults to Y+.
+    inline void lookAt(
+      const filament::math::float3& globalTarget,
+      const filament::math::float3& up = VectorUtils::kUp3
+    ) {
+      setRotation(VectorUtils::lookAt(GetGlobalPosition(), globalTarget, up));
     }
 
     /// Sets all transform values at once. All params are optional (nullptr)
