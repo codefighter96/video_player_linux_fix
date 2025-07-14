@@ -225,22 +225,39 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
     const auto orbitOriginTransform = ecs->getComponent<BaseTransform>(camera->orbitOriginEntity);
     const filament::math::float3* targetPosition = nullptr;
 
+    spdlog::trace("Checking camera({}) enableTarget", cameraId);
     if (camera->enableTarget) {
       // If the camera has a target entity, get its transform
       if (camera->targetEntity != kNullGuid) {
-        targetPosition = &(
-          ecs->getComponent<BaseTransform>(camera->targetEntity)->GetGlobalPosition()
-        );
+        spdlog::trace("has target entity: {}", camera->targetEntity);
+        auto* targetTransform = ecs->getComponent<BaseTransform>(camera->targetEntity).get();
+
+        if (targetTransform == nullptr) {
+          spdlog::warn(
+            "Camera({}) target entity({}) has no transform, skipping", cameraId,
+            camera->targetEntity
+          );
+        } else {
+          // If the target entity has a transform, use its global position
+          spdlog::trace("Using target entity's global position");
+          // Set the target point to the target entity's global position
+          camera->targetPoint = targetTransform->GetGlobalPosition();
+        }
       } else {
         // If no target entity, use the target position directly
-        targetPosition = &camera->targetPosition;
+        spdlog::trace("Using target position directly");
       }
+
+      targetPosition = &camera->targetPoint;
+    } else {
+      spdlog::trace("camera enableTarget=false");
     }
 
+    spdlog::trace("Updating camera...");
     viewTarget->updateCameraSettings(
       *camera, *transform, orbitOriginTransform.get(), targetPosition
     );
-    spdlog::trace("Updating camera settings for view target {} by camera {}", viewId, cameraId);
+    spdlog::trace("Updated camera settings for view target {} by camera {}", viewId, cameraId);
 
     // Set the flag
     viewTargetSetBy[viewId] = cameraId;
