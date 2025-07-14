@@ -24,7 +24,12 @@
 #include <filament/math/vec3.h>
 #include <filament/math/vec4.h>
 
+#include <cmath>
+
 namespace plugin_filament_view {
+
+/// Float version of M_PI
+static constexpr float kPif = static_cast<float>(M_PI);
 
 class VectorUtils {
   public:

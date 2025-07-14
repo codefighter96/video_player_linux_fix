@@ -18,6 +18,7 @@
 
 #include <core/include/literals.h>
 #include <core/utils/deserialize.h>
+#include <core/utils/vectorutils.h>
 #include <filament/IndexBuffer.h>
 #include <filament/RenderableManager.h>
 #include <filament/VertexBuffer.h>
@@ -68,15 +69,14 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
   const int sectors = slices_;  // Longitude, or number of vertical slices
   const int stacks = stacks_;   // Latitude, or number of horizontal slices
 
-  const float sectorStep = 2.0f * static_cast<float>(M_PI) / static_cast<float>(sectors);
-  const float stackStep = static_cast<float>(M_PI) / static_cast<float>(stacks);
+  const float sectorStep = 2.0f * kPif / static_cast<float>(sectors);
+  const float stackStep = kPif / static_cast<float>(stacks);
 
   // Generate vertices, normals, and UVs for the outer surface
   for (int i = 0; i <= stacks; ++i) {
-    const float stackAngle = static_cast<float>(M_PI) / 2.0f
-                             - static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
-    const float xy = cosf(stackAngle) * 0.5f;                      // r * cos(u)
-    float z = sinf(stackAngle) * 0.5f;                             // r * sin(u)
+    const float stackAngle = kPif / 2.0f - static_cast<float>(i) * stackStep;  // from pi/2 to -pi/2
+    const float xy = cosf(stackAngle) * 0.5f;                                  // r * cos(u)
+    float z = sinf(stackAngle) * 0.5f;                                         // r * sin(u)
     float v = static_cast<float>(i) / static_cast<float>(stacks);  // Latitude, y-axis UV
 
     for (int j = 0; j <= sectors; ++j) {

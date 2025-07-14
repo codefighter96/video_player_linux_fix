@@ -99,7 +99,7 @@ filament::math::quatf VectorUtils::lookAt(
 
   // Create the quaternion representing the rotation
   return VectorUtils::fromEulerAngles(
-    azimuth + M_PI,  // Yaw (Y-axis rotation)
+    azimuth + kPif,  // Yaw (Y-axis rotation)
     elevation,       // Pitch (X-axis rotation)
     0.0f             // Roll (Z-axis rotation, not used here)
   );
