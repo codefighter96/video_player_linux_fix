@@ -71,8 +71,10 @@ class Deserialize {
      * Decoders with default values
      */
 
+    /// @returns true if the parameter was found and set to out_value,
+    ///          false if it was not found and out_value was set to default_value.
     template<typename T>
-    static void DecodeParameterWithDefault(
+    static bool DecodeParameterWithDefault(
       const char* key,
       T* out_value,
       const flutter::EncodableMap& params,
@@ -81,8 +83,10 @@ class Deserialize {
       auto it = params.find(flutter::EncodableValue(key));
       if (it != params.end() && std::holds_alternative<T>(it->second)) {
         *out_value = std::get<T>(it->second);
+        return true;
       } else {
         *out_value = default_value;
+        return false;
       }
     }
 
@@ -124,7 +128,7 @@ class Deserialize {
       const flutter::EncodableMap& params
     );
 
-    static void DecodeParameterWithDefault(
+    static bool DecodeParameterWithDefault(
       const char* key,
       filament::math::float3* out_value,
       const flutter::EncodableMap& params,

@@ -77,6 +77,13 @@ Camera::Camera(const flutter::EncodableMap& params)
 
   Deserialize::DecodeParameterWithDefaultInt64(kTargetEntity, &targetEntity, params, kNullGuid);
 
+  const bool hasTargetPos = Deserialize::DecodeParameterWithDefault(
+    kTargetPoint, &targetPoint, params, VectorUtils::kFloat3Zero
+  );
+
+  // Check if target position is set, if so, enable targeting
+  enableTarget = hasTargetPos || targetEntity != kNullGuid;
+
 }  // Camera
 
 void Camera::DebugPrint(const std::string& tabPrefix) const {

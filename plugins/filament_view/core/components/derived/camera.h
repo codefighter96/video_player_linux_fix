@@ -81,7 +81,7 @@ class Camera : public Component {
     EntityGUID targetEntity = kNullGuid;
     /// The target position in world space.
     /// Used only if targetEntity is equal to [kNullGuid].
-    filament::math::float3 targetPosition = VectorUtils::kFloat3Zero;
+    filament::math::float3 targetPoint = VectorUtils::kFloat3Zero;
 
     /*
      *  Dolly

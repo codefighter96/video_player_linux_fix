@@ -404,7 +404,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetCameraTarget(
   camera->enableTarget = !!target_position && target_entity_id != kNullGuid;
   camera->targetEntity = target_entity_id;
   if (target_position) {
-    camera->targetPosition = filament::math::float3(
+    camera->targetPoint = filament::math::float3(
       (*target_position)[0], (*target_position)[1], (*target_position)[2]
     );
   }

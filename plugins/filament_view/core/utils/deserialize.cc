@@ -75,7 +75,7 @@ void Deserialize::DecodeParameterWithDefault(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Deserialize::DecodeParameterWithDefault(
+bool Deserialize::DecodeParameterWithDefault(
   const char* key,
   filament::math::float3* out_value,
   const flutter::EncodableMap& params,
@@ -84,8 +84,10 @@ void Deserialize::DecodeParameterWithDefault(
   if (const auto it = params.find(flutter::EncodableValue(key));
       it != params.end() && std::holds_alternative<flutter::EncodableMap>(it->second)) {
     *out_value = Format3(std::get<flutter::EncodableMap>(it->second));
+    return true;
   } else {
     *out_value = default_value;
+    return false;
   }
 }
 
