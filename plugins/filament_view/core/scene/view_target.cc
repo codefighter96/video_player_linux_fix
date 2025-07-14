@@ -363,12 +363,8 @@ void ViewTarget::updateCameraSettings(
 
     // TODO: move to BaseTransform::lookAt ?
     // TODO: consider using global rotation
-    filament::math::quatf headRotation = transform.local.rotation;
-    headRotation = VectorUtils::lookAt(
-      headPosition,
-      *targetPosition  // ,
-      // leave default up vector
-    );
+    // filament::math::quatf headRotation = transform.local.rotation;
+    filament::math::quatf headRotation = VectorUtils::lookAt(headPosition, *targetPosition);
 
     // Recalculate head matrix with look direction
     headMatrix = filament::gltfio::composeMatrix(

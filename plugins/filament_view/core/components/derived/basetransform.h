@@ -174,11 +174,8 @@ class BaseTransform : public Component {
     /// @brief  Sets the rotation of the transform to look at a target point.
     /// @param target World-space target position to look at.
     /// @param up Up vector to use for the look-at operation. Defaults to Y+.
-    inline void lookAt(
-      const filament::math::float3& globalTarget,
-      const filament::math::float3& up = VectorUtils::kUp3
-    ) {
-      setRotation(VectorUtils::lookAt(GetGlobalPosition(), globalTarget, up));
+    inline void lookAt(const filament::math::float3& globalTarget) {
+      setRotation(VectorUtils::lookAt(GetGlobalPosition(), globalTarget));
     }
 
     /// Sets all transform values at once. All params are optional (nullptr)

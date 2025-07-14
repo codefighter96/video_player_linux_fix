@@ -58,32 +58,51 @@ filament::math::float3 VectorUtils::transformScaleVector(
   };
 }
 
+filament::math::quatf VectorUtils::fromEulerAngles(float yaw, float pitch, float roll) {
+  const float halfYaw = yaw * 0.5f;
+  const float halfPitch = pitch * 0.5f;
+  const float halfRoll = roll * 0.5f;
+  const float cosYaw = cos(halfYaw);
+  const float sinYaw = sin(halfYaw);
+  const float cosPitch = cos(halfPitch);
+  const float sinPitch = sin(halfPitch);
+  const float cosRoll = cos(halfRoll);
+  const float sinRoll = sin(halfRoll);
+
+  const float x = cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw;
+  const float y = cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw;
+  const float z = sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw;
+  const float w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
+
+  return {w, x, y, z};
+}
+
 filament::math::quatf VectorUtils::lookAt(
   const filament::math::float3& position,
-  const filament::math::float3& target,
-  const filament::math::float3& up
+  const filament::math::float3& target
 ) {
-  const filament::math::float3 forward = normalize(target - position);
-  const float dotp = dot(forward, up);
+  const filament::math::float3 delta = target - position;
 
-  constexpr float epsilon = 0.000001f;
-  // If the forward vector is almost opposite to the up vector
-  // we need to rotate 180 degrees around the up vector to avoid gimbal lock.
-  if (abs(dotp + 1.0f) < epsilon) {
-    /// TODO: might have to set global rotation instead of local
-    return {up.x, up.y, up.z, M_PI};
-  }
-  // If the forward vector is almost aligned with the up vector,
-  // we canset the rotation to identity.
-  if (abs(dotp - 1.0f) < epsilon) {
-    return kIdentityQuat;
-  }
+  // Calculate the XZ plane direction
+  filament::math::float2 xzDir = filament::math::float2(delta.z, delta.x);
+  // Calculate the lY plane direction
+  filament::math::float2 lYDir = filament::math::float2(length(xzDir), delta.y);
 
-  // Regular case
-  const float rotAngle = std::acos(dotp);
-  const auto rotAxis = normalize(cross(VectorUtils::kForward3, forward));
+  // normalize vectors first
+  xzDir = normalize(xzDir);
+  lYDir = normalize(lYDir);
 
-  return filament::math::quatf::fromAxisAngle(rotAxis, rotAngle);
+  // Calculate the rotation angle around the Y axis
+  float azimuth = atan2(xzDir.y, xzDir.x);
+  // Calculate the rotation angle around the X axis
+  float elevation = atan2(lYDir.y, lYDir.x);
+
+  // Create the quaternion representing the rotation
+  return VectorUtils::fromEulerAngles(
+    azimuth + kPif,  // Yaw (Y-axis rotation)
+    elevation,       // Pitch (X-axis rotation)
+    0.0f             // Roll (Z-axis rotation, not used here)
+  );
 }
 
 }  // namespace plugin_filament_view

@@ -24,7 +24,12 @@
 #include <filament/math/vec3.h>
 #include <filament/math/vec4.h>
 
+#include <cmath>
+
 namespace plugin_filament_view {
+
+/// Float version of M_PI
+static constexpr float kPif = static_cast<float>(M_PI);
 
 class VectorUtils {
   public:
@@ -116,10 +121,17 @@ class VectorUtils {
       const filament::math::mat4f& transform
     );
 
+    /// Converts Euler angles (in radians) to a quaternion.
+    /// @param yaw Yaw angle in radians (Euler angle Y)
+    /// @param pitch Pitch angle in radians (Euler angle X)
+    /// @param roll Roll angle in radians (Euler angle Z)
+    /// @returns Quaternion representing the rotation.
+    /// @note up always points to Y+ axis.
+    static filament::math::quatf fromEulerAngles(float yaw, float pitch, float roll);
+
     static filament::math::quatf lookAt(
       const filament::math::float3& position,
-      const filament::math::float3& target,
-      const filament::math::float3& up = kUp3
+      const filament::math::float3& target
     );
 
     /// Returns the translation component of a transformation matrix.

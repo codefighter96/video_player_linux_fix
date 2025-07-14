@@ -117,6 +117,7 @@ static constexpr char kOrbitOriginEntity[] = "orbitOriginEntity";
 static constexpr char kDollyOffset[] = "dollyOffset";
 static constexpr char kOrbitRotation[] = "orbitRotation";
 static constexpr char kTargetEntity[] = "targetEntity";
+static constexpr char kTargetPoint[] = "targetPoint";
 static constexpr char kViewId[] = "viewId";
 static constexpr char kFlightMaxMoveSpeed[] = "flightMaxMoveSpeed";
 static constexpr char kFlightMoveDamping[] = "flightMoveDamping";
