@@ -29,7 +29,7 @@
  * Currently supports SQLite, but can be extended for Redis, file-based, etc.
  */
 class ICacheStorage {
-public:
+ public:
   virtual ~ICacheStorage() = default;
 
   /**

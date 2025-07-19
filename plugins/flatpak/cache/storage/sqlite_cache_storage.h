@@ -17,68 +17,69 @@
 #ifndef PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 #define PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 
-#include "../interfaces/cache_storage.h"
-#include <sqlite3.h>
-#include <cstddef>
-#include <map>
-#include <mutex>
-#include <atomic>
 #include <spdlog/spdlog.h>
+#include <sqlite3.h>
 #include <zconf.h>
 #include <zlib.h>
+#include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
+#include <map>
+#include <mutex>
 #include <optional>
-
-
+#include "../interfaces/cache_storage.h"
 
 /**
- * @brief Implements a cache storage backend using SQLite as the underlying database.
+ * @brief Implements a cache storage backend using SQLite as the underlying
+ * database.
  *
- * This class provides persistent cache storage functionality by leveraging SQLite.
- * It supports optional data compression, thread-safe operations, and cache size management.
+ * This class provides persistent cache storage functionality by leveraging
+ * SQLite. It supports optional data compression, thread-safe operations, and
+ * cache size management.
  */
-class SQLiteCacheStorage: public ICacheStorage {
-private:
-    sqlite3* db_;
-    std::string db_path_;
-    mutable std::mutex db_mutex_;
-    std::atomic<size_t> cache_size{0};
-    bool enable_compression_;
+class SQLiteCacheStorage : public ICacheStorage {
+ private:
+  sqlite3* db_;
+  std::string db_path_;
+  mutable std::mutex db_mutex_;
+  std::atomic<size_t> cache_size{0};
+  bool enable_compression_;
 
-    bool CreateTables();
+  bool CreateTables();
 
-    std::string CompressData(const std::string& data);
+  std::string CompressData(const std::string& data);
 
-    std::string DecompressData(const std::string& data);
+  std::string DecompressData(const std::string& data);
 
-    void UpdateCacheSize();
+  void UpdateCacheSize();
 
-public:
-    explicit SQLiteCacheStorage(std::string db_path, bool enable_compression = false);
+ public:
+  explicit SQLiteCacheStorage(std::string db_path,
+                              bool enable_compression = false);
 
-    ~SQLiteCacheStorage();
-    bool Initialize() override;
+  ~SQLiteCacheStorage();
+  bool Initialize() override;
 
-    bool Store(const std::string& key,
-                     const std::string& data,
-                     std::chrono::system_clock::time_point expiry) override;
-                    
-    std::optional<std::string> Retrieve(const std::string& key) override;
+  bool Store(const std::string& key,
+             const std::string& data,
+             std::chrono::system_clock::time_point expiry) override;
 
-    bool IsExpired(const std::string& key) override;
+  std::optional<std::string> Retrieve(const std::string& key) override;
 
-    void Invalidate(const std::string& key = "") override;
-    
-    size_t GetCacheSize() override;
+  bool IsExpired(const std::string& key) override;
 
-    size_t CleanupExpired() override;
-    
-    /**
-    * @brief Retrieves cache statistics such as entry count and total size.
-    * @return A map of statistic names to their values.
-    */
-    std::map<std::string, int64_t> GetStatistics() const;
+  void Invalidate(const std::string& key = "") override;
+
+  size_t GetCacheSize() override;
+
+  size_t CleanupExpired() override;
+
+  /**
+   * @brief Retrieves cache statistics such as entry count and total size.
+   * @return A map of statistic names to their values.
+   */
+  std::map<std::string, int64_t> GetStatistics() const;
 };
 
-#endif // PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
+#endif  // PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H

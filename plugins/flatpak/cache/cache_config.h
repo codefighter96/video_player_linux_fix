@@ -78,7 +78,8 @@ struct CacheMetrics {
   std::atomic<uint64_t> expired_entries{0};
   std::atomic<uint64_t> network_errors{0};
 
-  std::chrono::system_clock::time_point start_time{std::chrono::system_clock::now()};
+  std::chrono::system_clock::time_point start_time{
+      std::chrono::system_clock::now()};
 
   // Explicitly delete copy operations - force move/reference usage
   CacheMetrics(const CacheMetrics&) = delete;
@@ -95,5 +96,5 @@ struct CacheMetrics {
   }
 };
 
-}
+}  // namespace flatpak_plugin
 #endif  // PLUGINS_FLATPAK_CACHE_CACHE_CONFIG_H

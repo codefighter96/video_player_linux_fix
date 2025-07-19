@@ -30,7 +30,7 @@
  * (Curl, system network calls, mock for testing, etc.)
  */
 class INetworkFetcher {
-public:
+ public:
   virtual ~INetworkFetcher() = default;
 
   /**

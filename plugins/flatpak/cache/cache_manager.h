@@ -30,17 +30,17 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "../../common/curl_client/curl_client.h"
 #include "cache_config.h"
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
 #include "interfaces/network_fetcher.h"
 #include "operations/cache_operation_template.h"
-#include "../../common/curl_client/curl_client.h"
 
 namespace flutter {
-    using EncodableList = std::vector<int>; // Dummy type for testing
+using EncodableList = std::vector<int>;  // Dummy type for testing
 }
-struct Installation {}; // Dummy struct for testing
+struct Installation {};  // Dummy struct for testing
 
 namespace flatpak_plugin {
 
@@ -61,7 +61,7 @@ class CacheManager {
   std::atomic<bool> stop_cleanup_{false};
   std::condition_variable cleanup_cv_;
   std::mutex cleanup_mutex_;
-  
+
   mutable CacheMetrics metrics_;
 
   std::string GenerateKey(const std::string& base_key,
@@ -77,8 +77,6 @@ class CacheManager {
       const std::string& key,
       std::function<std::optional<T>()> network_operation,
       CacheOperationTemplate<T>* cache_operation);
-
-
 
  public:
   class Builder {

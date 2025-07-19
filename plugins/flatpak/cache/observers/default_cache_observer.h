@@ -21,22 +21,24 @@
 #include "../interfaces/cache_observer.h"
 
 class DefaultCacheObserver : public ICacheObserver {
-private:
-    std::string component_name_;
-public:
-    explicit DefaultCacheObserver(const std::string& component_name = "CacheManager");
+ private:
+  std::string component_name_;
 
-    void OnCacheHit(const std::string& key, size_t data_size) override;
+ public:
+  explicit DefaultCacheObserver(
+      const std::string& component_name = "CacheManager");
 
-    void OnCacheMiss(const std::string& key) override;
-    
-    void OnCacheExpired(const std::string& key) override;
+  void OnCacheHit(const std::string& key, size_t data_size) override;
 
-    void OnNetworkFallback(const std::string& reason) override;
-    
-    void OnNetworkError(const std::string& url, long error_code) override;
+  void OnCacheMiss(const std::string& key) override;
 
-    void OnCacheCleanup(size_t entries_cleaned) override;
+  void OnCacheExpired(const std::string& key) override;
+
+  void OnNetworkFallback(const std::string& reason) override;
+
+  void OnNetworkError(const std::string& url, long error_code) override;
+
+  void OnCacheCleanup(size_t entries_cleaned) override;
 };
 
-#endif // PLUGINS_FLATPAK_CACHE_DEFAULT_CACHE_OBSERVER_H
+#endif  // PLUGINS_FLATPAK_CACHE_DEFAULT_CACHE_OBSERVER_H

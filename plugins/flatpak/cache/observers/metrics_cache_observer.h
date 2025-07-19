@@ -17,30 +17,29 @@
 #ifndef PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 #define PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 
-#include "../cache_config.h"
-#include "../interfaces/cache_observer.h"
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include "../cache_config.h"
+#include "../interfaces/cache_observer.h"
 
+class MetricsCacheObserver : public ICacheObserver {
+ private:
+  flatpak_plugin::CacheMetrics* metrics_;
 
-class MetricsCacheObserver : public ICacheObserver{
-private:
-    flatpak_plugin::CacheMetrics* metrics_;
+ public:
+  explicit MetricsCacheObserver(flatpak_plugin::CacheMetrics* metrics);
 
-public:
-    explicit MetricsCacheObserver(flatpak_plugin::CacheMetrics* metrics);
+  void OnCacheHit(const std::string& key, size_t data_size) override;
 
-    void OnCacheHit(const std::string& key, size_t data_size) override;
+  void OnCacheMiss(const std::string& key) override;
 
-    void OnCacheMiss(const std::string& key) override;
-    
-    void OnCacheExpired(const std::string& key) override;
+  void OnCacheExpired(const std::string& key) override;
 
-    void OnNetworkFallback(const std::string& reason) override;
-    
-    void OnNetworkError(const std::string& url, long error_code) override;
+  void OnNetworkFallback(const std::string& reason) override;
 
-    void OnCacheCleanup(size_t entries_cleaned) override;
-}; 
+  void OnNetworkError(const std::string& url, long error_code) override;
 
-#endif // PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
+  void OnCacheCleanup(size_t entries_cleaned) override;
+};
+
+#endif  // PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
