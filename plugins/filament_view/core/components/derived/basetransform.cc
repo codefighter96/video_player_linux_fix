@@ -26,6 +26,7 @@ namespace plugin_filament_view {
 ////////////////////////////////////////////////////////////////////////////
 BaseTransform::BaseTransform(const flutter::EncodableMap& params)
   : Component(std::string(__FUNCTION__)),
+    _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
     local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
     global({kMat4fIdentity}) {
   spdlog::trace("BaseTransform::BaseTransform");
