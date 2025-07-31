@@ -63,10 +63,10 @@ void RenderableEntityObject::onInitialize() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
+void RenderableEntityObject::LoadMaterialDefinitionsToMaterialInstance() {
   checkInitialized();
   const auto materialSystem = ecs->getSystem<MaterialSystem>(
-    "RenderableEntityObject::vBuildRenderable"
+    "RenderableEntityObject::BuildRenderable"
   );
 
   // this will also set all the default values of the material instance from

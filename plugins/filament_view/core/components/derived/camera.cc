@@ -49,7 +49,7 @@ Camera::Camera(const flutter::EncodableMap& params)
     _lens = LensProjection(lensParams.value());
     _dirtyProjection = true;
 
-    // Reset projection if lens is set
+    // reset projection if lens is set
     if (_projection.has_value()) {
       spdlog::warn(
         "LensProjection is set, resetting Projection. LensProjection will be used instead."

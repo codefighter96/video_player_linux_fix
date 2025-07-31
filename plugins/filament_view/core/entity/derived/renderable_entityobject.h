@@ -70,11 +70,11 @@ class RenderableEntityObject : public EntityObject {
 
     // This is a heavy lift function as it will recreate / load a material
     // if it doesn't exist and reset everything from scratch.
-    virtual void vChangeMaterialDefinitions(
+    virtual void ChangeMaterialDefinitions(
       const flutter::EncodableMap& /* params */,
       const TextureMap& /* loadedTextures */
     ) {};
-    virtual void vChangeMaterialInstanceProperty(
+    virtual void ChangeMaterialInstanceProperty(
       const MaterialParameter* /* materialParam */,
       const TextureMap& /* loadedTextures */
     ) {};
@@ -86,7 +86,7 @@ class RenderableEntityObject : public EntityObject {
     Resource<filament::MaterialInstance*> m_poMaterialInstance =
       Resource<filament::MaterialInstance*>::Error("Unset");
 
-    void vLoadMaterialDefinitionsToMaterialInstance();
+    void LoadMaterialDefinitionsToMaterialInstance();
 
   public:
     /// TODO: use those in the addCollidable rewrite

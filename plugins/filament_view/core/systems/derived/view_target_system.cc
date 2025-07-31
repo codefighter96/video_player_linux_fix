@@ -51,7 +51,7 @@ void ViewTargetSystem::onSystemInit() {
   /*
    *  Message handlers
    */
-  vRegisterMessageHandler(ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ViewTargetCreateRequest, [this](const ECSMessage& msg) {
     spdlog::trace("ViewTargetCreateRequest");
 
     const auto state = msg.getData<FlutterDesktopEngineState*>(
@@ -65,21 +65,21 @@ void ViewTargetSystem::onSystemInit() {
     const auto nWhich = nSetupViewTargetFromDesktopState(top, left, state);
     getViewTarget(nWhich)->InitializeFilamentInternals(width, heigth);
 
-    // vSetCameraFromSerializedData();
+    // setCameraFromSerializedData();
 
     spdlog::trace("ViewTargetCreateRequest Complete");
   });
 
-  vRegisterMessageHandler(
+  registerMessageHandler(
     ECSMessageType::ViewTargetStartRenderingLoops,
     [this](const ECSMessage& /*msg*/) {
       spdlog::trace("ViewTargetStartRenderingLoops");
-      vKickOffFrameRenderingLoops();
+      KickOffFrameRenderingLoops();
       spdlog::trace("ViewTargetStartRenderingLoops Complete");
     }
   );
 
-  vRegisterMessageHandler(ECSMessageType::ChangeViewQualitySettings, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ChangeViewQualitySettings, [this](const ECSMessage& msg) {
     spdlog::trace("ChangeViewQualitySettings");
 
     // Not Currently Implemented -- currently will change all view targes.
@@ -88,18 +88,18 @@ void ViewTargetSystem::onSystemInit() {
 
     spdlog::debug("ChangeViewQualitySettings: {}", settingsId);
     for (const auto& viewTarget : _viewTargets) {
-      viewTarget->vChangeQualitySettings(
+      viewTarget->ChangeQualitySettings(
         static_cast<ViewTarget::ePredefinedQualitySettings>(settingsId)
       );
     }
 
     spdlog::trace("ChangeViewQualitySettings Complete");
 
-    // vSetCameraFromSerializedData();
+    // setCameraFromSerializedData();
   });
 
   // set fog options
-  vRegisterMessageHandler(ECSMessageType::SetFogOptions, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::SetFogOptions, [this](const ECSMessage& msg) {
     spdlog::trace("SetFogOptions");
 
     const bool enabled = msg.getData<bool>(ECSMessageType::SetFogOptions);
@@ -126,13 +126,13 @@ void ViewTargetSystem::onSystemInit() {
 
     // Set the fog options
     for (const auto& viewTarget : _viewTargets) {
-      viewTarget->vSetFogOptions(enabled ? enabledFogOptions : disabledFogOptions);
+      viewTarget->setFogOptions(enabled ? enabledFogOptions : disabledFogOptions);
     }
 
     spdlog::trace("SetFogOptions Complete");
   });
 
-  vRegisterMessageHandler(ECSMessageType::ResizeWindow, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ResizeWindow, [this](const ECSMessage& msg) {
     spdlog::trace("ResizeWindow");
     const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
     const auto fWidth = msg.getData<double>(ECSMessageType::ResizeWindowWidth);
@@ -142,10 +142,10 @@ void ViewTargetSystem::onSystemInit() {
 
     spdlog::trace("ResizeWindow Complete");
 
-    // vSetCameraFromSerializedData();
+    // setCameraFromSerializedData();
   });
 
-  vRegisterMessageHandler(ECSMessageType::MoveWindow, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::MoveWindow, [this](const ECSMessage& msg) {
     spdlog::trace("MoveWindow");
     const auto nWhich = msg.getData<size_t>(ECSMessageType::ResizeWindow);
     const auto fLeft = msg.getData<double>(ECSMessageType::MoveWindowLeft);
@@ -155,7 +155,7 @@ void ViewTargetSystem::onSystemInit() {
 
     spdlog::trace("MoveWindow Complete");
 
-    // vSetCameraFromSerializedData();
+    // setCameraFromSerializedData();
   });
 }
 
@@ -199,7 +199,7 @@ void ViewTargetSystem::update(float /*deltaTime*/) {
   std::map<size_t, EntityGUID> viewTargetSetBy;
 
   for (const auto& camera : cameras) {
-    const EntityGUID cameraId = camera->GetOwner()->GetGuid();
+    const EntityGUID cameraId = camera->getOwner()->getGuid();
     const size_t viewId = camera->getViewId();
     if (viewId == ViewTarget::kNullViewId)
       continue;  // camera has no view target associated with it, skip it
@@ -241,7 +241,7 @@ void ViewTargetSystem::update(float /*deltaTime*/) {
           // If the target entity has a transform, use its global position
           spdlog::trace("Using target entity's global position");
           // Set the target point to the target entity's global position
-          camera->targetPoint = targetTransform->GetGlobalPosition();
+          camera->targetPoint = targetTransform->getGlobalPosition();
         }
       } else {
         // If no target entity, use the target position directly
@@ -269,7 +269,7 @@ void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {
   const auto& cameras = ecs->getComponentsOfType<Camera>();
   for (const auto& camera : cameras) {
     // Found the camera, set it as the main camera for the view target
-    if (camera->GetOwner()->GetGuid() == cameraId) {
+    if (camera->getOwner()->getGuid() == cameraId) {
       camera->setViewId(viewId);
 
       spdlog::debug("Setting camera {} as main camera for view target {}", cameraId, viewId);
@@ -278,7 +278,7 @@ void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {
     else if (camera->getViewId() == viewId) {
       camera->setViewId(ViewTarget::kNullViewId);
       spdlog::trace(
-        "Unsetting camera {} from view target {} - not main camera", camera->GetOwner()->GetGuid(),
+        "Unsetting camera {} from view target {} - not main camera", camera->getOwner()->getGuid(),
         viewId
       );
     }
@@ -300,7 +300,7 @@ ViewTarget* ViewTargetSystem::getViewTarget(size_t index) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vKickOffFrameRenderingLoops() const {
+void ViewTargetSystem::KickOffFrameRenderingLoops() const {
   for (const auto& viewTarget : _viewTargets) {
     viewTarget->setInitialized();
   }

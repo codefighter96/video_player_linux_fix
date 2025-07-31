@@ -48,7 +48,7 @@ class ViewTargetSystem : public System {
       FlutterDesktopEngineState* state
     );
 
-    void vKickOffFrameRenderingLoops() const;
+    void KickOffFrameRenderingLoops() const;
 
     /// Returns the view target at the specified index.
     [[nodiscard]] ViewTarget* getViewTarget(size_t index) const;

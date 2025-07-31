@@ -103,9 +103,9 @@ class ViewTarget {
      *  Rendering
      */
     /// Sets the quality setting preset for the view target.
-    void vChangeQualitySettings(ePredefinedQualitySettings qualitySettings);
+    void ChangeQualitySettings(ePredefinedQualitySettings qualitySettings);
     /// Sets the fog options for the view target.
-    void vSetFogOptions(const filament::View::FogOptions& fogOptions);
+    void setFogOptions(const filament::View::FogOptions& fogOptions);
     /// Returns the current render settings for the view target.
     filament::viewer::Settings& getSettings() { return settings_; }
 

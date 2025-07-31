@@ -31,9 +31,9 @@ class Component : public IdentifiableType {
     friend class EntityObject;
 
   public:
-    [[nodiscard]] inline const EntityObject* GetOwner() const { return entityOwner_; }
+    [[nodiscard]] inline const EntityObject* getOwner() const { return entityOwner_; }
 
-    [[nodiscard]] virtual const std::type_info& GetType() const { return typeid(*this); }
+    [[nodiscard]] virtual const std::type_info& getType() const { return typeid(*this); }
 
     virtual void debugPrint(const std::string& tabPrefix) const = 0;
 
@@ -47,7 +47,7 @@ class Component : public IdentifiableType {
         entityOwner_(nullptr) {}
 
   private:
-    /// @deprecated Instead use GetTypeName()
+    /// @deprecated Instead use getTypeName()
     std::string name_;
 
   public:

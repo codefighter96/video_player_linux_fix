@@ -139,16 +139,16 @@ class Transform : public Component {
     /*
      *   Local
      */
-    // Getters
-    [[nodiscard]] inline EntityGUID GetParentId() const { return _parentId; }
+    // getters
+    [[nodiscard]] inline EntityGUID getParentId() const { return _parentId; }
 
-    [[nodiscard]] inline const filament::math::float3& GetPosition() const {
+    [[nodiscard]] inline const filament::math::float3& getPosition() const {
       return local.position;
     }
 
-    [[nodiscard]] inline const filament::math::float3& GetScale() const { return local.scale; }
+    [[nodiscard]] inline const filament::math::float3& getScale() const { return local.scale; }
 
-    [[nodiscard]] inline const filament::math::quatf& GetRotation() const { return local.rotation; }
+    [[nodiscard]] inline const filament::math::quatf& getRotation() const { return local.rotation; }
 
     // Setters
     inline void setPosition(const filament::math::float3& position) {
@@ -175,11 +175,11 @@ class Transform : public Component {
     /// @param target World-space target position to look at.
     /// @param up Up vector to use for the look-at operation. Defaults to Y+.
     inline void lookAt(const filament::math::float3& globalTarget) {
-      setRotation(VectorUtils::lookAt(GetGlobalPosition(), globalTarget));
+      setRotation(VectorUtils::lookAt(getGlobalPosition(), globalTarget));
     }
 
     /// Sets all transform values at once. All params are optional (nullptr)
-    inline void SetTransform(
+    inline void setTransform(
       const filament::math::float3* position = nullptr,
       const filament::math::float3* scale = nullptr,
       const filament::math::quatf* rotation = nullptr
@@ -199,7 +199,7 @@ class Transform : public Component {
       _isDirty = true;
     }
 
-    inline void SetTransform(
+    inline void setTransform(
       const filament::math::float3& position,
       const filament::math::float3& scale,
       const filament::math::quatf& rotation
@@ -210,27 +210,27 @@ class Transform : public Component {
       _isDirty = true;
     }
 
-    void SetTransform(const filament::math::mat4f& localMatrix);
+    void setTransform(const filament::math::mat4f& localMatrix);
 
     inline void setParent(EntityGUID parentId) {
       _parentId = parentId;
       _isParentDirty = true;
     }
 
-    inline void SetDirty(bool dirty) { _isDirty = dirty; }
+    inline void setDirty(bool dirty) { _isDirty = dirty; }
 
-    inline void SetParentDirty(bool dirty) { _isParentDirty = dirty; }
+    inline void setParentDirty(bool dirty) { _isParentDirty = dirty; }
 
     /*
      *   Global
      */
-    // Getters
+    // getters
     [[nodiscard]] inline bool IsDirty() const { return _isDirty; }
 
     [[nodiscard]] inline bool IsParentDirty() const { return _isParentDirty; }
 
     /// @returns The transform matrix in world space.
-    [[nodiscard]] inline const filament::math::mat4f& GetGlobalMatrix() const {
+    [[nodiscard]] inline const filament::math::mat4f& getGlobalMatrix() const {
       return global.matrix;
     }
 
@@ -238,7 +238,7 @@ class Transform : public Component {
     /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
     ///       into position, scale, and rotation.
     ///       Use this only on as-needed basis.
-    [[nodiscard]] const filament::math::float3& GetGlobalPosition() {
+    [[nodiscard]] const filament::math::float3& getGlobalPosition() {
       if (_isGlobalDirty) DecomposeGlobalMatrix();
 
       return _globalVectors.position;
@@ -248,7 +248,7 @@ class Transform : public Component {
     /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
     ///       into position, scale, and rotation.
     ///       Use this only on as-needed basis.
-    [[nodiscard]] const filament::math::float3& GetGlobalScale() {
+    [[nodiscard]] const filament::math::float3& getGlobalScale() {
       if (_isGlobalDirty) DecomposeGlobalMatrix();
 
       return _globalVectors.scale;
@@ -258,7 +258,7 @@ class Transform : public Component {
     /// @note SLOW OPERATION! If the global matrix is dirty, it will be decomposed
     ///       into position, scale, and rotation.
     ///       Use this only on as-needed basis.
-    [[nodiscard]] const filament::math::quatf& GetGlobalRotation() {
+    [[nodiscard]] const filament::math::quatf& getGlobalRotation() {
       if (_isGlobalDirty) DecomposeGlobalMatrix();
 
       return _globalVectors.rotation;
@@ -267,22 +267,22 @@ class Transform : public Component {
     // Setters
 
     // TODO
-    // void SetGlobalMatrix(const filament::math::mat4f& matrix) {
+    // void setGlobalMatrix(const filament::math::mat4f& matrix) {
     //   throw std::runtime_error("Not implemented");
     // }
 
     // TODO
-    // void SetGlobalPosition(const filament::math::float3& position) {
+    // void setGlobalPosition(const filament::math::float3& position) {
 
     // }
 
     // TODO
-    // void SetGlobalScale(const filament::math::float3& scale) {
+    // void setGlobalScale(const filament::math::float3& scale) {
 
     // }
 
     // TODO
-    // void SetGlobalRotation(const filament::math::quatf& rotation) {
+    // void setGlobalRotation(const filament::math::quatf& rotation) {
 
     // }
 

@@ -61,10 +61,10 @@ class Model : public RenderableEntityObject {
       return m_poAssetInstance;
     }
 
-    [[nodiscard]] std::shared_ptr<Transform> GetTransform() const {
+    [[nodiscard]] std::shared_ptr<Transform> getTransform() const {
       return getComponent<Transform>();
     }
-    [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
+    [[nodiscard]] std::shared_ptr<CommonRenderable> getCommonRenderable() const {
       return getComponent<CommonRenderable>();
     }
 
@@ -94,11 +94,11 @@ class Model : public RenderableEntityObject {
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
     /// TODO: move to CommonRenderable
-    void vChangeMaterialDefinitions(
+    void ChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,
       const TextureMap& /*loadedTextures*/
     ) override;
-    void vChangeMaterialInstanceProperty(
+    void ChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
       const TextureMap& /*loadedTextures*/
     ) override;

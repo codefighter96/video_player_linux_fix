@@ -39,7 +39,7 @@ class DebugLine final {
       float fTimeToLive
     );
     ~DebugLine() = default;
-    void vCleanup(filament::Engine* engine);
+    void Cleanup(filament::Engine* engine);
 
     float m_fRemainingTime;
     FilamentEntity _fEntity;
@@ -67,14 +67,14 @@ class DebugLinesSystem final : public System {
     void onSystemInit() override;
     void onDestroy() override;
 
-    void vAddLine(
+    void AddLine(
       ::filament::math::float3 startPoint,
       ::filament::math::float3 endPoint,
       float secondsTimeout
     );
 
     // called from onDestroy during the systems shutdown routine.
-    void vCleanup();
+    void Cleanup();
 
   private:
     bool m_bCurrentlyDrawingDebugLines = false;

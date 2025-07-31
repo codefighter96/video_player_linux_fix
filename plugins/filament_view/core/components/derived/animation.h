@@ -35,8 +35,8 @@ class Animation final : public Component {
 
     [[nodiscard]] inline Component* Clone() const override { return new Animation(*this); }
 
-    void vSetAnimator(filament::gltfio::Animator& animator);
-    void vPlayAnimation(int32_t index);
+    void setAnimator(filament::gltfio::Animator& animator);
+    void PlayAnimation(int32_t index);
     [[maybe_unused]] bool bPlayAnimation(const std::string& szName);
 
     void update(float deltaTime);
@@ -48,17 +48,17 @@ class Animation final : public Component {
       m_fPlaybackSpeedScalar = playbackSpeedScalar;
     }
 
-    inline void vSetPaused(bool paused) { m_bPaused = paused; }
+    inline void setPaused(bool paused) { m_bPaused = paused; }
 
-    inline void vPause() { m_bPaused = true; }
+    inline void Pause() { m_bPaused = true; }
 
-    inline void vResume() { m_bPaused = false; }
+    inline void Resume() { m_bPaused = false; }
 
     // Queue management
-    void vEnqueueAnimation(int32_t index);
-    void vClearQueue();
+    void EnqueueAnimation(int32_t index);
+    void ClearQueue();
 
-    inline void vSetLooping(bool enable) { m_bLoop = enable; }
+    inline void setLooping(bool enable) { m_bLoop = enable; }
 
   private:
     int32_t m_nCurrentPlayingIndex{};
@@ -75,7 +75,7 @@ class Animation final : public Component {
 
     // Setup when the animator is set.
     std::map<std::string, size_t> m_mapAnimationNamesToIndex;
-    void vSetupAnimationNameMapping();
+    void setupAnimationNameMapping();
 
     std::queue<int32_t> m_queAnimationQueue;
 };

@@ -467,7 +467,7 @@ void Cube::createDoubleSidedCube(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -736,7 +736,7 @@ void Cube::createSingleSidedCube(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////

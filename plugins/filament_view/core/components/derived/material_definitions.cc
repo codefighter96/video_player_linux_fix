@@ -120,7 +120,7 @@ std::string MaterialDefinitions::szGetMaterialDefinitionLookupName() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<MaterialParameter*> MaterialDefinitions::vecGetTextureMaterialParameters() const {
+std::vector<MaterialParameter*> MaterialDefinitions::getTextureMaterialParameters() const {
   std::vector<MaterialParameter*> returnVector;
 
   for (const auto& [fst, snd] : parameters_) {
@@ -134,7 +134,7 @@ std::vector<MaterialParameter*> MaterialDefinitions::vecGetTextureMaterialParame
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void MaterialDefinitions::vApplyMaterialParameterToInstance(
+void MaterialDefinitions::ApplyMaterialParameterToInstance(
   filament::MaterialInstance* materialInstance,
   const MaterialParameter* param,
   const TextureMap& loadedTextures
@@ -204,7 +204,7 @@ void MaterialDefinitions::vApplyMaterialParameterToInstance(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
+void MaterialDefinitions::setMaterialInstancePropertiesFromMyPropertyMap(
   const filament::Material* materialResult,
   filament::MaterialInstance* materialInstance,
   const TextureMap& loadedTextures
@@ -232,7 +232,7 @@ void MaterialDefinitions::vSetMaterialInstancePropertiesFromMyPropertyMap(
       }
       SPDLOG_TRACE("Setting material param {}", param.name);
 
-      vApplyMaterialParameterToInstance(materialInstance, iter->second.get(), loadedTextures);
+      ApplyMaterialParameterToInstance(materialInstance, iter->second.get(), loadedTextures);
     }
   }
 }

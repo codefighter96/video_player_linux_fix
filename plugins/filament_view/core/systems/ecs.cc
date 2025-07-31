@@ -44,7 +44,7 @@ ECSManager::ECSManager()
     strand_(std::make_unique<asio::io_context::strand>(*io_context_)),
     m_eCurrentState(NotInitialized) {
   spdlog::trace("++ECSManager++");
-  vSetupThreadingInternals();
+  setupThreadingInternals();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ void ECSManager::StartMainLoop() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSManager::vSetupThreadingInternals() {
+void ECSManager::setupThreadingInternals() {
   filament_api_thread_ = std::thread([this] {
     // Save this thread's ID as it runs io_context_->run()
     filament_api_thread_id_ = pthread_self();
@@ -129,7 +129,7 @@ void ECSManager::StopMainLoop() {
   // Stop the io_context
   io_context_->stop();
 
-  // Reset the work guard
+  // reset the work guard
   work_.reset();
 
   // Join the filament_api_thread_
@@ -154,7 +154,7 @@ void ECSManager::checkHasEntity(EntityGUID id) {
 void ECSManager::addEntity(const std::shared_ptr<EntityObject>& entity, const EntityGUID* parent) {
   {  // lock scope
     std::lock_guard lock(_entitiesMutex);
-    const EntityGUID id = entity->GetGuid();
+    const EntityGUID id = entity->getGuid();
     if (_entities.get(id)) {
       spdlog::error("[{}] Entity with GUID {} already exists", __FUNCTION__, id);
       return;
@@ -207,7 +207,7 @@ void ECSManager::reparentEntity(
   const EntityGUID& parentGuid
 ) {
   try {
-    _entities.reparent(entity->GetGuid(), &parentGuid);
+    _entities.reparent(entity->getGuid(), &parentGuid);
   } catch (const std::runtime_error& e) {
     spdlog::error("[ECSManager::ReparentEntityObject] {}", e.what());
   }
@@ -251,7 +251,7 @@ std::optional<EntityGUID> ECSManager::getEntityParentGuid(EntityGUID id) {
   const auto* node = _entities.get(id);
   if (!node) {
     spdlog::error(
-      "[ECSManager::GetEntityParentGuid] Unable to find "
+      "[ECSManager::getEntityParentGuid] Unable to find "
       "entity with id {}",
       id
     );
@@ -331,7 +331,7 @@ void ECSManager::addComponent(
   EntityObject* entity = getEntity(entityGuid).get();
 
   // Add the component to the map
-  const TypeID componentId = component->GetTypeID();
+  const TypeID componentId = component->getTypeID();
   std::unique_lock lock(_componentsMutex);
 
   if (_components.find(componentId) == _components.end()) {
@@ -344,7 +344,7 @@ void ECSManager::addComponent(
   if (componentMap[entityGuid]) {
     spdlog::warn(
       "[{}] Component '{}' already exists for entity({}), overwriting",  //
-      __FUNCTION__, component->GetTypeName(), entityGuid
+      __FUNCTION__, component->getTypeName(), entityGuid
     );
   }
 
@@ -352,7 +352,7 @@ void ECSManager::addComponent(
   componentMap[entityGuid] = component;
   entity->onAddComponent(component);
   spdlog::trace(
-    "[{}] Added component {} to entity with id {}", __FUNCTION__, component->GetTypeName(),
+    "[{}] Added component {} to entity with id {}", __FUNCTION__, component->getTypeName(),
     entityGuid
   );
 }
@@ -388,11 +388,11 @@ void ECSManager::initialize() {
   // an already asio post, Leaving this commented out so you know
   // that you could change up the routine, but if you do
   // it needs to run on the main thread.
-  // asio::post(*ECSManager::GetInstance()->GetStrand(), [&] {
+  // asio::post(*ECSManager::GetInstance()->getStrand(), [&] {
   std::string systemName = "(null)";
   for (auto& [systemId, system] : _systems) {
     try {
-      systemName = system->GetTypeName();
+      systemName = system->getTypeName();
       spdlog::debug(
         "Initializing system {} ({}) at address {}", systemName, systemId,
         static_cast<void*>(system.get())
@@ -445,17 +445,17 @@ std::shared_ptr<System> ECSManager::getSystem(TypeID systemTypeID, const std::st
 
 void ECSManager::addSystem(const std::shared_ptr<System>& system) {
   std::unique_lock lock(_systemsMutex);
-  const TypeID systemId = system->GetTypeID();
+  const TypeID systemId = system->getTypeID();
 
   // Check if the system is already registered
   if (_systems.find(systemId) != _systems.end()) {
     throw std::runtime_error(
-      fmt::format("System {} ({}) is already registered", system->GetTypeName(), systemId)
+      fmt::format("System {} ({}) is already registered", system->getTypeName(), systemId)
     );
   }
 
   spdlog::trace(
-    "Adding system {} ({}) at address {}", system->GetTypeName(), systemId,
+    "Adding system {} ({}) at address {}", system->getTypeName(), systemId,
     static_cast<void*>(system.get())
   );
 
@@ -471,7 +471,7 @@ void ECSManager::removeSystem(TypeID systemTypeId) {
 
   spdlog::trace(
     "Removed system {} ({}) at address {}",  //
-    system->GetTypeName(), systemTypeId, static_cast<void*>(system.get())
+    system->getTypeName(), systemTypeId, static_cast<void*>(system.get())
   );
 }
 
@@ -489,7 +489,7 @@ void ECSManager::update(const float deltaTime) {
   // Iterate over the copy without holding the mutex
   for (auto& [id, system] : systemsCopy) {
     if (system) {
-      system->vProcessMessages();
+      system->ProcessMessages();
       system->update(deltaTime);
     } else {
       spdlog::error("Encountered null system pointer!");
@@ -503,14 +503,14 @@ void ECSManager::debugPrint() const {
     spdlog::debug(
       "[{}] system {} at address {}, "
       "use_count={}",
-      __FUNCTION__, system->GetTypeName(), static_cast<void*>(system.get()), system.use_count()
+      __FUNCTION__, system->getTypeName(), static_cast<void*>(system.get()), system.use_count()
     );
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::destroy() {
-  post(*this->GetStrand(), [&] {
+  post(*this->getStrand(), [&] {
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
@@ -524,7 +524,7 @@ void ECSManager::destroy() {
 
       if (system) {
         spdlog::trace(
-          "Shutting down system {} ({}) at address {}", system->GetTypeName(), id,
+          "Shutting down system {} ({}) at address {}", system->getTypeName(), id,
           static_cast<void*>(system.get())
         );
 

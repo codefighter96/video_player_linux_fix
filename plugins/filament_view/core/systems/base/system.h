@@ -46,19 +46,19 @@ class System : public IdentifiableType, public LifecycleParticipant<ECSManager> 
     virtual ~System() = default;
 
     // Send a message to the system
-    void vSendMessage(const ECSMessage& msg);
+    void SendMessage(const ECSMessage& msg);
 
     // Register a message handler for a specific message type
-    void vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler);
+    void registerMessageHandler(ECSMessageType type, const ECSMessageHandler& handler);
 
     // Unregister all handlers for a specific message type
-    void vUnregisterMessageHandler(ECSMessageType type);
+    void UnregisterMessageHandler(ECSMessageType type);
 
     // Clear all message handlers
-    void vClearMessageHandlers();
+    void ClearMessageHandlers();
 
     // Process incoming messages
-    virtual void vProcessMessages();
+    virtual void ProcessMessages();
 
     /// @brief Initialize the system with the ECSManager, then calls onSystemInit()
     void onInitialize(const ECSManager& params) override {
@@ -76,18 +76,18 @@ class System : public IdentifiableType, public LifecycleParticipant<ECSManager> 
 
     virtual void debugPrint() = 0;
 
-    void vSetupMessageChannels(
+    void setupMessageChannels(
       flutter::PluginRegistrar* poPluginRegistrar,
       const std::string& szChannelName
     );
 
-    void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
+    void SendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
   protected:
     smarter_raw_ptr<ECSManager> ecs = nullptr;
 
     // Handle a specific message type by invoking the registered handlers
-    virtual void vHandleMessage(const ECSMessage& msg);
+    virtual void handleMessage(const ECSMessage& msg);
 
   private:
     std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages

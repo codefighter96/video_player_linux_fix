@@ -66,7 +66,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
   }
 
   const auto materialInstance = materialResult->createInstance();
-  materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
+  materialDefinitions->setMaterialInstancePropertiesFromMyPropertyMap(
     materialResult, materialInstance, loadedTextures_
   );
 
@@ -111,7 +111,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
   // here we need to see if any & all textures that are requested on the
   // material be loaded before we create an instance of it.
-  const auto materialsRequiredTextures = materialDefinitions->vecGetTextureMaterialParameters();
+  const auto materialsRequiredTextures = materialDefinitions->getTextureMaterialParameters();
   for (const auto materialParam : materialsRequiredTextures) {
     try {
       // Call the getTextureValue method
@@ -161,7 +161,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::onSystemInit() {
-  vRegisterMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialParameter");
 
     const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
@@ -175,13 +175,13 @@ void MaterialSystem::onSystemInit() {
       const auto parameter = MaterialParameter::Deserialize("", params);
 
       const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->vChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
+      renderable->ChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
     }
 
     spdlog::debug("ChangeMaterialParameter Complete");
   });
 
-  vRegisterMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialDefinitions");
 
     const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
@@ -194,7 +194,7 @@ void MaterialSystem::onSystemInit() {
       spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
       const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->vChangeMaterialDefinitions(params, loadedTextures_);
+      renderable->ChangeMaterialDefinitions(params, loadedTextures_);
     }
 
     spdlog::debug("ChangeMaterialDefinitions Complete");

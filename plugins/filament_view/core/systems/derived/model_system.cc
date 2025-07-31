@@ -234,11 +234,11 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   // Set up transform
   auto transform = model->getComponent<Transform>();
   transform->_fInstance = _tm->getInstance(instanceEntity);
-  transform->SetDirty(true);
+  transform->setDirty(true);
   /// NOTE: why is this needed? if this is not called the collider doesn't work,
   //        even though it's visible
   ecs->getSystem<TransformSystem>("ModelSystem::addModelToScene")
-    ->applyTransform(model->GetGuid(), true);
+    ->applyTransform(model->getGuid(), true);
 
   // Set up renderable
   auto renderable = model->getComponent<CommonRenderable>();
@@ -257,7 +257,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   }
   if (animatorInstance != nullptr && model->hasComponent<Animation>()) {
     const auto animator = model->getComponent<Animation>();
-    animator->vSetAnimator(*animatorInstance);
+    animator->setAnimator(*animatorInstance);
 
     // Great if you need help with your animation information!
     // animationPtr->debugPrint("From ModelSystem::addModelToScene\t");
@@ -289,10 +289,10 @@ void ModelSystem::setupRenderable(
   child->_fEntity = fEntity;
   child->name = asset->getName(fEntity);
   spdlog::trace(
-    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->name, child->GetGuid(),
-    fEntity.getId(), model->name, model->GetGuid()
+    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->name, child->getGuid(),
+    fEntity.getId(), model->name, model->getGuid()
   );
-  model->_childrenEntities[fEntity] = child->GetGuid();
+  model->_childrenEntities[fEntity] = child->getGuid();
 
   /*
    * Transform
@@ -303,7 +303,7 @@ void ModelSystem::setupRenderable(
   if (!ti.isValid()) {
     spdlog::trace(
       "[{}] Skipping fentity {} of model({}), has no transform", __FUNCTION__, fEntity.getId(),
-      model->GetGuid()
+      model->getGuid()
     );
     return;
   }
@@ -311,7 +311,7 @@ void ModelSystem::setupRenderable(
   // Set up Transform component
   auto transform = Transform();
   transform._fInstance = ti;
-  transform.SetTransform(_tm->getTransform(ti));
+  transform.setTransform(_tm->getTransform(ti));
   auto parentEntity = _tm->getParent(ti);
 
   spdlog::trace("  Parent entity: [{}]", parentEntity.getId());
@@ -325,14 +325,14 @@ void ModelSystem::setupRenderable(
   if (!ri.isValid()) {
     spdlog::trace(
       "[{}] Skipping fentity {} of model({}), has no renderable", __FUNCTION__, fEntity.getId(),
-      model->GetGuid()
+      model->getGuid()
     );
 
     ecs->addEntity(child);
     return;
   }
 
-  const auto commonRenderable = model->GetCommonRenderable();
+  const auto commonRenderable = model->getCommonRenderable();
   _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
   _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
   _rcm->setScreenSpaceContactShadows(ri, false);
@@ -376,11 +376,11 @@ void ModelSystem::setupRenderable(
 
         // attach collider
         auto collider = Collider();
-        collider.SetIsStatic(false);
+        collider.setIsStatic(false);
         collider.eventName = eventName;
         // collider._aabb = aabb;
         // NOTE: extents automatically set from AABB by CollisionSystem
-        // collider.SetShapeType(isCube ? ShapeType::Cube :
+        // collider.setShapeType(isCube ? ShapeType::Cube :
         //                                   ShapeType::Sphere);
         child->addComponent(collider);
 
@@ -480,14 +480,14 @@ void ModelSystem::updateAsyncAssetLoading() {
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::queueModelLoad(std::shared_ptr<Model> model) {
   spdlog::trace(
-    "Queueing model({}) load (instance mode: {}) -> {}", model->GetGuid(),
+    "Queueing model({}) load (instance mode: {}) -> {}", model->getGuid(),
     modelInstancingModeToString(model->getInstancingMode()), model->getAssetPath()
   );
 
   try {
     const auto baseAssetPath = ecs->getConfigValue<std::string>(kAssetPath);
     const auto modelAssetPath = model->getAssetPath();
-    const EntityGUID modelGuid = model->GetGuid();
+    const EntityGUID modelGuid = model->getGuid();
     const ModelInstancingMode instanceMode = model->getInstancingMode();
 
     AssetDescriptor& assetData = _assets[modelAssetPath];
@@ -543,7 +543,7 @@ void ModelSystem::queueModelLoad(std::shared_ptr<Model> model) {
 void ModelSystem::loadModelFromFile(EntityGUID modelGuid, const std::string& baseAssetPath) {
   spdlog::trace("++ loadModelFromFile");
 
-  const auto& strand = *ecs->GetStrand();
+  const auto& strand = *ecs->getStrand();
   post(strand, [&, modelGuid, baseAssetPath]() mutable {
     spdlog::trace("++ loadModelFromFile (lambda), model guid: {}", modelGuid);
     // Get model
@@ -654,7 +654,7 @@ void ModelSystem::onSystemInit() {
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
   // TODO: add support for other texture formats here
 
-  vRegisterMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
     spdlog::debug("ToggleVisualForEntity");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);

@@ -38,12 +38,12 @@ void TransformSystem::onDestroy() {
   spdlog::debug("TransformSystem shutdown");
 }
 
-void TransformSystem::vProcessMessages() {
+void TransformSystem::ProcessMessages() {
   // Process incoming messages
   // spdlog::debug("TransformSystem processing messages");
 }
 
-void TransformSystem::vHandleMessage(const ECSMessage& /* msg */) {
+void TransformSystem::handleMessage(const ECSMessage& /* msg */) {
   // Handle incoming messages
   // spdlog::debug("TransformSystem handling message");
 }
@@ -70,7 +70,7 @@ void TransformSystem::updateFilamentParentTree() {
     if (!transform->IsParentDirty()) continue;
 
     // Get the parent transform
-    const auto parentTransform = ecs->getComponent<Transform>(transform->GetParentId());
+    const auto parentTransform = ecs->getComponent<Transform>(transform->getParentId());
     applyParent(*transform, parentTransform.get());
   }
 }
@@ -95,7 +95,7 @@ void TransformSystem::applyTransform(Transform& transform, const bool forceRecal
     return;
   }
 
-  const EntityGUID entityId = transform.GetOwner()->GetGuid();
+  const EntityGUID entityId = transform.getOwner()->getGuid();
   filament::math::mat4f localMatrix = filament::gltfio::composeMatrix(
     transform.local.position, transform.local.rotation, transform.local.scale
   );
@@ -112,7 +112,7 @@ void TransformSystem::applyTransform(Transform& transform, const bool forceRecal
   tm->setTransform(_fInstance, localMatrix);
   transform.global.matrix = tm->getWorldTransform(_fInstance);
   transform._isGlobalDirty = true;  // mark global as dirty
-  transform.SetDirty(false);        // reset
+  transform.setDirty(false);        // reset
 }
 
 void TransformSystem::applyParent(Transform& child, const Transform* parent) {
@@ -121,7 +121,7 @@ void TransformSystem::applyParent(Transform& child, const Transform* parent) {
   const auto parentInstance = !!parent ? parent->_fInstance : FilamentTransformInstance();
 
   applyParent(childInstance, parentInstance);
-  child.SetParentDirty(false);  // reset
+  child.setParentDirty(false);  // reset
 }
 
 void TransformSystem::applyParent(const FilamentEntity& child, const FilamentEntity* parent) {

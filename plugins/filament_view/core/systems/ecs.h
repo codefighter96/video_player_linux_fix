@@ -40,7 +40,7 @@ class ECSManager {
   private:
     std::map<std::string, std::any> m_mapConfigurationValues;
 
-    void vSetupThreadingInternals();
+    void setupThreadingInternals();
 
     void MainLoop();
 
@@ -236,15 +236,15 @@ class ECSManager {
      * Send a message to all registered systems
      * \deprecated Deprecated in favor of queueTask
      */
-    void vRouteMessage(const ECSMessage& msg) {
+    void RouteMessage(const ECSMessage& msg) {
       std::unique_lock<std::mutex> lock(_systemsMutex);
       // for (const auto& system : _systems) {
-      //   system->vSendMessage(msg);
+      //   system->SendMessage(msg);
       // }
 
       // _systems is a map
       for (auto& [_, system] : _systems) {
-        system->vSendMessage(msg);
+        system->SendMessage(msg);
       }
     }
 
@@ -252,15 +252,15 @@ class ECSManager {
     //  Threading
     //
 
-    [[nodiscard]] inline pthread_t GetFilamentAPIThreadID() const {
+    [[nodiscard]] inline pthread_t getFilamentAPIThreadID() const {
       return filament_api_thread_id_;
     }
 
-    [[nodiscard]] inline const std::thread& GetFilamentAPIThread() const {
+    [[nodiscard]] inline const std::thread& getFilamentAPIThread() const {
       return filament_api_thread_;
     }
 
-    [[nodiscard]] inline std::unique_ptr<asio::io_context::strand>& GetStrand() { return strand_; }
+    [[nodiscard]] inline std::unique_ptr<asio::io_context::strand>& getStrand() { return strand_; }
 
     //
     //  Global state (configuration)
@@ -270,7 +270,7 @@ class ECSManager {
       m_mapConfigurationValues[key] = value;
     }
 
-    // Getter for any type of value
+    // getter for any type of value
     template<typename T> T getConfigValue(const std::string& key) const {
       auto it = m_mapConfigurationValues.find(key);
       if (it != m_mapConfigurationValues.end()) {

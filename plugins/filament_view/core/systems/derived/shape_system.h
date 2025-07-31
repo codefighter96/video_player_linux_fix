@@ -46,10 +46,10 @@ class ShapeSystem : public System {
     ShapeSystem& operator=(const ShapeSystem&) = delete;
 
     // will add/remove already made entities to/from the scene
-    void vToggleAllShapesInScene(bool enable) const;
-    void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
+    void ToggleAllShapesInScene(bool enable) const;
+    void ToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
-    void vRemoveAllShapesInScene();
+    void RemoveAllShapesInScene();
 
     // Creates the derived class of BaseShape based on the map data sent in, does
     // not add it to any list only returns the shape for you, Also does not build

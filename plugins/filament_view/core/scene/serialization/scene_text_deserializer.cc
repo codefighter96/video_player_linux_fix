@@ -41,12 +41,12 @@ SceneTextDeserializer::SceneTextDeserializer(const std::vector<uint8_t>& params)
 
   // kick off process...
   spdlog::debug("[{}] deserializing root...", __FUNCTION__);
-  vDeserializeRootLevel(params, flutterAssetsPath);
+  DeserializeRootLevel(params, flutterAssetsPath);
   spdlog::debug("[{}] deserializing root done!", __FUNCTION__);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void SceneTextDeserializer::vDeserializeRootLevel(
+void SceneTextDeserializer::DeserializeRootLevel(
   const std::vector<uint8_t>& params,
   const std::string& /* flutterAssetsPath */
 ) {
@@ -57,7 +57,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
   for (const auto& [fst, snd] : *creationParams) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_DEBUG("vDeserializeRootLevel ITER is null {} {}", key.c_str(), __FUNCTION__);
+      SPDLOG_DEBUG("DeserializeRootLevel ITER is null {} {}", key.c_str(), __FUNCTION__);
       continue;
     }
 
@@ -81,7 +81,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
       spdlog::debug("Deserialized {} models", models_.size());
     } else if (key == kScene) {
       spdlog::debug("===== Deserializing Scene {} ...", key);
-      vDeserializeSceneLevel(snd);
+      DeserializeSceneLevel(snd);
     } else if (key == kShapes && std::holds_alternative<flutter::EncodableList>(snd)) {
       auto list = std::get<flutter::EncodableList>(snd);
 
@@ -135,13 +135,11 @@ void SceneTextDeserializer::vDeserializeRootLevel(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue& params) {
+void SceneTextDeserializer::DeserializeSceneLevel(const flutter::EncodableValue& params) {
   for (const auto& [fst, snd] : std::get<flutter::EncodableMap>(params)) {
     auto key = std::get<std::string>(fst);
     if (snd.IsNull()) {
-      SPDLOG_WARN(
-        "vDeserializeSceneLevel Param ITER is null key:{} function:{}", key, __FUNCTION__
-      );
+      SPDLOG_WARN("DeserializeSceneLevel Param ITER is null key:{} function:{}", key, __FUNCTION__);
       continue;
     }
 
@@ -194,7 +192,7 @@ void SceneTextDeserializer::vDeserializeSceneLevel(const flutter::EncodableValue
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-void SceneTextDeserializer::vRunPostSetupLoad() {
+void SceneTextDeserializer::RunPostSetupLoad() {
   spdlog::debug("Running post setup load...");
 
   spdlog::trace("setUpLoadingModels");
@@ -245,14 +243,14 @@ void SceneTextDeserializer::setUpShapes() {
   }
 
   for (const auto& shape : shapes_) {
-    spdlog::trace("Adding shape to scene {}", shape->GetGuid());
+    spdlog::trace("Adding shape to scene {}", shape->getGuid());
     _ecs->addEntity(shape);
     /// TODO: fix shape colliders
     // spdlog::trace("Adding collider...");
     // if (shape->hasComponent<Collider>()) {
     //   spdlog::trace("Shape {} has collider! Adding to collision system",
-    //   shape->GetGuid()); if (collisionSystem != nullptr) {
-    //     collisionSystem->vAddCollidable(shape.get());
+    //   shape->getGuid()); if (collisionSystem != nullptr) {
+    //     collisionSystem->AddCollidable(shape.get());
     //   }
     // }
     // spdlog::trace("Collider added!");
@@ -272,7 +270,7 @@ void SceneTextDeserializer::setUpEntities() {
 
   // For each entity
   for (const auto& entity : entities_) {
-    const auto entityGuid = entity->GetGuid();
+    const auto entityGuid = entity->getGuid();
     // Add the entity to the ECS
     spdlog::trace("Adding entity '{}'({}) to ECS", entity->name, entityGuid);
     _ecs->addEntity(entity);
@@ -287,7 +285,7 @@ void SceneTextDeserializer::setUpEntities() {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void SceneTextDeserializer::loadModel(std::shared_ptr<Model>& model) {
-  const auto& strand = *_ecs->GetStrand();
+  const auto& strand = *_ecs->getStrand();
 
   post(strand, [model = std::move(model)]() mutable {
     const auto modelSystem = ECSManager::GetInstance()->getSystem<ModelSystem>("loadModel");
@@ -363,16 +361,16 @@ void SceneTextDeserializer::setUpLights() {
     );
 
     _ecs->addEntity(newEntity);
-    _ecs->addComponent(newEntity->GetGuid(), snd);
+    _ecs->addComponent(newEntity->getGuid(), snd);
 
-    lightSystem->vBuildLightAndAddToScene(*snd);
+    lightSystem->BuildLightAndAddToScene(*snd);
   }
 
   // if a light didnt get deserialized, tell light system to create a default
   // one.
   if (lights_.empty()) {
     SPDLOG_DEBUG("No lights found, creating default light");
-    lightSystem->vCreateDefaultLight();
+    lightSystem->CreateDefaultLight();
   }
 
   lights_.clear();

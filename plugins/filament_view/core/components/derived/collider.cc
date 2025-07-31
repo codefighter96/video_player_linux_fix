@@ -149,7 +149,7 @@ bool Collider::intersects(
 
   // Transform AABB to global space
   // TODO: skip if transform has no parent (local = global)
-  filament::math::mat4f globalMatrix = transform->GetGlobalMatrix();
+  filament::math::mat4f globalMatrix = transform->getGlobalMatrix();
   center = VectorUtils::transformPositionVector(center, globalMatrix);
   extents = VectorUtils::transformScaleVector(extents, globalMatrix);
 
@@ -166,7 +166,7 @@ bool Collider::intersects(
       if (float discriminant = b * b - 4 * a * c; discriminant > 0) {
         if (float t = (-b - sqrt(discriminant)) / (2.0f * a); t > 0) {
           hitPosition = rayOrigin + t * rayDirection;
-          SPDLOG_INFO("Collided with sphere {}", GetOwner()->GetGuid());
+          SPDLOG_INFO("Collided with sphere {}", getOwner()->getGuid());
           doesIntersect = true;  // Ray hits the sphere
         }
       }
@@ -207,7 +207,7 @@ bool Collider::intersects(
 
       if (tmin > 0) {
         hitPosition = rayOrigin + tmin * rayDirection;
-        SPDLOG_INFO("Collided with cube {}", GetOwner()->GetGuid());
+        SPDLOG_INFO("Collided with cube {}", getOwner()->getGuid());
         doesIntersect = true;  // Ray hits the cube
       }
       break;
@@ -229,7 +229,7 @@ bool Collider::intersects(
           // extents `extents`
           if (filament::math::float3 localHit = hitPosition - center;
               fabs(localHit.x) <= extents.x * 0.5f && fabs(localHit.z) <= extents.z * 0.5f) {
-            SPDLOG_INFO("Collided with quad {}", GetOwner()->GetGuid());
+            SPDLOG_INFO("Collided with quad {}", getOwner()->getGuid());
             doesIntersect = true;  // Ray hits the quad
           }
         }
@@ -245,7 +245,7 @@ bool Collider::intersects(
 
   // Intersection found
   if (doesIntersect) {
-    spdlog::debug("== INTERSECTION FOUND == ({})", GetOwner()->GetGuid());
+    spdlog::debug("== INTERSECTION FOUND == ({})", getOwner()->getGuid());
     spdlog::debug("AABB.pos: x={}, y={}, z={} (global)", center.x, center.y, center.z);
     spdlog::debug("AABB.size: x={}, y={}, z={} (global)", extents.x, extents.y, extents.z);
     return true;

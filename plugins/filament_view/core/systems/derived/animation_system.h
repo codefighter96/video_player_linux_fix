@@ -46,7 +46,7 @@ class AnimationSystem : public System {
     void debugPrint() override;
 
   private:
-    void vNotifyOfAnimationEvent(
+    void NotifyOfAnimationEvent(
       const EntityGUID entityGuid,
       const AnimationEventType& eType,
       const std::string& eventData

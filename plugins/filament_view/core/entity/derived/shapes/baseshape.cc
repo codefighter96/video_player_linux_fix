@@ -78,14 +78,14 @@ void BaseShape::onInitialize() {
 
 ////////////////////////////////////////////////////////////////////////////
 BaseShape::~BaseShape() {
-  vRemoveEntityFromScene();
-  vDestroyBuffers();
+  RemoveEntityFromScene();
+  DestroyBuffers();
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vDestroyBuffers() {
+void BaseShape::DestroyBuffers() {
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
-    "BaseShape::vDestroyBuffers"
+    "BaseShape::DestroyBuffers"
   );
   const auto filamentEngine = filamentSystem->getFilamentEngine();
 
@@ -117,8 +117,8 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   other.m_bHasTexturedMaterial = m_bHasTexturedMaterial;
 
   // and now components.
-  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<Transform>(), other);
-  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(), other);
+  this->ShallowCopyComponentToOther(Component::StaticGetTypeID<Transform>(), other);
+  this->ShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(), other);
 
   const std::shared_ptr<Transform> transformPtr = ecs->getComponent<Transform>(guid_);
 
@@ -130,7 +130,7 @@ void BaseShape::CloneToOther(BaseShape& other) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vBuildRenderable(filament::Engine* engine_) {
+void BaseShape::BuildRenderable(filament::Engine* engine_) {
   checkInitialized();
   // material_manager can and will be null for now on wireframe creation.
 
@@ -149,7 +149,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
       break;
   }
 
-  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, name, GetGuid());
+  spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, name, getGuid());
 
   const auto transform = getComponent<Transform>();
 #if SPDLOG_LEVEL == trace
@@ -173,7 +173,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
       .castShadows(false)
       .build(*engine_, _fEntity);
   } else {
-    vLoadMaterialDefinitionsToMaterialInstance();
+    LoadMaterialDefinitionsToMaterialInstance();
 
     RenderableManager::Builder(1)
       .boundingBox({{}, aabb})
@@ -189,14 +189,14 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
   renderable->_fInstance = engine_->getRenderableManager().getInstance(_fEntity);
 
   // Get parent entity id
-  const auto parentId = transform->GetParentId();
+  const auto parentId = transform->getParentId();
 
-  const auto transformSystem = ecs->getSystem<TransformSystem>("BaseShape::vBuildRenderable");
+  const auto transformSystem = ecs->getSystem<TransformSystem>("BaseShape::BuildRenderable");
   if (parentId != kNullGuid) {
     // Get the parent entity object
     auto parentEntity = ecs->getEntity(parentId);
 
-    transform->setParent(parentEntity->GetGuid());
+    transform->setParent(parentEntity->getGuid());
   }
 
   /// NOTE: why is this needed? if this is not called the collider doesn't work,
@@ -209,30 +209,30 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vRemoveEntityFromScene() const {
+void BaseShape::RemoveEntityFromScene() const {
   if (!_fEntity) {
     spdlog::warn("Attempt to remove uninitialized shape from scene {}", __FUNCTION__);
     return;
   }
 
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("BaseShape::vRemoveEntityFromScene");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("BaseShape::RemoveEntityFromScene");
 
   filamentSystem->getFilamentScene()->remove(_fEntity);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vAddEntityToScene() const {
+void BaseShape::AddEntityToScene() const {
   if (!_fEntity) {
     spdlog::warn("Attempt to add uninitialized shape to scene {}", __FUNCTION__);
     return;
   }
 
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("BaseShape::vRemoveEntityFromScene");
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("BaseShape::RemoveEntityFromScene");
   filamentSystem->getFilamentScene()->addEntity(_fEntity);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::debugPrint() const { vdebugPrintComponents(); }
+void BaseShape::debugPrint() const { debugPrintComponents(); }
 
 ////////////////////////////////////////////////////////////////////////////
 void BaseShape::debugPrint(const char* tag) const {
@@ -248,7 +248,7 @@ void BaseShape::debugPrint(const char* tag) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vChangeMaterialDefinitions(
+void BaseShape::ChangeMaterialDefinitions(
   const flutter::EncodableMap& params,
   const TextureMap& /*loadedTextures*/
 ) {
@@ -267,11 +267,11 @@ void BaseShape::vChangeMaterialDefinitions(
   auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
   ecs->addComponent(guid_, std::move(materialDefinitions));
 
-  m_poMaterialInstance.vReset();
+  m_poMaterialInstance.reset();
 
   // then tell material system to load us the correct way once
   // we're deserialized.
-  vLoadMaterialDefinitionsToMaterialInstance();
+  LoadMaterialDefinitionsToMaterialInstance();
 
   if (m_poMaterialInstance.getStatus() != Status::Success) {
     spdlog::error("Unable to load material definition to instance, bailing out.");
@@ -280,7 +280,7 @@ void BaseShape::vChangeMaterialDefinitions(
 
   // now, reload / rebuild the material?
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
-    "BaseShape::vChangeMaterialDefinitions"
+    "BaseShape::ChangeMaterialDefinitions"
   );
 
   // If your entity has multiple primitives, you’ll need to call
@@ -291,7 +291,7 @@ void BaseShape::vChangeMaterialDefinitions(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::vChangeMaterialInstanceProperty(
+void BaseShape::ChangeMaterialInstanceProperty(
   const MaterialParameter* materialParam,
   const TextureMap& loadedTextures
 ) {
@@ -303,7 +303,7 @@ void BaseShape::vChangeMaterialInstanceProperty(
     return;
   }
 
-  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
+  MaterialDefinitions::ApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
 }
 
 }  // namespace plugin_filament_view::shapes

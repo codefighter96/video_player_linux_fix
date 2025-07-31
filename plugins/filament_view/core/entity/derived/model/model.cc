@@ -87,7 +87,7 @@ std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::debugPrint() const { vdebugPrintComponents(); }
+void Model::debugPrint() const { debugPrintComponents(); }
 
 AABB Model::getAABB() const {
   AABB aabb;
@@ -106,7 +106,7 @@ AABB Model::getAABB() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::vChangeMaterialDefinitions(
+void Model::ChangeMaterialDefinitions(
   const flutter::EncodableMap& params,
   const TextureMap& /*loadedTextures*/
 ) {
@@ -123,11 +123,11 @@ void Model::vChangeMaterialDefinitions(
   auto materialDefinitions = std::make_shared<MaterialDefinitions>(params);
   ecs->addComponent(guid_, std::move(materialDefinitions));
 
-  m_poMaterialInstance.vReset();
+  m_poMaterialInstance.reset();
 
   // then tell material system to load us the correct way once
   // we're deserialized.
-  vLoadMaterialDefinitionsToMaterialInstance();
+  LoadMaterialDefinitionsToMaterialInstance();
 
   if (m_poMaterialInstance.getStatus() != Status::Success) {
     spdlog::error("Unable to load material definition to instance, bailing out.");
@@ -136,7 +136,7 @@ void Model::vChangeMaterialDefinitions(
 
   // now, reload / rebuild the material?
   const auto filamentSystem = ECSManager::GetInstance()->getSystem<FilamentSystem>(
-    "BaseShape::vChangeMaterialDefinitions"
+    "BaseShape::ChangeMaterialDefinitions"
   );
 
   // If your entity has multiple primitives, you’ll need to call
@@ -178,7 +178,7 @@ void Model::vChangeMaterialDefinitions(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::vChangeMaterialInstanceProperty(
+void Model::ChangeMaterialInstanceProperty(
   const MaterialParameter* materialParam,
   const TextureMap& loadedTextures
 ) {
@@ -195,7 +195,7 @@ void Model::vChangeMaterialInstanceProperty(
     return;
   }
 
-  MaterialDefinitions::vApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
+  MaterialDefinitions::ApplyMaterialParameterToInstance(data, materialParam, loadedTextures);
 }
 
 }  // namespace plugin_filament_view

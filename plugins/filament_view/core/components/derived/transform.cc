@@ -54,7 +54,7 @@ void Transform::debugPrint(const std::string& tabPrefix) const {
   );
 }
 
-void Transform::SetTransform(const filament::math::mat4f& localMatrix) {
+void Transform::setTransform(const filament::math::mat4f& localMatrix) {
   filament::gltfio::decomposeMatrix(localMatrix, &local.position, &local.rotation, &local.scale);
   _isDirty = true;
 }

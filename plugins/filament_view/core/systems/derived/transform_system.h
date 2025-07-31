@@ -35,9 +35,9 @@ class TransformSystem : public System {
     TransformSystem() = default;
 
     void onSystemInit() override;
-    void vProcessMessages() override;
+    void ProcessMessages() override;
     void onDestroy() override;
-    void vHandleMessage(const ECSMessage& msg) override;
+    void handleMessage(const ECSMessage& msg) override;
     void debugPrint() override;
 
     void update(float /* deltaTime */) override {

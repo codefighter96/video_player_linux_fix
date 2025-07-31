@@ -76,8 +76,8 @@ class BaseShape : public RenderableEntityObject {
 
     virtual bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) = 0;
 
-    void vRemoveEntityFromScene() const;
-    void vAddEntityToScene() const;
+    void RemoveEntityFromScene() const;
+    void AddEntityToScene() const;
 
   protected:
     ::filament::VertexBuffer* m_poVertexBuffer = nullptr;
@@ -91,7 +91,7 @@ class BaseShape : public RenderableEntityObject {
 
     // uses Vertex and Index buffer to create the material and geometry
     // using all the internal variables.
-    void vBuildRenderable(::filament::Engine* engine_);
+    void BuildRenderable(::filament::Engine* engine_);
 
     ShapeType type_ = ShapeType::Unset;
 
@@ -106,17 +106,17 @@ class BaseShape : public RenderableEntityObject {
     //        when building as code currently allocates buffers for UVs
     bool m_bHasTexturedMaterial = true;
 
-    void vChangeMaterialDefinitions(
+    void ChangeMaterialDefinitions(
       const flutter::EncodableMap& params,
       const TextureMap& loadedTextures
     ) override;
-    void vChangeMaterialInstanceProperty(
+    void ChangeMaterialInstanceProperty(
       const MaterialParameter* materialParam,
       const TextureMap& loadedTextures
     ) override;
 
   private:
-    void vDestroyBuffers();
+    void DestroyBuffers();
 
     // This does NOT come over as a property (currently), only used by
     // CollisionManager when created debug wireframe models for seeing collider

@@ -148,7 +148,7 @@ void Sphere::createSingleSidedSphere(filament::Engine* engine_) {
     IndexBuffer::BufferDescriptor(indices_.data(), indices_.size() * sizeof(unsigned short))
   );
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////

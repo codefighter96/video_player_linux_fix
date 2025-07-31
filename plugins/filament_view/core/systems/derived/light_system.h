@@ -33,9 +33,9 @@ class LightSystem : public System {
 
     // if after deserialization is complete, and there isn't a light made
     // this will be called to create a simple direct light
-    void vCreateDefaultLight();
-    void vBuildLight(Light& light);
-    void vBuildLightAndAddToScene(Light& light);
+    void CreateDefaultLight();
+    void BuildLight(Light& light);
+    void BuildLightAndAddToScene(Light& light);
 
     // Disallow copy and assign.
     LightSystem(const LightSystem&) = delete;
@@ -48,8 +48,8 @@ class LightSystem : public System {
 
   private:
     // These change the lights in filaments scene
-    void vRemoveLightFromScene(const Light& light);
-    void vAddLightToScene(const Light& light);
+    void RemoveLightFromScene(const Light& light);
+    void AddLightToScene(const Light& light);
 
     std::shared_ptr<EntityObject> m_poDefaultLight;
 };

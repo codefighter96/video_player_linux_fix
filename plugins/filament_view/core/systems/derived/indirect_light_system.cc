@@ -54,7 +54,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLight(
     return future;
   }
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise, indirectLight] {
     auto builder = filament::IndirectLight::Builder();
@@ -85,7 +85,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -99,7 +99,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise /*, intensity*/] {
     promise->set_value(Resource<std::string_view>::Error("Not implemented"));
@@ -149,7 +149,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::setIndirectLightFro
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
   const auto assetPath = ecs->getConfigValue<std::string>(kAssetPath);
 
   post(strand_, [&, promise, path = path, intensity, assetPath] {
@@ -173,7 +173,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
   setIndirectLightFromHdrUrl(const std::string& /*url*/, double /*intensity*/) {
   const auto promise(std::make_shared<std::promise<Resource<std::string_view>>>());
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   auto future(promise->get_future());
   post(strand_, [&, promise /*, intensity*/] {
@@ -186,7 +186,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
 void IndirectLightSystem::onSystemInit() {
   setDefaultIndirectLight();
 
-  vRegisterMessageHandler(
+  registerMessageHandler(
     ECSMessageType::ChangeSceneIndirectLightProperties,
     [this](const ECSMessage& msg) {
       spdlog::debug("ChangeSceneIndirectLightProperties");

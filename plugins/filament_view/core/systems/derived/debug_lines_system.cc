@@ -89,7 +89,7 @@ DebugLine::DebugLine(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLine::vCleanup(filament::Engine* engine) {
+void DebugLine::Cleanup(filament::Engine* engine) {
   if (m_poVertexBuffer) {
     engine->destroy(m_poVertexBuffer);
     m_poVertexBuffer = nullptr;
@@ -104,15 +104,15 @@ void DebugLine::vCleanup(filament::Engine* engine) {
 void DebugLinesSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vCleanup() {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vCleanup");
+void DebugLinesSystem::Cleanup() {
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::Cleanup");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
     filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
     // do visual cleanup here
-    (*it)->vCleanup(engine);
+    (*it)->Cleanup(engine);
 
     it = ourLines_.erase(it);
   }
@@ -130,7 +130,7 @@ void DebugLinesSystem::update(const float deltaTime) {
       filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
 
       // do visual cleanup here
-      (*it)->vCleanup(engine);
+      (*it)->Cleanup(engine);
 
       it = ourLines_.erase(it);
     } else {
@@ -141,19 +141,19 @@ void DebugLinesSystem::update(const float deltaTime) {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::onSystemInit() {
-  vRegisterMessageHandler(ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
     SPDLOG_TRACE("Adding debug line: ");
     const auto rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
 
-    vAddLine(rayInfo.f3GetPosition(), rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
+    AddLine(rayInfo.f3GetPosition(), rayInfo.f3GetDirection() * rayInfo.dGetLength(), 10);
   });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::onDestroy() { vCleanup(); }
+void DebugLinesSystem::onDestroy() { Cleanup(); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vAddLine(
+void DebugLinesSystem::AddLine(
   filament::math::float3 startPoint,
   filament::math::float3 endPoint,
   float secondsTimeout
@@ -162,7 +162,7 @@ void DebugLinesSystem::vAddLine(
     return;
   }
 
-  auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vAddLine");
+  auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::AddLine");
   const auto engine = filamentSystem->getFilamentEngine();
 
   utils::EntityManager& oEntitymanager = engine->getEntityManager();

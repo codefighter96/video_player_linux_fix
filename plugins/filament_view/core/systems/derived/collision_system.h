@@ -43,22 +43,20 @@ class CollisionSystem : public System {
   public:
     CollisionSystem() = default;
 
-    void vCleanup();
+    void Cleanup();
     void debugPrint() override;
 
     // Disallow copy and assign.
     CollisionSystem(const CollisionSystem&) = delete;
     CollisionSystem& operator=(const CollisionSystem&) = delete;
 
-    void vTurnOnRenderingOfCollidables() const;
-    void vTurnOffRenderingOfCollidables() const;
+    void TurnOnRenderingOfCollidables() const;
+    void TurnOffRenderingOfCollidables() const;
 
     void update(float deltaTime) override;
 
     void onSystemInit() override;
     void onDestroy() override;
-
-    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
     // send in your ray, get a list of hit results back, collisionLayer not
     // actively used - future work.
@@ -74,8 +72,8 @@ class CollisionSystem : public System {
   private:
     bool currentlyDrawingDebugCollidables = false;
 
-    void vMatchCollidablesToRenderingModelsTransforms();
-    void vMatchCollidablesToDebugDrawingTransforms();
+    void MatchCollidablesToRenderingModelsTransforms();
+    void MatchCollidablesToDebugDrawingTransforms();
 };
 
 }  // namespace plugin_filament_view
