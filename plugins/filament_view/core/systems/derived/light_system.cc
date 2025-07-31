@@ -127,7 +127,7 @@ void LightSystem::vAddLightToScene(const Light& light) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vOnInitSystem() {
+void LightSystem::onSystemInit() {
   vRegisterMessageHandler(
     ECSMessageType::ChangeSceneLightProperties,
     [this](const ECSMessage& msg) {
@@ -180,10 +180,10 @@ void LightSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vUpdate(float /*fElapsedTime*/) {}
+void LightSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::vShutdownSystem() {
+void LightSystem::onDestroy() {
   if (m_poDefaultLight != nullptr) {
     const auto component = ecs->getComponent<Light>(m_poDefaultLight->GetGuid());
     vRemoveLightFromScene(*component);

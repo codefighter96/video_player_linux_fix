@@ -49,7 +49,7 @@ Animation::Animation(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vUpdate(const float fElapsedTime) {
+void Animation::update(const float deltaTime) {
   if (m_poAnimator == nullptr || m_bPaused) {
     return;
   }
@@ -62,7 +62,7 @@ void Animation::vUpdate(const float fElapsedTime) {
 
     if (m_bNotifyOfAnimationEvents) {
       const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-        "Animation::vUpdate"
+        "Animation::update"
       );
       animationSystem->vNotifyOfAnimationEvent(
         GetOwner()->GetGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
@@ -74,7 +74,7 @@ void Animation::vUpdate(const float fElapsedTime) {
     return;
   }
 
-  m_fTimeSinceStart += fElapsedTime * m_fPlaybackSpeedScalar;
+  m_fTimeSinceStart += deltaTime * m_fPlaybackSpeedScalar;
 
   m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex), m_fTimeSinceStart);
   m_poAnimator->updateBoneMatrices();
@@ -86,7 +86,7 @@ void Animation::vUpdate(const float fElapsedTime) {
     if (m_bNotifyOfAnimationEvents) {
       // send message here to dart
       const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-        "Animation::vUpdate"
+        "Animation::update"
       );
 
       animationSystem->vNotifyOfAnimationEvent(
@@ -103,7 +103,7 @@ void Animation::vUpdate(const float fElapsedTime) {
       if (m_bNotifyOfAnimationEvents) {
         // send message here to dart
         const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-          "Animation::vUpdate"
+          "Animation::update"
         );
 
         animationSystem->vNotifyOfAnimationEvent(

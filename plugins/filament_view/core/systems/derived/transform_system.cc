@@ -25,7 +25,7 @@
 
 namespace plugin_filament_view {
 
-void TransformSystem::vOnInitSystem() {
+void TransformSystem::onSystemInit() {
   // Get filament
   const auto filamentSystem = ecs->getSystem<FilamentSystem>(__FUNCTION__);
   const auto engine = filamentSystem->getFilamentEngine();
@@ -33,7 +33,7 @@ void TransformSystem::vOnInitSystem() {
   tm = &(engine->getTransformManager());
 }
 
-void TransformSystem::vShutdownSystem() {
+void TransformSystem::onDestroy() {
   // Shutdown the system
   spdlog::debug("TransformSystem shutdown");
 }

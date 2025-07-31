@@ -25,7 +25,7 @@
 #include <filament/utils/EntityManager.h>
 #include <math/vec3.h>
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 
 namespace plugin_filament_view {
 
@@ -52,7 +52,7 @@ class DebugLine final {
     filament::Aabb boundingBox_;
 };
 
-class DebugLinesSystem final : public ECSystem {
+class DebugLinesSystem final : public System {
   public:
     DebugLinesSystem() = default;
 
@@ -62,10 +62,10 @@ class DebugLinesSystem final : public ECSystem {
     DebugLinesSystem(const DebugLinesSystem&) = delete;
     DebugLinesSystem& operator=(const DebugLinesSystem&) = delete;
 
-    void vUpdate(float fElapsedTime) override;
+    void update(float deltaTime) override;
 
-    void vOnInitSystem() override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void onDestroy() override;
 
     void vAddLine(
       ::filament::math::float3 startPoint,
@@ -73,7 +73,7 @@ class DebugLinesSystem final : public ECSystem {
       float secondsTimeout
     );
 
-    // called from vShutdownSystem during the systems shutdown routine.
+    // called from onDestroy during the systems shutdown routine.
     void vCleanup();
 
   private:

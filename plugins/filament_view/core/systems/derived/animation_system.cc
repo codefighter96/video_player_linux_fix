@@ -25,7 +25,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vOnInitSystem() {
+void AnimationSystem::onSystemInit() {
   // Handler for AnimationEnqueue
   vRegisterMessageHandler(ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationEnqueue");
@@ -123,14 +123,14 @@ void AnimationSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vUpdate(const float fElapsedTime) {
+void AnimationSystem::update(const float deltaTime) {
   for (auto& animator : ecs->getComponentsOfType<Animation>()) {
-    animator->vUpdate(fElapsedTime);
+    animator->update(deltaTime);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vShutdownSystem() {}
+void AnimationSystem::onDestroy() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void AnimationSystem::DebugPrint() {

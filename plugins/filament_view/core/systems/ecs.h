@@ -16,7 +16,7 @@
 #pragma once
 
 #include <asio/io_context_strand.hpp>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <future>
 #include <map>
 #include <memory>
@@ -28,7 +28,7 @@
 #include <core/utils/asserts.h>
 #include <core/utils/kvtree.h>
 
-#define CRASH_ON_INIT  // if true, will not continue if any ECSystem fails to
+#define CRASH_ON_INIT  // if true, will not continue if any System fails to
                        // init
 
 namespace plugin_filament_view {
@@ -63,7 +63,7 @@ class ECSManager {
     //
 
     std::mutex _systemsMutex;
-    std::map<TypeID, std::shared_ptr<ECSystem>> _systems;
+    std::map<TypeID, std::shared_ptr<System>> _systems;
 
     //
     // Threading
@@ -100,7 +100,7 @@ class ECSManager {
     ECSManager(const ECSManager&) = delete;
     ECSManager& operator=(const ECSManager&) = delete;
 
-    void vInitSystems();
+    void initialize();
 
     /**
      * @brief Updates the engine logic for the current frame.
@@ -115,8 +115,8 @@ class ECSManager {
      *                  This value should be used to make all movement and
      *                  time-based calculations frame rate independent.
      */
-    void vUpdate(float deltaTime);
-    void vShutdownSystems();
+    void update(float deltaTime);
+    void destroy();
 
     void DebugPrint() const;
 
@@ -220,9 +220,17 @@ class ECSManager {
     //
     //  System
     //
-    void vAddSystem(const std::shared_ptr<ECSystem>& system);
-    void vRemoveSystem(const std::shared_ptr<ECSystem>& system);
-    void vRemoveAllSystems();
+    template<typename T>
+    [[nodiscard]] inline std::shared_ptr<T> getSystem(const std::string& where) {
+      return std::dynamic_pointer_cast<T>(getSystem(System::StaticGetTypeID<T>(), where));
+    }
+
+    [[nodiscard]] std::shared_ptr<System> getSystem(TypeID systemTypeID, const std::string& where);
+    void addSystem(const std::shared_ptr<System>& system);
+
+    template<typename T> inline void removeSystem() { removeSystem(System::StaticGetTypeID<T>()); };
+
+    void removeSystem(TypeID systemTypeId);
 
     /**
      * Send a message to all registered systems
@@ -239,16 +247,6 @@ class ECSManager {
         system->vSendMessage(msg);
       }
     }
-
-    template<typename T>
-    [[nodiscard]] inline std::shared_ptr<T> getSystem(const std::string& where) {
-      return std::dynamic_pointer_cast<T>(getSystem(ECSystem::StaticGetTypeID<T>(), where));
-    }
-
-    [[nodiscard]] std::shared_ptr<ECSystem> getSystem(
-      TypeID systemTypeID,
-      const std::string& where
-    );
 
     //
     //  Threading

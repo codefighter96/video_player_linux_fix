@@ -119,12 +119,12 @@ void DebugLinesSystem::vCleanup() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vUpdate(const float fElapsedTime) {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::vUpdate");
+void DebugLinesSystem::update(const float deltaTime) {
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::update");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    (*it)->m_fRemainingTime -= fElapsedTime;
+    (*it)->m_fRemainingTime -= deltaTime;
 
     if ((*it)->m_fRemainingTime < 0) {
       filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
@@ -140,7 +140,7 @@ void DebugLinesSystem::vUpdate(const float fElapsedTime) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vOnInitSystem() {
+void DebugLinesSystem::onSystemInit() {
   vRegisterMessageHandler(ECSMessageType::DebugLine, [this](const ECSMessage& msg) {
     SPDLOG_TRACE("Adding debug line: ");
     const auto rayInfo = msg.getData<Ray>(ECSMessageType::DebugLine);
@@ -150,7 +150,7 @@ void DebugLinesSystem::vOnInitSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::vShutdownSystem() { vCleanup(); }
+void DebugLinesSystem::onDestroy() { vCleanup(); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vAddLine(

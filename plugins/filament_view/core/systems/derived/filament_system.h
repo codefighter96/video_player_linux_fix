@@ -16,13 +16,13 @@
 
 #pragma once
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <core/utils/ibl_profiler.h>
 #include <memory>
 
 namespace plugin_filament_view {
 
-class FilamentSystem : public ECSystem {
+class FilamentSystem : public System {
   public:
     FilamentSystem() = default;
 
@@ -30,9 +30,9 @@ class FilamentSystem : public ECSystem {
     FilamentSystem(const FilamentSystem&) = delete;
     FilamentSystem& operator=(const FilamentSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
     void DebugPrint() override;
 
     [[nodiscard]] ::filament::Engine* getFilamentEngine() const { return fengine_; }

@@ -18,7 +18,7 @@
 #include <asio/io_context_strand.hpp>
 #include <core/entity/derived/model/model.h>
 #include <core/include/resource.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <core/systems/derived/filament_system.h>
 #include <filament/TransformManager.h>
 #include <filament/filament/RenderableManager.h>
@@ -61,7 +61,7 @@ struct AssetDescriptor {
 class Model;
 class TransformSystem;
 
-class ModelSystem : public ECSystem {
+class ModelSystem : public System {
   public:
     ModelSystem() = default;
 
@@ -72,9 +72,9 @@ class ModelSystem : public ECSystem {
 
     void queueModelLoad(std::shared_ptr<Model> oOurModel);
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
     void DebugPrint() override;
 
   private:

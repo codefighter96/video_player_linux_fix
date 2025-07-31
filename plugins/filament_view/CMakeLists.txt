@@ -83,7 +83,7 @@ add_library(plugin_filament_view STATIC
         core/components/derived/animation.cc
         core/components/derived/light.cc
         core/entity/derived/renderable_entityobject.cc
-        core/systems/base/ecsystem.cc
+        core/systems/base/system.cc
         core/systems/ecs.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc

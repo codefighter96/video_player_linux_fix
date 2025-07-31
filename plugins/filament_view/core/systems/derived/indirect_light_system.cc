@@ -183,7 +183,7 @@ std::future<Resource<std::string_view>> IndirectLightSystem::
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void IndirectLightSystem::vOnInitSystem() {
+void IndirectLightSystem::onSystemInit() {
   setDefaultIndirectLight();
 
   vRegisterMessageHandler(
@@ -203,10 +203,10 @@ void IndirectLightSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void IndirectLightSystem::vUpdate(float /*fElapsedTime*/) {}
+void IndirectLightSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void IndirectLightSystem::vShutdownSystem() {
+void IndirectLightSystem::onDestroy() {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("setIndirectLight");
   const auto engine = filamentSystem->getFilamentEngine();
 

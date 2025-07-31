@@ -165,7 +165,7 @@ void CollisionSystem::SendCollisionInformationCallback(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vOnInitSystem() {
+void CollisionSystem::onSystemInit() {
   vRegisterMessageHandler(ECSMessageType::CollisionRequest, [this](const ECSMessage& msg) {
     auto rayInfo = msg.getData<Ray>(ECSMessageType::CollisionRequest);
     const auto requestor = msg.getData<std::string>(ECSMessageType::CollisionRequestRequestor);
@@ -204,7 +204,7 @@ void CollisionSystem::vOnInitSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
+void CollisionSystem::update(float /*deltaTime*/) {
 
   // Iterate over all colliders
   const auto colliders = ecs->getComponentsOfType<Collider>();
@@ -245,7 +245,7 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
         auto cubeChild = std::make_shared<shapes::Cube>("(collider wireframe)");
         cubeChild->m_bIsWireframe = true;
         cubeChild->addComponent<MaterialDefinitions>(kDefaultMaterial);
-        const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
+        const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::update");
         ecs->addEntity(cubeChild);
         shapeSystem->addShapeToScene(cubeChild);
         auto childTransform = cubeChild->getComponent<Transform>();
@@ -260,6 +260,6 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::vShutdownSystem() {}
+void CollisionSystem::onDestroy() {}
 
 }  // namespace plugin_filament_view

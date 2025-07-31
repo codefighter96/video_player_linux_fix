@@ -20,11 +20,11 @@
 #include <core/entity/base/entityobject.h>
 #include <future>
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 
 namespace plugin_filament_view {
 
-class LightSystem : public ECSystem {
+class LightSystem : public System {
     friend class SceneTextDeserializer;
     friend class EntityObject;
 
@@ -41,9 +41,9 @@ class LightSystem : public ECSystem {
     LightSystem(const LightSystem&) = delete;
     LightSystem& operator=(const LightSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
     void DebugPrint() override;
 
   private:

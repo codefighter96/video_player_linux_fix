@@ -95,7 +95,7 @@ void ECSManager::MainLoop() {
       post(*strand_, [elapsedTime = elapsedTime.count(), this] {
         isHandlerExecuting.store(true);
         try {
-          vUpdate(elapsedTime);  // Pass elapsed time to the main thread
+          update(elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
           throw;  // Rethrow the exception after resetting the flag
@@ -168,16 +168,15 @@ void ECSManager::addEntity(const std::shared_ptr<EntityObject>& entity, const En
 }
 
 void ECSManager::removeEntity(const EntityGUID id) {
-  EntityObject* entity = getEntity(id).get();
+  // EntityObject* entity = getEntity(id).get();
 
   std::lock_guard lock(_entitiesMutex);
-
-  entity->uninitialize();
 
   // remove all components belonging to this entity
   for (auto& [componentId, componentMap] : _components) {
     auto it = componentMap.find(id);
     if (it != componentMap.end()) {
+      // TODO: destroy the component before removing it
       componentMap.erase(it);
     }
   }
@@ -384,7 +383,7 @@ void ECSManager::removeComponent(const EntityGUID& entityGuid, TypeID componentT
 //  System
 //
 
-void ECSManager::vInitSystems() {
+void ECSManager::initialize() {
   // Note this is currently expected to be called from within
   // an already asio post, Leaving this commented out so you know
   // that you could change up the routine, but if you do
@@ -399,7 +398,7 @@ void ECSManager::vInitSystems() {
         static_cast<void*>(system.get())
       );
 
-      system->vInitSystem(*const_cast<const ECSManager*>(this));
+      system->initialize(*const_cast<const ECSManager*>(this));
     } catch (const std::exception& e) {
 #ifndef CRASH_ON_INIT
       spdlog::error("Failed to initialize system {} ({}): {}", systemName, systemId, e.what());
@@ -415,7 +414,7 @@ void ECSManager::vInitSystems() {
   m_eCurrentState = Initialized;
 }
 
-std::shared_ptr<ECSystem> ECSManager::getSystem(TypeID systemTypeID, const std::string& where) {
+std::shared_ptr<System> ECSManager::getSystem(TypeID systemTypeID, const std::string& where) {
   if (const auto callingThread = pthread_self(); callingThread != filament_api_thread_id_) {
     // Note we should have a 'log once' base functionality in common
     // creating this inline for now.
@@ -444,7 +443,7 @@ std::shared_ptr<ECSystem> ECSManager::getSystem(TypeID systemTypeID, const std::
   }
 }
 
-void ECSManager::vAddSystem(const std::shared_ptr<ECSystem>& system) {
+void ECSManager::addSystem(const std::shared_ptr<System>& system) {
   std::unique_lock lock(_systemsMutex);
   const TypeID systemId = system->GetTypeID();
 
@@ -463,27 +462,23 @@ void ECSManager::vAddSystem(const std::shared_ptr<ECSystem>& system) {
   _systems[systemId] = system;
 }
 
-void ECSManager::vRemoveSystem(const std::shared_ptr<ECSystem>& system) {
+void ECSManager::removeSystem(TypeID systemTypeId) {
   std::unique_lock lock(_systemsMutex);
 
-  const TypeID systemId = system->GetTypeID();
+  auto system = getSystem(systemTypeId, __FUNCTION__);
+  system->onDestroy();
+  _systems.erase(systemTypeId);
 
-  _systems.erase(systemId);
   spdlog::trace(
-    "Removed system {} ({}) at address {}", system->GetTypeName(), systemId,
-    static_cast<void*>(system.get())
+    "Removed system {} ({}) at address {}",  //
+    system->GetTypeName(), systemTypeId, static_cast<void*>(system.get())
   );
 }
 
-void ECSManager::vRemoveAllSystems() {
-  std::unique_lock lock(_systemsMutex);
-  _systems.clear();
-}
-
 ////////////////////////////////////////////////////////////////////////////
-void ECSManager::vUpdate(const float deltaTime) {
+void ECSManager::update(const float deltaTime) {
   // Copy systems under mutex
-  std::map<TypeID, std::shared_ptr<ECSystem>> systemsCopy;
+  std::map<TypeID, std::shared_ptr<System>> systemsCopy;
   {
     std::unique_lock lock(_systemsMutex);
 
@@ -495,7 +490,7 @@ void ECSManager::vUpdate(const float deltaTime) {
   for (auto& [id, system] : systemsCopy) {
     if (system) {
       system->vProcessMessages();
-      system->vUpdate(deltaTime);
+      system->update(deltaTime);
     } else {
       spdlog::error("Encountered null system pointer!");
     }
@@ -514,23 +509,26 @@ void ECSManager::DebugPrint() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSManager::vShutdownSystems() {
+void ECSManager::destroy() {
   post(*this->GetStrand(), [&] {
     // we shutdown in reverse, until we have a 'system dependency tree' type of
     // view, filament system (which is always the first system, needs to be
     // shutdown last as its 'engine' varible is used in destruction for other
     // systems
     // for (auto& [id, system] : _systems) {
-    //   (*it)->vShutdownSystem();
+    //   (*it)->onDestroy();
     // }
     for (auto it = _systems.rbegin(); it != _systems.rend(); ++it) {
+      const auto& id = it->first;
       const auto& system = it->second;
+
       if (system) {
         spdlog::trace(
-          "Shutting down system {} ({}) at address {}", system->GetTypeName(), it->first,
+          "Shutting down system {} ({}) at address {}", system->GetTypeName(), id,
           static_cast<void*>(system.get())
         );
-        system->vShutdownSystem();
+
+        removeSystem(id);  // Remove the system from the map
       } else {
         spdlog::error("Encountered null system pointer!");
       }

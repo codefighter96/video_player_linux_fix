@@ -39,7 +39,7 @@ class Animation final : public Component {
     void vPlayAnimation(int32_t index);
     [[maybe_unused]] bool bPlayAnimation(const std::string& szName);
 
-    void vUpdate(float fElapsedTime);
+    void update(float deltaTime);
 
     [[nodiscard]] inline float getSpeed() const { return m_fPlaybackSpeedScalar; }
 

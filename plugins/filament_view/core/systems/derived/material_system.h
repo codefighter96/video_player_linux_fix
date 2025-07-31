@@ -18,7 +18,7 @@
 
 #include <core/scene/material/loader/material_loader.h>
 #include <core/scene/material/loader/texture_loader.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <filament/MaterialInstance.h>
 #include <map>
 #include <memory>
@@ -32,7 +32,7 @@ class TextureLoader;
 
 using TextureMap = std::map<std::string, Resource<::filament::Texture*>>;
 
-class MaterialSystem : public ECSystem {
+class MaterialSystem : public System {
   public:
     MaterialSystem();
     ~MaterialSystem() override;
@@ -45,9 +45,9 @@ class MaterialSystem : public ECSystem {
     MaterialSystem(const MaterialSystem&) = delete;
     MaterialSystem& operator=(const MaterialSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
     void DebugPrint() override;
 
   private:

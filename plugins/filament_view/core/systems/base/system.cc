@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ecsystem.h"
+#include "system.h"
 
 #include <event_stream_handler_functions.h>
 #include <functional>
@@ -31,7 +31,7 @@ namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
 // Send a message to the system
-void ECSystem::vSendMessage(const ECSMessage& msg) {
+void System::vSendMessage(const ECSMessage& msg) {
   SPDLOG_TRACE("[vSendMessage] Attempting to acquire messagesMutex");
   std::unique_lock lock(messagesMutex);
   SPDLOG_TRACE("[vSendMessage] messagesMutex acquired");
@@ -41,7 +41,7 @@ void ECSystem::vSendMessage(const ECSMessage& msg) {
 
 ////////////////////////////////////////////////////////////////////////////
 // Register a message handler for a specific message type
-void ECSystem::vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler) {
+void System::vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler) {
   SPDLOG_TRACE("[vRegisterMessageHandler] Attempting to acquire handlersMutex");
   std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vRegisterMessageHandler] handlersMutex acquired");
@@ -53,7 +53,7 @@ void ECSystem::vRegisterMessageHandler(ECSMessageType type, const ECSMessageHand
 
 ////////////////////////////////////////////////////////////////////////////
 // Unregister all handlers for a specific message type
-void ECSystem::vUnregisterMessageHandler(ECSMessageType type) {
+void System::vUnregisterMessageHandler(ECSMessageType type) {
   SPDLOG_TRACE("[vUnregisterMessageHandler] Attempting to acquire handlersMutex");
   std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vUnregisterMessageHandler] handlersMutex acquired");
@@ -65,7 +65,7 @@ void ECSystem::vUnregisterMessageHandler(ECSMessageType type) {
 
 ////////////////////////////////////////////////////////////////////////////
 // Clear all message handlers
-void ECSystem::vClearMessageHandlers() {
+void System::vClearMessageHandlers() {
   SPDLOG_TRACE("[vClearMessageHandlers] Attempting to acquire handlersMutex");
   std::unique_lock lock(handlersMutex);
   SPDLOG_TRACE("[vClearMessageHandlers] handlersMutex acquired");
@@ -75,7 +75,7 @@ void ECSystem::vClearMessageHandlers() {
 
 ////////////////////////////////////////////////////////////////////////////
 // Process incoming messages
-void ECSystem::vProcessMessages() {
+void System::vProcessMessages() {
   SPDLOG_TRACE("[vProcessMessages] Attempting to acquire messagesMutex");
   std::queue<ECSMessage> messagesToProcess;
 
@@ -103,7 +103,7 @@ void ECSystem::vProcessMessages() {
 
 ////////////////////////////////////////////////////////////////////////////
 // Handle a specific message type by invoking the registered handlers
-void ECSystem::vHandleMessage(const ECSMessage& msg) {
+void System::vHandleMessage(const ECSMessage& msg) {
   SPDLOG_TRACE("[vHandleMessage] Attempting to acquire handlersMutex");
   std::vector<ECSMessageHandler> handlersToInvoke;
   {
@@ -130,7 +130,7 @@ void ECSystem::vHandleMessage(const ECSMessage& msg) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ECSystem::vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const {
+void System::vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const {
   if (!event_sink_ || !event_channel_) {
     return;
   }
@@ -139,7 +139,7 @@ void ECSystem::vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) co
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ECSystem::vSetupMessageChannels(
+void System::vSetupMessageChannels(
   flutter::PluginRegistrar* poPluginRegistrar,
   const std::string& szChannelName
 ) {

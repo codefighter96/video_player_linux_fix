@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <memory>
 
 #include <core/components/derived/animation.h>
@@ -29,7 +29,7 @@ class PluginRegistrar;
 
 namespace plugin_filament_view {
 
-class AnimationSystem : public ECSystem {
+class AnimationSystem : public System {
     friend class Animation;
     friend class EntityObject;
 
@@ -40,9 +40,9 @@ class AnimationSystem : public ECSystem {
     AnimationSystem(const AnimationSystem&) = delete;
     AnimationSystem& operator=(const AnimationSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
     void DebugPrint() override;
 
   private:

@@ -64,22 +64,22 @@ void RunOnceCheckAndInitializeECSystems() {
   // Post the initialization code to the strand
   post(strand, [=, &initPromise]() mutable {
     // Add systems to the ECSManager
-    ecs->vAddSystem(std::make_unique<FilamentSystem>());
-    ecs->vAddSystem(std::make_unique<DebugLinesSystem>());
-    ecs->vAddSystem(std::make_unique<CollisionSystem>());
-    ecs->vAddSystem(std::make_unique<ModelSystem>());
-    ecs->vAddSystem(std::make_unique<MaterialSystem>());
-    ecs->vAddSystem(std::make_unique<ShapeSystem>());
-    ecs->vAddSystem(std::make_unique<IndirectLightSystem>());
-    ecs->vAddSystem(std::make_unique<SkyboxSystem>());
-    ecs->vAddSystem(std::make_unique<LightSystem>());
-    ecs->vAddSystem(std::make_unique<ViewTargetSystem>());
-    ecs->vAddSystem(std::make_unique<AnimationSystem>());
-    ecs->vAddSystem(std::make_unique<TransformSystem>());
+    ecs->addSystem(std::make_unique<FilamentSystem>());
+    ecs->addSystem(std::make_unique<DebugLinesSystem>());
+    ecs->addSystem(std::make_unique<CollisionSystem>());
+    ecs->addSystem(std::make_unique<ModelSystem>());
+    ecs->addSystem(std::make_unique<MaterialSystem>());
+    ecs->addSystem(std::make_unique<ShapeSystem>());
+    ecs->addSystem(std::make_unique<IndirectLightSystem>());
+    ecs->addSystem(std::make_unique<SkyboxSystem>());
+    ecs->addSystem(std::make_unique<LightSystem>());
+    ecs->addSystem(std::make_unique<ViewTargetSystem>());
+    ecs->addSystem(std::make_unique<AnimationSystem>());
+    ecs->addSystem(std::make_unique<TransformSystem>());
     // Internal debate whether we auto subscribe to systems on entity creation
     // or not.
 
-    ecs->vInitSystems();
+    ecs->initialize();
 
     initPromise.set_value();
   });
@@ -244,8 +244,7 @@ FilamentViewPlugin::FilamentViewPlugin(
 FilamentViewPlugin::~FilamentViewPlugin() {
   removeListener_(platformViewsContext_, id_);
 
-  ECSManager::GetInstance()->vShutdownSystems();
-  ECSManager::GetInstance()->vRemoveAllSystems();
+  ECSManager::GetInstance()->destroy();
   // wait for thread to stop running. (Should be relatively quick)
   while (ECSManager::GetInstance()->bIsCompletedStopping() == false) {
   }

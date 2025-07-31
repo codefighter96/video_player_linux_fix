@@ -42,9 +42,9 @@ smarter_raw_ptr<filament::Engine> _engine = nullptr;
 smarter_raw_ptr<utils::EntityManager> _em = nullptr;
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vOnInitSystem() {
+void ViewTargetSystem::onSystemInit() {
   // Get filament engine
-  _filamentSystem = ecs->getSystem<FilamentSystem>("ViewTargetSystem::vOnInitSystem");
+  _filamentSystem = ecs->getSystem<FilamentSystem>("ViewTargetSystem::onSystemInit");
   _engine = _filamentSystem->getFilamentEngine();
   _em = _engine->getEntityManager();
 
@@ -185,7 +185,7 @@ void ViewTargetSystem::initializeEntity(EntityGUID entityGuid) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
+void ViewTargetSystem::update(float /*deltaTime*/) {
   // Get all cameras
   const auto& cameras = ecs->getComponentsOfType<Camera>();
 
@@ -286,7 +286,7 @@ void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::vShutdownSystem() {}
+void ViewTargetSystem::onDestroy() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void ViewTargetSystem::DebugPrint() {}

@@ -339,13 +339,13 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vOnInitSystem() { Initialize(); }
+void SkyboxSystem::onSystemInit() { Initialize(); }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
+void SkyboxSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vShutdownSystem() {
+void SkyboxSystem::onDestroy() {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 

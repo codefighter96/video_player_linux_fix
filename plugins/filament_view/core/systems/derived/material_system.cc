@@ -160,7 +160,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vOnInitSystem() {
+void MaterialSystem::onSystemInit() {
   vRegisterMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialParameter");
 
@@ -202,10 +202,10 @@ void MaterialSystem::vOnInitSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
+void MaterialSystem::update(float /*deltaTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vShutdownSystem() {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::vShutdownSystem");
+void MaterialSystem::onDestroy() {
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::onDestroy");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {

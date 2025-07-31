@@ -65,7 +65,7 @@ void ModelSystem::destroyAsset(const filament::gltfio::FilamentAsset* asset) con
 }
 
 void ModelSystem::createModelInstance(Model* model) {
-  checkInitialized();
+  assertInitialized();
   debug_assert(assetLoader_ != nullptr, "ModelSystem::createModelInstance - assetLoader_ is null");
 
   const auto assetPath = model->getAssetPath();
@@ -106,7 +106,7 @@ void ModelSystem::createModelInstance(Model* model) {
 }
 
 void ModelSystem::addModelToScene(EntityGUID modelGuid) {
-  checkInitialized();
+  assertInitialized();
 
   // Get model
   std::shared_ptr<Model> model = _models[modelGuid];
@@ -246,7 +246,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
 
   // Set up collider
   // NOTE: no need - CollisionSystem sets up colliders asynchronously on
-  // vUpdate
+  // update
 
   // Set up animator
   filament::gltfio::Animator* animatorInstance = nullptr;
@@ -603,7 +603,7 @@ void ModelSystem::loadModelFromFile(EntityGUID modelGuid, const std::string& bas
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vOnInitSystem() {
+void ModelSystem::onSystemInit() {
   spdlog::debug("[{}] Initializing ModelSystem", __FUNCTION__);
   // TODO: can be removed pending LifecycleParticipant impl.
   if (materialProvider_ != nullptr) {
@@ -614,18 +614,18 @@ void ModelSystem::vOnInitSystem() {
 
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr, "ModelSystem::onSystemInit: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr, "ModelSystem::onSystemInit: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
 
-  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr, "ModelSystem::onSystemInit: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::onSystemInit: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::onSystemInit: EntityManager not found");
 
   spdlog::trace("[{}] loaded filament systems", __FUNCTION__);
 
@@ -689,7 +689,7 @@ void ModelSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vUpdate(float /*fElapsedTime*/) {
+void ModelSystem::update(float /*deltaTime*/) {
   // Make sure all models are loaded
   updateAsyncAssetLoading();
 
@@ -698,7 +698,7 @@ void ModelSystem::vUpdate(float /*fElapsedTime*/) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vShutdownSystem() {
+void ModelSystem::onDestroy() {
   destroyAllAssetsOnModels();
   delete resourceLoader_;
   resourceLoader_ = nullptr;

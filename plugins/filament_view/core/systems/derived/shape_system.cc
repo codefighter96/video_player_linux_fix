@@ -173,20 +173,20 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shap
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vOnInitSystem() {
+void ShapeSystem::onSystemInit() {
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr, "ModelSystem::onSystemInit: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr, "ModelSystem::onSystemInit: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
-  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr, "ModelSystem::onSystemInit: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::onSystemInit: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::onSystemInit: EntityManager not found");
 
   /*
    * Register message handlers
@@ -235,10 +235,10 @@ void ShapeSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}
+void ShapeSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vShutdownSystem() {
+void ShapeSystem::onDestroy() {
   // remove all filament entities.
   vRemoveAllShapesInScene();
 }

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <core/components/derived/transform.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <core/utils/vectorutils.h>
 
 namespace plugin_filament_view {
@@ -30,17 +30,17 @@ namespace plugin_filament_view {
  * - TODO: Asynchronous interpolation of transforms
  */
 
-class TransformSystem : public ECSystem {
+class TransformSystem : public System {
   public:
     TransformSystem() = default;
 
-    void vOnInitSystem() override;
+    void onSystemInit() override;
     void vProcessMessages() override;
-    void vShutdownSystem() override;
+    void onDestroy() override;
     void vHandleMessage(const ECSMessage& msg) override;
     void DebugPrint() override;
 
-    void vUpdate(float /* deltaTime */) override {
+    void update(float /* deltaTime */) override {
       //   Filament transform transaction:
       // updating the transforms, and the parent tree can be
       // quite expensive, so we want to batch them

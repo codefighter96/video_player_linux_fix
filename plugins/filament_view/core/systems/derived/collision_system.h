@@ -19,7 +19,7 @@
 #include <core/components/derived/collider.h>
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/include/literals.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <flutter_desktop_plugin_registrar.h>
 #include <list>
 
@@ -37,7 +37,7 @@ class HitResult {
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
-class CollisionSystem : public ECSystem {
+class CollisionSystem : public System {
     friend class ModelSystem;
 
   public:
@@ -53,10 +53,10 @@ class CollisionSystem : public ECSystem {
     void vTurnOnRenderingOfCollidables() const;
     void vTurnOffRenderingOfCollidables() const;
 
-    void vUpdate(float fElapsedTime) override;
+    void update(float deltaTime) override;
 
-    void vOnInitSystem() override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void onDestroy() override;
 
     void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
 
