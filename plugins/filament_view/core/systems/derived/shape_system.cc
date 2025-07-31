@@ -16,7 +16,7 @@
 
 #include "shape_system.h"
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/entity/derived/shapes/cube.h>
@@ -214,7 +214,7 @@ void ShapeSystem::vOnInitSystem() {
     if (hasShape(guid)) {
       const auto entity = getShape(guid);
       const auto transform = entity->getComponent<Transform>();
-      const auto collidable = entity->getComponent<Collidable>();
+      const auto collider = entity->getComponent<Collider>();
 
       transform->SetTransform(position, scale, rotation);
     }

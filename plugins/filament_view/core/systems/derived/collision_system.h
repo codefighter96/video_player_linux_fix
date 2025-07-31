@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/include/literals.h>
 #include <core/systems/base/ecsystem.h>

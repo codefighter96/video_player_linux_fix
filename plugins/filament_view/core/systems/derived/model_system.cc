@@ -19,7 +19,7 @@
 #include <algorithm>  // for max
 #include <asio/post.hpp>
 #include <cassert>
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/entity/base/entityobject.h>
 #include <core/include/file_utils.h>
 #include <core/systems/derived/transform_system.h>
@@ -244,8 +244,8 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   auto renderable = model->getComponent<CommonRenderable>();
   renderable->_fInstance = _rcm->getInstance(instanceEntity);
 
-  // Set up collidable
-  // NOTE: no need - CollisionSystem sets up collidables asynchronously on
+  // Set up collider
+  // NOTE: no need - CollisionSystem sets up colliders asynchronously on
   // vUpdate
 
   // Set up animator
@@ -342,10 +342,10 @@ void ModelSystem::setupRenderable(
   renderable._fInstance = ri;
   child->addComponent(renderable);
 
-  // (optional) Set up Collidable component
+  // (optional) Set up Collider component
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string
   // containing JSON If extras present and have "fs_touchEvent" property, parse
-  // and setup a Collidable component
+  // and setup a Collider component
   if (const char* extras = asset->getExtras(fEntity); !!extras) try {
       // Parse using RapidJSON
       spdlog::debug("  Has extras! Parsing '{}'", extras);
@@ -374,22 +374,22 @@ void ModelSystem::setupRenderable(
         //                     std::abs(sizeY - sizeZ) < epsilon;
         // spdlog::trace("isCube: {}", isCube);
 
-        // attach collidable
-        auto collidable = Collidable();
-        collidable.SetIsStatic(false);
-        collidable.eventName = eventName;
-        // collidable._aabb = aabb;
+        // attach collider
+        auto collider = Collider();
+        collider.SetIsStatic(false);
+        collider.eventName = eventName;
+        // collider._aabb = aabb;
         // NOTE: extents automatically set from AABB by CollisionSystem
-        // collidable.SetShapeType(isCube ? ShapeType::Cube :
+        // collider.SetShapeType(isCube ? ShapeType::Cube :
         //                                   ShapeType::Sphere);
-        child->addComponent(collidable);
+        child->addComponent(collider);
 
-        spdlog::trace("  Model child collidable setup complete");
+        spdlog::trace("  Model child collider setup complete");
       }
 
     } catch (const std::exception& e) {
       spdlog::error(
-        "[{}] Failed to setup collidable child({}) with JSON: {}\nReason: {}", __FUNCTION__,
+        "[{}] Failed to setup collider child({}) with JSON: {}\nReason: {}", __FUNCTION__,
         fEntity.getId(), extras, e.what()
       );
     }
@@ -406,8 +406,8 @@ void ModelSystem::updateAsyncAssetLoading() {
 
   // This does not specify per resource, but a global, best we can do with this
   // information is if we're done loading <everything> that was marked as async
-  // load, then load that physics data onto a collidable if required. This gives
-  // us visuals without collidables in a scene with <tons> of objects; but would
+  // load, then load that physics data onto a collider if required. This gives
+  // us visuals without colliders in a scene with <tons> of objects; but would
   // eventually settle
   resourceLoader_->asyncUpdateLoad();
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
@@ -458,7 +458,7 @@ void ModelSystem::updateAsyncAssetLoading() {
             addModelToScene(modelGuid);
             spdlog::trace("Model added to scene! Yay!");
 
-            // Set up collidable children
+            // Set up collider children
             // for (const auto entity : collidableChildren) {
             //   setupCollidableChild(entity, sharedPtr.get(), asset);
             // }

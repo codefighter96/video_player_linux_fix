@@ -107,7 +107,7 @@ void BaseShape::vDestroyBuffers() {
 
 ////////////////////////////////////////////////////////////////////////////
 // Unique that we don't want to copy all components, as shapes can have
-// collidables, which would make a cascading collidable chain
+// colliders, which would make a cascading collider chain
 // NOTE: We also don't copy material definitions. (Purposefully)
 void BaseShape::CloneToOther(BaseShape& other) const {
   other.m_f3Normal = m_f3Normal;

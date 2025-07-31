@@ -16,7 +16,7 @@
 
 #include "model.h"
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/include/literals.h>
 #include <core/systems/derived/filament_system.h>
 #include <core/systems/derived/material_system.h>

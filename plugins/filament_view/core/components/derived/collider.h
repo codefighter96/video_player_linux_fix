@@ -27,7 +27,7 @@ namespace plugin_filament_view {
 
 // At the time of checkin - m_bShouldMatchAttachedObject is expected to be
 // true at all times, and the IsStatic is not used in the false sense of
-// updating geometry. First pass is only static collidables spawning using data
+// updating geometry. First pass is only static colliders spawning using data
 // from the base transform with on overrides. Expected work TBD for future
 // improvements.
 
@@ -37,7 +37,7 @@ class BaseShape;
 
 class CollisionSystem;
 
-class Collidable : public Component {
+class Collider : public Component {
     friend class CollisionSystem;
 
   public:
@@ -48,19 +48,19 @@ class Collidable : public Component {
     /// This is used to identify the event in the event system.
     /// The default value is "click".
     std::string eventName = "click";
-    /// Bounding box of the collidable
+    /// Bounding box of the collider
     AABB _aabb;
 
   public:
-    Collidable()
+    Collider()
       : Component(std::string(__FUNCTION__)) {}
 
     // TODO: make this a more complete constructor
-    Collidable(const ShapeType& shapeType)
+    Collider(const ShapeType& shapeType)
       : Component(std::string(__FUNCTION__)),
         m_eShapeType(shapeType) {}
 
-    explicit Collidable(const flutter::EncodableMap& params);
+    explicit Collider(const flutter::EncodableMap& params);
 
     // Getters
     [[nodiscard]] inline bool GetIsStatic() const { return m_bIsStatic; }
@@ -79,13 +79,13 @@ class Collidable : public Component {
     inline void SetShouldMatchAttachedObject(bool value) { m_bShouldMatchAttachedObject = value; }
     inline void SetShapeType(ShapeType value) { m_eShapeType = value; }
     inline void SetExtentsSize(const filament::math::float3& value) {
-      if (m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collidable");
+      if (m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collider");
       _extentSize = value;
     }
 
     void DebugPrint(const std::string& tabPrefix) const override;
 
-    [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
+    [[nodiscard]] bool bDoesOverlap(const Collider& other) const;
     bool intersects(
       const Ray& ray,
       ::filament::math::float3& hitPosition,
@@ -93,7 +93,7 @@ class Collidable : public Component {
     ) const;
 
     [[nodiscard]] inline Component* Clone() const override {
-      return new Collidable(*this);  // Copy constructor is called here
+      return new Collider(*this);  // Copy constructor is called here
     }
 
   private:
@@ -124,7 +124,7 @@ class Collidable : public Component {
     /*
      *  Setup stuff
      */
-    /// Collidable's child wireframe object
+    /// Collider's child wireframe object
     std::shared_ptr<shapes::BaseShape> _wireframe;
 };
 

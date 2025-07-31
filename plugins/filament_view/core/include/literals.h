@@ -163,8 +163,8 @@ static constexpr char kSunAngularRadius[] = "sunAngularRadius";
 static constexpr char kSunHaloSize[] = "sunHaloSize";
 static constexpr char kSunHaloFalloff[] = "sunHaloFalloff";
 
-// specific collidable values:
-static constexpr char kCollidable[] = "collidable";
+// specific collider values:
+static constexpr char kCollidable[] = "collider";
 static constexpr char kCollidableShapeType[] = "collidable_shapeType";
 static constexpr char kCollidableExtents[] = "collidable_extentSize";
 static constexpr char kCollidableIsStatic[] = "collidable_isStatic";

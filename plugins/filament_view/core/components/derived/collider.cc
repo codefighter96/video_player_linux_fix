@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "collidable.h"
+#include "collider.h"
 
 #include <algorithm>
 #include <core/include/literals.h>
@@ -26,7 +26,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-Collidable::Collidable(const flutter::EncodableMap& params)
+Collider::Collider(const flutter::EncodableMap& params)
   : Component(std::string(__FUNCTION__)),
     m_f3StaticPosition({0}),
     m_eShapeType(ShapeType::Cube),
@@ -74,11 +74,11 @@ Collidable::Collidable(const flutter::EncodableMap& params)
     } catch (const std::bad_variant_access&) {
       // Handle the case where the cast to EncodableMap fails
       // Log error, throw an exception, or handle gracefully
-      spdlog::error("Failed to get EncodableMap from collidable parameter.");
+      spdlog::error("Failed to get EncodableMap from collider parameter.");
     }
   } else {
     // Handle the missing or invalid type scenario
-    spdlog::error("Collidable parameter not found or is of incorrect type.");
+    spdlog::error("Collider parameter not found or is of incorrect type.");
   }
 
   // if (m_bIsStatic) {
@@ -95,8 +95,8 @@ Collidable::Collidable(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Collidable::DebugPrint(const std::string& tabPrefix) const {
-  spdlog::debug(tabPrefix + "Collidable Debug Info:");
+void Collider::DebugPrint(const std::string& tabPrefix) const {
+  spdlog::debug(tabPrefix + "Collider Debug Info:");
 
   // Log whether the object is static
   spdlog::debug(tabPrefix + "Is Static: {}", m_bIsStatic);
@@ -128,7 +128,7 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-bool Collidable::intersects(
+bool Collider::intersects(
   const Ray& ray,
   filament::math::float3& hitPosition,
   const std::shared_ptr<Transform>& transform
@@ -138,7 +138,7 @@ bool Collidable::intersects(
   }
 
   // TODO: implement static colliders
-  if (m_bIsStatic != false) throw std::runtime_error("Static collidables not implemented yet.");
+  if (m_bIsStatic != false) throw std::runtime_error("Static colliders not implemented yet.");
 
   // Get AABB coordinates (local space!)
   filament::math::float3 center = (m_bIsStatic ? m_f3StaticPosition : _aabb.center);

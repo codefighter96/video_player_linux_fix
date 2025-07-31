@@ -79,7 +79,7 @@ add_library(plugin_filament_view STATIC
         core/components/derived/transform.cc
         core/components/derived/camera.cc
         core/components/derived/commonrenderable.cc
-        core/components/derived/collidable.cc
+        core/components/derived/collider.cc
         core/components/derived/animation.cc
         core/components/derived/light.cc
         core/entity/derived/renderable_entityobject.cc

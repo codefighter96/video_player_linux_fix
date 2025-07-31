@@ -247,15 +247,15 @@ void SceneTextDeserializer::setUpShapes() {
   for (const auto& shape : shapes_) {
     spdlog::trace("Adding shape to scene {}", shape->GetGuid());
     _ecs->addEntity(shape);
-    /// TODO: fix shape collidables
-    // spdlog::trace("Adding collidable...");
-    // if (shape->hasComponent<Collidable>()) {
-    //   spdlog::trace("Shape {} has collidable! Adding to collision system",
+    /// TODO: fix shape colliders
+    // spdlog::trace("Adding collider...");
+    // if (shape->hasComponent<Collider>()) {
+    //   spdlog::trace("Shape {} has collider! Adding to collision system",
     //   shape->GetGuid()); if (collisionSystem != nullptr) {
     //     collisionSystem->vAddCollidable(shape.get());
     //   }
     // }
-    // spdlog::trace("Collidable added!");
+    // spdlog::trace("Collider added!");
   }
 
   spdlog::debug("Shape setup done, adding to scene");

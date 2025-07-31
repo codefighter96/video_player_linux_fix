@@ -18,7 +18,7 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/components/derived/commonrenderable.h>
 #include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
@@ -119,7 +119,7 @@ class BaseShape : public RenderableEntityObject {
     void vDestroyBuffers();
 
     // This does NOT come over as a property (currently), only used by
-    // CollisionManager when created debug wireframe models for seeing collidable
+    // CollisionManager when created debug wireframe models for seeing collider
     // shapes.
     bool m_bIsWireframe = false;
 };

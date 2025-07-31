@@ -35,13 +35,13 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
   spdlog::trace("Making CommonRenderable...");
   addComponent(CommonRenderable(params));
 
-  // Collidable (optional)
-  spdlog::trace("Making Collidable...");
+  // Collider (optional)
+  spdlog::trace("Making Collider...");
   if (const auto it = params.find(flutter::EncodableValue(kCollidable));
       it != params.end() && !it->second.IsNull()) {
-    addComponent(Collidable(params));
+    addComponent(Collider(params));
   } else {
-    spdlog::trace("  This entity params has no collidable");
+    spdlog::trace("  This entity params has no collider");
   }
 }  // namespace plugin_filament_view
 
