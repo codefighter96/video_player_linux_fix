@@ -34,7 +34,7 @@ class LensProjection {
 
     explicit LensProjection(const flutter::EncodableMap& params);
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
     [[nodiscard]] float getFocalLength() const { return focalLength_; }
 

@@ -74,7 +74,7 @@ class System : public IdentifiableType, public LifecycleParticipant<ECSManager> 
 
     virtual void onDestroy() override = 0;
 
-    virtual void DebugPrint() = 0;
+    virtual void debugPrint() = 0;
 
     void vSetupMessageChannels(
       flutter::PluginRegistrar* poPluginRegistrar,

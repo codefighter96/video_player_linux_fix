@@ -289,7 +289,7 @@ class Transform : public Component {
     /*
      *   Utils
      */
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override { return new Transform(*this); }
 

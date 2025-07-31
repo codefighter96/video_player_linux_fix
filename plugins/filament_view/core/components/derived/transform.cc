@@ -41,7 +41,7 @@ Transform::Transform(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Transform::DebugPrint(const std::string& tabPrefix) const {
+void Transform::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Local transform:");
   spdlog::debug(tabPrefix + "ParentId: {}", _parentId);
   spdlog::debug(

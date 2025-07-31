@@ -95,7 +95,7 @@ Collider::Collider(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Collider::DebugPrint(const std::string& tabPrefix) const {
+void Collider::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Collider Debug Info:");
 
   // Log whether the object is static

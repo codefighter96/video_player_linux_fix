@@ -31,7 +31,7 @@ class Animation final : public Component {
     // Constructor
     explicit Animation(const flutter::EncodableMap& params);
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override { return new Animation(*this); }
 

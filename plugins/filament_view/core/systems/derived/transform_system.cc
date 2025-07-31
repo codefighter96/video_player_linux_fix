@@ -48,7 +48,7 @@ void TransformSystem::vHandleMessage(const ECSMessage& /* msg */) {
   // spdlog::debug("TransformSystem handling message");
 }
 
-void TransformSystem::DebugPrint() { spdlog::debug("TransformSystem DebugPrint"); }
+void TransformSystem::debugPrint() { spdlog::debug("TransformSystem debugPrint"); }
 
 //
 // Internal logic

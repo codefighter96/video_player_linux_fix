@@ -260,7 +260,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
     animator->vSetAnimator(*animatorInstance);
 
     // Great if you need help with your animation information!
-    // animationPtr->DebugPrint("From ModelSystem::addModelToScene\t");
+    // animationPtr->debugPrint("From ModelSystem::addModelToScene\t");
   } else if (animatorInstance != nullptr && animatorInstance->getAnimationCount() > 0) {
     SPDLOG_DEBUG(
       "For asset - {} you have a valid set of animations [{}] you can play "
@@ -316,7 +316,7 @@ void ModelSystem::setupRenderable(
 
   spdlog::trace("  Parent entity: [{}]", parentEntity.getId());
 #if SPDLOG_LEVEL == trace
-// transform.DebugPrint("  ");
+// transform.debugPrint("  ");
 #endif
 
   child->addComponent(transform);
@@ -710,6 +710,6 @@ void ModelSystem::onDestroy() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::DebugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
+void ModelSystem::debugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

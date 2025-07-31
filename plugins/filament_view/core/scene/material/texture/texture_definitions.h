@@ -42,7 +42,7 @@ class TextureDefinitions {
 
     static std::unique_ptr<TextureDefinitions> Deserialize(const flutter::EncodableMap& params);
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
     static TextureType getType(const std::string& type);
 

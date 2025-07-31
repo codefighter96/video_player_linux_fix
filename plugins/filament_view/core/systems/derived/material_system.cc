@@ -97,7 +97,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
     SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
-    materialDefinitions->DebugPrint("  ");
+    materialDefinitions->debugPrint("  ");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
@@ -224,6 +224,6 @@ void MaterialSystem::onDestroy() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void MaterialSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

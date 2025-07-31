@@ -114,7 +114,7 @@ class Camera : public Component {
     /// TODO(kerberjg): move to deserializer
     explicit Camera(const flutter::EncodableMap& params);
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     /*
      *  Settings

@@ -169,8 +169,8 @@ void Sphere::CloneToOther(BaseShape& other) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Sphere::DebugPrint(const char* tag) const {
-  BaseShape::DebugPrint(tag);
+void Sphere::debugPrint(const char* tag) const {
+  BaseShape::debugPrint(tag);
 
   spdlog::debug("++++++++");
   spdlog::debug("{} (Sphere)", tag);

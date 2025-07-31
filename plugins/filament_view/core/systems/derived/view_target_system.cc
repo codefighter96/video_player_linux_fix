@@ -289,7 +289,7 @@ void ViewTargetSystem::setViewCamera(size_t viewId, EntityGUID cameraId) {
 void ViewTargetSystem::onDestroy() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::DebugPrint() {}
+void ViewTargetSystem::debugPrint() {}
 
 ViewTarget* ViewTargetSystem::getViewTarget(size_t index) const {
   if (index >= _viewTargets.size()) {

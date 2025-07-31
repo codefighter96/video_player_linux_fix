@@ -38,7 +38,7 @@ class TransformSystem : public System {
     void vProcessMessages() override;
     void onDestroy() override;
     void vHandleMessage(const ECSMessage& msg) override;
-    void DebugPrint() override;
+    void debugPrint() override;
 
     void update(float /* deltaTime */) override {
       //   Filament transform transaction:

@@ -48,7 +48,7 @@ class MaterialSystem : public System {
     void onSystemInit() override;
     void update(float deltaTime) override;
     void onDestroy() override;
-    void DebugPrint() override;
+    void debugPrint() override;
 
   private:
     std::unique_ptr<plugin_filament_view::MaterialLoader> materialLoader_;

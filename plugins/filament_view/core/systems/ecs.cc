@@ -498,7 +498,7 @@ void ECSManager::update(const float deltaTime) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSManager::DebugPrint() const {
+void ECSManager::debugPrint() const {
   for (auto& [id, system] : _systems) {
     spdlog::debug(
       "[{}] system {} at address {}, "

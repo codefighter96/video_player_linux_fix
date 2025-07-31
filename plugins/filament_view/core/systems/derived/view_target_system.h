@@ -39,7 +39,7 @@ class ViewTargetSystem : public System {
     void onSystemInit() override;
     void update(float deltaTime) override;
     void onDestroy() override;
-    void DebugPrint() override;
+    void debugPrint() override;
 
     // Returns the current iter that you put into the list.
     size_t nSetupViewTargetFromDesktopState(

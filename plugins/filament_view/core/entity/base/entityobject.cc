@@ -83,7 +83,7 @@ void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vDebugPrintComponents() const {
+void EntityObject::vdebugPrintComponents() const {
   if (!isInitialized()) {
     spdlog::debug("EntityObject '{}'({}) is not initialized", name, guid_);
     return;
@@ -106,9 +106,9 @@ void EntityObject::vDebugPrintComponents() const {
   );
 }
 
-void EntityObject::DebugPrint() const {
+void EntityObject::debugPrint() const {
   spdlog::debug("EntityObject '{}'({}), {}initialized", name, guid_, isInitialized() ? "" : "not ");
-  vDebugPrintComponents();
+  vdebugPrintComponents();
 }
 
 std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {

@@ -35,7 +35,7 @@ class Component : public IdentifiableType {
 
     [[nodiscard]] virtual const std::type_info& GetType() const { return typeid(*this); }
 
-    virtual void DebugPrint(const std::string& tabPrefix) const = 0;
+    virtual void debugPrint(const std::string& tabPrefix) const = 0;
 
     [[nodiscard]] virtual Component* Clone() const = 0;
 

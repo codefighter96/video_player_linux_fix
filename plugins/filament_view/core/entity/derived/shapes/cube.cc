@@ -740,6 +740,6 @@ void Cube::createSingleSidedCube(filament::Engine* engine_) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Cube::DebugPrint(const char* tag) const { BaseShape::DebugPrint(tag); }
+void Cube::debugPrint(const char* tag) const { BaseShape::debugPrint(tag); }
 
 }  // namespace plugin_filament_view::shapes

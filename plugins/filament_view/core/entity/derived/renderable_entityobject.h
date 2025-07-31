@@ -55,7 +55,7 @@ class RenderableEntityObject : public EntityObject {
     explicit RenderableEntityObject(const std::string& name, const EntityGUID guid)
       : EntityObject(name, guid) {}
 
-    virtual void DebugPrint() const override {};
+    virtual void debugPrint() const override {};
 
     void onInitialize() override;
 

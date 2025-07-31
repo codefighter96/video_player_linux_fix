@@ -44,7 +44,7 @@ class CollisionSystem : public System {
     CollisionSystem() = default;
 
     void vCleanup();
-    void DebugPrint() override;
+    void debugPrint() override;
 
     // Disallow copy and assign.
     CollisionSystem(const CollisionSystem&) = delete;

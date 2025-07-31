@@ -79,7 +79,7 @@ class Light : public Component {
     inline void SetSunHaloSize(float size) { m_fSunHaloSize = size; }
     inline void SetSunHaloFalloff(float falloff) { m_fSunHaloFalloff = falloff; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override { return new Light(*this); }
 

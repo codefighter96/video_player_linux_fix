@@ -50,7 +50,7 @@ class CommonRenderable : public Component {
 
     inline void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override {
       /// TODO: fix this

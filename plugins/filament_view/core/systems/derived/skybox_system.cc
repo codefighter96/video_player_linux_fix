@@ -355,6 +355,6 @@ void SkyboxSystem::onDestroy() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void SkyboxSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

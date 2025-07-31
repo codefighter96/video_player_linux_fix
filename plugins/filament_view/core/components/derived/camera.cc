@@ -86,8 +86,8 @@ Camera::Camera(const flutter::EncodableMap& params)
 
 }  // Camera
 
-void Camera::DebugPrint(const std::string& tabPrefix) const {
+void Camera::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug("{}: Camera {{ viewId: {} }", tabPrefix, _viewId);
-}  // DebugPrint
+}  // debugPrint
 
 }  // namespace plugin_filament_view

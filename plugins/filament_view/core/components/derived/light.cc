@@ -52,7 +52,7 @@ Light::Light(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Light::DebugPrint(const std::string& tabPrefix) const {
+void Light::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Type: {}", static_cast<int>(m_Type));
   spdlog::debug(tabPrefix + "Color: {}", m_szColor);
   spdlog::debug(tabPrefix + "Color Temperature: {}", m_fColorTemperature);

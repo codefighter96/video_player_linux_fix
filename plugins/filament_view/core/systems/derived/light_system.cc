@@ -193,7 +193,7 @@ void LightSystem::onDestroy() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void LightSystem::DebugPrint() {
+void LightSystem::debugPrint() {
   spdlog::debug("{}", __FUNCTION__);
 
   // TODO Update print out list of lights

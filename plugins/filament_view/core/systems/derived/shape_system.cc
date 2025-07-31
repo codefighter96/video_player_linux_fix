@@ -139,7 +139,7 @@ void ShapeSystem::addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shap
 
   // TODO remove this, just debug info print for now;
   /*for (auto& shape : *shapes) {
-    shape->DebugPrint("Add shapes to scene");
+    shape->debugPrint("Add shapes to scene");
   }*/
 
   for (auto& shape : *shapes) {
@@ -244,5 +244,5 @@ void ShapeSystem::onDestroy() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::DebugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
+void ShapeSystem::debugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
 }  // namespace plugin_filament_view

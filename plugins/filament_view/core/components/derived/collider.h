@@ -83,7 +83,7 @@ class Collider : public Component {
       _extentSize = value;
     }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] bool bDoesOverlap(const Collider& other) const;
     bool intersects(

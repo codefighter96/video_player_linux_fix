@@ -195,7 +195,7 @@ void Animation::vSetupAnimationNameMapping() {
 }
 
 ////////////////////////////////////////////////////////////////////////
-void Animation::DebugPrint(const std::string& tabPrefix) const {
+void Animation::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug("{}m_nCurrentPlayingIndex: {}", tabPrefix, m_nCurrentPlayingIndex);
   spdlog::debug("{}m_bPaused: {}", tabPrefix, m_bPaused);
   spdlog::debug("{}m_bAutoPlay: {}", tabPrefix, m_bAutoPlay);

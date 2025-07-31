@@ -133,7 +133,7 @@ void AnimationSystem::update(const float deltaTime) {
 void AnimationSystem::onDestroy() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::DebugPrint() {
+void AnimationSystem::debugPrint() {
   spdlog::debug("{}", __FUNCTION__);
 
   // todo list all animators

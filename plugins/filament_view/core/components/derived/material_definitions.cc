@@ -78,7 +78,7 @@ MaterialDefinitions::~MaterialDefinitions() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
+void MaterialDefinitions::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "++++++++ (MaterialDefinitions) ++++++++");
   if (!assetPath_.empty()) {
     spdlog::debug(tabPrefix + "assetPath: [{}]", assetPath_);
@@ -98,7 +98,7 @@ void MaterialDefinitions::DebugPrint(const std::string& tabPrefix) const {
 
   for (const auto& [fst, snd] : parameters_) {
     if (snd != nullptr)
-      // snd->DebugPrint(std::string(tabPrefix + "parameter").c_str());
+      // snd->debugPrint(std::string(tabPrefix + "parameter").c_str());
       spdlog::debug(
         tabPrefix + "parameter: {} type: {}", snd->szGetParameterName(),
         static_cast<int>(snd->type_)

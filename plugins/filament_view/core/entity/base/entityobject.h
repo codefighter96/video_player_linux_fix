@@ -107,7 +107,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     EntityObject(const EntityObject&) = delete;
     EntityObject& operator=(const EntityObject&) = delete;
 
-    virtual void DebugPrint() const;
+    virtual void debugPrint() const;
 
     /// @brief Constructor for EntityObject. Generates a GUID and has an empty
     /// name.
@@ -157,7 +157,7 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
       return hasComponent(Component::StaticGetTypeID<T>());
     }
 
-    void vDebugPrintComponents() const;
+    void vdebugPrintComponents() const;
 
     // finds the size_t staticTypeID in the component list
     // and creates a copy and assigns to the others list

@@ -78,7 +78,7 @@ class MaterialDefinitions : public Component {
     [[nodiscard]] inline std::string szGetMaterialAssetPath() const { return assetPath_; }
     [[nodiscard]] inline std::string szGetMaterialURLPath() const { return url_; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override {
       return new MaterialDefinitions(*this);  // Copy constructor is called here

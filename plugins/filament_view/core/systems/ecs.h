@@ -118,7 +118,7 @@ class ECSManager {
     void update(float deltaTime);
     void destroy();
 
-    void DebugPrint() const;
+    void debugPrint() const;
 
     void StartMainLoop();
     void StopMainLoop();

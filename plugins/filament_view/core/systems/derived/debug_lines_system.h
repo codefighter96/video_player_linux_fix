@@ -56,7 +56,7 @@ class DebugLinesSystem final : public System {
   public:
     DebugLinesSystem() = default;
 
-    void DebugPrint() override;
+    void debugPrint() override;
 
     // Disallow copy and assign.
     DebugLinesSystem(const DebugLinesSystem&) = delete;

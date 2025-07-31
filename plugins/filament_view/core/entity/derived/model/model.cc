@@ -87,7 +87,7 @@ std::shared_ptr<Model> Model::Deserialize(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Model::DebugPrint() const { vDebugPrintComponents(); }
+void Model::debugPrint() const { vdebugPrintComponents(); }
 
 AABB Model::getAABB() const {
   AABB aabb;

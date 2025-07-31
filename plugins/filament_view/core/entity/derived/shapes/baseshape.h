@@ -64,7 +64,7 @@ class BaseShape : public RenderableEntityObject {
 
     ~BaseShape() override;
 
-    virtual void DebugPrint(const char* tag) const;
+    virtual void debugPrint(const char* tag) const;
 
     // Disallow copy and assign.
     BaseShape(const BaseShape&) = delete;
@@ -87,7 +87,7 @@ class BaseShape : public RenderableEntityObject {
 
     void onInitialize() override;
 
-    void DebugPrint() const override;
+    void debugPrint() const override;
 
     // uses Vertex and Index buffer to create the material and geometry
     // using all the internal variables.

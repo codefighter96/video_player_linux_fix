@@ -75,7 +75,7 @@ Projection::Projection(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Projection::DebugPrint(const char* tag) {
+void Projection::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Projection)", tag);
   if (projection_.has_value()) {

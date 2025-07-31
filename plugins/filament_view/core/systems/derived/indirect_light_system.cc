@@ -219,6 +219,6 @@ void IndirectLightSystem::onDestroy() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void IndirectLightSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void IndirectLightSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

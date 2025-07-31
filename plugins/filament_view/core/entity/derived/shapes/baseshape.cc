@@ -153,7 +153,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
   const auto transform = getComponent<Transform>();
 #if SPDLOG_LEVEL == trace
-// transform->DebugPrint("  ");
+// transform->debugPrint("  ");
 #endif
 
   spdlog::trace("[{}] AABB.scale: x={}, y={}, z={}", __FUNCTION__, aabb.x, aabb.y, aabb.z);
@@ -232,17 +232,17 @@ void BaseShape::vAddEntityToScene() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::DebugPrint() const { vDebugPrintComponents(); }
+void BaseShape::debugPrint() const { vdebugPrintComponents(); }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseShape::DebugPrint(const char* tag) const {
+void BaseShape::debugPrint(const char* tag) const {
   spdlog::debug("++++++++ (Shape) ++++++++");
   spdlog::debug("Tag {} Type {} Wireframe {}", tag, static_cast<int>(type_), m_bIsWireframe);
   spdlog::debug("Normal: x={}, y={}, z={}", m_f3Normal.x, m_f3Normal.y, m_f3Normal.z);
 
   spdlog::debug("Double Sided: {}", m_bDoubleSided);
 
-  DebugPrint();
+  debugPrint();
 
   spdlog::debug("-------- (Shape) --------");
 }

@@ -33,7 +33,7 @@ class FilamentSystem : public System {
     void onSystemInit() override;
     void update(float deltaTime) override;
     void onDestroy() override;
-    void DebugPrint() override;
+    void debugPrint() override;
 
     [[nodiscard]] ::filament::Engine* getFilamentEngine() const { return fengine_; }
 

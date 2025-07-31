@@ -72,11 +72,11 @@ void CollisionSystem::vTurnOffRenderingOfCollidables() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::DebugPrint() {
+void CollisionSystem::debugPrint() {
   spdlog::debug("{}", __FUNCTION__);
 
   /*for (auto& collider : colliders) {
-    collider->DebugPrint();
+    collider->debugPrint();
   }*/
 }
 
@@ -230,7 +230,7 @@ void CollisionSystem::update(float /*deltaTime*/) {
             aabb.halfExtent.z * 2
           );
 #if SPDLOG_LEVEL == trace
-// renderableEntity->getComponent<Transform>()->DebugPrint("  ");
+// renderableEntity->getComponent<Transform>()->debugPrint("  ");
 #endif
         } else {
           spdlog::error("  Collider does not have an AABB");

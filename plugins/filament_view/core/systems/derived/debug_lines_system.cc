@@ -101,7 +101,7 @@ void DebugLine::vCleanup(filament::Engine* engine) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void DebugLinesSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void DebugLinesSystem::vCleanup() {

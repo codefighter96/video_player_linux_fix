@@ -89,7 +89,7 @@ class Model : public RenderableEntityObject {
     /// Whether it's been inserted into the scene
     bool m_isInScene = false;
 
-    void DebugPrint() const override;
+    void debugPrint() const override;
 
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
