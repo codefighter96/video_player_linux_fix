@@ -17,9 +17,9 @@
 
 #include <encodable_value.h>
 
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/collidable.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
 #include <core/utils/bounding_volumes.h>
 

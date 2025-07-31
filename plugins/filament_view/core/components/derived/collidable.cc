@@ -131,7 +131,7 @@ void Collidable::DebugPrint(const std::string& tabPrefix) const {
 bool Collidable::intersects(
   const Ray& ray,
   filament::math::float3& hitPosition,
-  const std::shared_ptr<BaseTransform>& transform
+  const std::shared_ptr<Transform>& transform
 ) const {
   if (!enabled) {
     return false;

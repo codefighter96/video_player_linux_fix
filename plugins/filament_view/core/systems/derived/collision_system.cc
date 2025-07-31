@@ -103,7 +103,7 @@ std::list<HitResult> CollisionSystem::
     //    continue; // Skip if layers don't match
     // }
 
-    const auto transform = ecs->getComponent<BaseTransform>(guid);
+    const auto transform = ecs->getComponent<Transform>(guid);
 
     // Perform intersection test with the ray
     if (filament::math::float3 hitLocation;
@@ -231,7 +231,7 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
             aabb.halfExtent.z * 2
           );
 #if SPDLOG_LEVEL == trace
-// renderableEntity->getComponent<BaseTransform>()->DebugPrint("  ");
+// renderableEntity->getComponent<Transform>()->DebugPrint("  ");
 #endif
         } else {
           spdlog::error("  Collidable does not have an AABB");
@@ -249,7 +249,7 @@ void CollisionSystem::vUpdate(float /*fElapsedTime*/) {
         const auto shapeSystem = ecs->getSystem<ShapeSystem>("CollisionSystem::vUpdate");
         ecs->addEntity(cubeChild);
         shapeSystem->addShapeToScene(cubeChild);
-        auto childTransform = cubeChild->getComponent<BaseTransform>();
+        auto childTransform = cubeChild->getComponent<Transform>();
         childTransform->SetTransform(aabb.center, aabb.halfExtent * 2, kQuatfIdentity);
 
         childTransform->setParent(entity->GetGuid());

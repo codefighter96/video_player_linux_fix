@@ -17,8 +17,8 @@
 #pragma once
 
 #include <core/components/derived/animation.h>
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <gltfio/FilamentAsset.h>
@@ -61,8 +61,8 @@ class Model : public RenderableEntityObject {
       return m_poAssetInstance;
     }
 
-    [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-      return getComponent<BaseTransform>();
+    [[nodiscard]] std::shared_ptr<Transform> GetTransform() const {
+      return getComponent<Transform>();
     }
     [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
       return getComponent<CommonRenderable>();

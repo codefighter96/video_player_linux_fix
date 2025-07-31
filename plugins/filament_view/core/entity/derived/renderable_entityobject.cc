@@ -29,7 +29,7 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
 
   // Transform (required)
   spdlog::trace("Making Transform...");
-  addComponent(BaseTransform(params));
+  addComponent(Transform(params));
 
   // CommonRenderable (required)
   spdlog::trace("Making CommonRenderable...");
@@ -50,9 +50,9 @@ void RenderableEntityObject::onInitialize() {
   EntityObject::onInitialize();
 
   // Make sure it has a Transform component
-  const auto transform = getComponent<BaseTransform>();
+  const auto transform = getComponent<Transform>();
   if (!transform) {
-    addComponent(BaseTransform());  // init with defaults
+    addComponent(Transform());  // init with defaults
   }
 
   // Make sure it has a CommonRenderable component

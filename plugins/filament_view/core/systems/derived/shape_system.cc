@@ -213,10 +213,10 @@ void ShapeSystem::vOnInitSystem() {
     // find the entity in our list:
     if (hasShape(guid)) {
       const auto entity = getShape(guid);
-      const auto baseTransform = entity->getComponent<BaseTransform>();
+      const auto transform = entity->getComponent<Transform>();
       const auto collidable = entity->getComponent<Collidable>();
 
-      baseTransform->SetTransform(position, scale, rotation);
+      transform->SetTransform(position, scale, rotation);
     }
 
     SPDLOG_TRACE("SetShapeTransform Complete");

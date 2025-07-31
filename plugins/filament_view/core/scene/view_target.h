@@ -17,8 +17,8 @@
 #pragma once
 
 #include <asio/io_context_strand.hpp>
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/camera.h>
+#include <core/components/derived/transform.h>
 #include <core/scene/camera/touch_pair.h>
 #include <core/scene/geometry/ray.h>
 
@@ -81,8 +81,8 @@ class ViewTarget {
     /// Called by [ViewTargetSystem] on every frame
     void updateCameraSettings(
       Camera& cameraData,
-      BaseTransform& transform,
-      BaseTransform* orbitOriginTransform = nullptr,
+      Transform& transform,
+      Transform* orbitOriginTransform = nullptr,
       const filament::math::float3* targetPosition = nullptr
     );
 

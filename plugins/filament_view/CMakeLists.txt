@@ -76,7 +76,7 @@ add_library(plugin_filament_view STATIC
         messages.g.cc
 
         core/scene/serialization/scene_text_deserializer.cc
-        core/components/derived/basetransform.cc
+        core/components/derived/transform.cc
         core/components/derived/camera.cc
         core/components/derived/commonrenderable.cc
         core/components/derived/collidable.cc

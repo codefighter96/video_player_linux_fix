@@ -220,7 +220,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
     // Skip the model itself
     if (childGuid == kNullGuid || childGuid == modelGuid) continue;
 
-    const auto childTransform = ecs->getComponent<BaseTransform>(childGuid);
+    const auto childTransform = ecs->getComponent<Transform>(childGuid);
     const FilamentTransformInstance childInstance = _tm->getInstance(childEntity);
     const FilamentEntity parentEntity = _tm->getParent(childInstance);
     const EntityGUID parentGuid = model->_childrenEntities[parentEntity];
@@ -232,7 +232,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   }
 
   // Set up transform
-  auto transform = model->getComponent<BaseTransform>();
+  auto transform = model->getComponent<Transform>();
   transform->_fInstance = _tm->getInstance(instanceEntity);
   transform->SetDirty(true);
   /// NOTE: why is this needed? if this is not called the collider doesn't work,
@@ -309,7 +309,7 @@ void ModelSystem::setupRenderable(
   }
 
   // Set up Transform component
-  auto transform = BaseTransform();
+  auto transform = Transform();
   transform._fInstance = ti;
   transform.SetTransform(_tm->getTransform(ti));
   auto parentEntity = _tm->getParent(ti);

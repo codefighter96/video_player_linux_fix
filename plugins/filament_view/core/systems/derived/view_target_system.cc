@@ -18,7 +18,7 @@
 
 #include <filament/utils/EntityManager.h>
 
-#include <core/components/derived/basetransform.h>
+#include <core/components/derived/transform.h>
 #include <core/include/literals.h>
 #include <core/scene/view_target.h>
 #include <core/systems/derived/filament_system.h>
@@ -163,7 +163,7 @@ void ViewTargetSystem::initializeEntity(EntityGUID entityGuid) {
   // Get entity and its Camera, Transform components
   auto entity = ecs->getEntity(entityGuid);
   auto camera = ecs->getComponent<Camera>(entityGuid);
-  auto transform = ecs->getComponent<BaseTransform>(entityGuid);
+  auto transform = ecs->getComponent<Transform>(entityGuid);
 
   // Check requirements:
   // - Entity must not have a _fEntity already set
@@ -221,8 +221,8 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
     }
 
     // Update the camera settings for the view target
-    const auto transform = ecs->getComponent<BaseTransform>(cameraId);
-    const auto orbitOriginTransform = ecs->getComponent<BaseTransform>(camera->orbitOriginEntity);
+    const auto transform = ecs->getComponent<Transform>(cameraId);
+    const auto orbitOriginTransform = ecs->getComponent<Transform>(camera->orbitOriginEntity);
     const filament::math::float3* targetPosition = nullptr;
 
     spdlog::trace("Checking camera({}) enableTarget", cameraId);
@@ -230,7 +230,7 @@ void ViewTargetSystem::vUpdate(float /*deltaTime*/) {
       // If the camera has a target entity, get its transform
       if (camera->targetEntity != kNullGuid) {
         spdlog::trace("has target entity: {}", camera->targetEntity);
-        auto* targetTransform = ecs->getComponent<BaseTransform>(camera->targetEntity).get();
+        auto* targetTransform = ecs->getComponent<Transform>(camera->targetEntity).get();
 
         if (targetTransform == nullptr) {
           spdlog::warn(

@@ -17,8 +17,8 @@
 #include "filament_view_plugin.h"
 
 #include <asio/post.hpp>
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/camera.h>
+#include <core/components/derived/transform.h>
 #include <core/scene/serialization/scene_text_deserializer.h>
 #include <core/systems/derived/animation_system.h>
 #include <core/systems/derived/collision_system.h>
@@ -621,7 +621,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformScale(
   const int64_t guid,
   const std::vector<double>& scl
 ) {
-  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setScale({scl[0], scl[1], scl[2]});
+  ECSManager::GetInstance()->getComponent<Transform>(guid)->setScale({scl[0], scl[1], scl[2]});
 
   return std::nullopt;
 }
@@ -631,8 +631,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformPosition(
   const int64_t guid,
   const std::vector<double>& pos
 ) {
-  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setPosition({pos[0], pos[1], pos[2]}
-  );
+  ECSManager::GetInstance()->getComponent<Transform>(guid)->setPosition({pos[0], pos[1], pos[2]});
 
   return std::nullopt;
 }
@@ -642,7 +641,7 @@ std::optional<FlutterError> FilamentViewPlugin::SetEntityTransformRotation(
   const int64_t guid,
   const std::vector<double>& rot
 ) {
-  ECSManager::GetInstance()->getComponent<BaseTransform>(guid)->setRotation(
+  ECSManager::GetInstance()->getComponent<Transform>(guid)->setRotation(
     /// NOTE: Filament quat constructor takes WXYZ!!! It's still stored in memory as XYZW.
     /// TODO: when Float32List is supported in pigeon, just cast the array to quatf
     {rot[3], rot[0], rot[1], rot[2]}

@@ -95,7 +95,7 @@ class Light : public Component {
     float m_fColorTemperature;
     float m_fIntensity;
 
-    // TODO: refactor to use BaseTransform
+    // TODO: refactor to use Transform
     filament::math::float3 m_f3Position;
     filament::math::float3 m_f3Direction;
 

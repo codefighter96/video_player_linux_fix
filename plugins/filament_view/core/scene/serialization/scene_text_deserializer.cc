@@ -114,7 +114,7 @@ void SceneTextDeserializer::vDeserializeRootLevel(
         auto cameraEntity = std::make_shared<EntityObject>(std::get<flutter::EncodableMap>(iter));
 
         // Deserialize transform component
-        cameraEntity->addComponent(BaseTransform(std::get<flutter::EncodableMap>(iter)));
+        cameraEntity->addComponent(Transform(std::get<flutter::EncodableMap>(iter)));
 
         // Deserialize camera component
         cameraEntity->addComponent(Camera(std::get<flutter::EncodableMap>(iter)));

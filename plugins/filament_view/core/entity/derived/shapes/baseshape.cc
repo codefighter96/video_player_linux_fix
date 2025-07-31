@@ -117,10 +117,10 @@ void BaseShape::CloneToOther(BaseShape& other) const {
   other.m_bHasTexturedMaterial = m_bHasTexturedMaterial;
 
   // and now components.
-  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<BaseTransform>(), other);
+  this->vShallowCopyComponentToOther(Component::StaticGetTypeID<Transform>(), other);
   this->vShallowCopyComponentToOther(Component::StaticGetTypeID<CommonRenderable>(), other);
 
-  const std::shared_ptr<BaseTransform> baseTransformPtr = ecs->getComponent<BaseTransform>(guid_);
+  const std::shared_ptr<Transform> transformPtr = ecs->getComponent<Transform>(guid_);
 
   const std::shared_ptr<CommonRenderable> commonRenderablePtr = ecs->getComponent<CommonRenderable>(
     guid_
@@ -151,7 +151,7 @@ void BaseShape::vBuildRenderable(filament::Engine* engine_) {
 
   spdlog::trace("[{}] Building shape '{}'({})", __FUNCTION__, name, GetGuid());
 
-  const auto transform = getComponent<BaseTransform>();
+  const auto transform = getComponent<Transform>();
 #if SPDLOG_LEVEL == trace
 // transform->DebugPrint("  ");
 #endif

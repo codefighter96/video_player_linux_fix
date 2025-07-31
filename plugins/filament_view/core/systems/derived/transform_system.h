@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <core/components/derived/basetransform.h>
+#include <core/components/derived/transform.h>
 #include <core/systems/base/ecsystem.h>
 #include <core/utils/vectorutils.h>
 
@@ -93,9 +93,9 @@ class TransformSystem : public ECSystem {
     /// even if it is not marked as dirty.
     void applyTransform(const EntityGUID entityId, const bool forceRecalculate = false);
 
-    void applyTransform(BaseTransform& transform, const bool forceRecalculate = false);
+    void applyTransform(Transform& transform, const bool forceRecalculate = false);
 
-    void applyParent(BaseTransform& child, const BaseTransform* parent = nullptr);
+    void applyParent(Transform& child, const Transform* parent = nullptr);
 
   protected:
     void applyParent(const FilamentEntity& child, const FilamentEntity* parent = nullptr);

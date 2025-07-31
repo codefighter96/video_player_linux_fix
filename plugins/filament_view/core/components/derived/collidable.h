@@ -18,7 +18,7 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/base/component.h>
-#include <core/components/derived/basetransform.h>
+#include <core/components/derived/transform.h>
 #include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
 #include <core/utils/bounding_volumes.h>
@@ -89,7 +89,7 @@ class Collidable : public Component {
     bool intersects(
       const Ray& ray,
       ::filament::math::float3& hitPosition,
-      const std::shared_ptr<BaseTransform>& transform
+      const std::shared_ptr<Transform>& transform
     ) const;
 
     [[nodiscard]] inline Component* Clone() const override {
@@ -101,7 +101,7 @@ class Collidable : public Component {
     // object once created in place.
     bool m_bIsStatic = false;
     // if this isStatic, then we need to copy this on creation
-    // from basetransform property
+    // from transform property
     filament::math::float3 m_f3StaticPosition = {0, 0, 0};
 
     // Layer for collision filtering

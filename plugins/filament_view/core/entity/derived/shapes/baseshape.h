@@ -18,9 +18,9 @@
 
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/collidable.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <core/include/shapetypes.h>

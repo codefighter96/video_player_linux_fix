@@ -79,7 +79,7 @@ static constexpr filament::math::float3 kFloat3One = {1, 1, 1};
 static constexpr filament::math::quatf kQuatfIdentity = {0, 0, 0, 1};
 static constexpr filament::math::mat4f kMat4fIdentity = filament::math::mat4f();
 
-class BaseTransform : public Component {
+class Transform : public Component {
     friend class TransformSystem;
 
   private:
@@ -101,13 +101,13 @@ class BaseTransform : public Component {
     TransformMatrixData global;
     FilamentTransformInstance _fInstance;
 
-    BaseTransform()
+    Transform()
       : Component(std::string(__FUNCTION__)),
         _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         global({kMat4fIdentity}) {}
 
-    explicit BaseTransform(
+    explicit Transform(
       const filament::math::float3& position,
       const filament::math::float3& scale,
       const filament::math::quatf& rotation
@@ -117,24 +117,24 @@ class BaseTransform : public Component {
         local({{position}, {scale}, {rotation}}),
         global({kMat4fIdentity}) {}
 
-    explicit BaseTransform(const TransformVectorData& localTransform)
+    explicit Transform(const TransformVectorData& localTransform)
       : Component(std::string(__FUNCTION__)),
         _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
         local(localTransform),
         global({kMat4fIdentity}) {}
 
-    // explicit BaseTransform(const filament::math::float3& position,
+    // explicit Transform(const filament::math::float3& position,
     //                        const filament::math::float3& scale)
     //       : Component(std::string(__FUNCTION__)),
     //         local({position, scale, kQuatfIdentity}),
     //         global({kMat4fIdentity}) {}
 
-    // explicit BaseTransform(const filament::math::float3& position)
+    // explicit Transform(const filament::math::float3& position)
     //       : Component(std::string(__FUNCTION__)),
     //         local({position, kFloat3One, kQuatfIdentity}),
     //         global({kMat4fIdentity}) {}
 
-    explicit BaseTransform(const flutter::EncodableMap& params);
+    explicit Transform(const flutter::EncodableMap& params);
 
     /*
      *   Local
@@ -291,7 +291,7 @@ class BaseTransform : public Component {
      */
     void DebugPrint(const std::string& tabPrefix) const override;
 
-    [[nodiscard]] inline Component* Clone() const override { return new BaseTransform(*this); }
+    [[nodiscard]] inline Component* Clone() const override { return new Transform(*this); }
 
   private:
     /// Decomposes the global matrix into position, scale, and rotation.

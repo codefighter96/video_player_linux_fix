@@ -324,8 +324,8 @@ void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
 
 void ViewTarget::updateCameraSettings(
   Camera& cameraData,
-  BaseTransform& transform,
-  BaseTransform* orbitOriginTransform,
+  Transform& transform,
+  Transform* orbitOriginTransform,
   const filament::math::float3* targetPosition
 ) {
   // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
@@ -334,7 +334,7 @@ void ViewTarget::updateCameraSettings(
   const filament::math::float3* fulcrum = nullptr;
   const filament::math::quatf* fulcrumRotation = nullptr;
 
-  // TODO: move to BaseTransform::anchorTo ?
+  // TODO: move to Transform::anchorTo ?
   if (orbitOriginTransform) {
     // If a target transform is provided, use its position as the fulcrum
     fulcrum = &orbitOriginTransform->GetGlobalPosition();
@@ -361,7 +361,7 @@ void ViewTarget::updateCameraSettings(
   if (targetPosition) {
     const auto headPosition = VectorUtils::translationFromMatrix(headMatrix);
 
-    // TODO: move to BaseTransform::lookAt ?
+    // TODO: move to Transform::lookAt ?
     // TODO: consider using global rotation
     // filament::math::quatf headRotation = transform.local.rotation;
     filament::math::quatf headRotation = VectorUtils::lookAt(headPosition, *targetPosition);
