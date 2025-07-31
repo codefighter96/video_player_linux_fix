@@ -37,7 +37,7 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
 
   // Collider (optional)
   spdlog::trace("Making Collider...");
-  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
+  if (const auto it = params.find(flutter::EncodableValue(kCollider));
       it != params.end() && !it->second.IsNull()) {
     addComponent(Collider(params));
   } else {

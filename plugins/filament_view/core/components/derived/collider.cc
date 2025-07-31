@@ -32,7 +32,7 @@ Collider::Collider(const flutter::EncodableMap& params)
     m_eShapeType(ShapeType::Cube),
     _extentSize({1, 1, 1}) {
   // Check if the key exists and if the value is an EncodableMap
-  if (const auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollidable));
+  if (const auto itCollidableSpecific = params.find(flutter::EncodableValue(kCollider));
       itCollidableSpecific != params.end()) {
     try {
       const auto collidableSpecificParams = std::get<flutter::EncodableMap>(
@@ -41,33 +41,33 @@ Collider::Collider(const flutter::EncodableMap& params)
 
       // Deserialize the collision layer, defaulting to 0
       Deserialize::DecodeParameterWithDefaultInt64(
-        kCollidableLayer, &m_nCollisionLayer, collidableSpecificParams, 0
+        kColliderLayer, &m_nCollisionLayer, collidableSpecificParams, 0
       );
 
       // Deserialize the collision mask, defaulting to 0xFFFFFFFFu
       Deserialize::DecodeParameterWithDefaultInt64(
-        kCollidableMask, &m_nCollisionMask, collidableSpecificParams, 0xFFFFFFFFu
+        kColliderMask, &m_nCollisionMask, collidableSpecificParams, 0xFFFFFFFFu
       );
 
       // Deserialize the flag for matching attached objects, defaulting to
       // 'false'
       Deserialize::DecodeParameterWithDefault(
-        kCollidableShouldMatchAttachedObject, &m_bShouldMatchAttachedObject,
-        collidableSpecificParams, false
+        kColliderShouldMatchAttachedObject, &m_bShouldMatchAttachedObject, collidableSpecificParams,
+        false
       );
 
       Deserialize::DecodeParameterWithDefault(
-        kCollidableExtents, &_extentSize, params, filament::math::float3(1.0f, 1.0f, 1.0f)
+        kColliderExtents, &_extentSize, params, filament::math::float3(1.0f, 1.0f, 1.0f)
       );
 
       // Deserialize the static flag, defaulting to 'false'
-      Deserialize::DecodeParameterWithDefault(kCollidableIsStatic, &m_bIsStatic, params, false);
+      Deserialize::DecodeParameterWithDefault(kColliderIsStatic, &m_bIsStatic, params, false);
 
       if (!m_bShouldMatchAttachedObject) {
         // Deserialize the shape type, defaulting to some default ShapeType
         // (replace ShapeType::Default with your actual default)
         Deserialize::DecodeEnumParameterWithDefault(
-          kCollidableShapeType, &m_eShapeType, params, ShapeType::Cube
+          kColliderShapeType, &m_eShapeType, params, ShapeType::Cube
         );
       }
 

@@ -164,14 +164,13 @@ static constexpr char kSunHaloSize[] = "sunHaloSize";
 static constexpr char kSunHaloFalloff[] = "sunHaloFalloff";
 
 // specific collider values:
-static constexpr char kCollidable[] = "collider";
-static constexpr char kCollidableShapeType[] = "collidable_shapeType";
-static constexpr char kCollidableExtents[] = "collidable_extentSize";
-static constexpr char kCollidableIsStatic[] = "collidable_isStatic";
-static constexpr char kCollidableLayer[] = "collidable_layer";
-static constexpr char kCollidableMask[] = "collidable_mask";
-static constexpr char kCollidableShouldMatchAttachedObject[] =
-  "collidable_shouldMatchAttachedObject";
+static constexpr char kCollider[] = "collider";
+static constexpr char kColliderShapeType[] = "collider_shapeType";
+static constexpr char kColliderExtents[] = "collider_extentSize";
+static constexpr char kColliderIsStatic[] = "collider_isStatic";
+static constexpr char kColliderLayer[] = "collider_layer";
+static constexpr char kColliderMask[] = "collider_mask";
+static constexpr char kColliderShouldMatchAttachedObject[] = "collider_shouldMatchAttachedObject";
 
 // Custom model viewer for sending frames to dart.
 static constexpr char kUpdateFrame[] = "updateFrame";
