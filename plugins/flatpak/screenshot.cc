@@ -18,19 +18,22 @@
 
 #include <libxml/xmlstring.h>
 
-#include "common.h"
-#include "common/common.h"
+#include "flatpak_shim.h"
+#include "plugins/common/common.h"
+
+using flatpak_plugin::FlatpakShim;
 
 Image::Image(xmlNode* node) {
   parseXmlNode(node);
 }
 
 void Image::parseXmlNode(xmlNode* node) {
-  type_ = getAttribute(node, "type");
-  if (const auto widthAttr = getOptionalAttribute(node, "width")) {
+  type_ = FlatpakShim::getAttribute(node, "type");
+  if (const auto widthAttr = FlatpakShim::getOptionalAttribute(node, "width")) {
     width_ = std::stoi(*widthAttr);
   }
-  if (const auto heightAttr = getOptionalAttribute(node, "height")) {
+  if (const auto heightAttr =
+          FlatpakShim::getOptionalAttribute(node, "height")) {
     height_ = std::stoi(*heightAttr);
   }
   url_ = std::string(reinterpret_cast<const char*>(xmlNodeGetContent(node)));
@@ -53,12 +56,13 @@ Video::Video(xmlNode* node) {
 }
 
 void Video::parseXmlNode(xmlNode* node) {
-  container_ = getAttribute(node, "container");
-  codec_ = getAttribute(node, "codec");
-  if (const auto widthAttr = getOptionalAttribute(node, "width")) {
+  container_ = FlatpakShim::getAttribute(node, "container");
+  codec_ = FlatpakShim::getAttribute(node, "codec");
+  if (const auto widthAttr = FlatpakShim::getOptionalAttribute(node, "width")) {
     width_ = std::stoi(*widthAttr);
   }
-  if (const auto heightAttr = getOptionalAttribute(node, "height")) {
+  if (const auto heightAttr =
+          FlatpakShim::getOptionalAttribute(node, "height")) {
     height_ = std::stoi(*heightAttr);
   }
   url_ = std::string(reinterpret_cast<const char*>(xmlNodeGetContent(node)));
@@ -86,7 +90,7 @@ void Screenshot::parseXmlNode(const xmlNode* node) {
   std::vector<Image> images;
   for (xmlNode* current = node->children; current; current = current->next) {
     if (xmlStrEqual(current->name, BAD_CAST "screenshot")) {
-      type_ = getAttribute(current, "type");
+      type_ = FlatpakShim::getAttribute(current, "type");
     } else if (xmlStrEqual(current->name, BAD_CAST "caption")) {
       captions_.emplace_back(
           reinterpret_cast<const char*>(xmlNodeGetContent(current)));

@@ -41,7 +41,7 @@ jobs:
             \
             libwayland-dev wayland-protocols libxkbcommon-dev \
             \
-            mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev \
+            mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev libosmesa6-dev \
             mesa-utils \
             \
             libcurl4-openssl-dev \

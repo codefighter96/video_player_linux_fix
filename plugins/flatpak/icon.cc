@@ -16,22 +16,25 @@
 
 #include "icon.h"
 
-#include "common.h"
-#include "common/common.h"
+#include "flatpak_shim.h"
+#include "plugins/common/common.h"
+
+using flatpak_plugin::FlatpakShim;
 
 Icon::Icon(const xmlNode* node) {
   parseXmlNode(node);
 }
 
 void Icon::parseXmlNode(const xmlNode* node) {
-  type_ = getAttribute(node, "type");
-  if (const auto widthAttr = getOptionalAttribute(node, "width")) {
+  type_ = FlatpakShim::getAttribute(node, "type");
+  if (const auto widthAttr = FlatpakShim::getOptionalAttribute(node, "width")) {
     width_ = std::stoi(*widthAttr);
   }
-  if (const auto heightAttr = getOptionalAttribute(node, "height")) {
+  if (const auto heightAttr =
+          FlatpakShim::getOptionalAttribute(node, "height")) {
     height_ = std::stoi(*heightAttr);
   }
-  if (const auto scaleAttr = getOptionalAttribute(node, "scale")) {
+  if (const auto scaleAttr = FlatpakShim::getOptionalAttribute(node, "scale")) {
     scale_ = std::stoi(*scaleAttr);
   }
   path_ = std::string(reinterpret_cast<const char*>(xmlNodeGetContent(node)));
