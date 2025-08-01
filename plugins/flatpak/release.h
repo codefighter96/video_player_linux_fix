@@ -17,9 +17,10 @@
 #ifndef PLUGINS_FLATPAK_RELEASE_H
 #define PLUGINS_FLATPAK_RELEASE_H
 
-#include <libxml/tree.h>
 #include <optional>
 #include <string>
+
+#include <libxml/tree.h>
 
 class Release {
  public:

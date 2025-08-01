@@ -21,8 +21,7 @@ add_library(plugin_flatpak STATIC
         flatpak_plugin_c_api.cc
         flatpak_plugin.cc
         messages.g.cc
-
-        common.cc
+        flatpak_shim.cc
         appstream_catalog.cc
         component.cc
         icon.cc
@@ -33,7 +32,11 @@ add_library(plugin_flatpak STATIC
 target_include_directories(plugin_flatpak PRIVATE include)
 
 target_link_libraries(plugin_flatpak PUBLIC
-        PkgConfig::FLATPAK_DEPS
         flutter
         platform_homescreen
+        PkgConfig::FLATPAK_DEPS
 )
+
+if (BUILD_UNIT_TESTS)
+    add_subdirectory(test)
+endif ()

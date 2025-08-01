@@ -16,14 +16,15 @@
 
 #include "component.h"
 
-#include <iostream>
 #include <map>
 
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 
-#include "common.h"
-#include "common/common.h"
+#include "flatpak_shim.h"
+#include "plugins/common/common.h"
+
+using flatpak_plugin::FlatpakShim;
 
 Component::Component(const xmlNode* node, std::string language)
     : language_(std::move(language)) {
@@ -207,7 +208,7 @@ void Component::parseContentRating(const xmlNode* node) {
     if (current->type == XML_ELEMENT_NODE) {
       if (std::string nodeName = reinterpret_cast<const char*>(current->name);
           nodeName == "content_attribute") {
-        auto key = getAttribute(current, "id");
+        auto key = FlatpakShim::getAttribute(current, "id");
         const auto value = CharToRatingValue(
             reinterpret_cast<const char*>(xmlNodeGetContent(current)));
         if (value != none) {

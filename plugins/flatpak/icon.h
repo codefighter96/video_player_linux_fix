@@ -17,9 +17,10 @@
 #ifndef PLUGINS_FLATPAK_ICON_H
 #define PLUGINS_FLATPAK_ICON_H
 
-#include <libxml/tree.h>
 #include <optional>
 #include <string>
+
+#include <libxml/tree.h>
 
 class Icon {
  public:

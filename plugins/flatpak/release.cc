@@ -19,8 +19,10 @@
 #include <iomanip>
 #include <sstream>
 
-#include "common.h"
-#include "common/common.h"
+#include "flatpak_shim.h"
+#include "plugins/common/common.h"
+
+using flatpak_plugin::FlatpakShim;
 
 Release::Release(xmlNode* node) {
   for (xmlNode* current = node->children; current; current = current->next) {
@@ -30,8 +32,8 @@ Release::Release(xmlNode* node) {
           reinterpret_cast<const char*>(xmlNodeGetContent(current));
 
       if (nodeName == "release") {
-        version_ = getAttribute(current, "version");
-        auto timestamp = getAttribute(current, "timestamp");
+        version_ = FlatpakShim::getAttribute(current, "version");
+        auto timestamp = FlatpakShim::getAttribute(current, "timestamp");
         // Convert timestamp to ISO 8601 format
         std::time_t time = std::stoi(timestamp);
         const std::tm* tm = std::gmtime(&time);
