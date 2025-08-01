@@ -159,6 +159,11 @@ jobs:
             -D LLVM_CONFIG=/usr/bin/llvm-config \
             -D ENABLE_STATIC_LINK=ON \
             \
+            -D BUILD_BACKEND_HEADLESS_EGL=ON \
+            -D BUILD_BACKEND_WAYLAND_EGL=OFF \
+            -D BUILD_BACKEND_WAYLAND_VULKAN=OFF \
+            -D BUILD_UNIT_TESTS=ON \
+            \
             -D PLUGINS_DIR=${{github.workspace}}/plugins/plugins \
             \
             -D DEBUG_PLATFORM_MESSAGES=OFF \
