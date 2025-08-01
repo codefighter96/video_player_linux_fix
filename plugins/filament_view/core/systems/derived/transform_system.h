@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <core/components/derived/basetransform.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/components/derived/transform.h>
+#include <core/systems/base/system.h>
 #include <core/utils/vectorutils.h>
 
 namespace plugin_filament_view {
@@ -30,17 +30,17 @@ namespace plugin_filament_view {
  * - TODO: Asynchronous interpolation of transforms
  */
 
-class TransformSystem : public ECSystem {
+class TransformSystem : public System {
   public:
     TransformSystem() = default;
 
-    void vOnInitSystem() override;
-    void vProcessMessages() override;
-    void vShutdownSystem() override;
-    void vHandleMessage(const ECSMessage& msg) override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void ProcessMessages() override;
+    void onDestroy() override;
+    void handleMessage(const ECSMessage& msg) override;
+    void debugPrint() override;
 
-    void vUpdate(float /* deltaTime */) override {
+    void update(float /* deltaTime */) override {
       //   Filament transform transaction:
       // updating the transforms, and the parent tree can be
       // quite expensive, so we want to batch them
@@ -93,9 +93,9 @@ class TransformSystem : public ECSystem {
     /// even if it is not marked as dirty.
     void applyTransform(const EntityGUID entityId, const bool forceRecalculate = false);
 
-    void applyTransform(BaseTransform& transform, const bool forceRecalculate = false);
+    void applyTransform(Transform& transform, const bool forceRecalculate = false);
 
-    void applyParent(BaseTransform& child, const BaseTransform* parent = nullptr);
+    void applyParent(Transform& child, const Transform* parent = nullptr);
 
   protected:
     void applyParent(const FilamentEntity& child, const FilamentEntity* parent = nullptr);

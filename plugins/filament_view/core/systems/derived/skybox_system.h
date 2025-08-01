@@ -17,12 +17,12 @@
 #pragma once
 
 #include <core/include/resource.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <future>
 
 namespace plugin_filament_view {
 
-class SkyboxSystem : public ECSystem {
+class SkyboxSystem : public System {
   public:
     SkyboxSystem() = default;
 
@@ -68,10 +68,10 @@ class SkyboxSystem : public ECSystem {
     SkyboxSystem(const SkyboxSystem&) = delete;
     SkyboxSystem& operator=(const SkyboxSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
+    void debugPrint() override;
 
   private:
     void setTransparentSkybox();

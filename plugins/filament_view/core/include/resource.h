@@ -48,7 +48,7 @@ template<typename T> class Resource {
 
     [[nodiscard]] std::optional<T> getData() const { return data_; }
 
-    void vReset() {
+    void reset() {
       if (getStatus() == Status::Success) {
         getData().reset();
       }

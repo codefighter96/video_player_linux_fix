@@ -84,14 +84,14 @@ std::unique_ptr<IndirectLight> IndirectLight::Deserialize(const flutter::Encodab
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void IndirectLight::DebugPrint(const char* tag) {
+void IndirectLight::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Light)", tag);
   spdlog::debug("\tintensity: {}", intensity_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void DefaultIndirectLight::DebugPrint(const char* tag) {
+void DefaultIndirectLight::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (DefaultIndirectLight)", tag);
   spdlog::debug("\tintensity: {}", intensity_);

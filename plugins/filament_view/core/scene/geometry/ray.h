@@ -38,7 +38,7 @@ class Ray {
 
     [[nodiscard]] double dGetLength() const { return length_; }
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
   private:
     Direction direction_;

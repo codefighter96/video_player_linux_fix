@@ -50,7 +50,7 @@ Size::Size(double x, double y, double z) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Size::DebugPrint(const char* tag) {
+void Size::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Size)", tag);
   if (x_.has_value()) {

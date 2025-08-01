@@ -218,7 +218,7 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
   // fview_->setStencilBufferEnabled(false);
   // fview_->setDynamicLightingOptions(0.01, 1000.0f);
 
-  vChangeQualitySettings(ViewTarget::ePredefinedQualitySettings::Ultra);
+  ChangeQualitySettings(ViewTarget::ePredefinedQualitySettings::Ultra);
 
   _initCamera();
 
@@ -226,8 +226,8 @@ void ViewTarget::setupView(uint32_t width, uint32_t height) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings qualitySettings) {
-  // Reset the settings for each quality setting
+void ViewTarget::ChangeQualitySettings(const ePredefinedQualitySettings qualitySettings) {
+  // reset the settings for each quality setting
   filament::viewer::ViewSettings settings = settings_.view;
 
   switch (qualitySettings) {
@@ -318,28 +318,28 @@ void ViewTarget::vChangeQualitySettings(const ePredefinedQualitySettings quality
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ViewTarget::vSetFogOptions(const filament::View::FogOptions& fogOptions) {
+void ViewTarget::setFogOptions(const filament::View::FogOptions& fogOptions) {
   fview_->setFogOptions(fogOptions);
 }
 
 void ViewTarget::updateCameraSettings(
   Camera& cameraData,
-  BaseTransform& transform,
-  BaseTransform* orbitOriginTransform,
+  Transform& transform,
+  Transform* orbitOriginTransform,
   const filament::math::float3* targetPosition
 ) {
-  // spdlog::debug("Updating camera({}) for view({})", cameraData.GetOwner()->GetGuid(), id);
+  // spdlog::debug("Updating camera({}) for view({})", cameraData.getOwner()->getGuid(), id);
 
   // Update transform
   const filament::math::float3* fulcrum = nullptr;
   const filament::math::quatf* fulcrumRotation = nullptr;
 
-  // TODO: move to BaseTransform::anchorTo ?
+  // TODO: move to Transform::anchorTo ?
   if (orbitOriginTransform) {
     // If a target transform is provided, use its position as the fulcrum
-    fulcrum = &orbitOriginTransform->GetGlobalPosition();
+    fulcrum = &orbitOriginTransform->getGlobalPosition();
     // TODO: should we follow the origin rotation? let's make this optional
-    fulcrumRotation = &orbitOriginTransform->GetGlobalRotation();
+    fulcrumRotation = &orbitOriginTransform->getGlobalRotation();
   } else {
     // Otherwise, use the camera's own position as the fulcrum
     fulcrum = &transform.local.position;
@@ -361,7 +361,7 @@ void ViewTarget::updateCameraSettings(
   if (targetPosition) {
     const auto headPosition = VectorUtils::translationFromMatrix(headMatrix);
 
-    // TODO: move to BaseTransform::lookAt ?
+    // TODO: move to Transform::lookAt ?
     // TODO: consider using global rotation
     // filament::math::quatf headRotation = transform.local.rotation;
     filament::math::quatf headRotation = VectorUtils::lookAt(headPosition, *targetPosition);
@@ -505,7 +505,7 @@ void ViewTarget::SendFrameViewCallback(
   const auto viewTargetSystem = ECSManager::GetInstance()->getSystem<ViewTargetSystem>(__FUNCTION__
   );
 
-  viewTargetSystem->vSendDataToEventChannel(encodableMap);
+  viewTargetSystem->SendDataToEventChannel(encodableMap);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -575,7 +575,7 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time) {
-  post(*ECSManager::GetInstance()->GetStrand(), [data, callback, time] {
+  post(*ECSManager::GetInstance()->getStrand(), [data, callback, time] {
     const auto obj = static_cast<ViewTarget*>(data);
     obj->callback_ = nullptr;
 
@@ -655,13 +655,13 @@ void ViewTarget::onTouch(const TouchPair touch) const {
 
   ECSMessage rayInformation;
   rayInformation.addData(ECSMessageType::DebugLine, rayInfo);
-  ECSManager::GetInstance()->vRouteMessage(rayInformation);
+  ECSManager::GetInstance()->RouteMessage(rayInformation);
 
   ECSMessage collisionRequest;
   collisionRequest.addData(ECSMessageType::CollisionRequest, rayInfo);
   collisionRequest.addData(ECSMessageType::CollisionRequestRequestor, std::string(__FUNCTION__));
   collisionRequest.addData(ECSMessageType::CollisionRequestType, eNativeOnTouchBegin);
-  ECSManager::GetInstance()->vRouteMessage(collisionRequest);
+  ECSManager::GetInstance()->RouteMessage(collisionRequest);
 }
 
 Ray ViewTarget::touchToRay(const TouchPair touch) const {

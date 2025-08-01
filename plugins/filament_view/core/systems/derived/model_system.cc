@@ -19,7 +19,7 @@
 #include <algorithm>  // for max
 #include <asio/post.hpp>
 #include <cassert>
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/entity/base/entityobject.h>
 #include <core/include/file_utils.h>
 #include <core/systems/derived/transform_system.h>
@@ -65,7 +65,7 @@ void ModelSystem::destroyAsset(const filament::gltfio::FilamentAsset* asset) con
 }
 
 void ModelSystem::createModelInstance(Model* model) {
-  checkInitialized();
+  assertInitialized();
   debug_assert(assetLoader_ != nullptr, "ModelSystem::createModelInstance - assetLoader_ is null");
 
   const auto assetPath = model->getAssetPath();
@@ -106,7 +106,7 @@ void ModelSystem::createModelInstance(Model* model) {
 }
 
 void ModelSystem::addModelToScene(EntityGUID modelGuid) {
-  checkInitialized();
+  assertInitialized();
 
   // Get model
   std::shared_ptr<Model> model = _models[modelGuid];
@@ -220,7 +220,7 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
     // Skip the model itself
     if (childGuid == kNullGuid || childGuid == modelGuid) continue;
 
-    const auto childTransform = ecs->getComponent<BaseTransform>(childGuid);
+    const auto childTransform = ecs->getComponent<Transform>(childGuid);
     const FilamentTransformInstance childInstance = _tm->getInstance(childEntity);
     const FilamentEntity parentEntity = _tm->getParent(childInstance);
     const EntityGUID parentGuid = model->_childrenEntities[parentEntity];
@@ -232,21 +232,21 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   }
 
   // Set up transform
-  auto transform = model->getComponent<BaseTransform>();
+  auto transform = model->getComponent<Transform>();
   transform->_fInstance = _tm->getInstance(instanceEntity);
-  transform->SetDirty(true);
+  transform->setDirty(true);
   /// NOTE: why is this needed? if this is not called the collider doesn't work,
   //        even though it's visible
   ecs->getSystem<TransformSystem>("ModelSystem::addModelToScene")
-    ->applyTransform(model->GetGuid(), true);
+    ->applyTransform(model->getGuid(), true);
 
   // Set up renderable
   auto renderable = model->getComponent<CommonRenderable>();
   renderable->_fInstance = _rcm->getInstance(instanceEntity);
 
-  // Set up collidable
-  // NOTE: no need - CollisionSystem sets up collidables asynchronously on
-  // vUpdate
+  // Set up collider
+  // NOTE: no need - CollisionSystem sets up colliders asynchronously on
+  // update
 
   // Set up animator
   filament::gltfio::Animator* animatorInstance = nullptr;
@@ -257,10 +257,10 @@ void ModelSystem::addModelToScene(EntityGUID modelGuid) {
   }
   if (animatorInstance != nullptr && model->hasComponent<Animation>()) {
     const auto animator = model->getComponent<Animation>();
-    animator->vSetAnimator(*animatorInstance);
+    animator->setAnimator(*animatorInstance);
 
     // Great if you need help with your animation information!
-    // animationPtr->DebugPrint("From ModelSystem::addModelToScene\t");
+    // animationPtr->debugPrint("From ModelSystem::addModelToScene\t");
   } else if (animatorInstance != nullptr && animatorInstance->getAnimationCount() > 0) {
     SPDLOG_DEBUG(
       "For asset - {} you have a valid set of animations [{}] you can play "
@@ -289,10 +289,10 @@ void ModelSystem::setupRenderable(
   child->_fEntity = fEntity;
   child->name = asset->getName(fEntity);
   spdlog::trace(
-    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->name, child->GetGuid(),
-    fEntity.getId(), model->name, model->GetGuid()
+    "  Creating child entity '{}'({})->[{}] of '{}'({})", child->name, child->getGuid(),
+    fEntity.getId(), model->name, model->getGuid()
   );
-  model->_childrenEntities[fEntity] = child->GetGuid();
+  model->_childrenEntities[fEntity] = child->getGuid();
 
   /*
    * Transform
@@ -303,20 +303,20 @@ void ModelSystem::setupRenderable(
   if (!ti.isValid()) {
     spdlog::trace(
       "[{}] Skipping fentity {} of model({}), has no transform", __FUNCTION__, fEntity.getId(),
-      model->GetGuid()
+      model->getGuid()
     );
     return;
   }
 
   // Set up Transform component
-  auto transform = BaseTransform();
+  auto transform = Transform();
   transform._fInstance = ti;
-  transform.SetTransform(_tm->getTransform(ti));
+  transform.setTransform(_tm->getTransform(ti));
   auto parentEntity = _tm->getParent(ti);
 
   spdlog::trace("  Parent entity: [{}]", parentEntity.getId());
 #if SPDLOG_LEVEL == trace
-// transform.DebugPrint("  ");
+// transform.debugPrint("  ");
 #endif
 
   child->addComponent(transform);
@@ -325,14 +325,14 @@ void ModelSystem::setupRenderable(
   if (!ri.isValid()) {
     spdlog::trace(
       "[{}] Skipping fentity {} of model({}), has no renderable", __FUNCTION__, fEntity.getId(),
-      model->GetGuid()
+      model->getGuid()
     );
 
     ecs->addEntity(child);
     return;
   }
 
-  const auto commonRenderable = model->GetCommonRenderable();
+  const auto commonRenderable = model->getCommonRenderable();
   _rcm->setCastShadows(ri, commonRenderable->IsCastShadowsEnabled());
   _rcm->setReceiveShadows(ri, commonRenderable->IsReceiveShadowsEnabled());
   _rcm->setScreenSpaceContactShadows(ri, false);
@@ -342,10 +342,10 @@ void ModelSystem::setupRenderable(
   renderable._fInstance = ri;
   child->addComponent(renderable);
 
-  // (optional) Set up Collidable component
+  // (optional) Set up Collider component
   // Get extras (aka "userData", aka Blender's "Custom Properties"), string
   // containing JSON If extras present and have "fs_touchEvent" property, parse
-  // and setup a Collidable component
+  // and setup a Collider component
   if (const char* extras = asset->getExtras(fEntity); !!extras) try {
       // Parse using RapidJSON
       spdlog::debug("  Has extras! Parsing '{}'", extras);
@@ -374,22 +374,22 @@ void ModelSystem::setupRenderable(
         //                     std::abs(sizeY - sizeZ) < epsilon;
         // spdlog::trace("isCube: {}", isCube);
 
-        // attach collidable
-        auto collidable = Collidable();
-        collidable.SetIsStatic(false);
-        collidable.eventName = eventName;
-        // collidable._aabb = aabb;
+        // attach collider
+        auto collider = Collider();
+        collider.setIsStatic(false);
+        collider.eventName = eventName;
+        // collider._aabb = aabb;
         // NOTE: extents automatically set from AABB by CollisionSystem
-        // collidable.SetShapeType(isCube ? ShapeType::Cube :
+        // collider.setShapeType(isCube ? ShapeType::Cube :
         //                                   ShapeType::Sphere);
-        child->addComponent(collidable);
+        child->addComponent(collider);
 
-        spdlog::trace("  Model child collidable setup complete");
+        spdlog::trace("  Model child collider setup complete");
       }
 
     } catch (const std::exception& e) {
       spdlog::error(
-        "[{}] Failed to setup collidable child({}) with JSON: {}\nReason: {}", __FUNCTION__,
+        "[{}] Failed to setup collider child({}) with JSON: {}\nReason: {}", __FUNCTION__,
         fEntity.getId(), extras, e.what()
       );
     }
@@ -406,8 +406,8 @@ void ModelSystem::updateAsyncAssetLoading() {
 
   // This does not specify per resource, but a global, best we can do with this
   // information is if we're done loading <everything> that was marked as async
-  // load, then load that physics data onto a collidable if required. This gives
-  // us visuals without collidables in a scene with <tons> of objects; but would
+  // load, then load that physics data onto a collider if required. This gives
+  // us visuals without colliders in a scene with <tons> of objects; but would
   // eventually settle
   resourceLoader_->asyncUpdateLoad();
   const float percentComplete = resourceLoader_->asyncGetLoadProgress();
@@ -458,7 +458,7 @@ void ModelSystem::updateAsyncAssetLoading() {
             addModelToScene(modelGuid);
             spdlog::trace("Model added to scene! Yay!");
 
-            // Set up collidable children
+            // Set up collider children
             // for (const auto entity : collidableChildren) {
             //   setupCollidableChild(entity, sharedPtr.get(), asset);
             // }
@@ -480,14 +480,14 @@ void ModelSystem::updateAsyncAssetLoading() {
 ////////////////////////////////////////////////////////////////////////////////////
 void ModelSystem::queueModelLoad(std::shared_ptr<Model> model) {
   spdlog::trace(
-    "Queueing model({}) load (instance mode: {}) -> {}", model->GetGuid(),
+    "Queueing model({}) load (instance mode: {}) -> {}", model->getGuid(),
     modelInstancingModeToString(model->getInstancingMode()), model->getAssetPath()
   );
 
   try {
     const auto baseAssetPath = ecs->getConfigValue<std::string>(kAssetPath);
     const auto modelAssetPath = model->getAssetPath();
-    const EntityGUID modelGuid = model->GetGuid();
+    const EntityGUID modelGuid = model->getGuid();
     const ModelInstancingMode instanceMode = model->getInstancingMode();
 
     AssetDescriptor& assetData = _assets[modelAssetPath];
@@ -543,7 +543,7 @@ void ModelSystem::queueModelLoad(std::shared_ptr<Model> model) {
 void ModelSystem::loadModelFromFile(EntityGUID modelGuid, const std::string& baseAssetPath) {
   spdlog::trace("++ loadModelFromFile");
 
-  const auto& strand = *ecs->GetStrand();
+  const auto& strand = *ecs->getStrand();
   post(strand, [&, modelGuid, baseAssetPath]() mutable {
     spdlog::trace("++ loadModelFromFile (lambda), model guid: {}", modelGuid);
     // Get model
@@ -603,7 +603,7 @@ void ModelSystem::loadModelFromFile(EntityGUID modelGuid, const std::string& bas
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vOnInitSystem() {
+void ModelSystem::onSystemInit() {
   spdlog::debug("[{}] Initializing ModelSystem", __FUNCTION__);
   // TODO: can be removed pending LifecycleParticipant impl.
   if (materialProvider_ != nullptr) {
@@ -614,18 +614,18 @@ void ModelSystem::vOnInitSystem() {
 
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr, "ModelSystem::onSystemInit: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr, "ModelSystem::onSystemInit: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
 
-  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr, "ModelSystem::onSystemInit: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::onSystemInit: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::onSystemInit: EntityManager not found");
 
   spdlog::trace("[{}] loaded filament systems", __FUNCTION__);
 
@@ -654,7 +654,7 @@ void ModelSystem::vOnInitSystem() {
   resourceLoader_->addTextureProvider("image/jpeg", decoder);
   // TODO: add support for other texture formats here
 
-  vRegisterMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
     spdlog::debug("ToggleVisualForEntity");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
@@ -689,7 +689,7 @@ void ModelSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vUpdate(float /*fElapsedTime*/) {
+void ModelSystem::update(float /*deltaTime*/) {
   // Make sure all models are loaded
   updateAsyncAssetLoading();
 
@@ -698,7 +698,7 @@ void ModelSystem::vUpdate(float /*fElapsedTime*/) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::vShutdownSystem() {
+void ModelSystem::onDestroy() {
   destroyAllAssetsOnModels();
   delete resourceLoader_;
   resourceLoader_ = nullptr;
@@ -710,6 +710,6 @@ void ModelSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::DebugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
+void ModelSystem::debugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

@@ -33,7 +33,7 @@ class Projection {
   public:
     explicit Projection(const flutter::EncodableMap& params);
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
     Projection(const Projection& other)  // NOLINT
       : projection_(other.projection_),

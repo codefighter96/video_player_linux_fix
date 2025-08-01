@@ -25,7 +25,7 @@
 #include <filament/utils/EntityManager.h>
 #include <math/vec3.h>
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 
 namespace plugin_filament_view {
 
@@ -39,7 +39,7 @@ class DebugLine final {
       float fTimeToLive
     );
     ~DebugLine() = default;
-    void vCleanup(filament::Engine* engine);
+    void Cleanup(filament::Engine* engine);
 
     float m_fRemainingTime;
     FilamentEntity _fEntity;
@@ -52,29 +52,29 @@ class DebugLine final {
     filament::Aabb boundingBox_;
 };
 
-class DebugLinesSystem final : public ECSystem {
+class DebugLinesSystem final : public System {
   public:
     DebugLinesSystem() = default;
 
-    void DebugPrint() override;
+    void debugPrint() override;
 
     // Disallow copy and assign.
     DebugLinesSystem(const DebugLinesSystem&) = delete;
     DebugLinesSystem& operator=(const DebugLinesSystem&) = delete;
 
-    void vUpdate(float fElapsedTime) override;
+    void update(float deltaTime) override;
 
-    void vOnInitSystem() override;
-    void vShutdownSystem() override;
+    void onSystemInit() override;
+    void onDestroy() override;
 
-    void vAddLine(
+    void AddLine(
       ::filament::math::float3 startPoint,
       ::filament::math::float3 endPoint,
       float secondsTimeout
     );
 
-    // called from vShutdownSystem during the systems shutdown routine.
-    void vCleanup();
+    // called from onDestroy during the systems shutdown routine.
+    void Cleanup();
 
   private:
     bool m_bCurrentlyDrawingDebugLines = false;

@@ -184,7 +184,7 @@ class FilamentViewApi {
     // Enable raycast checks for the given entity.
     // NOTE: this will not show the collider debug visual.
     virtual std::optional<FlutterError> TurnOnCollisionChecksForEntity(int64_t id) = 0;
-    // Enable/disable debug collidable visuals in the scene.
+    // Enable/disable debug collider visuals in the scene.
     virtual std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) = 0;
     virtual std::optional<FlutterError> SetEntityTransformScale(
       int64_t id,

@@ -66,7 +66,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::setupMaterialInstance(
   }
 
   const auto materialInstance = materialResult->createInstance();
-  materialDefinitions->vSetMaterialInstancePropertiesFromMyPropertyMap(
+  materialDefinitions->setMaterialInstancePropertiesFromMyPropertyMap(
     materialResult, materialInstance, loadedTextures_
   );
 
@@ -97,7 +97,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
     materialToInstanceFrom = materialToInstanceFromIter->second;
   } else {
     SPDLOG_TRACE("++MaterialSystem::LoadingMaterial");
-    materialDefinitions->DebugPrint("  ");
+    materialDefinitions->debugPrint("  ");
     materialToInstanceFrom = loadMaterialFromResource(materialDefinitions);
 
     if (materialToInstanceFrom.getStatus() != Status::Success) {
@@ -111,7 +111,7 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 
   // here we need to see if any & all textures that are requested on the
   // material be loaded before we create an instance of it.
-  const auto materialsRequiredTextures = materialDefinitions->vecGetTextureMaterialParameters();
+  const auto materialsRequiredTextures = materialDefinitions->getTextureMaterialParameters();
   for (const auto materialParam : materialsRequiredTextures) {
     try {
       // Call the getTextureValue method
@@ -160,8 +160,8 @@ Resource<filament::MaterialInstance*> MaterialSystem::getMaterialInstance(
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vOnInitSystem() {
-  vRegisterMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
+void MaterialSystem::onSystemInit() {
+  registerMessageHandler(ECSMessageType::ChangeMaterialParameter, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialParameter");
 
     const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
@@ -175,13 +175,13 @@ void MaterialSystem::vOnInitSystem() {
       const auto parameter = MaterialParameter::Deserialize("", params);
 
       const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->vChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
+      renderable->ChangeMaterialInstanceProperty(parameter.get(), loadedTextures_);
     }
 
     spdlog::debug("ChangeMaterialParameter Complete");
   });
 
-  vRegisterMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ChangeMaterialDefinitions, [this](const ECSMessage& msg) {
     spdlog::debug("ChangeMaterialDefinitions");
 
     const flutter::EncodableMap& params = msg.getData<flutter::EncodableMap>(
@@ -194,7 +194,7 @@ void MaterialSystem::vOnInitSystem() {
       spdlog::debug("ChangeMaterialDefinitions valid entity found.");
 
       const auto renderable = dynamic_cast<RenderableEntityObject*>(entityObject.get());
-      renderable->vChangeMaterialDefinitions(params, loadedTextures_);
+      renderable->ChangeMaterialDefinitions(params, loadedTextures_);
     }
 
     spdlog::debug("ChangeMaterialDefinitions Complete");
@@ -202,10 +202,10 @@ void MaterialSystem::vOnInitSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vUpdate(float /*fElapsedTime*/) {}
+void MaterialSystem::update(float /*deltaTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::vShutdownSystem() {
-  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::vShutdownSystem");
+void MaterialSystem::onDestroy() {
+  const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::onDestroy");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (const auto& [fst, snd] : loadedTemplateMaterials_) {
@@ -224,6 +224,6 @@ void MaterialSystem::vShutdownSystem() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void MaterialSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

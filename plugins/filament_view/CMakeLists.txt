@@ -76,14 +76,14 @@ add_library(plugin_filament_view STATIC
         messages.g.cc
 
         core/scene/serialization/scene_text_deserializer.cc
-        core/components/derived/basetransform.cc
+        core/components/derived/transform.cc
         core/components/derived/camera.cc
         core/components/derived/commonrenderable.cc
-        core/components/derived/collidable.cc
+        core/components/derived/collider.cc
         core/components/derived/animation.cc
         core/components/derived/light.cc
         core/entity/derived/renderable_entityobject.cc
-        core/systems/base/ecsystem.cc
+        core/systems/base/system.cc
         core/systems/ecs.cc
         core/systems/derived/filament_system.cc
         core/systems/derived/model_system.cc

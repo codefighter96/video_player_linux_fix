@@ -16,7 +16,7 @@
 
 #include "shape_system.h"
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/entity/derived/shapes/cube.h>
@@ -32,16 +32,16 @@ namespace plugin_filament_view {
 using shapes::BaseShape;
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleAllShapesInScene(const bool enable) const {
+void ShapeSystem::ToggleAllShapesInScene(const bool enable) const {
   if (enable) {
     for (const auto& guid : _shapes) {
       const auto shape = getShape(guid);
-      shape->vAddEntityToScene();
+      shape->AddEntityToScene();
     }
   } else {
     for (const auto& guid : _shapes) {
       const auto shape = getShape(guid);
-      shape->vRemoveEntityFromScene();
+      shape->RemoveEntityFromScene();
     }
   }
 }
@@ -62,22 +62,22 @@ BaseShape* ShapeSystem::getShape(const EntityGUID guid) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vToggleSingleShapeInScene(const EntityGUID guid, const bool enable) const {
+void ShapeSystem::ToggleSingleShapeInScene(const EntityGUID guid, const bool enable) const {
   if (!hasShape(guid)) {
     return;
   }
 
   BaseShape* shape = getShape(guid);
   if (enable) {
-    shape->vAddEntityToScene();
+    shape->AddEntityToScene();
   } else {
-    shape->vRemoveEntityFromScene();
+    shape->RemoveEntityFromScene();
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vRemoveAllShapesInScene() {
-  vToggleAllShapesInScene(false);
+void ShapeSystem::RemoveAllShapesInScene() {
+  ToggleAllShapesInScene(false);
 
   for (const auto& guid : _shapes) {
     ecs->removeEntity(guid);
@@ -139,7 +139,7 @@ void ShapeSystem::addShapesToScene(std::vector<std::shared_ptr<BaseShape>>* shap
 
   // TODO remove this, just debug info print for now;
   /*for (auto& shape : *shapes) {
-    shape->DebugPrint("Add shapes to scene");
+    shape->debugPrint("Add shapes to scene");
   }*/
 
   for (auto& shape : *shapes) {
@@ -154,14 +154,14 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shap
 
   filament::Scene* filamentScene = _filament->getFilamentScene();
 
-  spdlog::trace("addShapesToScene: {}", shape->GetGuid());
+  spdlog::trace("addShapesToScene: {}", shape->getGuid());
   FilamentEntity oEntity = _em->create();
   filamentScene->addEntity(oEntity);
   shape->_fEntity = oEntity;
 
   shape->bInitAndCreateShape(_engine, oEntity);
 
-  spdlog::trace("Adding entity {} with filament entity {}", shape->GetGuid(), oEntity.getId());
+  spdlog::trace("Adding entity {} with filament entity {}", shape->getGuid(), oEntity.getId());
 
   // To investigate a better system for implementing layer mask
   // across dart to here.
@@ -169,39 +169,39 @@ void ShapeSystem::addShapeToScene(const std::shared_ptr<shapes::BaseShape>& shap
   // To investigate
   // _rcm.setLayerMask(instance, 0xff, 0x00);
 
-  _shapes.emplace_back(shape->GetGuid());
+  _shapes.emplace_back(shape->getGuid());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vOnInitSystem() {
+void ShapeSystem::onSystemInit() {
   // Get filament
   _filament = ecs->getSystem<FilamentSystem>(__FUNCTION__);
-  runtime_assert(_filament != nullptr, "ModelSystem::vOnInitSystem: FilamentSystem not init yet");
+  runtime_assert(_filament != nullptr, "ModelSystem::onSystemInit: FilamentSystem not init yet");
 
   _engine = _filament->getFilamentEngine();
-  runtime_assert(_engine != nullptr, "ModelSystem::vOnInitSystem: FilamentEngine not found");
+  runtime_assert(_engine != nullptr, "ModelSystem::onSystemInit: FilamentEngine not found");
 
   _rcm = _engine->getRenderableManager();
   _tm = _engine->getTransformManager();
   _em = _engine->getEntityManager();
-  runtime_assert(_rcm != nullptr, "ModelSystem::vOnInitSystem: RenderableManager not found");
-  runtime_assert(_tm != nullptr, "ModelSystem::vOnInitSystem: TransformManager not found");
-  runtime_assert(_em != nullptr, "ModelSystem::vOnInitSystem: EntityManager not found");
+  runtime_assert(_rcm != nullptr, "ModelSystem::onSystemInit: RenderableManager not found");
+  runtime_assert(_tm != nullptr, "ModelSystem::onSystemInit: TransformManager not found");
+  runtime_assert(_em != nullptr, "ModelSystem::onSystemInit: EntityManager not found");
 
   /*
    * Register message handlers
    */
-  vRegisterMessageHandler(ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ToggleShapesInScene, [this](const ECSMessage& msg) {
     spdlog::debug("ToggleShapesInScene");
 
     const auto value = msg.getData<bool>(ECSMessageType::ToggleShapesInScene);
 
-    vToggleAllShapesInScene(value);
+    ToggleAllShapesInScene(value);
 
     spdlog::trace("ToggleShapesInScene Complete");
   });
 
-  vRegisterMessageHandler(ECSMessageType::SetShapeTransform, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::SetShapeTransform, [this](const ECSMessage& msg) {
     SPDLOG_TRACE("SetShapeTransform");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::SetShapeTransform);
@@ -213,36 +213,36 @@ void ShapeSystem::vOnInitSystem() {
     // find the entity in our list:
     if (hasShape(guid)) {
       const auto entity = getShape(guid);
-      const auto baseTransform = entity->getComponent<BaseTransform>();
-      const auto collidable = entity->getComponent<Collidable>();
+      const auto transform = entity->getComponent<Transform>();
+      const auto collider = entity->getComponent<Collider>();
 
-      baseTransform->SetTransform(position, scale, rotation);
+      transform->setTransform(position, scale, rotation);
     }
 
     SPDLOG_TRACE("SetShapeTransform Complete");
   });
 
-  vRegisterMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::ToggleVisualForEntity, [this](const ECSMessage& msg) {
     spdlog::debug("ToggleVisualForEntity");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::ToggleVisualForEntity);
     const auto value = msg.getData<bool>(ECSMessageType::BoolValue);
 
-    vToggleSingleShapeInScene(guid, value);
+    ToggleSingleShapeInScene(guid, value);
 
     spdlog::trace("ToggleVisualForEntity Complete");
   });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vUpdate(float /*fElapsedTime*/) {}
+void ShapeSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::vShutdownSystem() {
+void ShapeSystem::onDestroy() {
   // remove all filament entities.
-  vRemoveAllShapesInScene();
+  RemoveAllShapesInScene();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ShapeSystem::DebugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
+void ShapeSystem::debugPrint() { SPDLOG_DEBUG("{}", __FUNCTION__); }
 }  // namespace plugin_filament_view

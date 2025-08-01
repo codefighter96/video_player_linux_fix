@@ -45,7 +45,7 @@ class Sphere : public BaseShape {
 
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
-    void DebugPrint(const char* tag) const override;
+    void debugPrint(const char* tag) const override;
 
     bool bInitAndCreateShape(::filament::Engine* engine_, FilamentEntity entityObject) override;
     void CloneToOther(BaseShape& other) const override;

@@ -61,7 +61,7 @@ class MaterialParameter {
 
     ~MaterialParameter();
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
     [[nodiscard]] std::string szGetParameterName() const { return name_; }
 

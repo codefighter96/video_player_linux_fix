@@ -29,19 +29,19 @@ void RenderableEntityObject::deserializeFrom(const flutter::EncodableMap& params
 
   // Transform (required)
   spdlog::trace("Making Transform...");
-  addComponent(BaseTransform(params));
+  addComponent(Transform(params));
 
   // CommonRenderable (required)
   spdlog::trace("Making CommonRenderable...");
   addComponent(CommonRenderable(params));
 
-  // Collidable (optional)
-  spdlog::trace("Making Collidable...");
-  if (const auto it = params.find(flutter::EncodableValue(kCollidable));
+  // Collider (optional)
+  spdlog::trace("Making Collider...");
+  if (const auto it = params.find(flutter::EncodableValue(kCollider));
       it != params.end() && !it->second.IsNull()) {
-    addComponent(Collidable(params));
+    addComponent(Collider(params));
   } else {
-    spdlog::trace("  This entity params has no collidable");
+    spdlog::trace("  This entity params has no collider");
   }
 }  // namespace plugin_filament_view
 
@@ -50,9 +50,9 @@ void RenderableEntityObject::onInitialize() {
   EntityObject::onInitialize();
 
   // Make sure it has a Transform component
-  const auto transform = getComponent<BaseTransform>();
+  const auto transform = getComponent<Transform>();
   if (!transform) {
-    addComponent(BaseTransform());  // init with defaults
+    addComponent(Transform());  // init with defaults
   }
 
   // Make sure it has a CommonRenderable component
@@ -63,10 +63,10 @@ void RenderableEntityObject::onInitialize() {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void RenderableEntityObject::vLoadMaterialDefinitionsToMaterialInstance() {
+void RenderableEntityObject::LoadMaterialDefinitionsToMaterialInstance() {
   checkInitialized();
   const auto materialSystem = ecs->getSystem<MaterialSystem>(
-    "RenderableEntityObject::vBuildRenderable"
+    "RenderableEntityObject::BuildRenderable"
   );
 
   // this will also set all the default values of the material instance from

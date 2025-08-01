@@ -18,7 +18,7 @@
 #include "shell/platform/common/client_wrapper/include/flutter/encodable_value.h"
 
 #include <core/components/base/component.h>
-#include <core/components/derived/basetransform.h>
+#include <core/components/derived/transform.h>
 #include <core/include/shapetypes.h>
 #include <core/scene/geometry/ray.h>
 #include <core/utils/bounding_volumes.h>
@@ -27,7 +27,7 @@ namespace plugin_filament_view {
 
 // At the time of checkin - m_bShouldMatchAttachedObject is expected to be
 // true at all times, and the IsStatic is not used in the false sense of
-// updating geometry. First pass is only static collidables spawning using data
+// updating geometry. First pass is only static colliders spawning using data
 // from the base transform with on overrides. Expected work TBD for future
 // improvements.
 
@@ -37,7 +37,7 @@ class BaseShape;
 
 class CollisionSystem;
 
-class Collidable : public Component {
+class Collider : public Component {
     friend class CollisionSystem;
 
   public:
@@ -48,52 +48,52 @@ class Collidable : public Component {
     /// This is used to identify the event in the event system.
     /// The default value is "click".
     std::string eventName = "click";
-    /// Bounding box of the collidable
+    /// Bounding box of the collider
     AABB _aabb;
 
   public:
-    Collidable()
+    Collider()
       : Component(std::string(__FUNCTION__)) {}
 
     // TODO: make this a more complete constructor
-    Collidable(const ShapeType& shapeType)
+    Collider(const ShapeType& shapeType)
       : Component(std::string(__FUNCTION__)),
         m_eShapeType(shapeType) {}
 
-    explicit Collidable(const flutter::EncodableMap& params);
+    explicit Collider(const flutter::EncodableMap& params);
 
     // Getters
-    [[nodiscard]] inline bool GetIsStatic() const { return m_bIsStatic; }
-    [[nodiscard]] inline int64_t GetCollisionLayer() const { return m_nCollisionLayer; }
-    [[nodiscard]] inline int64_t GetCollisionMask() const { return m_nCollisionMask; }
-    [[nodiscard]] inline bool GetShouldMatchAttachedObject() const {
+    [[nodiscard]] inline bool getIsStatic() const { return m_bIsStatic; }
+    [[nodiscard]] inline int64_t getCollisionLayer() const { return m_nCollisionLayer; }
+    [[nodiscard]] inline int64_t getCollisionMask() const { return m_nCollisionMask; }
+    [[nodiscard]] inline bool getShouldMatchAttachedObject() const {
       return m_bShouldMatchAttachedObject;
     }
-    [[nodiscard]] inline ShapeType GetShapeType() const { return m_eShapeType; }
-    [[nodiscard]] inline filament::math::float3 GetExtentsSize() const { return _extentSize; }
+    [[nodiscard]] inline ShapeType getShapeType() const { return m_eShapeType; }
+    [[nodiscard]] inline filament::math::float3 getExtentsSize() const { return _extentSize; }
 
     // Setters
-    inline void SetIsStatic(bool value) { m_bIsStatic = value; }
-    inline void SetCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
-    inline void SetCollisionMask(int64_t value) { m_nCollisionMask = value; }
-    inline void SetShouldMatchAttachedObject(bool value) { m_bShouldMatchAttachedObject = value; }
-    inline void SetShapeType(ShapeType value) { m_eShapeType = value; }
-    inline void SetExtentsSize(const filament::math::float3& value) {
-      if (m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collidable");
+    inline void setIsStatic(bool value) { m_bIsStatic = value; }
+    inline void setCollisionLayer(int64_t value) { m_nCollisionLayer = value; }
+    inline void setCollisionMask(int64_t value) { m_nCollisionMask = value; }
+    inline void setShouldMatchAttachedObject(bool value) { m_bShouldMatchAttachedObject = value; }
+    inline void setShapeType(ShapeType value) { m_eShapeType = value; }
+    inline void setExtentsSize(const filament::math::float3& value) {
+      if (m_bIsStatic) throw std::runtime_error("Cannot set extents size on static collider");
       _extentSize = value;
     }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
-    [[nodiscard]] bool bDoesOverlap(const Collidable& other) const;
+    [[nodiscard]] bool bDoesOverlap(const Collider& other) const;
     bool intersects(
       const Ray& ray,
       ::filament::math::float3& hitPosition,
-      const std::shared_ptr<BaseTransform>& transform
+      const std::shared_ptr<Transform>& transform
     ) const;
 
     [[nodiscard]] inline Component* Clone() const override {
-      return new Collidable(*this);  // Copy constructor is called here
+      return new Collider(*this);  // Copy constructor is called here
     }
 
   private:
@@ -101,7 +101,7 @@ class Collidable : public Component {
     // object once created in place.
     bool m_bIsStatic = false;
     // if this isStatic, then we need to copy this on creation
-    // from basetransform property
+    // from transform property
     filament::math::float3 m_f3StaticPosition = {0, 0, 0};
 
     // Layer for collision filtering
@@ -124,7 +124,7 @@ class Collidable : public Component {
     /*
      *  Setup stuff
      */
-    /// Collidable's child wireframe object
+    /// Collider's child wireframe object
     std::shared_ptr<shapes::BaseShape> _wireframe;
 };
 

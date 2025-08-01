@@ -31,7 +31,7 @@ class IdentifiableType {
     virtual ~IdentifiableType() = default;
 
     /** Returns the name of the type as a string. */
-    [[nodiscard]] virtual std::string GetTypeName() {
+    [[nodiscard]] virtual std::string getTypeName() {
       // Set the type name
       if (typeName_.empty()) {
         // RTTI type name
@@ -51,7 +51,7 @@ class IdentifiableType {
       return typeName_;
     }
 
-    [[nodiscard]] virtual size_t GetTypeID() const { return typeid(*this).hash_code(); }
+    [[nodiscard]] virtual size_t getTypeID() const { return typeid(*this).hash_code(); }
 
     template<typename T> [[nodiscard]] static size_t StaticGetTypeID() {
       return typeid(T).hash_code();

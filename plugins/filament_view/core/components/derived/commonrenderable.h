@@ -44,13 +44,13 @@ class CommonRenderable : public Component {
     [[nodiscard]] inline bool IsCastShadowsEnabled() const { return m_bCastShadows; }
 
     // Setters
-    inline void SetCullingOfObjectEnabled(bool enabled) { m_bCullingOfObjectEnabled = enabled; }
+    inline void setCullingOfObjectEnabled(bool enabled) { m_bCullingOfObjectEnabled = enabled; }
 
-    inline void SetReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
+    inline void setReceiveShadows(bool enabled) { m_bReceiveShadows = enabled; }
 
-    inline void SetCastShadows(bool enabled) { m_bCastShadows = enabled; }
+    inline void setCastShadows(bool enabled) { m_bCastShadows = enabled; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override {
       /// TODO: fix this

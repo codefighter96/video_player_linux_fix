@@ -31,7 +31,7 @@ class Light;
 class SceneTextDeserializer {
   public:
     explicit SceneTextDeserializer(const std::vector<uint8_t>& params);
-    void vRunPostSetupLoad();
+    void RunPostSetupLoad();
 
     virtual ~SceneTextDeserializer() = default;
 
@@ -43,13 +43,13 @@ class SceneTextDeserializer {
 
     std::vector<std::shared_ptr<EntityObject>> entities_;
 
-    void vDeserializeRootLevel(
+    void DeserializeRootLevel(
       const std::vector<uint8_t>& params,
       const std::string& flutterAssetsPath
     );
-    // This is called from vDeserializeRootLevel function when it hits a 'scene'
+    // This is called from DeserializeRootLevel function when it hits a 'scene'
     // tag
-    void vDeserializeSceneLevel(const flutter::EncodableValue& params);
+    void DeserializeSceneLevel(const flutter::EncodableValue& params);
 
     void setUpLoadingModels();
     void setUpSkybox() const;

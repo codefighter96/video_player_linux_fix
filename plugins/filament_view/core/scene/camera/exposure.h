@@ -31,7 +31,7 @@ class Exposure {
   public:
     explicit Exposure(const flutter::EncodableMap& params);
 
-    void DebugPrint(const char* tag);
+    void debugPrint(const char* tag);
 
     Exposure(const Exposure& other) = default;
 

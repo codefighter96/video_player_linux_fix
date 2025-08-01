@@ -49,7 +49,7 @@ Camera::Camera(const flutter::EncodableMap& params)
     _lens = LensProjection(lensParams.value());
     _dirtyProjection = true;
 
-    // Reset projection if lens is set
+    // reset projection if lens is set
     if (_projection.has_value()) {
       spdlog::warn(
         "LensProjection is set, resetting Projection. LensProjection will be used instead."
@@ -86,8 +86,8 @@ Camera::Camera(const flutter::EncodableMap& params)
 
 }  // Camera
 
-void Camera::DebugPrint(const std::string& tabPrefix) const {
+void Camera::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug("{}: Camera {{ viewId: {} }", tabPrefix, _viewId);
-}  // DebugPrint
+}  // debugPrint
 
 }  // namespace plugin_filament_view

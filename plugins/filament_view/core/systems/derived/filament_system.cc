@@ -22,7 +22,7 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::vOnInitSystem() {
+void FilamentSystem::onSystemInit() {
   spdlog::debug("Engine creation Filament API thread: 0x{:x}", pthread_self());
 
   /* Note; this is checked in for future reference, on some systems this might
@@ -52,10 +52,10 @@ void FilamentSystem::vOnInitSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::vUpdate(float /*fElapsedTime*/) {}
+void FilamentSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::vShutdownSystem() {
+void FilamentSystem::onDestroy() {
   fengine_->destroy(fscene_);
   fengine_->destroy(frenderer_);
 
@@ -64,6 +64,6 @@ void FilamentSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void FilamentSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void FilamentSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

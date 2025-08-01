@@ -17,8 +17,8 @@
 #pragma once
 
 #include <core/components/derived/animation.h>
-#include <core/components/derived/basetransform.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
 #include <core/entity/derived/renderable_entityobject.h>
 #include <gltfio/FilamentAsset.h>
@@ -61,10 +61,10 @@ class Model : public RenderableEntityObject {
       return m_poAssetInstance;
     }
 
-    [[nodiscard]] std::shared_ptr<BaseTransform> GetBaseTransform() const {
-      return getComponent<BaseTransform>();
+    [[nodiscard]] std::shared_ptr<Transform> getTransform() const {
+      return getComponent<Transform>();
     }
-    [[nodiscard]] std::shared_ptr<CommonRenderable> GetCommonRenderable() const {
+    [[nodiscard]] std::shared_ptr<CommonRenderable> getCommonRenderable() const {
       return getComponent<CommonRenderable>();
     }
 
@@ -89,16 +89,16 @@ class Model : public RenderableEntityObject {
     /// Whether it's been inserted into the scene
     bool m_isInScene = false;
 
-    void DebugPrint() const override;
+    void debugPrint() const override;
 
     virtual void deserializeFrom(const flutter::EncodableMap& params) override;
 
     /// TODO: move to CommonRenderable
-    void vChangeMaterialDefinitions(
+    void ChangeMaterialDefinitions(
       const flutter::EncodableMap& /*params*/,
       const TextureMap& /*loadedTextures*/
     ) override;
-    void vChangeMaterialInstanceProperty(
+    void ChangeMaterialInstanceProperty(
       const MaterialParameter* /*materialParam*/,
       const TextureMap& /*loadedTextures*/
     ) override;
