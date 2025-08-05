@@ -27,7 +27,7 @@
  * This class inherits from CacheOperationTemplate specialized for the
  * Installation type. It provides mechanisms to validate cache keys, serialize
  * and deserialize Installation data, determine expiry times, and validate
- * cached data. The TTL for cached entries can be configured, with a default
+ * cached data. The TTL for cached entries can be configured with a default
  * value of 6 hours.
  */
 class FlatpakInstallationCacheOperation

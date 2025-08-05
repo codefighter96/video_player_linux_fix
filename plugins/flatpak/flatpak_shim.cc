@@ -17,13 +17,12 @@
 #include "flatpak_shim.h"
 
 #include <filesystem>
-#include <sstream>
 
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 #include <zlib.h>
 
-#include <common/common.h>
+#include "plugins/common/common.h"
 
 #include "appstream_catalog.h"
 #include "component.h"
@@ -267,60 +266,121 @@ Installation FlatpakShim::get_installation(FlatpakInstallation* installation) {
   flutter::EncodableList remote_list;
 
   const auto remotes = get_remotes(installation);
-  for (size_t j = 0; j < remotes->len; j++) {
-    const auto remote =
-        static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, j));
+  if (remotes) {
+    for (size_t j = 0; j < remotes->len; j++) {
+      const auto remote =
+          static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, j));
 
-    const auto name = flatpak_remote_get_name(remote);
-    const auto url = flatpak_remote_get_url(remote);
-    const auto collection_id = flatpak_remote_get_collection_id(remote);
-    const auto title = flatpak_remote_get_title(remote);
-    const auto comment = flatpak_remote_get_comment(remote);
-    const auto description = flatpak_remote_get_description(remote);
-    const auto homepage = flatpak_remote_get_homepage(remote);
-    const auto icon = flatpak_remote_get_icon(remote);
-    const auto default_branch = flatpak_remote_get_default_branch(remote);
-    const auto main_ref = flatpak_remote_get_main_ref(remote);
-    const auto filter = flatpak_remote_get_filter(remote);
-    const bool gpg_verify = flatpak_remote_get_gpg_verify(remote);
-    const bool no_enumerate = flatpak_remote_get_noenumerate(remote);
-    const bool no_deps = flatpak_remote_get_nodeps(remote);
-    const bool disabled = flatpak_remote_get_disabled(remote);
-    const int32_t prio = flatpak_remote_get_prio(remote);
+      if (!remote) {
+        spdlog::warn("[FlatpakPlugin] Null remote at index {}", j);
+        continue;
+      }
 
-    const auto default_arch = flatpak_get_default_arch();
-    auto appstream_timestamp_path = g_file_get_path(
-        flatpak_remote_get_appstream_timestamp(remote, default_arch));
-    auto appstream_dir_path =
-        g_file_get_path(flatpak_remote_get_appstream_dir(remote, default_arch));
+      try {
+        const auto name = flatpak_remote_get_name(remote);
+        const auto url = flatpak_remote_get_url(remote);
+        const auto collection_id = flatpak_remote_get_collection_id(remote);
+        const auto title = flatpak_remote_get_title(remote);
+        const auto comment = flatpak_remote_get_comment(remote);
+        const auto description = flatpak_remote_get_description(remote);
+        const auto homepage = flatpak_remote_get_homepage(remote);
+        const auto icon = flatpak_remote_get_icon(remote);
+        const auto default_branch = flatpak_remote_get_default_branch(remote);
+        const auto main_ref = flatpak_remote_get_main_ref(remote);
+        const auto filter = flatpak_remote_get_filter(remote);
+        const bool gpg_verify = flatpak_remote_get_gpg_verify(remote);
+        const bool no_enumerate = flatpak_remote_get_noenumerate(remote);
+        const bool no_deps = flatpak_remote_get_nodeps(remote);
+        const bool disabled = flatpak_remote_get_disabled(remote);
+        const int32_t prio = flatpak_remote_get_prio(remote);
 
-    std::filesystem::path appstream_xml_path = appstream_dir_path;
-    appstream_xml_path /= "appstream.xml";
-    auto catalog = AppstreamCatalog(appstream_xml_path, "");
-    spdlog::debug("[FlatpakPlugin] Appstream Catalog Total components: {}",
-                  catalog.getTotalComponentCount());
-    const auto& components = catalog.getComponents();
-    for (const auto& component : components) {
-      PrintComponent(component);
+        const auto default_arch = flatpak_get_default_arch();
+        auto appstream_timestamp_path = g_file_get_path(
+            flatpak_remote_get_appstream_timestamp(remote, default_arch));
+        auto appstream_dir_path = g_file_get_path(
+            flatpak_remote_get_appstream_dir(remote, default_arch));
+
+        std::filesystem::path appstream_xml_path = appstream_dir_path;
+        appstream_xml_path /= "appstream.xml";
+        auto catalog = AppstreamCatalog(appstream_xml_path, "");
+        spdlog::debug("[FlatpakPlugin] Appstream Catalog Total components: {}",
+                      catalog.getTotalComponentCount());
+        const auto& components = catalog.getComponents();
+        for (const auto& component : components) {
+          PrintComponent(component);
+        }
+
+        auto appstream_timestamp =
+            get_appstream_timestamp(appstream_timestamp_path);
+        char formatted_time[30];
+        format_time_iso8601(appstream_timestamp, formatted_time,
+                            sizeof(formatted_time));
+
+        // Validate required fields before creating Remote object
+        if (!name || !url) {
+          spdlog::warn(
+              "[FlatpakPlugin] Skipping remote with missing name or URL");
+          if (appstream_timestamp_path) {
+            g_free(appstream_timestamp_path);
+          }
+          if (appstream_dir_path) {
+            g_free(appstream_dir_path);
+          }
+          continue;
+        }
+
+        // Convert Remote to EncodableMap
+        flutter::EncodableMap remote_map{
+            {"name", flutter::EncodableValue(std::string(name))},
+            {"url", flutter::EncodableValue(std::string(url))},
+            {"collection_id",
+             flutter::EncodableValue(collection_id ? std::string(collection_id)
+                                                   : "")},
+            {"title", flutter::EncodableValue(title ? std::string(title) : "")},
+            {"comment",
+             flutter::EncodableValue(comment ? std::string(comment) : "")},
+            {"description", flutter::EncodableValue(
+                                description ? std::string(description) : "")},
+            {"homepage",
+             flutter::EncodableValue(homepage ? std::string(homepage) : "")},
+            {"icon", flutter::EncodableValue(icon ? std::string(icon) : "")},
+            {"default_branch",
+             flutter::EncodableValue(
+                 default_branch ? std::string(default_branch) : "")},
+            {"main_ref",
+             flutter::EncodableValue(main_ref ? std::string(main_ref) : "")},
+            {"remote_type", flutter::EncodableValue(FlatpakRemoteTypeToString(
+                                flatpak_remote_get_remote_type(remote)))},
+            {"filter",
+             flutter::EncodableValue(filter ? std::string(filter) : "")},
+            {"appstream_timestamp",
+             flutter::EncodableValue(std::string(formatted_time))},
+            {"appstream_dir",
+             flutter::EncodableValue(
+                 appstream_dir_path ? std::string(appstream_dir_path) : "")},
+            {"gpg_verify", flutter::EncodableValue(gpg_verify)},
+            {"no_enumerate", flutter::EncodableValue(no_enumerate)},
+            {"no_deps", flutter::EncodableValue(no_deps)},
+            {"disabled", flutter::EncodableValue(disabled)},
+            {"prio", flutter::EncodableValue(static_cast<int64_t>(prio))}};
+
+        remote_list.emplace_back(remote_map);
+
+        if (appstream_timestamp_path) {
+          g_free(appstream_timestamp_path);
+        }
+
+        if (appstream_dir_path) {
+          g_free(appstream_dir_path);
+        }
+      } catch (const std::exception& e) {
+        spdlog::error("[FlatpakPlugin] Exception processing remote: {}",
+                      e.what());
+        continue;
+      }
     }
-
-    auto appstream_timestamp =
-        get_appstream_timestamp(appstream_timestamp_path);
-    char formatted_time[30];
-    format_time_iso8601(appstream_timestamp, formatted_time,
-                        sizeof(formatted_time));
-
-    remote_list.emplace_back(flutter::CustomEncodableValue(Remote(
-        name ? name : "", url ? url : "", collection_id ? collection_id : "",
-        title ? title : "", comment ? comment : "",
-        description ? description : "", homepage ? homepage : "",
-        icon ? icon : "", default_branch ? default_branch : "",
-        main_ref ? main_ref : "",
-        FlatpakRemoteTypeToString(flatpak_remote_get_remote_type(remote)),
-        filter ? filter : "", formatted_time, appstream_dir_path, gpg_verify,
-        no_enumerate, no_deps, disabled, prio)));
+    g_ptr_array_unref(remotes);
   }
-  g_ptr_array_unref(remotes);
 
   const auto id = flatpak_installation_get_id(installation);
   const auto display_name = flatpak_installation_get_display_name(installation);
@@ -334,8 +394,15 @@ Installation FlatpakShim::get_installation(FlatpakInstallation* installation) {
       installation_get_default_languages(installation);
   const auto default_locales = installation_get_default_locales(installation);
 
-  return Installation(id, display_name, path, no_interaction, is_user, priority,
-                      default_languages, default_locales, remote_list);
+  if (!id || !path) {
+    spdlog::error("[FlatpakPlugin] Installation missing required fields");
+    return Installation("", "", "", false, false, 0, flutter::EncodableList{},
+                        flutter::EncodableList{}, flutter::EncodableList{});
+  }
+
+  return Installation(id, display_name ? display_name : "", path,
+                      no_interaction, is_user, priority, default_languages,
+                      default_locales, remote_list);
 }
 
 flutter::EncodableMap FlatpakShim::get_content_rating_map(
@@ -351,8 +418,17 @@ flutter::EncodableMap FlatpakShim::get_content_rating_map(
   gpointer key, value;
   g_hash_table_iter_init(&iter, content_rating);
   while (g_hash_table_iter_next(&iter, &key, &value)) {
-    result[flutter::EncodableValue(static_cast<char*>(key))] =
-        flutter::EncodableValue(static_cast<char*>(value));
+    // Validate pointers before casting
+    if (key && value) {
+      const char* key_str = static_cast<const char*>(key);
+      const char* value_str = static_cast<const char*>(value);
+
+      if (key_str && value_str && strlen(key_str) > 0 &&
+          strlen(value_str) > 0) {
+        result[flutter::EncodableValue(std::string(key_str))] =
+            flutter::EncodableValue(std::string(value_str));
+      }
+    }
   }
   return result;
 }
@@ -398,18 +474,41 @@ void FlatpakShim::get_application_list(
       }
     }
 
-    application_list.emplace_back(flutter::CustomEncodableValue(Application(
-        appdata_name ? appdata_name : "", appdata_id ? appdata_id : "",
-        appdata_summary ? appdata_summary : "",
-        appdata_version ? appdata_version : "",
-        appdata_origin ? appdata_origin : "",
-        appdata_license ? appdata_license : "",
-        static_cast<int64_t>(flatpak_installed_ref_get_installed_size(ref)),
-        deploy_dir ? deploy_dir : "", flatpak_installed_ref_get_is_current(ref),
-        content_rating_type ? content_rating_type : "",
-        get_content_rating_map(ref), latest_commit ? latest_commit : "",
-        eol ? eol : "", eol_rebase ? eol_rebase : "", subpath_list,
-        get_metadata_as_string(ref), get_appdata_as_string(ref))));
+    // Convert Application to EncodableMap
+    flutter::EncodableMap app_map{
+        {"name", flutter::EncodableValue(
+                     appdata_name ? std::string(appdata_name) : "")},
+        {"id",
+         flutter::EncodableValue(appdata_id ? std::string(appdata_id) : "")},
+        {"summary", flutter::EncodableValue(
+                        appdata_summary ? std::string(appdata_summary) : "")},
+        {"version", flutter::EncodableValue(
+                        appdata_version ? std::string(appdata_version) : "")},
+        {"origin", flutter::EncodableValue(
+                       appdata_origin ? std::string(appdata_origin) : "")},
+        {"license", flutter::EncodableValue(
+                        appdata_license ? std::string(appdata_license) : "")},
+        {"installed_size", flutter::EncodableValue(static_cast<int64_t>(
+                               flatpak_installed_ref_get_installed_size(ref)))},
+        {"deploy_dir",
+         flutter::EncodableValue(deploy_dir ? std::string(deploy_dir) : "")},
+        {"is_current",
+         flutter::EncodableValue(flatpak_installed_ref_get_is_current(ref))},
+        {"content_rating_type",
+         flutter::EncodableValue(
+             content_rating_type ? std::string(content_rating_type) : "")},
+        {"content_rating",
+         flutter::EncodableValue(get_content_rating_map(ref))},
+        {"latest_commit", flutter::EncodableValue(
+                              latest_commit ? std::string(latest_commit) : "")},
+        {"eol", flutter::EncodableValue(eol ? std::string(eol) : "")},
+        {"eol_rebase",
+         flutter::EncodableValue(eol_rebase ? std::string(eol_rebase) : "")},
+        {"subpaths", flutter::EncodableValue(subpath_list)},
+        {"metadata", flutter::EncodableValue(get_metadata_as_string(ref))},
+        {"appdata", flutter::EncodableValue(get_appdata_as_string(ref))}};
+
+    application_list.emplace_back(app_map);
   }
   g_ptr_array_unref(refs);
 }
@@ -456,6 +555,576 @@ ErrorOr<flutter::EncodableList> FlatpakShim::GetSystemInstallations() {
   g_ptr_array_unref(system_installations);
 
   return installs_list;
+}
+
+ErrorOr<flutter::EncodableList> FlatpakShim::GetApplicationsRemote(
+    const std::string& id) {
+  try {
+    if (id.empty()) {
+      return ErrorOr<flutter::EncodableList>(
+          FlutterError("INVALID_REMOTE_GET", "Remote id is required"));
+    }
+    spdlog::info("[FlatpakPlugin] Get Applications from Remote {}", id.c_str());
+    flutter::EncodableList application_list;
+    GError* error = nullptr;
+
+    auto installation = flatpak_installation_new_user(nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to add Remote installation: {}",
+                    error->message);
+      g_clear_error(&error);
+      return ErrorOr<flutter::EncodableList>(FlutterError(
+          "INVALID_REMOTE_GET", "Failed to add Remote installation"));
+    }
+
+    auto remotes =
+        flatpak_installation_list_remotes(installation, nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Error occured while getting remotes",
+                    error->message);
+      g_clear_error(&error);
+      g_object_unref(installation);
+      return ErrorOr<flutter::EncodableList>(
+          FlutterError("INVALID_REMOTE_GET", "Failed to get remotes"));
+    }
+
+    std::string found_remote_name;
+    bool found_remote = false;
+
+    for (guint i = 0; i < remotes->len; i++) {
+      auto remote = static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, i));
+      const auto remote_name = flatpak_remote_get_name(remote);
+
+      if (flatpak_remote_get_disabled(remote)) {
+        continue;
+      }
+      if (remote_name && std::string(remote_name) == id) {
+        found_remote_name = remote_name;
+        found_remote = true;
+        break;
+      }
+    }
+    g_ptr_array_unref(remotes);
+
+    if (!found_remote) {
+      spdlog::error("[FlatpakPlugin] Remote {} not found", id.c_str());
+      g_object_unref(installation);
+      return ErrorOr<flutter::EncodableList>(
+          FlutterError("INVALID_REMOTE_GET", "Remote is not found"));
+    }
+
+    auto app_refs = flatpak_installation_list_remote_refs_sync(
+        installation, found_remote_name.c_str(), nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to get applications for remote :{}",
+                    error->message);
+      g_clear_error(&error);
+      g_object_unref(installation);
+      return ErrorOr<flutter::EncodableList>(
+          FlutterError("INVALID_REMOTE_GET", "Failed to get remote list"));
+    }
+
+    if (!app_refs) {
+      spdlog::error("[FlatpakPlugin] No application found in remote {}",
+                    id.c_str());
+      g_object_unref(installation);
+      return application_list;
+    }
+
+    for (guint i = 0; i < app_refs->len; i++) {
+      auto app_ref =
+          static_cast<FlatpakRemoteRef*>(g_ptr_array_index(app_refs, i));
+      // only applications
+      if (flatpak_ref_get_kind(FLATPAK_REF(app_ref)) != FLATPAK_REF_KIND_APP) {
+        continue;
+      }
+
+      const auto ref_name = flatpak_ref_get_name(FLATPAK_REF(app_ref));
+      const auto ref_arch = flatpak_ref_get_arch(FLATPAK_REF(app_ref));
+      const auto ref_branch = flatpak_ref_get_branch(FLATPAK_REF(app_ref));
+      const auto download_size = flatpak_remote_ref_get_download_size(app_ref);
+      const auto installed_size =
+          flatpak_remote_ref_get_installed_size(app_ref);
+      const auto metadata = flatpak_remote_ref_get_metadata(app_ref);
+      const auto eol = flatpak_remote_ref_get_eol(app_ref);
+      const auto eol_rebase = flatpak_remote_ref_get_eol_rebase(app_ref);
+
+      std::string full_ref = std::string("app/") + (ref_name ? ref_name : "") +
+                             "/" + (ref_arch ? ref_arch : "") + "/" +
+                             (ref_branch ? ref_branch : "");
+
+      std::string metadata_str;
+      if (metadata) {
+        gsize size;
+        const auto* data =
+            static_cast<const gchar*>(g_bytes_get_data(metadata, &size));
+        if (data && size > 0) {
+          metadata_str = std::string(data, size);
+        }
+      }
+
+      flutter::EncodableList empty_subpaths;
+      flutter::EncodableMap empty_content_rating;
+
+      // Convert Application to EncodableMap instead of CustomEncodableValue
+      flutter::EncodableMap app_map{
+          {"name",
+           flutter::EncodableValue(ref_name ? std::string(ref_name) : "")},
+          {"id", flutter::EncodableValue(std::string(id))},
+          {"summary", flutter::EncodableValue("")},
+          {"version", flutter::EncodableValue("")},
+          {"origin", flutter::EncodableValue(std::string(found_remote_name))},
+          {"license", flutter::EncodableValue("")},
+          {"installed_size",
+           flutter::EncodableValue(static_cast<int64_t>(installed_size))},
+          {"deploy_dir", flutter::EncodableValue("")},
+          {"is_current", flutter::EncodableValue(false)},
+          {"content_rating_type", flutter::EncodableValue("")},
+          {"content_rating", flutter::EncodableValue(empty_content_rating)},
+          {"latest_commit", flutter::EncodableValue("")},
+          {"eol", flutter::EncodableValue(eol ? std::string(eol) : "")},
+          {"eol_rebase",
+           flutter::EncodableValue(eol_rebase ? std::string(eol_rebase) : "")},
+          {"subpaths", flutter::EncodableValue(empty_subpaths)},
+          {"metadata", flutter::EncodableValue(metadata_str)},
+          {"appdata", flutter::EncodableValue("")}};
+
+      application_list.emplace_back(app_map);
+    }
+
+    g_ptr_array_unref(app_refs);
+    g_object_unref(installation);
+    spdlog::info("[FlatpakPlugin] Found {} applications in remote {}",
+                 application_list.size(), id.c_str());
+    return application_list;
+  } catch (const std::exception& e) {
+    spdlog::error("[FlatpakPlugin] Failed to get applications from remote",
+                  e.what());
+    return ErrorOr<flutter::EncodableList>(
+        FlutterError("INVALID_REMOTE_GET", "Failed to get remote list"));
+  }
+}
+
+ErrorOr<bool> FlatpakShim::RemoteAdd(const Remote& configuration) {
+  try {
+    if (configuration.name().empty() || configuration.url().empty()) {
+      return ErrorOr<bool>(FlutterError("INVALID_REMOTE_ADD",
+                                        "Remote name and URL is required"));
+    }
+
+    spdlog::info("[FlatpakPlugin] Adding Remote {}", configuration.name());
+    GError* error = nullptr;
+    auto installation = flatpak_installation_new_user(nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to add Remote installation: {}",
+                    error->message);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError("INVALID_REMOTE_ADD",
+                                        "Failed to add Remote installation"));
+    }
+
+    auto existing_remote = flatpak_installation_get_remote_by_name(
+        installation, configuration.name().c_str(), nullptr, nullptr);
+    if (existing_remote) {
+      spdlog::error("[FlatpakPlugin] Remote installation already exists");
+      g_object_unref(installation);
+      g_object_unref(existing_remote);
+      return ErrorOr<bool>(
+          FlutterError("Remote_EXISTS", "Remote already exists"));
+    }
+
+    gboolean ifneeded = TRUE;
+    auto remote = flatpak_remote_new(configuration.name().c_str());
+    if (!remote) {
+      spdlog::error("[FlatpakPlugin] Failed to create remote object");
+      g_object_unref(installation);
+      return ErrorOr<bool>(
+          FlutterError("INVALID_REMOTE_ADD", "Failed to create remote object"));
+    }
+
+    flatpak_remote_set_url(remote, configuration.url().c_str());
+
+    if (!configuration.title().empty()) {
+      flatpak_remote_set_title(remote, configuration.title().c_str());
+    }
+    if (!configuration.collection_id().empty()) {
+      flatpak_remote_set_collection_id(remote,
+                                       configuration.collection_id().c_str());
+    }
+    if (!configuration.comment().empty()) {
+      flatpak_remote_set_comment(remote, configuration.comment().c_str());
+    }
+    if (!configuration.description().empty()) {
+      flatpak_remote_set_description(remote,
+                                     configuration.description().c_str());
+    }
+    if (!configuration.default_branch().empty()) {
+      flatpak_remote_set_default_branch(remote,
+                                        configuration.default_branch().c_str());
+    }
+    if (!configuration.filter().empty()) {
+      flatpak_remote_set_filter(remote, configuration.filter().c_str());
+    }
+    if (!configuration.homepage().empty()) {
+      flatpak_remote_set_homepage(remote, configuration.homepage().c_str());
+    }
+    if (!configuration.icon().empty()) {
+      flatpak_remote_set_icon(remote, configuration.icon().c_str());
+    }
+    if (!configuration.main_ref().empty()) {
+      flatpak_remote_set_main_ref(remote, configuration.main_ref().c_str());
+    }
+
+    flatpak_remote_set_nodeps(remote, configuration.no_deps());
+    flatpak_remote_set_gpg_verify(remote, configuration.gpg_verify());
+    flatpak_remote_set_prio(remote, static_cast<int>(configuration.prio()));
+    flatpak_remote_set_disabled(remote, configuration.disabled());
+
+    gboolean result = flatpak_installation_add_remote(
+        installation, remote, ifneeded, nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to add remote installation: {}",
+                    error->message);
+      g_object_unref(installation);
+      g_object_unref(remote);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError("INVALID_REMOTE_ADD",
+                                        "Failed to add remote installation"));
+    }
+    if (result) {
+      spdlog::info("[FlatpakPlugin] Remote {} Added Successfully",
+                   configuration.name());
+    }
+    g_object_unref(installation);
+    g_object_unref(remote);
+    return static_cast<bool>(result);
+  } catch (const std::exception& e) {
+    spdlog::error("[FlatpakPlugin] Failed to add remote to flatpak plugin {}",
+                  e.what());
+    return ErrorOr<bool>(
+        FlutterError("INVALID_REMOTE_ADD", "Failed to add remote to flatpak"));
+  }
+}
+
+ErrorOr<bool> FlatpakShim::RemoteRemove(const std::string& id) {
+  try {
+    if (id.empty()) {
+      return ErrorOr<bool>(
+          FlutterError("INVALID_REMOTE_REMOVE", "Remote id is required"));
+    }
+
+    spdlog::info("[FlatpakPlugin] Remove remote {}", id.c_str());
+    GError* error = nullptr;
+    auto installation = flatpak_installation_new_user(nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to remove Remote installation: {}",
+                    error->message);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError(
+          "INVALID_REMOTE_REMOVE", "Failed to remove Remote installation"));
+    }
+    auto result = flatpak_installation_remove_remote(installation, id.c_str(),
+                                                     nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to remove remote installation: {}",
+                    error->message);
+      g_object_unref(installation);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError(
+          "INVALID_REMOTE_REMOVE", "Failed to remove remote installation"));
+    }
+    g_object_unref(installation);
+    return result;
+  } catch (const std::exception& e) {
+    spdlog::error("[FlatpakPlugin] Failed to remove remote from {}", e.what());
+    return ErrorOr<bool>(
+        FlutterError("INVALID_REMOTE_REMOVE", "Failed to remove remote"));
+  }
+}
+
+ErrorOr<bool> FlatpakShim::ApplicationInstall(const std::string& id) {
+  try {
+    if (id.empty()) {
+      return ErrorOr<bool>(
+          FlutterError("INVALID_APP_ID", "Application ID is required"));
+    }
+
+    spdlog::debug("[FlatpakPlugin] Installing application: {}", id);
+    GError* error = nullptr;
+
+    auto installation = flatpak_installation_new_user(nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to get user installation: {}",
+                    error->message);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError("INSTALLATION_ERROR",
+                                        "Failed to get user installation"));
+    }
+
+    auto app_ref = flatpak_ref_parse(id.c_str(), &error);
+    if (!error && app_ref) {
+      const char* app_name = flatpak_ref_get_name(app_ref);
+      const char* app_arch = flatpak_ref_get_arch(app_ref);
+      const char* app_branch = flatpak_ref_get_branch(app_ref);
+
+      spdlog::debug(
+          "[FlatpakPlugin] Parsed ref - name :{} , arch:{} , branch: {}",
+          app_name, app_arch, app_branch);
+      std::string remote_name = FlatpakShim::find_remote_for_app(
+          installation, app_name, app_arch, app_branch);
+
+      if (remote_name.empty()) {
+        spdlog::error("[FlatpakPlugin] Failed to find remote for app: {}",
+                      app_name);
+        g_object_unref(app_ref);
+        g_object_unref(installation);
+        return ErrorOr<bool>(FlutterError("INSTALL_FAILED",
+                                          "Failed to find remote for app: {}"));
+      }
+
+      FlatpakInstalledRef* installed_ref = flatpak_installation_install(
+          installation, remote_name.c_str(), FLATPAK_REF_KIND_APP, app_name,
+          app_arch, app_branch, nullptr, nullptr, nullptr, &error);
+
+      if (error) {
+        spdlog::error("[FlatpakPlugin] Failed to install '{}': {}", id,
+                      error->message);
+        g_object_unref(app_ref);
+        g_object_unref(installation);
+        g_clear_error(&error);
+        return ErrorOr<bool>(
+            FlutterError("INSTALL_FAILED", "Failed to install application"));
+      }
+
+      if (installed_ref) {
+        spdlog::info("[FlatpakPlugin] Successfully installed: {}", id);
+        g_object_unref(installed_ref);
+      }
+      g_object_unref(app_ref);
+      g_object_unref(installation);
+      return true;
+    }
+
+    if (error) {
+      g_clear_error(&error);
+    }
+    // search in all remotes for this app ID
+    auto remote_and_ref =
+        FlatpakShim::find_app_in_remotes(installation, id);
+
+    if (remote_and_ref.first.empty()) {
+      spdlog::error("[FlatpakPlugin] Application '{}' not found in any remote",
+                    id.c_str());
+      g_object_unref(installation);
+      return ErrorOr<bool>(
+          FlutterError("APP_NOT_FOUND", "Failed to find remote application"));
+    }
+
+    auto found_ref = flatpak_ref_parse(remote_and_ref.second.c_str(), &error);
+    if (error || !found_ref) {
+      spdlog::error("[FlatpakPlugin] Failed to parse found ref: {}",
+                    remote_and_ref.second);
+      g_object_unref(installation);
+      if (error) {
+        g_clear_error(&error);
+      }
+      return ErrorOr<bool>(
+          FlutterError("APP_NOT_FOUND", "Failed to parse found ref"));
+    }
+
+    const char* app_name = flatpak_ref_get_name(found_ref);
+    const char* app_arch = flatpak_ref_get_arch(found_ref);
+    const char* app_branch = flatpak_ref_get_branch(found_ref);
+    spdlog::info("[FlatpakPlugin] Found App '{}' in remote '{}' as '{}'", id,
+                 remote_and_ref.first.c_str(), remote_and_ref.second.c_str());
+    FlatpakInstalledRef* installed_ref = flatpak_installation_install(
+        installation, remote_and_ref.first.c_str(), FLATPAK_REF_KIND_APP,
+        app_name, app_arch, app_branch, nullptr, nullptr, nullptr, &error);
+
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to install '{}': {}", id,
+                    error->message);
+      g_object_unref(found_ref);
+      g_object_unref(installation);
+      g_clear_error(&error);
+      return ErrorOr<bool>(
+          FlutterError("INSTALL_FAILED", "Failed to install application"));
+    }
+
+    if (installed_ref) {
+      spdlog::info("[FlatpakPlugin] Successfully installed: {}", id);
+      g_object_unref(installed_ref);
+    }
+
+    g_object_unref(found_ref);
+    g_object_unref(installation);
+    return true;
+  } catch (const std::exception& e) {
+    spdlog::error("[FlatpakPlugin] Failed to install Application: {}",
+                  e.what());
+    return ErrorOr<bool>(FlutterError("INVALID_APPLICATION_INSTALLATION",
+                                      "Failed to install remotes"));
+  }
+}
+
+ErrorOr<bool> FlatpakShim::ApplicationUninstall(const std::string& id) {
+  try {
+    if (id.empty()) {
+      return ErrorOr<bool>(
+          FlutterError("INVALID_APP_ID", "Application ID is required"));
+    }
+
+    spdlog::debug("[FlatpakPlugin] Uninstalling application: {}", id);
+    GError* error = nullptr;
+
+    auto installation = flatpak_installation_new_user(nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to get user installation: {}",
+                    error->message);
+      g_clear_error(&error);
+      return ErrorOr<bool>(FlutterError("INSTALLATION_ERROR",
+                                        "Failed to get user installation"));
+    }
+
+    auto app_ref = flatpak_ref_parse(id.c_str(), &error);
+    if (!error && app_ref) {
+      const char* app_name = flatpak_ref_get_name(app_ref);
+      const char* app_arch = flatpak_ref_get_arch(app_ref);
+      const char* app_branch = flatpak_ref_get_branch(app_ref);
+
+      spdlog::debug(
+          "[FlatpakPlugin] Parsed ref - name :{} , arch:{} , branch: {}",
+          app_name, app_arch, app_branch);
+      gboolean result = flatpak_installation_uninstall(
+          installation, FLATPAK_REF_KIND_APP, app_name, app_arch, app_branch,
+          nullptr, nullptr, nullptr, &error);
+      if (error) {
+        spdlog::error("[FlatpakPlugin] Failed to uninstall '{}': {}", id,
+                      error->message);
+        g_object_unref(app_ref);
+        g_object_unref(installation);
+        g_clear_error(&error);
+        return ErrorOr<bool>(FlutterError("UNINSTALL_FAILED",
+                                          "Failed to uninstall application"));
+      }
+
+      if (result) {
+        spdlog::info("[FlatpakPlugin] Successfully uninstalled: {}", id);
+      }
+      g_object_unref(app_ref);
+      g_object_unref(installation);
+      return static_cast<bool>(result);
+    }
+
+    if (error) {
+      g_clear_error(&error);
+    }
+
+    // search in installed apps
+    spdlog::debug(
+        "[FlatpakPlugin] Could not parse as ref, searching installed apps for: "
+        "{}",
+        id);
+
+    const auto refs =
+        flatpak_installation_list_installed_refs(installation, nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to get installed apps: {}",
+                    error->message);
+      g_clear_error(&error);
+      g_object_unref(installation);
+      return ErrorOr<bool>(
+          FlutterError("UNINSTALL_ERROR", "Failed to get installed apps"));
+    }
+
+    std::string found_app_name;
+    std::string found_arch;
+    std::string found_branch;
+    bool app_found = false;
+
+    // Search for exact match first, then partial match
+    for (guint i = 0; i < refs->len && !app_found; i++) {
+      const auto ref =
+          static_cast<FlatpakInstalledRef*>(g_ptr_array_index(refs, i));
+      const auto ref_name = flatpak_ref_get_name(FLATPAK_REF(ref));
+
+      if (ref_name) {
+        std::string ref_name_str(ref_name);
+        // Exact match has priority
+        if (ref_name_str == id) {
+          found_app_name = ref_name_str;
+          found_arch = flatpak_ref_get_arch(FLATPAK_REF(ref));
+          found_branch = flatpak_ref_get_branch(FLATPAK_REF(ref));
+          app_found = true;
+          spdlog::debug("[FlatpakPlugin] Found exact match: {}", ref_name_str);
+        }
+      }
+    }
+
+    // If no exact match, try partial match
+    if (!app_found) {
+      for (guint i = 0; i < refs->len; i++) {
+        const auto ref =
+            static_cast<FlatpakInstalledRef*>(g_ptr_array_index(refs, i));
+        const auto ref_name = flatpak_ref_get_name(FLATPAK_REF(ref));
+
+        if (ref_name) {
+          std::string ref_name_str(ref_name);
+          if (ref_name_str.find(id) != std::string::npos) {
+            found_app_name = ref_name_str;
+            found_arch = flatpak_ref_get_arch(FLATPAK_REF(ref));
+            found_branch = flatpak_ref_get_branch(FLATPAK_REF(ref));
+            app_found = true;
+            spdlog::debug("[FlatpakPlugin] Found partial match: {}",
+                          ref_name_str);
+            break;
+          }
+        }
+      }
+    }
+
+    g_ptr_array_unref(refs);
+
+    if (!app_found) {
+      spdlog::error(
+          "[FlatpakPlugin] Application '{}' not found in installed "
+          "applications",
+          id);
+      g_object_unref(installation);
+      return ErrorOr<bool>(FlutterError(
+          "APP_NOT_FOUND", "Application not found in installed applications"));
+    }
+
+    spdlog::info(
+        "[FlatpakPlugin] Found installed app '{}' -> name: {}, arch: {}, "
+        "branch: {}",
+        id, found_app_name, found_arch, found_branch);
+
+    gboolean result = flatpak_installation_uninstall(
+        installation, FLATPAK_REF_KIND_APP, found_app_name.c_str(),
+        found_arch.c_str(), found_branch.c_str(), nullptr, nullptr, nullptr,
+        &error);
+
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Failed to uninstall '{}': {}", id,
+                    error->message);
+      g_object_unref(installation);
+      g_clear_error(&error);
+      return ErrorOr<bool>(
+          FlutterError("UNINSTALL_FAILED", "Failed to uninstall application"));
+    }
+
+    if (result) {
+      spdlog::info("[FlatpakPlugin] Successfully uninstalled: {}", id);
+    }
+    g_object_unref(installation);
+    return static_cast<bool>(result);
+  } catch (const std::exception& e) {
+    spdlog::error("[FlatpakPlugin] Failed to uninstall application: {}",
+                  e.what());
+    return ErrorOr<bool>(
+        FlutterError("UNINSTALL_FAILED", "Failed to uninstall application"));
+  }
 }
 
 ErrorOr<flutter::EncodableList> FlatpakShim::get_remotes_by_installation_id(
@@ -535,12 +1204,201 @@ ErrorOr<flutter::EncodableList> FlatpakShim::get_remotes_by_installation_id(
   }
 }
 
+std::string FlatpakShim::find_remote_for_app(FlatpakInstallation* installation,
+                                             const char* app_name,
+                                             const char* app_arch,
+                                             const char* app_branch) {
+  GError* error = nullptr;
+
+  auto remotes =
+      flatpak_installation_list_remotes(installation, nullptr, &error);
+  if (error) {
+    spdlog::error("[FlatpakPlugin] Error occured while getting remotes",
+                  error->message);
+    g_clear_error(&error);
+    return "";
+  }
+
+  for (guint i = 0; i < remotes->len; i++) {
+    auto remote = static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, i));
+    const auto remote_name = flatpak_remote_get_name(remote);
+
+    if (flatpak_remote_get_disabled(remote)) {
+      continue;
+    }
+
+    std::string ref_string{"app/"};
+    ref_string += app_name;
+    ref_string += "/";
+    ref_string += app_arch;
+    ref_string += "/";
+    ref_string += app_branch;
+    auto remote_ref = flatpak_installation_fetch_remote_ref_sync(
+        installation, remote_name, FLATPAK_REF_KIND_APP, app_name, app_arch,
+        app_branch, nullptr, &error);
+    if (error) {
+      spdlog::error("[FlatpakPlugin] Error occured while fetching remote ref",
+                    error->message);
+      g_clear_error(&error);
+      return "";
+    }
+
+    if (remote_ref) {
+      g_object_unref(remote_ref);
+      g_ptr_array_unref(remotes);
+      return {remote_name};
+    }
+  }
+
+  g_ptr_array_unref(remotes);
+  return {};
+}
+
+std::pair<std::string, std::string> FlatpakShim::find_app_in_remotes(
+    FlatpakInstallation* installation,
+    const std::string& app_id) {
+  GError* error = nullptr;
+  std::vector<std::string> priority_remotes = {"flathub", "fedora",
+                                               "gnome-nightly"};
+  std::vector<std::string> common_branches = {"stable", "beta", "master"};
+  std::string default_arch = flatpak_get_default_arch();
+
+  for (const auto& remote_name : priority_remotes) {
+    spdlog::debug("[FlatpakPlugin] Trying fetch from remote : {}", remote_name);
+    for (const auto& branch_name : common_branches) {
+      auto remote_ref = flatpak_installation_fetch_remote_ref_sync(
+          installation, remote_name.c_str(), FLATPAK_REF_KIND_APP,
+          app_id.c_str(), default_arch.c_str(), branch_name.c_str(), nullptr,
+          &error);
+
+      if (remote_ref && !error) {
+        std::string ref_string{"app/"};
+        ref_string += app_id;
+        ref_string += "/";
+        ref_string += default_arch;
+        ref_string += "/";
+        ref_string += branch_name;
+
+        spdlog::info("[FlatpakPlugin] Found '{}' in remote '{}' as '{}'",
+                     app_id, remote_name, ref_string);
+
+        g_object_unref(remote_ref);
+        return {remote_name, ref_string};
+      }
+
+      if (error) {
+        g_clear_error(&error);
+      }
+    }
+  }
+  spdlog::debug(
+      "[FlatpakPlugin] Direct fetch failed, falling back to full search");
+  return find_app_in_remotes_fallback(installation, app_id);
+}
+
+std::pair<std::string, std::string> FlatpakShim::find_app_in_remotes_fallback(
+    FlatpakInstallation* installation,
+    const std::string& app_id) {
+  GError* error = nullptr;
+  auto remotes =
+      flatpak_installation_list_remotes(installation, nullptr, &error);
+  if (error) {
+    spdlog::error("[FlatpakPlugin] Error occured while getting remotes",
+                  error->message);
+    g_clear_error(&error);
+    return {"", ""};
+  }
+
+  // sort remotes ,flathub first
+  std::vector<FlatpakRemote*> sorted_remotes;
+  std::vector<FlatpakRemote*> other_remotes;
+  for (guint i = 0; i < remotes->len; i++) {
+    auto remote = static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, i));
+    if (flatpak_remote_get_disabled(remote)) {
+      continue;
+    }
+
+    const char* remote_name = flatpak_remote_get_name(remote);
+    if (remote_name && (strcmp(remote_name, "flathub") == 0 ||
+                        strcmp(remote_name, "fedora") == 0)) {
+      sorted_remotes.insert(sorted_remotes.begin(), remote);
+    } else {
+      other_remotes.push_back(remote);
+    }
+  }
+
+  // add other remotes
+  sorted_remotes.insert(sorted_remotes.end(), other_remotes.begin(),
+                        other_remotes.end());
+
+  for (auto remote : sorted_remotes) {
+    const auto remote_name = flatpak_remote_get_name(remote);
+    spdlog::debug("[FlatpakPlugin] Searching in remote: {}", remote_name);
+
+    auto result = search_in_single_remote(installation, remote_name, app_id);
+    if (!result.first.empty()) {
+      g_ptr_array_unref(remotes);
+      return result;
+    }
+  }
+  g_ptr_array_unref(remotes);
+  return {"", ""};
+}
+
+std::pair<std::string, std::string> FlatpakShim::search_in_single_remote(
+    FlatpakInstallation* installation,
+    const char* remote_name,
+    const std::string& app_id) {
+  GError* error = nullptr;
+  auto remote_refs = flatpak_installation_list_remote_refs_sync(
+      installation, remote_name, nullptr, &error);
+  if (error) {
+    spdlog::error("[FlatpakPlugin] Skipping remote '{}': {}", remote_name,
+                  error->message);
+    g_clear_error(&error);
+    return {"", ""};
+  }
+
+  // Process in batches & use early exit
+  guint batch_size = 100;
+  guint processed = 0;
+  for (guint j = 0; j < remote_refs->len; j++) {
+    auto remote_ref =
+        static_cast<FlatpakRemoteRef*>(g_ptr_array_index(remote_refs, j));
+
+    if (flatpak_ref_get_kind(FLATPAK_REF(remote_ref)) != FLATPAK_REF_KIND_APP) {
+      continue;
+    }
+    const char* ref_name = flatpak_ref_get_name(FLATPAK_REF(remote_ref));
+    if (ref_name && app_id == std::string(ref_name)) {
+      std::string ref_string = std::string("app/") + ref_name + "/" +
+                               flatpak_ref_get_arch(FLATPAK_REF(remote_ref)) +
+                               "/" +
+                               flatpak_ref_get_branch(FLATPAK_REF(remote_ref));
+
+      spdlog::info("[FlatpakPlugin] Found '{}' in remote '{}' as '{}'", app_id,
+                   remote_name, ref_string);
+
+      g_ptr_array_unref(remote_refs);
+      return {std::string(remote_name), ref_string};
+    }
+
+    if (++processed % batch_size == 0) {
+      spdlog::debug("[FlatpakPlugin] Searched {} refs in remote '{}'",
+                    processed, remote_name);
+    }
+  }
+
+  g_ptr_array_unref(remote_refs);
+  return {"", ""};
+}
+
 flutter::EncodableList FlatpakShim::convert_remotes_to_EncodableList(
     const GPtrArray* remotes) {
   flutter::EncodableList result;
 
   if (!remotes) {
-    spdlog::warn("[FlatpakPlugin] Received null remotes array");
+    spdlog::error("[FlatpakPlugin] Received null remotes array");
     return result;
   }
 
@@ -548,7 +1406,7 @@ flutter::EncodableList FlatpakShim::convert_remotes_to_EncodableList(
     const auto remote =
         static_cast<FlatpakRemote*>(g_ptr_array_index(remotes, j));
     if (!remote) {
-      spdlog::warn("[FlatpakPlugin] Null remote at index {}", j);
+      spdlog::error("[FlatpakPlugin] Null remote at index {}", j);
       continue;
     }
     try {

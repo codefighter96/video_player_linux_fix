@@ -17,6 +17,7 @@
 #ifndef PLUGINS_FLATPAK_CACHE_APPLICATION_CACHE_OPERATION_H
 #define PLUGINS_FLATPAK_CACHE_APPLICATION_CACHE_OPERATION_H
 
+#include <flutter/encodable_value.h>
 #include <chrono>
 #include "cache_operation_template.h"
 
@@ -40,7 +41,7 @@ class FlatpakApplicationCacheOperation
 
   std::string SerializeData(const flutter::EncodableList& data) override;
 
-  std::optional<flutter::EncodableList> DeserializeData() override;
+  std::optional<flutter::EncodableList> DeserializeData();
 
   std::chrono::system_clock::time_point GetExpiryTime() override;
 

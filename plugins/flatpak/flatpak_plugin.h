@@ -38,6 +38,9 @@ class FlatpakPlugin final : public flutter::Plugin, public FlatpakApi {
   // Get Flatpak Version
   ErrorOr<std::string> GetVersion() override;
 
+  static ErrorOr<flutter::EncodableList> GetRemotesByInstallationId(
+      const std::string& installation_id);
+
   // Get the default flatpak arch
   ErrorOr<std::string> GetDefaultArch() override;
 

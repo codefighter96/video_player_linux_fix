@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "../../../common/curl_client/curl_client.h"
 
 /**
  * @brief Network Fetcher Strategy interface
@@ -43,7 +42,7 @@ class INetworkFetcher {
    */
   virtual std::optional<std::string> Fetch(
       const std::string& url,
-      const std::vector<std::string>& headers = {}) = 0;
+      const std::vector<std::string>& headers) = 0;
 
   /**
    * @brief Performs an HTTP POST request with form data
@@ -57,7 +56,7 @@ class INetworkFetcher {
   virtual std::optional<std::string> Post(
       const std::string& url,
       const std::vector<std::pair<std::string, std::string>>& form_data,
-      const std::vector<std::string>& headers = {}) = 0;
+      const std::vector<std::string>& headers) = 0;
 
   /**
    * @brief Checks if network connectivity is available
@@ -80,6 +79,14 @@ class INetworkFetcher {
    *              An empty string will clear any previously set token.
    */
   virtual void SetBearerToken(const std::string& token) = 0;
+
+  /**
+   * @brief Interface function that fetches remotes over the network.
+   * @param installation_id id of the installation in remote
+   * @return Encodablelist contains Remote data of installation
+   */
+  virtual std::optional<flutter::EncodableList> FetchRemotes(
+      const std::string& installation_id) = 0;
 };
 
 #endif  // PLUGINS_FLATPAK_CACHE_NETWORK_FETCHER_H

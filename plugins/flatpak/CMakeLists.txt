@@ -15,28 +15,27 @@
 #
 
 find_package(PkgConfig REQUIRED)
+
 pkg_check_modules(FLATPAK_DEPS IMPORTED_TARGET REQUIRED flatpak libxml-2.0 zlib)
+
+add_subdirectory(cache)
 
 add_library(plugin_flatpak STATIC
         flatpak_plugin_c_api.cc
         flatpak_plugin.cc
-        messages.g.cc
         flatpak_shim.cc
+        messages.g.cc
         appstream_catalog.cc
         component.cc
         icon.cc
         release.cc
         screenshot.cc
 )
-
 target_include_directories(plugin_flatpak PRIVATE include)
 
 target_link_libraries(plugin_flatpak PUBLIC
-        flutter
-        platform_homescreen
         PkgConfig::FLATPAK_DEPS
+        plugin_common_curl
+        plugin_flatpak_cache
+        platform_homescreen
 )
-
-if (BUILD_UNIT_TESTS)
-    add_subdirectory(test)
-endif ()

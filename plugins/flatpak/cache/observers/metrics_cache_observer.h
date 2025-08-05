@@ -18,7 +18,6 @@
 #define PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 
 #include <spdlog/spdlog.h>
-#include <sstream>
 #include "../cache_config.h"
 #include "../interfaces/cache_observer.h"
 

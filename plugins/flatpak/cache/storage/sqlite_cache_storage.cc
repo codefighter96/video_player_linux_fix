@@ -1,4 +1,6 @@
 #include "sqlite_cache_storage.h"
+#include <zlib.h>
+#include <cstddef>
 
 SQLiteCacheStorage::SQLiteCacheStorage(std::string db_path,
                                        bool enable_compression)
@@ -91,11 +93,11 @@ bool SQLiteCacheStorage::Store(const std::string& key,
   }
 
   sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 2, processed_data.c_str(), processed_data.size(),
-                    SQLITE_STATIC);
+  sqlite3_bind_blob(stmt, 2, processed_data.c_str(),
+                    static_cast<int>(processed_data.size()), SQLITE_STATIC);
   sqlite3_bind_int64(stmt, 3, expiry_time);
   sqlite3_bind_int64(stmt, 4, created_time);
-  sqlite3_bind_int64(stmt, 5, data.size());
+  sqlite3_bind_int64(stmt, 5, static_cast<sqlite3_int64>(data.size()));
   sqlite3_bind_int(stmt, 6, is_compressed ? 1 : 0);
 
   rc = sqlite3_step(stmt);
@@ -146,7 +148,8 @@ std::optional<std::string> SQLiteCacheStorage::Retrieve(
       int data_size = sqlite3_column_bytes(stmt, 0);
       bool is_compressed = sqlite3_column_int(stmt, 2) != 0;
 
-      std::string raw_data(static_cast<const char*>(data), data_size);
+      std::string raw_data(static_cast<const char*>(data),
+                           static_cast<size_t>(data_size));
 
       if (is_compressed) {
         std::string decompressed = DecompressData(raw_data);
@@ -206,7 +209,7 @@ bool SQLiteCacheStorage::IsExpired(const std::string& key) {
 }
 
 void SQLiteCacheStorage::Invalidate(const std::string& key) {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
   const char* delete_sql;
   sqlite3_stmt* stmt;
@@ -260,7 +263,7 @@ size_t SQLiteCacheStorage::CleanupExpired() {
   size_t deleted_count = 0;
 
   if (rc == SQLITE_DONE) {
-    deleted_count = sqlite3_changes(db_);
+    deleted_count = static_cast<size_t>(sqlite3_changes(db_));
   } else {
     spdlog::error("[SQLiteCacheStorage] Failed to execute delete : {} ({})",
                   sqlite3_errmsg(db_), rc);
@@ -330,7 +333,7 @@ std::map<std::string, int64_t> SQLiteCacheStorage::GetStatistics() const {
   return stats;
 }
 
-bool SQLiteCacheStorage::CreateTables() {
+bool SQLiteCacheStorage::CreateTables() const {
   const char* create_table_sql = R"(
         CREATE TABLE IF NOT EXISTS cache_entries (
             key TEXT PRIMARY KEY,
@@ -356,7 +359,7 @@ bool SQLiteCacheStorage::CreateTables() {
   return true;
 }
 
-std::string SQLiteCacheStorage::CompressData(const std::string& data) {
+std::string SQLiteCacheStorage::CompressData(const std::string& data) const {
   if (!enable_compression_ || data.empty()) {
     return data;
   }
@@ -379,7 +382,7 @@ std::string SQLiteCacheStorage::CompressData(const std::string& data) {
 }
 
 std::string SQLiteCacheStorage::DecompressData(
-    const std::string& compressed_data) {
+    const std::string& compressed_data) const {
   if (!enable_compression_ || compressed_data.empty()) {
     return compressed_data;
   }
@@ -433,7 +436,7 @@ void SQLiteCacheStorage::UpdateCacheSize() {
 
   rc = sqlite3_step(stmt);
   if (rc == SQLITE_ROW) {
-    cache_size.store(sqlite3_column_int64(stmt, 0));
+    cache_size.store(static_cast<size_t>(sqlite3_column_int64(stmt, 0)));
   } else if (rc != SQLITE_DONE) {
     spdlog::error(
         "[SQLiteCacheStorage] Failed to execute cache size query: {} ({})",

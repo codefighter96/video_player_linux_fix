@@ -17,16 +17,17 @@
 #ifndef PLUGINS_FLATPAK_CACHE_CACHE_OPERATION_TEMPLATE_H
 #define PLUGINS_FLATPAK_CACHE_CACHE_OPERATION_TEMPLATE_H
 
-#include <spdlog/spdlog.h>
 #include <chrono>
 #include <exception>
 #include <optional>
 #include <string>
+#include "plugins/common/common.h"
+
 #include "../interfaces/cache_storage.h"
 
 /**
  * @brief Template class for cache operations providing a framework for data
- * caching and retrieval
+ * caching and retrieval.
  *
  * This abstract template class defines a common interface for caching
  * operations with type safety. It provides methods for storing and retrieving
@@ -57,7 +58,8 @@ class CacheOperationTemplate {
    *         successful, or std::nullopt if deserialization fails or no
    *         valid data is available
    */
-  virtual std::optional<T> DeserializeData() = 0;
+  virtual std::optional<T> DeserializeData(
+      const std::string& serialized_data) = 0;
 
   /**
    * @brief Gets the expiry time for the cache operation.
@@ -92,13 +94,14 @@ class CacheOperationTemplate {
   bool CacheData(const std::string& key,
                  const T& data,
                  ICacheStorage* storage) {
-    if (!ValidateKey(key) || !ValidateData(data)) {
+    if (!ValidateKey(key) || !ValidateData(data) || !storage) {
       return false;
     }
 
     try {
       auto serialized = SerializeData(data);
       auto expiry = GetExpiryTime();
+      return storage->Store(key, serialized, expiry);
     } catch (const std::exception& e) {
       spdlog::error("[CacheOperation] Failed to cache data: {}", e.what());
       return false;
@@ -114,8 +117,9 @@ class CacheOperationTemplate {
    * @return std::optional<T> The deserialized data if successful, std::nullopt
    * otherwise
    */
-  std::optional<T> RetriveData(const std::string& key, ICacheStorage* storage) {
-    if (!ValidateKey(key)) {
+  std::optional<T> RetrieveData(const std::string& key,
+                                ICacheStorage* storage) {
+    if (!ValidateKey(key) || !storage) {
       return std::nullopt;
     }
 
@@ -125,9 +129,9 @@ class CacheOperationTemplate {
         return std::nullopt;
       }
 
-      return DeserializeData(*serialized);
+      return DeserializeData(serialized.value());
     } catch (const std::exception& e) {
-      spdlog::error("[CacheOperation] Failed to retrive data: {}", e.what());
+      spdlog::error("[CacheOperation] Failed to retrieve data: {}", e.what());
       return std::nullopt;
     }
   }

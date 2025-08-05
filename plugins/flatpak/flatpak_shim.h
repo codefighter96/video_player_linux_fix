@@ -152,12 +152,81 @@ struct FlatpakShim {
   static ErrorOr<flutter::EncodableList> GetApplicationsInstalled();
 
   /**
+   * \brief Retrives the list of applications in a remote.
+   * \param id ID of the remote.
+   * \return EncodableList of all applications in that remote.
+   */
+  static ErrorOr<flutter::EncodableList> GetApplicationsRemote(
+      const std::string& id);
+
+  /**
+   * \brief Adding remote for flatpak.
+   * \param configuration Configruations of the remote wanted to add, name and
+   * URL is a must. \return An ErrorOr object containing the EncodableList or an
+   * error.
+   */
+  static ErrorOr<bool> RemoteAdd(const Remote& configuration);
+
+  /**
+   * \brief Removing remote from flatpak.
+   * \param id Id of the remote wanted to remove, name and URL is a must.
+   * \return An ErrorOr object containing the EncodableList or an error.
+   */
+  static ErrorOr<bool> RemoteRemove(const std::string& id);
+
+  /**
+   * \brief Install flatpak application.
+   * \param id id of the application wanted to install.
+   * \return An ErrorOr object containing the EncodableList or an error.
+   */
+  static ErrorOr<bool> ApplicationInstall(const std::string& id);
+
+  /**
+   * \brief Uninstall flatpak application.
+   * \param id id of the application wanted to uninstall.
+   * \return An ErrorOr object containing the EncodableList or an error.
+   */
+  static ErrorOr<bool> ApplicationUninstall(const std::string& id);
+
+  /**
    * \brief Retrieves the remotes for a given installation ID.
    * \param installation_id The ID of the installation.
    * \return An ErrorOr object containing the EncodableList or an error.
    */
   static ErrorOr<flutter::EncodableList> get_remotes_by_installation_id(
       const std::string& installation_id);
+
+  /**
+   * \brief Find which remote contains an app with specific details.
+   * \param installation Installation that contains the app.
+   * \param app_name Application name.
+   * \param app_arch Application arch.
+   * \param app_branch Application branch.
+   * \return Remote string that has the app.
+   */
+  static std::string find_remote_for_app(FlatpakInstallation* installation,
+                                         const char* app_name,
+                                         const char* app_arch,
+                                         const char* app_branch);
+
+  /**
+   * \brief Search for app ID  in all remotes.
+   * \param installation Installation that contains the App.
+   * \param app_id Application Id.
+   * \return Pair of two strings contains remote name and application ref.
+   */
+  static std::pair<std::string, std::string> find_app_in_remotes(
+      FlatpakInstallation* installation,
+      const std::string& app_id);
+
+  static std::pair<std::string, std::string> find_app_in_remotes_fallback(
+      FlatpakInstallation* installation,
+      const std::string& app_id);
+
+  static std::pair<std::string, std::string> search_in_single_remote(
+      FlatpakInstallation* installation,
+      const char* remote_name,
+      const std::string& app_id);
 
   /**
    * \brief Converts a FlatpakRemoteType to its string representation.

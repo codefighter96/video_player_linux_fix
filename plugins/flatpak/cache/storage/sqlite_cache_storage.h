@@ -20,11 +20,8 @@
 #include <spdlog/spdlog.h>
 #include <sqlite3.h>
 #include <zconf.h>
-#include <zlib.h>
 #include <atomic>
 #include <chrono>
-#include <cstddef>
-#include <cstdint>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -39,26 +36,11 @@
  * cache size management.
  */
 class SQLiteCacheStorage : public ICacheStorage {
- private:
-  sqlite3* db_;
-  std::string db_path_;
-  mutable std::mutex db_mutex_;
-  std::atomic<size_t> cache_size{0};
-  bool enable_compression_;
-
-  bool CreateTables();
-
-  std::string CompressData(const std::string& data);
-
-  std::string DecompressData(const std::string& data);
-
-  void UpdateCacheSize();
-
  public:
   explicit SQLiteCacheStorage(std::string db_path,
                               bool enable_compression = false);
 
-  ~SQLiteCacheStorage();
+  ~SQLiteCacheStorage() override;
   bool Initialize() override;
 
   bool Store(const std::string& key,
@@ -69,7 +51,7 @@ class SQLiteCacheStorage : public ICacheStorage {
 
   bool IsExpired(const std::string& key) override;
 
-  void Invalidate(const std::string& key = "") override;
+  void Invalidate(const std::string& key) override;
 
   size_t GetCacheSize() override;
 
@@ -80,6 +62,21 @@ class SQLiteCacheStorage : public ICacheStorage {
    * @return A map of statistic names to their values.
    */
   std::map<std::string, int64_t> GetStatistics() const;
+
+ private:
+  sqlite3* db_;
+  std::string db_path_;
+  mutable std::mutex db_mutex_;
+  std::atomic<size_t> cache_size{0};
+  bool enable_compression_;
+
+  bool CreateTables() const;
+
+  std::string CompressData(const std::string& data) const;
+
+  std::string DecompressData(const std::string& data) const;
+
+  void UpdateCacheSize();
 };
 
 #endif  // PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H

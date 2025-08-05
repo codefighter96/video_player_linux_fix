@@ -17,7 +17,6 @@
 #ifndef PLUGINS_FLATPAK_CACHE_CACHE_OBSERVER_H
 #define PLUGINS_FLATPAK_CACHE_CACHE_OBSERVER_H
 
-#include <cstddef>
 #include <string>
 
 /**
