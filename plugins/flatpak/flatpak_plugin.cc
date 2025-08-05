@@ -73,7 +73,7 @@ ErrorOr<std::string> FlatpakPlugin::GetVersion() {
   std::stringstream ss;
   ss << FLATPAK_MAJOR_VERSION << "." << FLATPAK_MINOR_VERSION << "."
      << FLATPAK_MICRO_VERSION;
-  return ss.str();
+  return ErrorOr<std::string>(ss.str());
 }
 
 ErrorOr<flutter::EncodableList> FlatpakPlugin::GetRemotesByInstallationId(
@@ -84,7 +84,7 @@ ErrorOr<flutter::EncodableList> FlatpakPlugin::GetRemotesByInstallationId(
 // Get the default flatpak arch
 ErrorOr<std::string> FlatpakPlugin::GetDefaultArch() {
   std::string default_arch = flatpak_get_default_arch();
-  return default_arch;
+  return ErrorOr<std::string>(default_arch);
 }
 
 // Get all arches supported by flatpak
@@ -95,7 +95,7 @@ ErrorOr<flutter::EncodableList> FlatpakPlugin::GetSupportedArches() {
       result.emplace_back(static_cast<const char*>(*arch));
     }
   }
-  return result;
+  return ErrorOr<flutter::EncodableList>(result);
 }
 
 // Get configuration of user installation.
@@ -133,15 +133,13 @@ ErrorOr<bool> FlatpakPlugin::ApplicationUninstall(const std::string& id) {
 }
 
 ErrorOr<bool> FlatpakPlugin::ApplicationStart(
-    const std::string& /* id */,
-    const flutter::EncodableMap* /* configuration */) {
-  spdlog::info("[FlatpakPlugin] Not Implemented: {}", __FUNCTION__);
-  return true;
+    const std::string& id,
+    const flutter::EncodableMap* configuration) {
+  return FlatpakShim::ApplicationStart(id, configuration);
 }
 
-ErrorOr<bool> FlatpakPlugin::ApplicationStop(const std::string& /* id */) {
-  spdlog::info("[FlatpakPlugin] Not Implemented: {}", __FUNCTION__);
-  return true;
+ErrorOr<bool> FlatpakPlugin::ApplicationStop(const std::string& id) {
+  return FlatpakShim::ApplicationStop(id);
 }
 
 }  // namespace flatpak_plugin

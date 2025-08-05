@@ -5,7 +5,7 @@ add_library(plugin_flatpak_cache STATIC
         network/curl_network_fetcher.cc
         observers/observers.cc
         storage/sqlite_cache_storage.cc
-        utils/cache_serializers.cc
+        operations/encodablelist_cache_operation.h
 )
 add_sanitizers(plugin_flatpak_cache)
 

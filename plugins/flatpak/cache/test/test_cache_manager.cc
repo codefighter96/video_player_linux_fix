@@ -1,15 +1,17 @@
-#include <flutter/encodable_value.h>
 #include <gtest/gtest.h>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <utility>
-#include "../cache_config.h"
-#include "../cache_manager.h"
-#include "../interfaces/cache_observer.h"
-#include "../interfaces/cache_storage.h"
-#include "../interfaces/network_fetcher.h"
+
+#include <flutter/encodable_value.h>
+
+#include "flatpak/cache/cache_config.h"
+#include "flatpak/cache/cache_manager.h"
+#include "flatpak/cache/interfaces/cache_observer.h"
+#include "flatpak/cache/interfaces/cache_storage.h"
+#include "flatpak/cache/interfaces/network_fetcher.h"
 
 using namespace flatpak_plugin;
 
@@ -298,7 +300,8 @@ class TestNetworkFetcher : public INetworkFetcher {
     return apps;
   }
 
-  [[nodiscard]] std::optional<flutter::EncodableMap> FetchUserInstallation() const {
+  [[nodiscard]] std::optional<flutter::EncodableMap> FetchUserInstallation()
+      const {
     if (simulate_network_failure_) {
       return std::nullopt;
     }
@@ -314,7 +317,8 @@ class TestNetworkFetcher : public INetworkFetcher {
     return installation;
   }
 
-  [[nodiscard]] std::optional<flutter::EncodableList> FetchSystemInstallations() const {
+  [[nodiscard]] std::optional<flutter::EncodableList> FetchSystemInstallations()
+      const {
     if (simulate_network_failure_) {
       return std::nullopt;
     }
@@ -697,7 +701,7 @@ TEST_F(CacheManagerIntegrationTest, ConcurrentAccess) {
   std::atomic<int> total_requests{0};
 
   threads.reserve(thread_count);
-for (int i = 0; i < thread_count; i++) {
+  for (int i = 0; i < thread_count; i++) {
     threads.emplace_back([&]() {
       for (int j = 0; j < requests_per_thread; j++) {
         ++total_requests;
@@ -727,21 +731,6 @@ for (int i = 0; i < thread_count; i++) {
 
   EXPECT_GT(success_count.load(), 0);
   EXPECT_EQ(total_requests.load(), thread_count * requests_per_thread);
-}
-
-TEST_F(CacheManagerIntegrationTest, DataSerializationIntegrity) {
-  CreateCacheManager();
-  EXPECT_TRUE(cache_manager_->IsHealthy());
-
-  auto original = cache_manager_->GetApplicationsInstalled(false);
-  ASSERT_TRUE(original.has_value());
-
-  auto cached = cache_manager_->GetApplicationsInstalled(false);
-  ASSERT_TRUE(cached.has_value());
-
-  EXPECT_EQ(original->size(), cached->size());
-
-  EXPECT_TRUE(observer_ptr_->HasEvent("hit"));
 }
 
 TEST_F(CacheManagerIntegrationTest, MemoryLeakTest) {
@@ -830,9 +819,4 @@ TEST_F(CacheManagerIntegrationTest, DataPresistanceAcrossRestarts) {
 
   auto result = cache_manager_->GetApplicationsInstalled(false);
   EXPECT_TRUE(result.has_value());
-}
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

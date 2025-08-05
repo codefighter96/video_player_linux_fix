@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,6 @@
 #ifndef PLUGINS_FLATPAK_CACHE_CACHE_MANAGER_H
 #define PLUGINS_FLATPAK_CACHE_CACHE_MANAGER_H
 
-#include <flutter/encodable_value.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -28,6 +28,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <flutter/encodable_value.h>
+
 #include "cache_config.h"
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
@@ -37,7 +40,7 @@
 
 namespace flatpak_plugin {
 
-struct EncodableListCacheOperation;
+struct flatpak_application_cache_operation;
 struct ApplicationCacheOperation;
 struct InstallationCacheOperation;
 
@@ -276,6 +279,7 @@ class CacheManager {
   mutable std::mutex config_mutex_;
   mutable std::mutex metrics_mutex_;
   mutable std::mutex init_mutex_;
+  mutable std::mutex flatpak_mutex_;
 
   bool is_initialized_ = false;
   std::thread cleanup_thread_;

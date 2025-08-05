@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +18,18 @@
 #ifndef PLUGINS_FLATPAK_CACHE_CURL_NETWORK_FETCHER_H
 #define PLUGINS_FLATPAK_CACHE_CURL_NETWORK_FETCHER_H
 
-#include <../flatpak_plugin.h>
-#include <encodable_value.h>
 #include <atomic>
 #include <chrono>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include "../../../common/curl_client/curl_client.h"
-#include "../interfaces/network_fetcher.h"
+
+#include <encodable_value.h>
+
+#include <flatpak  //flatpak_plugin.h>
+#include "common/curl_client/curl_client.h"
+#include "flatpak/cache/interfaces/network_fetcher.h"
 
 /**
  * @brief Curl-based network fetcher implementation

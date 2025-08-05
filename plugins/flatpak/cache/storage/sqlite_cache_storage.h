@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +26,8 @@
 #include <map>
 #include <mutex>
 #include <optional>
-#include "../interfaces/cache_storage.h"
+
+#include "flatpak/cache/interfaces/cache_storage.h"
 
 /**
  * @brief Implements a cache storage backend using SQLite as the underlying

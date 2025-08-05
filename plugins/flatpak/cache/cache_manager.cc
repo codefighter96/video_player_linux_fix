@@ -1,5 +1,20 @@
-#include "cache_manager.h"
-#include <flutter/encodable_value.h>
+/*
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <chrono>
 #include <exception>
 #include <fstream>
@@ -11,115 +26,27 @@
 #include <thread>
 #include <utility>
 #include <vector>
+
+#include <flutter/encodable_value.h>
+
 #include "cache_config.h"
+#include "cache_manager.h"
+#include "encodablelist_cache_operation.h"
+#include "flatpak_installation_cache_operation.h"
 #include "interfaces/cache_observer.h"
 #include "interfaces/cache_storage.h"
 #include "network/curl_network_fetcher.h"
 #include "plugins/flatpak/flatpak_shim.h"
 #include "storage/sqlite_cache_storage.h"
-#include "utils/cache_serializers.h"
 
 namespace flatpak_plugin {
 
-struct EncodableListCacheOperation
-    : CacheOperationTemplate<flutter::EncodableList> {
-  CacheManager* manager;
-
-  explicit EncodableListCacheOperation(CacheManager* manager)
-      : manager(manager) {}
-
- protected:
-  bool ValidateKey(const std::string& key) override { return !key.empty(); }
-
-  std::string SerializeData(const flutter::EncodableList& data) override {
-    return cache_utils::EncodableListSerializer::Serialize(data);
-  }
-
-  std::optional<flutter::EncodableList> DeserializeData(
-      const std::string& serialized_data) override {
-    if (serialized_data.empty()) {
-      return flutter::EncodableList{};
-    }
-    return cache_utils::EncodableListSerializer::Deserialize(serialized_data);
-  }
-
-  std::chrono::system_clock::time_point GetExpiryTime() override {
-    return std::chrono::system_clock::now() + manager->config_.default_ttl;
-  }
-
-  bool ValidateData(const flutter::EncodableList& data) override {
-    // Accept empty lists as valid
-    return true;
-  }
-};
-
-struct ApplicationCacheOperation : CacheOperationTemplate<Application> {
-  CacheManager* manager;
-
-  explicit ApplicationCacheOperation(CacheManager* manager)
-      : manager(manager) {}
-
- protected:
-  bool ValidateKey(const std::string& key) override { return !key.empty(); }
-
-  std::string SerializeData(const Application& data) override {
-    return cache_utils::ApplicationSerializer::Serialize(data);
-  }
-
-  std::optional<Application> DeserializeData(
-      const std::string& serialized_data) override {
-    if (serialized_data.empty()) {
-      return std::nullopt;
-    }
-    return cache_utils::ApplicationSerializer::Deserialize(serialized_data);
-  }
-
-  std::chrono::system_clock::time_point GetExpiryTime() override {
-    return std::chrono::system_clock::now() + manager->config_.default_ttl;
-  }
-
-  bool ValidateData(const Application& data) override {
-    return !data.id().empty() && !data.name().empty();
-  }
-};
-
-struct InstallationCacheOperation : CacheOperationTemplate<Installation> {
-  CacheManager* manager;
-
-  explicit InstallationCacheOperation(CacheManager* manager)
-      : manager(manager) {}
-
- protected:
-  bool ValidateKey(const std::string& key) override { return !key.empty(); }
-
-  std::string SerializeData(const Installation& data) override {
-    return cache_utils::InstallationSerializer::Serialize(data);
-  }
-
-  std::optional<Installation> DeserializeData(
-      const std::string& serialized_data) override {
-    if (serialized_data.empty()) {
-      return std::nullopt;
-    }
-    return cache_utils::InstallationSerializer::Deserialize(serialized_data);
-  }
-
-  std::chrono::system_clock::time_point GetExpiryTime() override {
-    return std::chrono::system_clock::now() + manager->config_.default_ttl;
-  }
-
-  bool ValidateData(const Installation& data) override {
-    return !data.id().empty() && !data.display_name().empty();
-  }
-};
-
-flatpak_plugin::CacheManager::CacheManager(CacheConfig config)
+CacheManager::CacheManager(CacheConfig config)
     : config_(std::move(config)), metrics_{} {}
 
-flatpak_plugin::CacheManager::CacheManager(
-    CacheConfig config,
-    std::unique_ptr<ICacheStorage> storage,
-    std::unique_ptr<INetworkFetcher> fetcher)
+CacheManager::CacheManager(CacheConfig config,
+                           std::unique_ptr<ICacheStorage> storage,
+                           std::unique_ptr<INetworkFetcher> fetcher)
     : storage_(std::move(storage)),
       network_fetcher_(std::move(fetcher)),
       config_(std::move(config)),
@@ -133,13 +60,7 @@ CacheManager::~CacheManager() noexcept {
   stop_cleanup_.store(true);
   cleanup_cv_.notify_all();
   if (cleanup_thread_.joinable()) {
-    auto future =
-        std::async(std::launch::async, [this]() { cleanup_thread_.join(); });
-    if (future.wait_for(std::chrono::seconds(5)) ==
-        std::future_status::timeout) {
-      spdlog::error("Cleanup thread timed out, detaching");
-      cleanup_thread_.detach();
-    }
+    cleanup_thread_.join();
   }
 }
 
@@ -200,10 +121,11 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsInstalled(
 
   EncodableListCacheOperation cache_operation(this);
 
-  auto network_ops = []() -> std::optional<flutter::EncodableList> {
+  auto network_ops = [this]() -> std::optional<flutter::EncodableList> {
+    std::lock_guard lock(flatpak_mutex_);
     try {
-      const auto plugin_ = std::make_unique<flatpak_plugin::FlatpakShim>();
-      const auto apps_result = flatpak_plugin::FlatpakShim::GetApplicationsInstalled();
+      const auto plugin_ = std::make_unique<FlatpakShim>();
+      const auto apps_result = FlatpakShim::GetApplicationsInstalled();
 
       if (apps_result.has_error()) {
         spdlog::error(
@@ -218,59 +140,7 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsInstalled(
             "[FlatpakPlugin] GetApplicationInstalled returned empty list");
         return flutter::EncodableList{};
       }
-
-      flutter::EncodableList serializable_apps;
-      serializable_apps.reserve(apps.size());
-
-      for (size_t i = 0; i < apps.size(); ++i) {
-        try {
-          // Check if it's already a supported encodable type
-          if (std::holds_alternative<flutter::EncodableMap>(apps[i]) ||
-        std::holds_alternative<flutter::EncodableList>(apps[i]) ||
-        std::holds_alternative<std::string>(apps[i]) ||
-        std::holds_alternative<bool>(apps[i]) ||
-        std::holds_alternative<int32_t>(apps[i]) ||
-        std::holds_alternative<int64_t>(apps[i]) ||
-        std::holds_alternative<double>(apps[i]) ||
-        std::holds_alternative<std::vector<uint8_t>>(apps[i]) ||
-        std::holds_alternative<std::monostate>(apps[i])) {
-            serializable_apps.push_back(apps[i]);
-        } else {
-          // Handle custom Application objects or other unsupported types
-          spdlog::error(
-              "Converting unsupported type at index {} to placeholder map",
-              i);
-          flutter::EncodableMap app_placeholder_map{
-              {"name", flutter::EncodableValue("Application_" + std::to_string(i))},
-              {"id", flutter::EncodableValue("app.id." + std::to_string(i))},
-              {"type", flutter::EncodableValue("converted_placeholder")},
-              {"index", flutter::EncodableValue(static_cast<int64_t>(i))},
-              {"original_type", flutter::EncodableValue("unknown")}
-          };
-
-          flutter::EncodableValue app_placeholder(app_placeholder_map);
-          serializable_apps.emplace_back(app_placeholder);
-        }
-        } catch (const std::exception& e) {
-          spdlog::error("Error processing application at index {}: {}", i,
-                        e.what());
-
-          flutter::EncodableMap error_app_map{
-                {"name", flutter::EncodableValue("Error_App_" + std::to_string(i))},
-                {"id", flutter::EncodableValue("error.app." + std::to_string(i))},
-                {"error", flutter::EncodableValue(e.what())},
-                {"type", flutter::EncodableValue("error_placeholder")},
-                {"index", flutter::EncodableValue(static_cast<int64_t>(i))}
-          };
-
-          flutter::EncodableValue error_app(error_app_map);
-          serializable_apps.emplace_back(error_app);
-        }
-      }
-
-      spdlog::info("Converted {} applications for caching",
-                   serializable_apps.size());
-      return serializable_apps;
+      return apps;
     } catch (const std::exception& e) {
       spdlog::error("[FlatpakPlugin] Exception in GetApplicationsInstalled: {}",
                     e.what());
@@ -319,9 +189,10 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsRemote(
 
   auto network_ops = [this,
                       remote_id]() -> std::optional<flutter::EncodableList> {
+    std::lock_guard lock(flatpak_mutex_);
     try {
-      const auto plugin_ = std::make_unique<flatpak_plugin::FlatpakShim>();
-      const auto apps_result = flatpak_plugin::FlatpakShim::GetApplicationsRemote(remote_id);
+      const auto plugin_ = std::make_unique<FlatpakShim>();
+      const auto apps_result = FlatpakShim::GetApplicationsRemote(remote_id);
 
       if (apps_result.has_error()) {
         spdlog::error(
@@ -338,46 +209,7 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsRemote(
             remote_id);
         return flutter::EncodableList{};
       }
-
-      // Convert Applications to EncodableList format for serialization
-      flutter::EncodableList serializable_apps;
-      serializable_apps.reserve(apps.size());
-
-      for (size_t i = 0; i < apps.size(); ++i) {
-        try {
-          // Check if the item is already in a serializable format
-          if (std::holds_alternative<flutter::EncodableMap>(apps[i]) ||
-              std::holds_alternative<flutter::EncodableList>(apps[i]) ||
-              std::holds_alternative<std::string>(apps[i])) {
-            serializable_apps.push_back(apps[i]);
-          } else {
-            // Create a placeholder map for unsupported types
-            flutter::EncodableMap app_placeholder{
-                {"name",
-                 flutter::EncodableValue("Application_" + std::to_string(i))},
-                {"id", flutter::EncodableValue("app.id." + std::to_string(i))},
-                {"type", flutter::EncodableValue("placeholder")},
-                {"remote", flutter::EncodableValue(remote_id)},
-                {"index", flutter::EncodableValue(static_cast<int64_t>(i))}};
-            serializable_apps.emplace_back(app_placeholder);
-          }
-        } catch (const std::exception& e) {
-          spdlog::error("Error processing application at index {}: {}", i,
-                        e.what());
-
-          flutter::EncodableMap error_app{
-              {"name",
-               flutter::EncodableValue("Error_App_" + std::to_string(i))},
-              {"id", flutter::EncodableValue("error.app." + std::to_string(i))},
-              {"remote", flutter::EncodableValue(remote_id)},
-              {"error", flutter::EncodableValue(e.what())}};
-          serializable_apps.emplace_back(error_app);
-        }
-      }
-
-      spdlog::info("Converted {} applications from remote {} for caching",
-                   serializable_apps.size(), remote_id);
-      return serializable_apps;
+      return apps;
     } catch (const std::exception& e) {
       spdlog::error("[FlatpakPlugin] Exception in GetApplicationsRemote: {}",
                     e.what());
@@ -425,10 +257,11 @@ std::optional<flutter::EncodableList> CacheManager::GetSystemInstallations(
 
   EncodableListCacheOperation cache_operation(this);
 
-  auto network_ops = []() -> std::optional<flutter::EncodableList> {
+  auto network_ops = [this]() -> std::optional<flutter::EncodableList> {
+    std::lock_guard lock(flatpak_mutex_);
     try {
-      const auto plugin_ = std::make_unique<flatpak_plugin::FlatpakShim>();
-      const auto system_installations = flatpak_plugin::FlatpakShim::GetSystemInstallations();
+      const auto plugin_ = std::make_unique<FlatpakShim>();
+      const auto system_installations = FlatpakShim::GetSystemInstallations();
 
       if (system_installations.has_error()) {
         spdlog::error("[FlatpakPlugin] Failed to GetSystemInstallations: {}",
@@ -491,6 +324,7 @@ std::optional<flutter::EncodableList> CacheManager::GetRemotes(
 
   auto network_ops =
       [this, installation_id]() -> std::optional<flutter::EncodableList> {
+    std::lock_guard lock(flatpak_mutex_);
     try {
       return network_fetcher_->FetchRemotes(installation_id);
     } catch (const std::exception& e) {
@@ -534,10 +368,11 @@ std::optional<Installation> CacheManager::GetUserInstallation(
 
   InstallationCacheOperation cache_operation(this);
 
-  auto network_ops = []() -> std::optional<Installation> {
+  auto network_ops = [this]() -> std::optional<Installation> {
+    std::lock_guard lock(flatpak_mutex_);
     try {
-      const auto plugin_ = std::make_unique<flatpak_plugin::FlatpakShim>();
-      const auto installations_result = flatpak_plugin::FlatpakShim::GetUserInstallation();
+      const auto plugin_ = std::make_unique<FlatpakShim>();
+      const auto installations_result = FlatpakShim::GetUserInstallation();
 
       if (installations_result.has_error()) {
         spdlog::error("[FlatpakPlugin] Failed to get user installations: {}",

@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +24,7 @@
 #include <string>
 #include "plugins/common/common.h"
 
-#include "../interfaces/cache_storage.h"
+#include "flatpak/cache/interfaces/cache_storage.h"
 
 /**
  * @brief Template class for cache operations providing a framework for data

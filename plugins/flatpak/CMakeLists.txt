@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-find_package(PkgConfig REQUIRED)
-
 pkg_check_modules(FLATPAK_DEPS IMPORTED_TARGET REQUIRED flatpak libxml-2.0 zlib)
 
 add_subdirectory(cache)
@@ -39,3 +37,7 @@ target_link_libraries(plugin_flatpak PUBLIC
         plugin_flatpak_cache
         platform_homescreen
 )
+
+if (BUILD_UNIT_TESTS)
+    add_subdirectory(test)
+endif ()
