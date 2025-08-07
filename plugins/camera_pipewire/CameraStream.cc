@@ -17,7 +17,10 @@
 #include "CameraStream.h"
 #include <GLES2/gl2.h>
 #include <jpeglib.h>
+#include <spa/param/format-utils.h>
 #include <spa/param/format.h>
+#include <spa/param/video/raw-utils.h>
+#include <spa/param/video/raw.h>
 #include <spa/pod/builder.h>
 #include <spdlog/spdlog.h>
 #include <string/string_tools.h>
@@ -76,6 +79,54 @@ static int decode_mjpeg(const uint8_t* input,
   return 0;
 }
 
+static int decode_yuy2(const uint8_t* input,
+                       size_t input_size,
+                       uint8_t* output,
+                       int width,
+                       int height) {
+  const size_t expected_size = width * height * 2;  // 2 bytes per pixel
+  if (input_size < expected_size) {
+    spdlog::error("[decode_yuy2] input size too small: {} < {}", input_size, expected_size);
+    return -1;
+  }
+
+  const uint8_t* in = input;
+  uint8_t* out = output;
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; x += 2) {
+      // Read 4 bytes: Y0 U Y1 V
+      uint8_t y0 = *in++;
+      uint8_t u  = *in++;
+      uint8_t y1 = *in++;
+      uint8_t v  = *in++;
+
+      auto yuv_to_rgb = [](uint8_t y, uint8_t u, uint8_t v, uint8_t* rgb) {
+        int c = y - 16;
+        int d = u - 128;
+        int e = v - 128;
+
+        int r = (298 * c + 409 * e + 128) >> 8;
+        int g = (298 * c - 100 * d - 208 * e + 128) >> 8;
+        int b = (298 * c + 516 * d + 128) >> 8;
+
+        rgb[0] = std::clamp(r, 0, 255);
+        rgb[1] = std::clamp(g, 0, 255);
+        rgb[2] = std::clamp(b, 0, 255);
+      };
+
+      // Write pixel 1 (Y0)
+      yuv_to_rgb(y0, u, v, out);
+      out += 3;
+
+      // Write pixel 2 (Y1)
+      yuv_to_rgb(y1, u, v, out);
+      out += 3;
+    }
+  }
+
+  return 0;
+}
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
@@ -230,12 +281,38 @@ bool CameraStream::Start(const std::string& camera_id) {
     spa_fraction fps = {30, 1};
 
     const spa_pod* params[1];
-    params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
-        &builder, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
-        SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
-        SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg),
-        SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&rect),
-        SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
+
+    std::string format_env = std::getenv("CAMERA_OUTPUT_FORMAT");
+    if (format_env == "MJPEG") {
+      camera_output_format = "MJPEG";
+    }
+    else if(format_env == "YUV2") {
+      camera_output_format = "YUV2";
+    }
+    else {
+      spdlog::error("CAMERA_OUTPUT_FORMAT is set to an unsupported value ('{}'). Supported values: MJPEG, YUV2. Defaulting to YUV2.", format_env);
+      camera_output_format = "YUV2";
+    }
+
+    spdlog::debug("[CameraStream] camera_output_format is set to {}", camera_output_format);
+
+    if(camera_output_format == "MJPEG") {
+      params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
+          &builder, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+          SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+          SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg),
+          SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&rect),
+          SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
+    }
+    else if(camera_output_format == "YUV2") {
+      params[0] = static_cast<const spa_pod*>(spa_pod_builder_add_object(
+          &builder, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
+          SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+          SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+          SPA_FORMAT_VIDEO_format, SPA_POD_Id(SPA_VIDEO_FORMAT_YUY2),
+          SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&rect),
+          SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&fps)));
+    }
 
     // Actually connect the stream
     spdlog::debug("[CameraStream] connecting to camera_id: {}", camera_id);
@@ -347,8 +424,15 @@ void CameraStream::HandleProcess() {
   if (!decoded_buffer_) {
     decoded_buffer_.reset(new uint8_t[width_ * height_ * 3]);
   }
-  int ret = decode_mjpeg(compressedData, compressedSize, decoded_buffer_.get(),
-                         width_, height_);
+
+  int ret = -1;
+  if(camera_output_format == "YUV2") {
+    ret = decode_yuy2(compressedData, compressedSize, decoded_buffer_.get(), width_, height_);
+  }
+  else if(camera_output_format == "MJPEG") {
+    ret = decode_mjpeg(compressedData, compressedSize, decoded_buffer_.get(), width_, height_);
+  }
+
   if (ret == 0) {
     {
       std::lock_guard<std::mutex> lock(frame_mutex_);

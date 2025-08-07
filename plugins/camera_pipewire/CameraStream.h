@@ -106,6 +106,7 @@ class CameraStream {
 
   // Camera name
   std::string camera_id_ = "";
+  std::string camera_output_format = "YUV2";
   // PipeWire callbacks (static => dispatch to instance)
   static void OnStreamStateChanged(void* data,
                                    pw_stream_state old_state,
