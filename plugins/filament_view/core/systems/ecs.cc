@@ -76,9 +76,11 @@ void ECSManager::setupThreadingInternals() {
   });
 }
 
+std::chrono::duration<double> _sleepOverhead = std::chrono::duration<double>(0.00006);  // 0.06ms
+
 ////////////////////////////////////////////////////////////////////////////
 void ECSManager::MainLoop() {
-  constexpr std::chrono::milliseconds frameTime(16);  // ~1/60 second
+  constexpr std::chrono::microseconds frameTime(long(1000000 / 60));  // ~1/60 second
 
   // Initialize lastFrameTime to the current time
   auto lastFrameTime = std::chrono::steady_clock::now();
@@ -91,27 +93,57 @@ void ECSManager::MainLoop() {
     std::chrono::duration<float> elapsedTime = start - lastFrameTime;
 
     if (!isHandlerExecuting.load()) {
+      // Use a promise to wait for the work to be done
+      auto awaiter = std::promise<void>();
+
       // Use asio::post to schedule work on the main thread (API thread)
-      post(*strand_, [elapsedTime = elapsedTime.count(), this] {
+      post(*strand_, [elapsedTime = elapsedTime.count(), &awaiter, this]() mutable {
         isHandlerExecuting.store(true);
         try {
           update(elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
-          throw;  // Rethrow the exception after resetting the flag
+          // TODO: Handle exceptions properly
+          // throw;  // Rethrow the exception after resetting the flag
+          awaiter.set_exception(std::current_exception());
         }
         isHandlerExecuting.store(false);
+
+        // Notify that the work is done
+        awaiter.set_value();
       });
+
+      // Wait for the work to be done
+      try {
+        awaiter.get_future().wait();
+      } catch (const std::exception& e) {
+        spdlog::error("Exception in ECSManager main loop: {}", e.what());
+        // Handle the exception as needed
+      }
     }
 
     // Update the time for the next frame
     lastFrameTime = start;
 
     auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+
+    spdlog::debug("Frametime: {:.2f} ms", elapsed.count() * 1000.0);
 
     // Sleep for the remaining time in the frame
-    if (std::chrono::duration<double> elapsed = end - start; elapsed < frameTime) {
-      std::this_thread::sleep_for(frameTime - elapsed);
+    if (elapsed < frameTime) {
+      auto intendedSleepDuration = frameTime - elapsed;
+
+      auto sleepStart = std::chrono::steady_clock::now();
+      std::this_thread::sleep_for(intendedSleepDuration - _sleepOverhead); // 0.06ms sleep overhead
+      std::chrono::duration<double> sleepDuration = std::chrono::steady_clock::now() - sleepStart;
+
+      _sleepOverhead = sleepDuration - intendedSleepDuration + _sleepOverhead; // Update the overhead for next time
+      _sleepOverhead = std::clamp(_sleepOverhead, std::chrono::duration<double>(-1), std::chrono::duration<double>(1));
+
+      // spdlog::debug("Sleep overhead: {:.2f} ms", _sleepOverhead.count() * 1000.0);
+      // spdlog::debug("Sleep: {:.2f} ms", sleepDuration.count() * 1000.0);
+      // spdlog::debug("Total frame time: {:.2f} ms", (elapsed + sleepDuration).count() * 1000.0);
     }
   }
   m_eCurrentState = ShutdownStarted;
