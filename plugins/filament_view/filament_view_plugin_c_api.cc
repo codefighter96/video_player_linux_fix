@@ -63,6 +63,7 @@ void FilamentViewPluginCApiRegisterWithRegistrar(
   if (const auto ecs = plugin_filament_view::ECSManager::GetInstance();
       ecs->getRunState() == plugin_filament_view::ECSManager::RunState::Initialized) {
     ecs->debugPrint();
-    ecs->StartMainLoop();
+    ecs->update(0.16f);
+    // ecs->StartMainLoop();
   }
 }

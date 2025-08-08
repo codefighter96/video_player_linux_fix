@@ -154,12 +154,14 @@ void System::setupMessageChannels(
   );
 
   event_channel_->SetStreamHandler(std::make_unique<flutter::StreamHandlerFunctions<>>(
+    // This lambda is called when the stream is first subscribed to
     [&](
       const flutter::EncodableValue* /* arguments */, std::unique_ptr<flutter::EventSink<>>&& events
     ) -> std::unique_ptr<flutter::StreamHandlerError<>> {
       event_sink_ = std::move(events);
       return nullptr;
     },
+    // This lambda is called when the stream is cancelled
     [&](const flutter::EncodableValue* /* arguments */)
       -> std::unique_ptr<flutter::StreamHandlerError<>> {
       event_sink_ = nullptr;

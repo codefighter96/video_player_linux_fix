@@ -211,7 +211,7 @@ void FilamentViewPlugin::RegisterWithRegistrar(
   // Ok to be called infinite times.
   KickOffRenderingLoops();
 
-  SPDLOG_TRACE("Initialization completed");
+  spdlog::debug("Initialization completed");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

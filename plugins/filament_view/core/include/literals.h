@@ -176,7 +176,7 @@ static constexpr char kColliderShouldMatchAttachedObject[] = "collider_shouldMat
 static constexpr char kUpdateFrame[] = "updateFrame";
 static constexpr char kPreRenderFrame[] = "preRenderFrame";
 static constexpr char kPostRenderFrame[] = "postRenderFrame";
-static constexpr char kParam_TimeSinceLastRenderedSec[] = "timeSinceLastRenderedSec";
+static constexpr char kParam_DeltaTime[] = "deltaTime";
 static constexpr char kParam_FPS[] = "fps";
 static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
 
