@@ -26,3 +26,7 @@ if (GLIB_FOUND)
     target_link_libraries(plugin_common_glib PUBLIC PkgConfig::GLIB toolchain::toolchain)
     add_sanitizers(plugin_common_glib)
 endif ()
+
+if (BUILD_UNIT_TESTS)
+    add_subdirectory(curl_client/test)
+endif ()

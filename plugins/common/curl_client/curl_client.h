@@ -1,5 +1,6 @@
 /*
- * Copyright 2023-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +18,7 @@
 #ifndef PLUGINS_COMMON_CURL_CLIENT_CURL_CLIENT_H_
 #define PLUGINS_COMMON_CURL_CLIENT_CURL_CLIENT_H_
 
-#include <curl/curl.h>
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -27,13 +26,20 @@
 #include <utility>
 #include <vector>
 
+#include <curl/curl.h>
+
 namespace plugin_common_curl {
 
 struct ResponseInfo {
   long http_code = 0;
   double total_time = 0.0;
+#if LIBCURL_VERSION_NUM >= 0x073700  // 7.55.0
+  curl_off_t download_size = 0;
+  curl_off_t upload_size = 0;
+#else
   double download_size = 0.0;
   double upload_size = 0.0;
+#endif
   long redirect_count = 0;
   std::string effective_url;
   std::string content_type;
@@ -51,6 +57,7 @@ class CurlClient {
    * @param headers vector of headers to use
    * @param url_form url form key/values
    * @param follow_location follows redirects from server.  Defaults to true
+   * @param verbose flag to enable stderr output of curl dialog
    * @return bool
    * @retval true if initialized, false if failed
    * @relation
@@ -59,7 +66,8 @@ class CurlClient {
   bool Init(const std::string& url,
             const std::vector<std::string>& headers,
             const std::vector<std::pair<std::string, std::string>>& url_form,
-            bool follow_location = true);
+            bool follow_location = true,
+            bool verbose = false);
 
   /**
    * @brief Function to execute http client

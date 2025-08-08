@@ -1,5 +1,6 @@
 /*
- * Copyright 2023-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +17,16 @@
 
 #include "curl_client.h"
 
-#include <curl/curl.h>
-#include <curl/easy.h>
 #include <algorithm>
-#include <cctype>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <curl/curl.h>
+#include <curl/easy.h>
 
 #include "../logging.h"
 
@@ -206,9 +206,17 @@ void CurlClient::ExtractResponseInfo() {
 
   curl_easy_getinfo(mConn, CURLINFO_RESPONSE_CODE, &mResponseInfo.http_code);
   curl_easy_getinfo(mConn, CURLINFO_TOTAL_TIME, &mResponseInfo.total_time);
+
+#if LIBCURL_VERSION_NUM >= 0x073700  // 7.55.0
+  curl_easy_getinfo(mConn, CURLINFO_SIZE_DOWNLOAD_T,
+                    &mResponseInfo.download_size);
+  curl_easy_getinfo(mConn, CURLINFO_SIZE_UPLOAD_T, &mResponseInfo.upload_size);
+#else
   curl_easy_getinfo(mConn, CURLINFO_SIZE_DOWNLOAD,
                     &mResponseInfo.download_size);
   curl_easy_getinfo(mConn, CURLINFO_SIZE_UPLOAD, &mResponseInfo.upload_size);
+#endif
+
   curl_easy_getinfo(mConn, CURLINFO_REDIRECT_COUNT,
                     &mResponseInfo.redirect_count);
 
@@ -263,7 +271,7 @@ void CurlClient::ParseHeaders() {
   }
 }
 
-bool CurlClient::PerformRequest(bool verbose) {
+bool CurlClient::PerformRequest(bool /* verbose */) {
   if (!mConn)
     return false;
 
@@ -288,7 +296,8 @@ bool CurlClient::Init(
     const std::string& url,
     const std::vector<std::string>& headers,
     const std::vector<std::pair<std::string, std::string>>& url_form,
-    const bool follow_location) {
+    const bool follow_location,
+    const bool verbose) {
   // Validate URL
   if (url.empty()) {
     spdlog::error("[CurlClient] URL cannot be empty");
@@ -360,6 +369,12 @@ bool CurlClient::Init(
   if (mCode != CURLE_OK) {
     spdlog::error("[CurlClient] Failed to set redirect option [{}]",
                   mErrorBuffer.get());
+    return false;
+  }
+
+  mCode = curl_easy_setopt(mConn, CURLOPT_VERBOSE, verbose ? 1L : 0L);
+  if (mCode != CURLE_OK) {
+    spdlog::error("[CurlClient] Failed to set verbose", mErrorBuffer.get());
     return false;
   }
 
