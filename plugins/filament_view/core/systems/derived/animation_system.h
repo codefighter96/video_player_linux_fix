@@ -41,7 +41,7 @@ class AnimationSystem : public System {
     AnimationSystem& operator=(const AnimationSystem&) = delete;
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

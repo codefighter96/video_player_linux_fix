@@ -59,7 +59,7 @@ class ShapeSystem : public System {
     );
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

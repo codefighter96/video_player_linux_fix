@@ -53,7 +53,7 @@ class CollisionSystem : public System {
     void TurnOnRenderingOfCollidables() const;
     void TurnOffRenderingOfCollidables() const;
 
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
 
     void onSystemInit() override;
     void onDestroy() override;

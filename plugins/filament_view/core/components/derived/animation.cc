@@ -49,7 +49,7 @@ Animation::Animation(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::update(const float deltaTime) {
+void Animation::update(const double deltaTime) {
   if (m_poAnimator == nullptr || m_bPaused) {
     return;
   }
@@ -74,7 +74,7 @@ void Animation::update(const float deltaTime) {
     return;
   }
 
-  m_fTimeSinceStart += deltaTime * m_fPlaybackSpeedScalar;
+  m_fTimeSinceStart += static_cast<float>(deltaTime) * m_fPlaybackSpeedScalar;
 
   m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex), m_fTimeSinceStart);
   m_poAnimator->updateBoneMatrices();

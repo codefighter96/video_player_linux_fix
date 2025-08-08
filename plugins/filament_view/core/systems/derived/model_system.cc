@@ -689,7 +689,7 @@ void ModelSystem::onSystemInit() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ModelSystem::update(float /*deltaTime*/) {
+void ModelSystem::update(double /*deltaTime*/) {
   // Make sure all models are loaded
   updateAsyncAssetLoading();
 

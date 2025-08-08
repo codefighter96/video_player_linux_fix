@@ -68,7 +68,7 @@ class IndirectLightSystem : public System {
     ~IndirectLightSystem() override;
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

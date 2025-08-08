@@ -202,7 +202,7 @@ void MaterialSystem::onSystemInit() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MaterialSystem::update(float /*deltaTime*/) {}
+void MaterialSystem::update(double /*deltaTime*/) {}
 /////////////////////////////////////////////////////////////////////////////////////////
 void MaterialSystem::onDestroy() {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("MaterialSystem::onDestroy");

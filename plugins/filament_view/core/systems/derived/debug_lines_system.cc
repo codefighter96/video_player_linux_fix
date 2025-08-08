@@ -119,12 +119,12 @@ void DebugLinesSystem::Cleanup() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void DebugLinesSystem::update(const float deltaTime) {
+void DebugLinesSystem::update(const double deltaTime) {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("DebugLinesSystem::update");
   const auto engine = filamentSystem->getFilamentEngine();
 
   for (auto it = ourLines_.begin(); it != ourLines_.end();) {
-    (*it)->m_fRemainingTime -= deltaTime;
+    (*it)->m_fRemainingTime -= static_cast<float>(deltaTime);
 
     if ((*it)->m_fRemainingTime < 0) {
       filamentSystem->getFilamentScene()->remove((*it)->_fEntity);
