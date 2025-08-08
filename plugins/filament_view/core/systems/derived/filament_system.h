@@ -31,7 +31,7 @@ class FilamentSystem : public System {
     FilamentSystem& operator=(const FilamentSystem&) = delete;
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

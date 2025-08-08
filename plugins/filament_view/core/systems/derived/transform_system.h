@@ -40,7 +40,7 @@ class TransformSystem : public System {
     void handleMessage(const ECSMessage& msg) override;
     void debugPrint() override;
 
-    void update(float /* deltaTime */) override {
+    void update(double /*deltaTime*/) override {
       //   Filament transform transaction:
       // updating the transforms, and the parent tree can be
       // quite expensive, so we want to batch them
@@ -83,7 +83,7 @@ class TransformSystem : public System {
      * For each transform marked as "animating", it performs a lerp step
      * towards the target transform.
      */
-    // void interpolateTransforms(float deltaTime);
+    // void interpolateTransforms(double deltaTime);
 
   public:
     /// Applies the transform to the entity with the given ID.

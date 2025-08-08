@@ -62,7 +62,7 @@ class DebugLinesSystem final : public System {
     DebugLinesSystem(const DebugLinesSystem&) = delete;
     DebugLinesSystem& operator=(const DebugLinesSystem&) = delete;
 
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
 
     void onSystemInit() override;
     void onDestroy() override;

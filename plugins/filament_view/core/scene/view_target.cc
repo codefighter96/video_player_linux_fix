@@ -524,15 +524,15 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
   // Future tasking for making a more featured timing / frame info class.
   const uint32_t deltaTimeMS = time - m_LastTime;
-  float deltaTime = static_cast<float>(deltaTimeMS) / 1000.0f;
+  double deltaTime = static_cast<double>(deltaTimeMS) / 1000.0;
   // Note you might want render time and gameplay time to be different
   // but for smooth animation you don't. (physics would be simulated w/o
   // render)
   //
-  if (deltaTime == 0.0f) {
-    deltaTime += 1.0f;
+  if (deltaTime == 0.0) {
+    deltaTime += 1.0;
   }
-  float fps = 1.0f / deltaTime;  // calculate FPS
+  float fps = 1.0f / static_cast<float>(deltaTime);  // calculate FPS
 
   // spdlog::debug("[{}] deltaTime: {:.2f}ms", __FUNCTION__, deltaTime * 1000.0f);
 

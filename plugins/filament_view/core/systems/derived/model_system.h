@@ -73,7 +73,7 @@ class ModelSystem : public System {
     void queueModelLoad(std::shared_ptr<Model> oOurModel);
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

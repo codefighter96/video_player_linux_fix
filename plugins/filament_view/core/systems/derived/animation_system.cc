@@ -123,7 +123,7 @@ void AnimationSystem::onSystemInit() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::update(const float deltaTime) {
+void AnimationSystem::update(const double deltaTime) {
   for (auto& animator : ecs->getComponentsOfType<Animation>()) {
     animator->update(deltaTime);
   }

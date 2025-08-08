@@ -511,7 +511,7 @@ void ECSManager::removeSystem(TypeID systemTypeId) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void ECSManager::update(const float deltaTime) {
+void ECSManager::update(const double deltaTime) {
   // Copy systems under mutex
   std::map<TypeID, std::shared_ptr<System>> systemsCopy;
   {
