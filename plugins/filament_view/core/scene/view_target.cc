@@ -525,8 +525,16 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   // Future tasking for making a more featured timing / frame info class.
   const uint32_t deltaTimeMS = time - m_LastTime;
   float deltaTime = static_cast<float>(deltaTimeMS) / 1000.0f;
+  // Note you might want render time and gameplay time to be different
+  // but for smooth animation you don't. (physics would be simulated w/o
+  // render)
+  //
+  if (deltaTime == 0.0f) {
+    deltaTime += 1.0f;
+  }
+  float fps = 1.0f / deltaTime;  // calculate FPS
 
-  spdlog::debug("[{}] deltaTime: {:.2f}ms", __FUNCTION__, deltaTime * 1000.0f);
+  // spdlog::debug("[{}] deltaTime: {:.2f}ms", __FUNCTION__, deltaTime * 1000.0f);
 
   const auto ecs = ECSManager::GetInstance();
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("DrawFrame");
@@ -545,10 +553,10 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   const auto cpuUpdateStart = std::chrono::steady_clock::now();
   ecs->update(deltaTime);
   const auto cpuUpdateDuration = std::chrono::steady_clock::now() - cpuUpdateStart;
-  spdlog::debug(
-    "[{}] CPU frametime: {:.2f}ms", __FUNCTION__,
-    std::chrono::duration<double, std::milli>(cpuUpdateDuration).count()
-  );
+  // spdlog::debug(
+  //   "[{}] CPU frametime: {:.2f}ms", __FUNCTION__,
+  //   std::chrono::duration<double, std::milli>(cpuUpdateDuration).count()
+  // );
 
   // cast time to int32_t, since EncodableValue does not support uint32_t
   int32_t s_lastTime = m_LastTime;  // NOLINT
@@ -559,33 +567,25 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   // Render the scene, unless the renderer wants to skip the frame.
   const auto gpuDrawStart = std::chrono::steady_clock::now();
   if (renderer->beginFrame(fswapChain_, time)) {
-    // Note you might want render time and gameplay time to be different
-    // but for smooth animation you don't. (physics would be simulated w/o
-    // render)
-    //
-    if (deltaTime == 0.0f) {
-      deltaTime += 1.0f;
-    }
-    float fps = 1.0f / deltaTime;  // calculate FPS
 
     // auto updateEventStart = std::chrono::steady_clock::now();
-    SendFrameViewCallback(
-      kPreRenderFrame,
-      {//
-       std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
-       std::make_pair(kParam_FPS, EncodableValue(fps)),
-       std::make_pair(
-         kParam_cpuFrametime,
-         EncodableValue(std::chrono::duration<double, std::milli>(cpuUpdateDuration).count())
-       ),
-       std::make_pair(
-         kParam_gpuFrametime,
-         EncodableValue(
-           std::chrono::duration<double, std::milli>(gpuDrawStart - cpuUpdateStart).count()
-         )
-       )
-      }
-    );
+    // SendFrameViewCallback(
+    //   kPreRenderFrame,
+    //   {//
+    //    std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
+    //    std::make_pair(kParam_FPS, EncodableValue(fps)),
+    //    std::make_pair(
+    //      kParam_cpuFrametime,
+    //      EncodableValue(std::chrono::duration<double, std::milli>(cpuUpdateDuration).count())
+    //    ),
+    //    std::make_pair(
+    //      kParam_gpuFrametime,
+    //      EncodableValue(
+    //        std::chrono::duration<double, std::milli>(gpuDrawStart - cpuUpdateStart).count()
+    //      )
+    //    )
+    //   }
+    // );
 
     // auto future = waitForFrameViewCallback("done_updateScripts");
     // if (future.valid()) {
@@ -613,10 +613,27 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   }
 
   const auto gpuDrawDuration = std::chrono::steady_clock::now() - gpuDrawStart;
-  spdlog::debug(
-    "[{}] GPU frametime: {:.2f}ms", __FUNCTION__,
-    std::chrono::duration<double, std::milli>(gpuDrawDuration).count()
+
+  SendFrameViewCallback(
+    kPreRenderFrame,
+    {//
+     std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
+     std::make_pair(kParam_FPS, EncodableValue(fps)),
+     std::make_pair(
+       kParam_cpuFrametime,
+       EncodableValue(std::chrono::duration<double, std::milli>(cpuUpdateDuration).count())
+     ),
+     std::make_pair(
+       kParam_gpuFrametime,
+       EncodableValue(std::chrono::duration<double, std::milli>(gpuDrawDuration).count())
+     )
+    }
   );
+
+  // spdlog::debug(
+  //   "[{}] GPU frametime: {:.2f}ms", __FUNCTION__,
+  //   std::chrono::duration<double, std::milli>(gpuDrawDuration).count()
+  // );
 
   m_LastTime = time;
 }
