@@ -574,6 +574,16 @@ void ViewTarget::DrawFrame(const uint32_t time) {
       {//
        std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
        std::make_pair(kParam_FPS, EncodableValue(fps)),
+       std::make_pair(
+         kParam_cpuFrametime,
+         EncodableValue(std::chrono::duration<double, std::milli>(cpuUpdateDuration).count())
+       ),
+       std::make_pair(
+         kParam_gpuFrametime,
+         EncodableValue(
+           std::chrono::duration<double, std::milli>(gpuDrawStart - cpuUpdateStart).count()
+         )
+       )
       }
     );
 
