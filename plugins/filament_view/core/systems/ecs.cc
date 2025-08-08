@@ -100,7 +100,7 @@ void ECSManager::MainLoop() {
       post(*strand_, [elapsedTime = elapsedTime.count(), &awaiter, this]() mutable {
         isHandlerExecuting.store(true);
         try {
-          update(elapsedTime);  // Pass elapsed time to the main thread
+          // update(elapsedTime);  // Pass elapsed time to the main thread
         } catch (...) {
           isHandlerExecuting.store(false);
           // TODO: Handle exceptions properly
@@ -128,18 +128,21 @@ void ECSManager::MainLoop() {
     auto end = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = end - start;
 
-    spdlog::debug("Frametime: {:.2f} ms", elapsed.count() * 1000.0);
+    spdlog::debug("[ECS] Frametime: {:.2f} ms", elapsed.count() * 1000.0);
 
     // Sleep for the remaining time in the frame
     if (elapsed < frameTime) {
       auto intendedSleepDuration = frameTime - elapsed;
 
       auto sleepStart = std::chrono::steady_clock::now();
-      std::this_thread::sleep_for(intendedSleepDuration - _sleepOverhead); // 0.06ms sleep overhead
+      std::this_thread::sleep_for(intendedSleepDuration - _sleepOverhead);  // 0.06ms sleep overhead
       std::chrono::duration<double> sleepDuration = std::chrono::steady_clock::now() - sleepStart;
 
-      _sleepOverhead = sleepDuration - intendedSleepDuration + _sleepOverhead; // Update the overhead for next time
-      _sleepOverhead = std::clamp(_sleepOverhead, std::chrono::duration<double>(-1), std::chrono::duration<double>(1));
+      _sleepOverhead = sleepDuration - intendedSleepDuration
+                       + _sleepOverhead;  // Update the overhead for next time
+      _sleepOverhead = std::clamp(
+        _sleepOverhead, std::chrono::duration<double>(-1), std::chrono::duration<double>(1)
+      );
 
       // spdlog::debug("Sleep overhead: {:.2f} ms", _sleepOverhead.count() * 1000.0);
       // spdlog::debug("Sleep: {:.2f} ms", sleepDuration.count() * 1000.0);
