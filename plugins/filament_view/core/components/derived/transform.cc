@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "basetransform.h"
+#include "transform.h"
 
 #include <core/include/literals.h>
 #include <core/systems/derived/transform_system.h>
@@ -24,12 +24,12 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////
-BaseTransform::BaseTransform(const flutter::EncodableMap& params)
+Transform::Transform(const flutter::EncodableMap& params)
   : Component(std::string(__FUNCTION__)),
     _globalVectors({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
     local({{kFloat3Zero}, {kFloat3One}, {kQuatfIdentity}}),
     global({kMat4fIdentity}) {
-  spdlog::trace("BaseTransform::BaseTransform");
+  spdlog::trace("Transform::Transform");
   Deserialize::DecodeParameterWithDefault(kPosition, &(local.position), params, kFloat3Zero);
   Deserialize::DecodeParameterWithDefault(kScale, &(local.scale), params, kFloat3One);
   Deserialize::DecodeParameterWithDefault(kRotation, &(local.rotation), params, kQuatfIdentity);
@@ -41,7 +41,7 @@ BaseTransform::BaseTransform(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
+void Transform::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug(tabPrefix + "Local transform:");
   spdlog::debug(tabPrefix + "ParentId: {}", _parentId);
   spdlog::debug(
@@ -54,12 +54,12 @@ void BaseTransform::DebugPrint(const std::string& tabPrefix) const {
   );
 }
 
-void BaseTransform::SetTransform(const filament::math::mat4f& localMatrix) {
+void Transform::setTransform(const filament::math::mat4f& localMatrix) {
   filament::gltfio::decomposeMatrix(localMatrix, &local.position, &local.rotation, &local.scale);
   _isDirty = true;
 }
 
-void BaseTransform::DecomposeGlobalMatrix() {
+void Transform::DecomposeGlobalMatrix() {
   // Decompose the global matrix into position, scale, and rotation
   filament::gltfio::decomposeMatrix(
     global.matrix, &_globalVectors.position, &_globalVectors.rotation, &_globalVectors.scale

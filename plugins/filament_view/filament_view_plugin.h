@@ -79,7 +79,7 @@ class FilamentViewPlugin : public flutter::Plugin, public FilamentViewApi, publi
     ) override;
     // Toggle shapes visibility in the scene.
     std::optional<FlutterError> ToggleShapesInScene(bool value) override;
-    // Toggle debug collidable visuals in the scene.
+    // Toggle debug collider visuals in the scene.
     std::optional<FlutterError> ToggleDebugCollidableViewsInScene(bool value) override;
     // Change view quality settings.
     std::optional<FlutterError> ChangeViewQualitySettings() override;

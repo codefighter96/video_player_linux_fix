@@ -162,6 +162,7 @@ jobs:
             -D CMAKE_VERBOSE_MAKEFILE=ON \
             -D ENABLE_DLT=OFF \
             -D BUILD_CRASH_HANDLER=OFF \
+            -D BUILD_UNIT_TESTS=ON \
             \
             -D PLUGINS_DIR=${{github.workspace}}/plugins/plugins \
             \

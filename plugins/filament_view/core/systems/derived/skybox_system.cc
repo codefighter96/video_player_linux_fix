@@ -39,7 +39,7 @@ std::future<void> SkyboxSystem::Initialize() {
   const auto promise(std::make_shared<std::promise<void>>());
   auto future(promise->get_future());
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise] {
     const auto filamentSystem = ecs->getSystem<FilamentSystem>("SKyboxManager::Init::Lambda");
@@ -89,7 +89,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrAsset(
     promise->set_value(Resource<std::string_view>::Error("Skybox Asset path is not valid"));
   }
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise, asset_path, showSun, shouldUpdateLight, intensity] {
     promise->set_value(loadSkyboxFromHdrFile(asset_path, showSun, shouldUpdateLight, intensity));
@@ -115,7 +115,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromHdrUrl(
     return future;
   }
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   SPDLOG_DEBUG("Skybox downloading HDR Asset: {}", url.c_str());
   post(strand_, [&, promise, url, showSun, shouldUpdateLight, intensity] {
@@ -149,7 +149,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXAsset(cons
   if (path.empty() || !exists(asset_path)) {
     promise->set_value(Resource<std::string_view>::Error("KTX Asset path is not valid"));
   }
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   SPDLOG_DEBUG("Skybox loading KTX Asset: {}", asset_path.c_str());
   post(strand_, [&, promise, asset_path] {
@@ -181,7 +181,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromKTXUrl(const 
     return future;
   }
 
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
   post(strand_, [&, promise, url] {
     plugin_common_curl::CurlClient client;
 
@@ -218,7 +218,7 @@ std::future<Resource<std::string_view>> SkyboxSystem::setSkyboxFromColor(const s
     promise->set_value(Resource<std::string_view>::Error("Color is Invalid"));
     return future;
   }
-  const asio::io_context::strand& strand_(*ecs->GetStrand());
+  const asio::io_context::strand& strand_(*ecs->getStrand());
 
   post(strand_, [&, promise, color] {
     const auto filamentSystem = ecs->getSystem<FilamentSystem>("setSkyboxFromColor");
@@ -339,13 +339,13 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vOnInitSystem() { Initialize(); }
+void SkyboxSystem::onSystemInit() { Initialize(); }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vUpdate(float /*fElapsedTime*/) {}
+void SkyboxSystem::update(float /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::vShutdownSystem() {
+void SkyboxSystem::onDestroy() {
   const auto filamentSystem = ecs->getSystem<FilamentSystem>("loadSkyboxFromHdrBuffer");
   const auto engine = filamentSystem->getFilamentEngine();
 
@@ -355,6 +355,6 @@ void SkyboxSystem::vShutdownSystem() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::DebugPrint() { spdlog::debug("{}", __FUNCTION__); }
+void SkyboxSystem::debugPrint() { spdlog::debug("{}", __FUNCTION__); }
 
 }  // namespace plugin_filament_view

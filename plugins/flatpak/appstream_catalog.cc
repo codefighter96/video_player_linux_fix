@@ -15,14 +15,15 @@
  */
 
 #include "appstream_catalog.h"
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xmlstring.h>
+
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xmlstring.h>
 #include <zlib.h>
-#include <algorithm>
 
 AppstreamCatalog::AppstreamCatalog(const std::string& filePath,
                                    std::string language)

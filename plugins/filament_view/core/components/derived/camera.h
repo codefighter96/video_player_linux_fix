@@ -114,7 +114,7 @@ class Camera : public Component {
     /// TODO(kerberjg): move to deserializer
     explicit Camera(const flutter::EncodableMap& params);
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     /*
      *  Settings
@@ -140,13 +140,13 @@ class Camera : public Component {
 
     inline void setProjection(const Projection& projection) {
       _projection = projection;
-      _lens = std::nullopt;  // Reset lens if projection is set
+      _lens = std::nullopt;  // reset lens if projection is set
       _dirtyProjection = true;
     }
 
     inline void setLens(const LensProjection& lens) {
       _lens = lens;
-      _projection = std::nullopt;  // Reset projection if lens is set
+      _projection = std::nullopt;  // reset projection if lens is set
       _dirtyProjection = true;
     }
 

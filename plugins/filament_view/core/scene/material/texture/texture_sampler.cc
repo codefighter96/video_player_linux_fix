@@ -128,7 +128,7 @@ filament::TextureSampler::WrapMode TextureSampler::getWrapModeT() const {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void TextureSampler::DebugPrint(const char* tag) {
+void TextureSampler::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (TextureSampler)", tag);
   if (!min_.empty()) {

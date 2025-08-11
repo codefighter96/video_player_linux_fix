@@ -17,15 +17,13 @@
 #ifndef FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 #define FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 
-#define FLATPAK_EXTERN extern "C"
-#include <flatpak/flatpak.h>
-
 #include <filesystem>
 #include <thread>
 
 #include <flutter/plugin_registrar.h>
 #include <asio/io_context_strand.hpp>
 
+#include "flatpak_shim.h"
 #include "messages.g.h"
 
 namespace flatpak_plugin {
@@ -78,21 +76,6 @@ class FlatpakPlugin final : public flutter::Plugin, public FlatpakApi {
 
   // Stop application with given id.
   ErrorOr<bool> ApplicationStop(const std::string& id) override;
-
-  static std::string FlatpakRemoteTypeToString(FlatpakRemoteType type) {
-    switch (type) {
-      case FLATPAK_REMOTE_TYPE_STATIC:
-        // Statically configured remote
-        return "Static";
-      case FLATPAK_REMOTE_TYPE_USB:
-        // Dynamically detected local pathname remote
-        return "USB";
-      case FLATPAK_REMOTE_TYPE_LAN:
-        // Dynamically detected network remote
-        return "LAN";
-    }
-    return "Unknown";
-  }
 
   // Disallow copy and assign.
   FlatpakPlugin(const FlatpakPlugin&) = delete;

@@ -25,9 +25,9 @@
 namespace plugin_filament_view {
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vOnInitSystem() {
+void AnimationSystem::onSystemInit() {
   // Handler for AnimationEnqueue
-  vRegisterMessageHandler(ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationEnqueue, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationEnqueue");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
@@ -35,26 +35,26 @@ void AnimationSystem::vOnInitSystem() {
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vEnqueueAnimation(animationIndex);
+      animationComponent->EnqueueAnimation(animationIndex);
       spdlog::debug("AnimationEnqueue Complete for GUID: {}", guid);
     }
   });
 
   // Handler for AnimationClearQueue
-  vRegisterMessageHandler(ECSMessageType::AnimationClearQueue, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationClearQueue, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationClearQueue");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vClearQueue();
+      animationComponent->ClearQueue();
       spdlog::debug("AnimationClearQueue Complete for GUID: {}", guid);
     }
   });
 
   // Handler for AnimationPlay
-  vRegisterMessageHandler(ECSMessageType::AnimationPlay, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationPlay, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationPlay");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
@@ -62,13 +62,13 @@ void AnimationSystem::vOnInitSystem() {
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vPlayAnimation(animationIndex);
+      animationComponent->PlayAnimation(animationIndex);
       spdlog::debug("AnimationPlay Complete for GUID: {}", guid);
     }
   });
 
   // Handler for AnimationChangeSpeed
-  vRegisterMessageHandler(ECSMessageType::AnimationChangeSpeed, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationChangeSpeed, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationChangeSpeed");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
@@ -82,33 +82,33 @@ void AnimationSystem::vOnInitSystem() {
   });
 
   // Handler for AnimationPause
-  vRegisterMessageHandler(ECSMessageType::AnimationPause, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationPause, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationPause");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vPause();
+      animationComponent->Pause();
       spdlog::debug("AnimationPause Complete for GUID: {}", guid);
     }
   });
 
   // Handler for AnimationResume
-  vRegisterMessageHandler(ECSMessageType::AnimationResume, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationResume, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationResume");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vResume();
+      animationComponent->Resume();
       spdlog::debug("AnimationResume Complete for GUID: {}", guid);
     }
   });
 
   // Handler for AnimationSetLooping
-  vRegisterMessageHandler(ECSMessageType::AnimationSetLooping, [this](const ECSMessage& msg) {
+  registerMessageHandler(ECSMessageType::AnimationSetLooping, [this](const ECSMessage& msg) {
     spdlog::debug("AnimationSetLooping");
 
     const auto guid = msg.getData<EntityGUID>(ECSMessageType::EntityToTarget);
@@ -116,31 +116,31 @@ void AnimationSystem::vOnInitSystem() {
 
     const auto animationComponent = ecs->getComponent<Animation>(guid);
     if (animationComponent) {
-      animationComponent->vSetLooping(shouldLoop);
+      animationComponent->setLooping(shouldLoop);
       spdlog::debug("AnimationSetLooping Complete for GUID: {}", guid);
     }
   });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vUpdate(const float fElapsedTime) {
+void AnimationSystem::update(const float deltaTime) {
   for (auto& animator : ecs->getComponentsOfType<Animation>()) {
-    animator->vUpdate(fElapsedTime);
+    animator->update(deltaTime);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vShutdownSystem() {}
+void AnimationSystem::onDestroy() {}
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::DebugPrint() {
+void AnimationSystem::debugPrint() {
   spdlog::debug("{}", __FUNCTION__);
 
   // todo list all animators
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void AnimationSystem::vNotifyOfAnimationEvent(
+void AnimationSystem::NotifyOfAnimationEvent(
   const EntityGUID entityGuid,
   const AnimationEventType& eType,
   const std::string& eventData
@@ -153,7 +153,7 @@ void AnimationSystem::vNotifyOfAnimationEvent(
      {flutter::EncodableValue(kAnimationEventData), flutter::EncodableValue(eventData)}}
   );
 
-  vSendDataToEventChannel(event);
+  SendDataToEventChannel(event);
 }
 
 }  // namespace plugin_filament_view

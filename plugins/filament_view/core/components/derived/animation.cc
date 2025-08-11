@@ -49,7 +49,7 @@ Animation::Animation(const flutter::EncodableMap& params)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vUpdate(const float fElapsedTime) {
+void Animation::update(const float deltaTime) {
   if (m_poAnimator == nullptr || m_bPaused) {
     return;
   }
@@ -62,10 +62,10 @@ void Animation::vUpdate(const float fElapsedTime) {
 
     if (m_bNotifyOfAnimationEvents) {
       const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-        "Animation::vUpdate"
+        "Animation::update"
       );
-      animationSystem->vNotifyOfAnimationEvent(
-        GetOwner()->GetGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
+      animationSystem->NotifyOfAnimationEvent(
+        getOwner()->getGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
       );
     }
   }
@@ -74,7 +74,7 @@ void Animation::vUpdate(const float fElapsedTime) {
     return;
   }
 
-  m_fTimeSinceStart += fElapsedTime * m_fPlaybackSpeedScalar;
+  m_fTimeSinceStart += deltaTime * m_fPlaybackSpeedScalar;
 
   m_poAnimator->applyAnimation(static_cast<size_t>(m_nCurrentPlayingIndex), m_fTimeSinceStart);
   m_poAnimator->updateBoneMatrices();
@@ -86,11 +86,11 @@ void Animation::vUpdate(const float fElapsedTime) {
     if (m_bNotifyOfAnimationEvents) {
       // send message here to dart
       const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-        "Animation::vUpdate"
+        "Animation::update"
       );
 
-      animationSystem->vNotifyOfAnimationEvent(
-        GetOwner()->GetGuid(), eAnimationEnded, std::to_string(m_nCurrentPlayingIndex)
+      animationSystem->NotifyOfAnimationEvent(
+        getOwner()->getGuid(), eAnimationEnded, std::to_string(m_nCurrentPlayingIndex)
       );
     }
 
@@ -103,11 +103,11 @@ void Animation::vUpdate(const float fElapsedTime) {
       if (m_bNotifyOfAnimationEvents) {
         // send message here to dart
         const auto animationSystem = ECSManager::GetInstance()->getSystem<AnimationSystem>(
-          "Animation::vUpdate"
+          "Animation::update"
         );
 
-        animationSystem->vNotifyOfAnimationEvent(
-          GetOwner()->GetGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
+        animationSystem->NotifyOfAnimationEvent(
+          getOwner()->getGuid(), eAnimationStarted, std::to_string(m_nCurrentPlayingIndex)
         );
       }
 
@@ -126,7 +126,7 @@ void Animation::vUpdate(const float fElapsedTime) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vEnqueueAnimation(const int32_t index) {
+void Animation::EnqueueAnimation(const int32_t index) {
   if (index < 0) {
     return;
   }
@@ -141,30 +141,30 @@ void Animation::vEnqueueAnimation(const int32_t index) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vClearQueue() {
+void Animation::ClearQueue() {
   std::queue<int32_t> emptyQueue;
   std::swap(m_queAnimationQueue, emptyQueue);  // Efficiently clear the queue
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vSetAnimator(filament::gltfio::Animator& animator) {
+void Animation::setAnimator(filament::gltfio::Animator& animator) {
   m_poAnimator = &animator;
 
-  vSetupAnimationNameMapping();
+  setupAnimationNameMapping();
 
   if (m_bAutoPlay) {
-    vPlayAnimation(m_nCurrentPlayingIndex);
+    PlayAnimation(m_nCurrentPlayingIndex);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vPlayAnimation(int32_t index) {
+void Animation::PlayAnimation(int32_t index) {
   if (index < 0 || static_cast<size_t>(index) >= m_mapAnimationNamesToIndex.size()) {
     spdlog::warn("Invalid animation index: {}", index);
     return;
   }
 
-  vClearQueue();
+  ClearQueue();
 
   m_nCurrentPlayingIndex = index;
   m_fTimeSinceStart = 0.0f;
@@ -174,7 +174,7 @@ void Animation::vPlayAnimation(int32_t index) {
 bool Animation::bPlayAnimation(const std::string& szName) {
   if (const auto foundIter = m_mapAnimationNamesToIndex.find(szName);
       foundIter != m_mapAnimationNamesToIndex.end()) {
-    vPlayAnimation(static_cast<int32_t>(foundIter->second));
+    PlayAnimation(static_cast<int32_t>(foundIter->second));
     return true;
   }
 
@@ -183,7 +183,7 @@ bool Animation::bPlayAnimation(const std::string& szName) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Animation::vSetupAnimationNameMapping() {
+void Animation::setupAnimationNameMapping() {
   if (m_poAnimator) {
     const auto count = m_poAnimator->getAnimationCount();
     for (size_t i = 0; i < count; i++) {
@@ -195,7 +195,7 @@ void Animation::vSetupAnimationNameMapping() {
 }
 
 ////////////////////////////////////////////////////////////////////////
-void Animation::DebugPrint(const std::string& tabPrefix) const {
+void Animation::debugPrint(const std::string& tabPrefix) const {
   spdlog::debug("{}m_nCurrentPlayingIndex: {}", tabPrefix, m_nCurrentPlayingIndex);
   spdlog::debug("{}m_bPaused: {}", tabPrefix, m_bPaused);
   spdlog::debug("{}m_bAutoPlay: {}", tabPrefix, m_bAutoPlay);

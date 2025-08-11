@@ -47,39 +47,39 @@ class Light : public Component {
 
     explicit Light(const flutter::EncodableMap& params);
 
-    [[nodiscard]] inline filament::LightManager::Type GetLightType() const { return m_Type; }
-    [[nodiscard]] inline const std::string& GetColor() const { return m_szColor; }
-    [[nodiscard]] inline float GetColorTemperature() const { return m_fColorTemperature; }
-    [[nodiscard]] inline float GetIntensity() const { return m_fIntensity; }
-    [[nodiscard]] inline const filament::math::float3& GetPosition() const { return m_f3Position; }
-    [[nodiscard]] inline const filament::math::float3& GetDirection() const {
+    [[nodiscard]] inline filament::LightManager::Type getLightType() const { return m_Type; }
+    [[nodiscard]] inline const std::string& getColor() const { return m_szColor; }
+    [[nodiscard]] inline float getColorTemperature() const { return m_fColorTemperature; }
+    [[nodiscard]] inline float getIntensity() const { return m_fIntensity; }
+    [[nodiscard]] inline const filament::math::float3& getPosition() const { return m_f3Position; }
+    [[nodiscard]] inline const filament::math::float3& getDirection() const {
       return m_f3Direction;
     }
-    [[nodiscard]] inline bool GetCastLight() const { return m_bCastLight; }
-    [[nodiscard]] inline bool GetCastShadows() const { return m_bCastShadows; }
-    [[nodiscard]] inline float GetFalloffRadius() const { return m_fFalloffRadius; }
-    [[nodiscard]] inline float GetSpotLightConeInner() const { return m_fSpotLightConeInner; }
-    [[nodiscard]] inline float GetSpotLightConeOuter() const { return m_fSpotLightConeOuter; }
-    [[nodiscard]] inline float GetSunAngularRadius() const { return m_fSunAngularRadius; }
-    [[nodiscard]] inline float GetSunHaloSize() const { return m_fSunHaloSize; }
-    [[nodiscard]] inline float GetSunHaloFalloff() const { return m_fSunHaloFalloff; }
+    [[nodiscard]] inline bool getCastLight() const { return m_bCastLight; }
+    [[nodiscard]] inline bool getCastShadows() const { return m_bCastShadows; }
+    [[nodiscard]] inline float getFalloffRadius() const { return m_fFalloffRadius; }
+    [[nodiscard]] inline float getSpotLightConeInner() const { return m_fSpotLightConeInner; }
+    [[nodiscard]] inline float getSpotLightConeOuter() const { return m_fSpotLightConeOuter; }
+    [[nodiscard]] inline float getSunAngularRadius() const { return m_fSunAngularRadius; }
+    [[nodiscard]] inline float getSunHaloSize() const { return m_fSunHaloSize; }
+    [[nodiscard]] inline float getSunHaloFalloff() const { return m_fSunHaloFalloff; }
 
-    inline void SetLightType(filament::LightManager::Type type) { m_Type = type; }
-    inline void SetColor(const std::string& color) { m_szColor = color; }
-    inline void SetColorTemperature(float temperature) { m_fColorTemperature = temperature; }
-    inline void SetIntensity(float intensity) { m_fIntensity = intensity; }
+    inline void setLightType(filament::LightManager::Type type) { m_Type = type; }
+    inline void setColor(const std::string& color) { m_szColor = color; }
+    inline void setColorTemperature(float temperature) { m_fColorTemperature = temperature; }
+    inline void setIntensity(float intensity) { m_fIntensity = intensity; }
     inline void setPosition(const filament::math::float3& position) { m_f3Position = position; }
-    inline void SetDirection(const filament::math::float3& direction) { m_f3Direction = direction; }
-    inline void SetCastLight(bool castLight) { m_bCastLight = castLight; }
-    inline void SetCastShadows(bool castShadows) { m_bCastShadows = castShadows; }
-    inline void SetFalloffRadius(float radius) { m_fFalloffRadius = radius; }
-    inline void SetSpotLightConeInner(float angle) { m_fSpotLightConeInner = angle; }
-    inline void SetSpotLightConeOuter(float angle) { m_fSpotLightConeOuter = angle; }
-    inline void SetSunAngularRadius(float radius) { m_fSunAngularRadius = radius; }
-    inline void SetSunHaloSize(float size) { m_fSunHaloSize = size; }
-    inline void SetSunHaloFalloff(float falloff) { m_fSunHaloFalloff = falloff; }
+    inline void setDirection(const filament::math::float3& direction) { m_f3Direction = direction; }
+    inline void setCastLight(bool castLight) { m_bCastLight = castLight; }
+    inline void setCastShadows(bool castShadows) { m_bCastShadows = castShadows; }
+    inline void setFalloffRadius(float radius) { m_fFalloffRadius = radius; }
+    inline void setSpotLightConeInner(float angle) { m_fSpotLightConeInner = angle; }
+    inline void setSpotLightConeOuter(float angle) { m_fSpotLightConeOuter = angle; }
+    inline void setSunAngularRadius(float radius) { m_fSunAngularRadius = radius; }
+    inline void setSunHaloSize(float size) { m_fSunHaloSize = size; }
+    inline void setSunHaloFalloff(float falloff) { m_fSunHaloFalloff = falloff; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override { return new Light(*this); }
 
@@ -95,7 +95,7 @@ class Light : public Component {
     float m_fColorTemperature;
     float m_fIntensity;
 
-    // TODO: refactor to use BaseTransform
+    // TODO: refactor to use Transform
     filament::math::float3 m_f3Position;
     filament::math::float3 m_f3Direction;
 

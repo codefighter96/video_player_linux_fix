@@ -23,7 +23,7 @@
 #include <filament/Scene.h>
 
 #include <core/entity/derived/shapes/baseshape.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <core/systems/derived/material_system.h>
 #include <list>
 
@@ -33,7 +33,7 @@ namespace shapes {
 class BaseShape;
 }
 
-class ShapeSystem : public ECSystem {
+class ShapeSystem : public System {
   public:
     ShapeSystem() = default;
 
@@ -46,10 +46,10 @@ class ShapeSystem : public ECSystem {
     ShapeSystem& operator=(const ShapeSystem&) = delete;
 
     // will add/remove already made entities to/from the scene
-    void vToggleAllShapesInScene(bool enable) const;
-    void vToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
+    void ToggleAllShapesInScene(bool enable) const;
+    void ToggleSingleShapeInScene(const EntityGUID guid, bool enable) const;
 
-    void vRemoveAllShapesInScene();
+    void RemoveAllShapesInScene();
 
     // Creates the derived class of BaseShape based on the map data sent in, does
     // not add it to any list only returns the shape for you, Also does not build
@@ -58,10 +58,10 @@ class ShapeSystem : public ECSystem {
       const flutter::EncodableMap& mapData
     );
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
+    void debugPrint() override;
 
   private:
     // filamentEngine, RenderableManager, EntityManager, TransformManager

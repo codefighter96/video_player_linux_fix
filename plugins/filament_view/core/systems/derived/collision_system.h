@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/entity/derived/shapes/baseshape.h>
 #include <core/include/literals.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <flutter_desktop_plugin_registrar.h>
 #include <list>
 
@@ -37,28 +37,26 @@ class HitResult {
 // Ideally this is replaced by a physics engine eventually that has a scenegraph
 // or spatial tree structure in place that makes this type of work more
 // efficient.
-class CollisionSystem : public ECSystem {
+class CollisionSystem : public System {
     friend class ModelSystem;
 
   public:
     CollisionSystem() = default;
 
-    void vCleanup();
-    void DebugPrint() override;
+    void Cleanup();
+    void debugPrint() override;
 
     // Disallow copy and assign.
     CollisionSystem(const CollisionSystem&) = delete;
     CollisionSystem& operator=(const CollisionSystem&) = delete;
 
-    void vTurnOnRenderingOfCollidables() const;
-    void vTurnOffRenderingOfCollidables() const;
+    void TurnOnRenderingOfCollidables() const;
+    void TurnOffRenderingOfCollidables() const;
 
-    void vUpdate(float fElapsedTime) override;
+    void update(float deltaTime) override;
 
-    void vOnInitSystem() override;
-    void vShutdownSystem() override;
-
-    void setupMessageChannels(flutter::PluginRegistrar* plugin_registrar);
+    void onSystemInit() override;
+    void onDestroy() override;
 
     // send in your ray, get a list of hit results back, collisionLayer not
     // actively used - future work.
@@ -74,8 +72,8 @@ class CollisionSystem : public ECSystem {
   private:
     bool currentlyDrawingDebugCollidables = false;
 
-    void vMatchCollidablesToRenderingModelsTransforms();
-    void vMatchCollidablesToDebugDrawingTransforms();
+    void MatchCollidablesToRenderingModelsTransforms();
+    void MatchCollidablesToDebugDrawingTransforms();
 };
 
 }  // namespace plugin_filament_view

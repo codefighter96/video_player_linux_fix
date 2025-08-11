@@ -91,7 +91,7 @@ std::unique_ptr<TextureDefinitions> TextureDefinitions::Deserialize(
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void TextureDefinitions::DebugPrint(const char* tag) {
+void TextureDefinitions::debugPrint(const char* tag) {
   spdlog::debug("++++++++ (Texture) ++++++++");
   spdlog::debug("{} ", tag);
   if (!assetPath_.empty()) {

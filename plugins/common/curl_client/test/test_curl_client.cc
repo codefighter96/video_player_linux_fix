@@ -1,8 +1,25 @@
+/*
+ * Copyright 2025 Ahmed Wafdy
+ * Copyright 2025 Toyota Connected North America
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <curl/curl.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstdlib>
 #include <fstream>
 #include <future>
 #include <memory>
@@ -11,6 +28,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+
 #include "gtest/gtest.h"
 
 #include "../curl_client.h"
@@ -52,24 +70,25 @@ class CurlClientTest : public Test {
   std::string status_404_url;
   std::string status_500_url;
 
-  std::string GenerateRandomString(size_t length) {
+  static std::string GenerateRandomString(const size_t length) {
     const std::string charset =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, charset.size() - 1);
 
     std::string result;
     result.reserve(length);
     for (size_t i = 0; i < length; ++i) {
-      result += charset[dis(gen)];
+      std::uniform_int_distribution<size_t> dis(0, charset.size() - 1);
+      result += charset.at(dis(gen));
     }
     return result;
   }
 
-  std::vector<std::pair<std::string, std::string>> GenerateFormData(
-      size_t count) {
+  static std::vector<std::pair<std::string, std::string>> GenerateFormData(
+      const size_t count) {
     std::vector<std::pair<std::string, std::string>> form_data;
+    form_data.reserve(count);
     for (size_t i = 0; i < count; ++i) {
       form_data.emplace_back("key" + std::to_string(i),
                              GenerateRandomString(50));
@@ -96,8 +115,8 @@ TEST_F(CurlClientTest, BasicGETRequest) {
 TEST_F(CurlClientTest, BasicPOSTRequest) {
   CurlClient client;
 
-  auto form_data = GenerateFormData(5);
-  std::string response = client.Post(post_url, form_data);
+  const auto form_data = GenerateFormData(5);
+  const std::string response = client.Post(post_url, form_data);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -108,8 +127,8 @@ TEST_F(CurlClientTest, BasicPOSTRequest) {
 TEST_F(CurlClientTest, BasicPUTRequest) {
   CurlClient client;
 
-  auto test_data = GenerateRandomString(1000);
-  std::string response = client.Put(put_url, test_data);
+  const auto test_data = GenerateRandomString(1000);
+  const std::string response = client.Put(put_url, test_data);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -120,7 +139,7 @@ TEST_F(CurlClientTest, BasicPUTRequest) {
 TEST_F(CurlClientTest, BasicDELETERequest) {
   CurlClient client;
 
-  std::string response = client.Delete(delete_url);
+  const std::string response = client.Delete(delete_url);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -144,10 +163,10 @@ TEST_F(CurlClientTest, VectorResponse) {
 TEST_F(CurlClientTest, CustomHeaders) {
   CurlClient client;
 
-  std::vector<std::string> headers = {"X-Custom-Header: test-value",
-                                      "Content-Type: application/json",
-                                      "User-Agent: CurlClient-Test/1.0"};
-  std::string response = client.Get(headers_url, headers);
+  const std::vector<std::string> headers = {"X-Custom-Header: test-value",
+                                            "Content-Type: application/json",
+                                            "User-Agent: CurlClient-Test/1.0"};
+  const std::string response = client.Get(headers_url, headers);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -160,7 +179,7 @@ TEST_F(CurlClientTest, BearerTokenAuth) {
   CurlClient client;
 
   client.SetBearerToken("test-token-12345");
-  std::string response = client.Get(auth_url);
+  const std::string response = client.Get(auth_url);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -198,11 +217,11 @@ TEST_F(CurlClientTest, TimeoutTest) {
   client.SetTimeout(2);
 
   ASSERT_TRUE(client.Init(timeout_url, {}, {}, true));
-  auto start_time = std::chrono::steady_clock::now();
+  const auto start_time = std::chrono::steady_clock::now();
   std::string response = client.RetrieveContentAsString();
-  auto end_time = std::chrono::steady_clock::now();
+  const auto end_time = std::chrono::steady_clock::now();
 
-  auto duration =
+  const auto duration =
       std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
   EXPECT_NE(client.GetCode(), CURLE_OK);
   EXPECT_FALSE(client.IsSuccess());
@@ -214,11 +233,11 @@ TEST_F(CurlClientTest, ConnectionTimeoutTest) {
   client.SetTimeout(1);
 
   ASSERT_TRUE(client.Init(invalid_url, {}, {}, true));
-  auto start_time = std::chrono::steady_clock::now();
+  const auto start_time = std::chrono::steady_clock::now();
   std::string response = client.RetrieveContentAsString();
-  auto end_time = std::chrono::steady_clock::now();
+  const auto end_time = std::chrono::steady_clock::now();
 
-  auto duration =
+  const auto duration =
       std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
   EXPECT_NE(client.GetCode(), CURLE_OK);
   EXPECT_FALSE(client.IsSuccess());
@@ -280,9 +299,9 @@ TEST_F(CurlClientTest, LargeDataDownload) {
 
 TEST_F(CurlClientTest, LargeFormDataPost) {
   CurlClient client;
-  auto large_form_data = GenerateFormData(100);  // 100 fields
+  const auto large_form_data = GenerateFormData(100);  // 100 fields
 
-  std::string response = client.Post(post_url, large_form_data);
+  const std::string response = client.Post(post_url, large_form_data);
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -295,7 +314,7 @@ TEST_F(CurlClientTest, ResponseInfoTest) {
 
   ASSERT_TRUE(client.Init(valid_url, {}, {}, true));
 
-  std::string response = client.RetrieveContentAsString();
+  const std::string response = client.RetrieveContentAsString();
 
   EXPECT_EQ(client.GetCode(), CURLE_OK);
   EXPECT_EQ(client.GetHttpCode(), 200);
@@ -309,19 +328,20 @@ TEST_F(CurlClientTest, ResponseInfoTest) {
 }
 
 TEST_F(CurlClientTest, ConcurrentRequests) {
-  const int num_threads = 10;
+  constexpr int num_threads = 10;
   std::vector<std::future<bool>> futures;
-  std::atomic<int> success_count{0};
+  std::atomic success_count{0};
 
+  futures.reserve(num_threads);
   for (int i = 0; i < num_threads; ++i) {
-    futures.push_back(std::async(std::launch::async, [&, i]() {
+    futures.emplace_back(std::async(std::launch::async, [&, i]() {
       CurlClient client;
 
-      std::string url = valid_url + "?thread=" + std::to_string(i);
+      const std::string url = valid_url + "?thread=" + std::to_string(i);
       std::string response = client.Get(url);
 
       if (client.IsSuccess()) {
-        success_count++;
+        ++success_count;
         return true;
       }
       return false;
@@ -338,7 +358,7 @@ TEST_F(CurlClientTest, ConcurrentRequests) {
 TEST_F(CurlClientTest, MemoryLeakTest) {
   // Create and destroy many clients
   for (int i = 0; i < 100; ++i) {
-    auto client = std::make_unique<CurlClient>();
+    const auto client = std::make_unique<CurlClient>();
     ASSERT_TRUE(client->Init(valid_url, {}, {}, true));
     std::string response = client->RetrieveContentAsString();
     EXPECT_TRUE(client->IsSuccess());
@@ -348,7 +368,7 @@ TEST_F(CurlClientTest, MemoryLeakTest) {
 }
 
 TEST_F(CurlClientTest, StressTestAllMethods) {
-  const int iterations = 20;
+  constexpr int iterations = 20;
 
   for (int i = 0; i < iterations; ++i) {
     CurlClient client;
@@ -374,6 +394,6 @@ TEST_F(CurlClientTest, StressTestAllMethods) {
 }
 
 int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+  InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

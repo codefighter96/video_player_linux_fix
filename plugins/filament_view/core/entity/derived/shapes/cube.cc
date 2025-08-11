@@ -467,7 +467,7 @@ void Cube::createDoubleSidedCube(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -736,10 +736,10 @@ void Cube::createSingleSidedCube(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Cube::DebugPrint(const char* tag) const { BaseShape::DebugPrint(tag); }
+void Cube::debugPrint(const char* tag) const { BaseShape::debugPrint(tag); }
 
 }  // namespace plugin_filament_view::shapes

@@ -18,7 +18,7 @@
 
 #include <core/scene/indirect_light/indirect_light.h>
 #include <core/scene/view_target.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <core/utils/ibl_profiler.h>
 
 namespace plugin_filament_view {
@@ -28,7 +28,7 @@ class DefaultIndirectLight;
 class KtxIndirectLight;
 class HdrIndirectLight;
 
-class IndirectLightSystem : public ECSystem {
+class IndirectLightSystem : public System {
   public:
     IndirectLightSystem() = default;
 
@@ -67,10 +67,10 @@ class IndirectLightSystem : public ECSystem {
 
     ~IndirectLightSystem() override;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
+    void debugPrint() override;
 
   private:
     std::unique_ptr<DefaultIndirectLight> indirect_light_;

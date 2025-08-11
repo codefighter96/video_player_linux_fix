@@ -41,7 +41,7 @@ jobs:
             \
             libwayland-dev wayland-protocols libxkbcommon-dev \
             \
-            mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev \
+            mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev libosmesa6-dev \
             mesa-utils \
             \
             libcurl4-openssl-dev \
@@ -158,6 +158,11 @@ jobs:
             -D ENABLE_LTO=ON \
             -D LLVM_CONFIG=/usr/bin/llvm-config \
             -D ENABLE_STATIC_LINK=ON \
+            \
+            -D BUILD_BACKEND_HEADLESS_EGL=ON \
+            -D BUILD_BACKEND_WAYLAND_EGL=OFF \
+            -D BUILD_BACKEND_WAYLAND_VULKAN=OFF \
+            -D BUILD_UNIT_TESTS=ON \
             \
             -D PLUGINS_DIR=${{github.workspace}}/plugins/plugins \
             \

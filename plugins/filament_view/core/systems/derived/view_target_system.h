@@ -17,7 +17,7 @@
 #pragma once
 
 #include <core/scene/view_target.h>
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 #include <filament/Engine.h>
 #include <flutter_desktop_engine_state.h>
 
@@ -28,7 +28,7 @@ class Camera;
 
 constexpr size_t kMainViewId = 0;  // The main view target is always the first one in the list.
 
-class ViewTargetSystem : public ECSystem {
+class ViewTargetSystem : public System {
   public:
     ViewTargetSystem() = default;
 
@@ -36,10 +36,10 @@ class ViewTargetSystem : public ECSystem {
     ViewTargetSystem(const ViewTargetSystem&) = delete;
     ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float deltaTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
+    void debugPrint() override;
 
     // Returns the current iter that you put into the list.
     size_t nSetupViewTargetFromDesktopState(
@@ -48,7 +48,7 @@ class ViewTargetSystem : public ECSystem {
       FlutterDesktopEngineState* state
     );
 
-    void vKickOffFrameRenderingLoops() const;
+    void KickOffFrameRenderingLoops() const;
 
     /// Returns the view target at the specified index.
     [[nodiscard]] ViewTarget* getViewTarget(size_t index) const;

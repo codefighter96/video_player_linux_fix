@@ -20,11 +20,11 @@
 #include <core/entity/base/entityobject.h>
 #include <future>
 
-#include <core/systems/base/ecsystem.h>
+#include <core/systems/base/system.h>
 
 namespace plugin_filament_view {
 
-class LightSystem : public ECSystem {
+class LightSystem : public System {
     friend class SceneTextDeserializer;
     friend class EntityObject;
 
@@ -33,23 +33,23 @@ class LightSystem : public ECSystem {
 
     // if after deserialization is complete, and there isn't a light made
     // this will be called to create a simple direct light
-    void vCreateDefaultLight();
-    void vBuildLight(Light& light);
-    void vBuildLightAndAddToScene(Light& light);
+    void CreateDefaultLight();
+    void BuildLight(Light& light);
+    void BuildLightAndAddToScene(Light& light);
 
     // Disallow copy and assign.
     LightSystem(const LightSystem&) = delete;
     LightSystem& operator=(const LightSystem&) = delete;
 
-    void vOnInitSystem() override;
-    void vUpdate(float fElapsedTime) override;
-    void vShutdownSystem() override;
-    void DebugPrint() override;
+    void onSystemInit() override;
+    void update(float deltaTime) override;
+    void onDestroy() override;
+    void debugPrint() override;
 
   private:
     // These change the lights in filaments scene
-    void vRemoveLightFromScene(const Light& light);
-    void vAddLightToScene(const Light& light);
+    void RemoveLightFromScene(const Light& light);
+    void AddLightToScene(const Light& light);
 
     std::shared_ptr<EntityObject> m_poDefaultLight;
 };

@@ -17,9 +17,9 @@
 
 #include <encodable_value.h>
 
-#include <core/components/derived/basetransform.h>
-#include <core/components/derived/collidable.h>
+#include <core/components/derived/collider.h>
 #include <core/components/derived/commonrenderable.h>
+#include <core/components/derived/transform.h>
 #include <core/entity/base/entityobject.h>
 #include <core/utils/bounding_volumes.h>
 
@@ -55,7 +55,7 @@ class RenderableEntityObject : public EntityObject {
     explicit RenderableEntityObject(const std::string& name, const EntityGUID guid)
       : EntityObject(name, guid) {}
 
-    virtual void DebugPrint() const override {};
+    virtual void debugPrint() const override {};
 
     void onInitialize() override;
 
@@ -70,11 +70,11 @@ class RenderableEntityObject : public EntityObject {
 
     // This is a heavy lift function as it will recreate / load a material
     // if it doesn't exist and reset everything from scratch.
-    virtual void vChangeMaterialDefinitions(
+    virtual void ChangeMaterialDefinitions(
       const flutter::EncodableMap& /* params */,
       const TextureMap& /* loadedTextures */
     ) {};
-    virtual void vChangeMaterialInstanceProperty(
+    virtual void ChangeMaterialInstanceProperty(
       const MaterialParameter* /* materialParam */,
       const TextureMap& /* loadedTextures */
     ) {};
@@ -86,7 +86,7 @@ class RenderableEntityObject : public EntityObject {
     Resource<filament::MaterialInstance*> m_poMaterialInstance =
       Resource<filament::MaterialInstance*>::Error("Unset");
 
-    void vLoadMaterialDefinitionsToMaterialInstance();
+    void LoadMaterialDefinitionsToMaterialInstance();
 
   public:
     /// TODO: use those in the addCollidable rewrite

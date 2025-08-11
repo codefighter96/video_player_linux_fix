@@ -53,7 +53,7 @@ Exposure::Exposure(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Exposure::DebugPrint(const char* tag) {
+void Exposure::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (Exposure)", tag);
   if (aperture_.has_value()) {

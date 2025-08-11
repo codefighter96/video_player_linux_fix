@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <core/lifecycle_participant.h>
 #include <core/systems/messages/ecs_message.h>
 #include <core/systems/messages/ecs_message_types.h>
 #include <core/utils/filament_types.h>
@@ -40,61 +41,53 @@ class ECSManager;
 
 using ECSMessageHandler = std::function<void(const ECSMessage&)>;
 
-class ECSystem : public IdentifiableType {
+class System : public IdentifiableType, public LifecycleParticipant<ECSManager> {
   public:
-    virtual ~ECSystem() = default;
+    virtual ~System() = default;
 
     // Send a message to the system
-    void vSendMessage(const ECSMessage& msg);
+    void SendMessage(const ECSMessage& msg);
 
     // Register a message handler for a specific message type
-    void vRegisterMessageHandler(ECSMessageType type, const ECSMessageHandler& handler);
+    void registerMessageHandler(ECSMessageType type, const ECSMessageHandler& handler);
 
     // Unregister all handlers for a specific message type
-    void vUnregisterMessageHandler(ECSMessageType type);
+    void UnregisterMessageHandler(ECSMessageType type);
 
     // Clear all message handlers
-    void vClearMessageHandlers();
+    void ClearMessageHandlers();
 
     // Process incoming messages
-    virtual void vProcessMessages();
+    virtual void ProcessMessages();
 
-    void vInitSystem(const plugin_filament_view::ECSManager& ecsManager) {
-      ecs = const_cast<ECSManager*>(&ecsManager);
-      vOnInitSystem();
+    /// @brief Initialize the system with the ECSManager, then calls onSystemInit()
+    void onInitialize(const ECSManager& params) override {
+      ecs = const_cast<ECSManager*>(&params);
+      onSystemInit();
     }
 
-    /// @deprecated To be replaced by `LifecycleParticipant`
-    [[nodiscard]] inline bool isInitialized() const { return ecs != nullptr; }
+    /// @brief Called after the system is initialized, to perform any additional setup.
+    /// Must be implemented by derived classes.
+    virtual void onSystemInit() = 0;
 
-    /// @deprecated To be replaced by `LifecycleParticipant`
-    /// @throws std::runtime_error if not initialized
-    void checkInitialized() const {
-      if (!isInitialized()) {
-        throw std::runtime_error("ECSManager is not initialized. Call vInitSystem() first.");
-      }
-    }
+    virtual void update(float /*deltaTime*/) override = 0;
 
-    virtual void vOnInitSystem() = 0;
+    virtual void onDestroy() override = 0;
 
-    virtual void vUpdate(float /*deltaTime*/) = 0;
+    virtual void debugPrint() = 0;
 
-    virtual void vShutdownSystem() = 0;
-
-    virtual void DebugPrint() = 0;
-
-    void vSetupMessageChannels(
+    void setupMessageChannels(
       flutter::PluginRegistrar* poPluginRegistrar,
       const std::string& szChannelName
     );
 
-    void vSendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
+    void SendDataToEventChannel(const flutter::EncodableMap& oDataMap) const;
 
   protected:
     smarter_raw_ptr<ECSManager> ecs = nullptr;
 
     // Handle a specific message type by invoking the registered handlers
-    virtual void vHandleMessage(const ECSMessage& msg);
+    virtual void handleMessage(const ECSMessage& msg);
 
   private:
     std::queue<ECSMessage> messageQueue_;  // Queue of incoming messages

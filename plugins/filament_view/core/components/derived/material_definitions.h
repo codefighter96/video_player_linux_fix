@@ -54,13 +54,13 @@ class MaterialDefinitions : public Component {
 
     ~MaterialDefinitions() override;
 
-    static void vApplyMaterialParameterToInstance(
+    static void ApplyMaterialParameterToInstance(
       filament::MaterialInstance* materialInstance,
       const MaterialParameter* param,
       const TextureMap& loadedTextures
     );
 
-    void vSetMaterialInstancePropertiesFromMyPropertyMap(
+    void setMaterialInstancePropertiesFromMyPropertyMap(
       const ::filament::Material* materialResult,
       filament::MaterialInstance* materialInstance,
       const TextureMap& loadedTextures
@@ -73,12 +73,12 @@ class MaterialDefinitions : public Component {
     // This will go through each of the parameters and return only the
     // texture_(definitions) so the material manager can load what's not already
     // loaded.
-    [[nodiscard]] std::vector<MaterialParameter*> vecGetTextureMaterialParameters() const;
+    [[nodiscard]] std::vector<MaterialParameter*> getTextureMaterialParameters() const;
 
     [[nodiscard]] inline std::string szGetMaterialAssetPath() const { return assetPath_; }
     [[nodiscard]] inline std::string szGetMaterialURLPath() const { return url_; }
 
-    void DebugPrint(const std::string& tabPrefix) const override;
+    void debugPrint(const std::string& tabPrefix) const override;
 
     [[nodiscard]] inline Component* Clone() const override {
       return new MaterialDefinitions(*this);  // Copy constructor is called here

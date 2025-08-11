@@ -163,7 +163,7 @@ void Plane::createDoubleSidedPlane(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -243,7 +243,7 @@ void Plane::createSingleSidedPlane(filament::Engine* engine_) {
 
   m_poIndexBuffer->setBuffer(*engine_, IndexBuffer::BufferDescriptor(indices, sizeof(indices)));
 
-  vBuildRenderable(engine_);
+  BuildRenderable(engine_);
 }
 
 }  // namespace plugin_filament_view::shapes

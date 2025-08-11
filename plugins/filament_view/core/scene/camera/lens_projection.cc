@@ -64,7 +64,7 @@ LensProjection::LensProjection(const flutter::EncodableMap& params) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void LensProjection::DebugPrint(const char* tag) {
+void LensProjection::debugPrint(const char* tag) {
   spdlog::debug("++++++++");
   spdlog::debug("{} (LensProjection)", tag);
   spdlog::debug("\tfocalLength: {}", focalLength_);

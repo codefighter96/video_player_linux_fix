@@ -83,7 +83,7 @@ void EntityObject::deserializeFrom(const flutter::EncodableMap& params) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void EntityObject::vDebugPrintComponents() const {
+void EntityObject::debugPrintComponents() const {
   if (!isInitialized()) {
     spdlog::debug("EntityObject '{}'({}) is not initialized", name, guid_);
     return;
@@ -97,7 +97,7 @@ void EntityObject::vDebugPrintComponents() const {
       spdlog::warn("Component is null");
       continue;
     }
-    componentNames.push_back(component->GetTypeName());
+    componentNames.push_back(component->getTypeName());
   }
 
   spdlog::debug(
@@ -106,9 +106,9 @@ void EntityObject::vDebugPrintComponents() const {
   );
 }
 
-void EntityObject::DebugPrint() const {
+void EntityObject::debugPrint() const {
   spdlog::debug("EntityObject '{}'({}), {}initialized", name, guid_, isInitialized() ? "" : "not ");
-  vDebugPrintComponents();
+  debugPrintComponents();
 }
 
 std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const {
@@ -119,7 +119,7 @@ std::shared_ptr<Component> EntityObject::getComponent(size_t staticTypeID) const
   return ecs->hasComponent(guid_, staticTypeID);
 }
 
-void EntityObject::vShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const {
+void EntityObject::ShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const {
   checkInitialized();
   const auto component = ecs->getComponent(guid_, staticTypeID);
   if (component == nullptr) {

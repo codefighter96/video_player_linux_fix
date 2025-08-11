@@ -102,12 +102,12 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
     }
 
     // TODO: remove this, change guid to const and expose as public
-    [[nodiscard]] EntityGUID GetGuid() const { return guid_; }
+    [[nodiscard]] EntityGUID getGuid() const { return guid_; }
 
     EntityObject(const EntityObject&) = delete;
     EntityObject& operator=(const EntityObject&) = delete;
 
-    virtual void DebugPrint() const;
+    virtual void debugPrint() const;
 
     /// @brief Constructor for EntityObject. Generates a GUID and has an empty
     /// name.
@@ -157,11 +157,11 @@ class EntityObject : public std::enable_shared_from_this<EntityObject> {
       return hasComponent(Component::StaticGetTypeID<T>());
     }
 
-    void vDebugPrintComponents() const;
+    void debugPrintComponents() const;
 
     // finds the size_t staticTypeID in the component list
     // and creates a copy and assigns to the others list
-    void vShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const;
+    void ShallowCopyComponentToOther(size_t staticTypeID, EntityObject& other) const;
 
     static EntityDescriptor DeserializeNameAndGuid(const flutter::EncodableMap& params);
 
