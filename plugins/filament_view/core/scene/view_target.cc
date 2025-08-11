@@ -560,56 +560,19 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
   // cast time to int32_t, since EncodableValue does not support uint32_t
   int32_t s_lastTime = m_LastTime;  // NOLINT
-  SendFrameViewCallback(
-    kUpdateFrame, {std::make_pair(kParam_ElapsedFrameTime, EncodableValue(s_lastTime))}
-  );
+  // TODO(kerberjg): send kUpdateFrame event, async with wait
 
   // Render the scene, unless the renderer wants to skip the frame.
   const auto gpuDrawStart = std::chrono::steady_clock::now();
   if (renderer->beginFrame(fswapChain_, time)) {
 
-    // auto updateEventStart = std::chrono::steady_clock::now();
-    // SendFrameViewCallback(
-    //   kPreRenderFrame,
-    //   {//
-    //    std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
-    //    std::make_pair(kParam_FPS, EncodableValue(fps)),
-    //    std::make_pair(
-    //      kParam_cpuFrametime,
-    //      EncodableValue(std::chrono::duration<double, std::milli>(cpuUpdateDuration).count())
-    //    ),
-    //    std::make_pair(
-    //      kParam_gpuFrametime,
-    //      EncodableValue(
-    //        std::chrono::duration<double, std::milli>(gpuDrawStart - cpuUpdateStart).count()
-    //      )
-    //    )
-    //   }
-    // );
-
-    // auto future = waitForFrameViewCallback("done_updateScripts");
-    // if (future.valid()) {
-    //   // Wait for the pre-render event to complete
-    //   future.get();
-    // } else {
-    //   spdlog::warn("Failed to wait for pre-render event channel.");
-    // }
-
-    // std::chrono::duration<double> updateEventDuration = std::chrono::steady_clock::now() -
-    // updateEventStart; spdlog::debug(
-    //   "[{}] Pre-render event took {:.2f} seconds",
-    //   __FUNCTION__,
-    //   updateEventDuration.count()
-    // );
+    // TODO(kerberjg): send kPreRenderFrame event, async with wait
 
     filamentSystem->getFilamentRenderer()->render(fview_);
 
     filamentSystem->getFilamentRenderer()->endFrame();
 
-    // SendFrameViewCallback(
-    //   kPostRenderFrame, {std::make_pair(kParam_DeltaTime, EncodableValue(deltaTime)),
-    //                      std::make_pair(kParam_FPS, EncodableValue(fps))}
-    // );
+    // TODO(kerberjg): send kPostRenderFrame event, async with wait
   }
 
   const auto gpuDrawDuration = std::chrono::steady_clock::now() - gpuDrawStart;
