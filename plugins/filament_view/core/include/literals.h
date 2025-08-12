@@ -176,9 +176,11 @@ static constexpr char kColliderShouldMatchAttachedObject[] = "collider_shouldMat
 static constexpr char kUpdateFrame[] = "updateFrame";
 static constexpr char kPreRenderFrame[] = "preRenderFrame";
 static constexpr char kPostRenderFrame[] = "postRenderFrame";
-static constexpr char kParam_TimeSinceLastRenderedSec[] = "timeSinceLastRenderedSec";
+static constexpr char kParam_DeltaTime[] = "deltaTime";
 static constexpr char kParam_FPS[] = "fps";
 static constexpr char kParam_ElapsedFrameTime[] = "elapsedFrameTime";
+static constexpr char kParam_cpuFrametime[] = "cpuFt";
+static constexpr char kParam_gpuFrametime[] = "gpuFt";
 
 // Collision Manager and uses, sending messages to dart from native
 static constexpr char kCollisionEvent[] = "collision_event";

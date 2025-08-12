@@ -115,7 +115,7 @@ class ECSManager {
      *                  This value should be used to make all movement and
      *                  time-based calculations frame rate independent.
      */
-    void update(float deltaTime);
+    void update(double deltaTime);
     void destroy();
 
     void debugPrint() const;

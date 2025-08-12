@@ -37,7 +37,7 @@ class ViewTargetSystem : public System {
     ViewTargetSystem& operator=(const ViewTargetSystem&) = delete;
 
     void onSystemInit() override;
-    void update(float deltaTime) override;
+    void update(double deltaTime) override;
     void onDestroy() override;
     void debugPrint() override;
 

@@ -185,7 +185,7 @@ void ViewTargetSystem::initializeEntity(EntityGUID entityGuid) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void ViewTargetSystem::update(float /*deltaTime*/) {
+void ViewTargetSystem::update(double /*deltaTime*/) {
   // Get all cameras
   const auto& cameras = ecs->getComponentsOfType<Camera>();
 

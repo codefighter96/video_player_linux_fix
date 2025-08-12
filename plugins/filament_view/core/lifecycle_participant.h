@@ -60,7 +60,7 @@ class LifecycleParticipant {
     }
 
     /// Updates the logic of the object for the duration of the frame
-    virtual void update(float /*deltaTime*/) = 0;
+    virtual void update(double /*deltaTime*/) = 0;
 
     void destroy() {
       if (_state != LifecycleState::Initialized) {

@@ -70,7 +70,7 @@ class System : public IdentifiableType, public LifecycleParticipant<ECSManager> 
     /// Must be implemented by derived classes.
     virtual void onSystemInit() = 0;
 
-    virtual void update(float /*deltaTime*/) override = 0;
+    virtual void update(double /*deltaTime*/) override = 0;
 
     virtual void onDestroy() override = 0;
 

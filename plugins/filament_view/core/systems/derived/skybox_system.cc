@@ -342,7 +342,7 @@ Resource<std::string_view> SkyboxSystem::loadSkyboxFromHdrBuffer(
 void SkyboxSystem::onSystemInit() { Initialize(); }
 
 ////////////////////////////////////////////////////////////////////////////////////
-void SkyboxSystem::update(float /*deltaTime*/) {}
+void SkyboxSystem::update(double /*deltaTime*/) {}
 
 ////////////////////////////////////////////////////////////////////////////////////
 void SkyboxSystem::onDestroy() {

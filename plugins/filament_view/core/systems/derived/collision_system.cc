@@ -204,7 +204,7 @@ void CollisionSystem::onSystemInit() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CollisionSystem::update(float /*deltaTime*/) {
+void CollisionSystem::update(double /*deltaTime*/) {
 
   // Iterate over all colliders
   const auto colliders = ecs->getComponentsOfType<Collider>();
