@@ -41,12 +41,14 @@ struct EncodableListCacheOperation
   std::string SerializeData(const flutter::EncodableList& data) override {
     try {
       const auto& codec = FlatpakApi::GetCodec();
-      const auto encoded = codec.EncodeMessage(data);
+      flutter::EncodableList data_copy{data};
+      const flutter::EncodableValue encodable_data{std::move(data_copy)};
+      const auto encoded = codec.EncodeMessage(encodable_data);
       if (!encoded) {
         spdlog::error("Failed to encode encodable list");
         return "";
       }
-      return std::string(encoded->begin(), encoded->end());
+      return {encoded->begin(), encoded->end()};
     } catch (const std::exception& e) {
       spdlog::error("Failed to serialize encodable list: {}", e.what());
       return "";
