@@ -17,7 +17,6 @@
 #ifndef FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 #define FLUTTER_PLUGIN_FLATPAK_PLUGIN_H
 
-#include <filesystem>
 #include <thread>
 
 #include <flutter/plugin_registrar.h>
@@ -92,34 +91,6 @@ class FlatpakPlugin final : public flutter::Plugin, public FlatpakApi {
   std::unique_ptr<asio::io_context> io_context_;
   asio::executor_work_guard<decltype(io_context_->get_executor())> work_;
   std::unique_ptr<asio::io_context::strand> strand_;
-
-  static GPtrArray* get_system_installations();
-
-  static GPtrArray* get_remotes(FlatpakInstallation* installation);
-
-  static std::vector<char> decompress_gzip(
-      const std::vector<char>& compressedData,
-      std::vector<char>& decompressedData);
-
-  static std::time_t get_appstream_timestamp(
-      const std::filesystem::path& timestamp_filepath);
-
-  static Installation get_installation(FlatpakInstallation* installation);
-
-  static flutter::EncodableList installation_get_default_languages(
-      FlatpakInstallation* installation);
-
-  static flutter::EncodableList installation_get_default_locales(
-      FlatpakInstallation* installation);
-
-  static std::string get_metadata_as_string(FlatpakInstalledRef* installed_ref);
-
-  static std::string get_appdata_as_string(FlatpakInstalledRef* installed_ref);
-
-  static void get_application_list(FlatpakInstallation* installation,
-                                   flutter::EncodableList& application_list);
-
-  static flutter::EncodableMap get_content_rating_map(FlatpakInstalledRef* ref);
 };
 }  // namespace flatpak_plugin
 

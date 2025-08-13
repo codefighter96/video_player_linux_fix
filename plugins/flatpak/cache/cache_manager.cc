@@ -108,7 +108,7 @@ bool CacheManager::Initialize() {
 }
 
 std::optional<flutter::EncodableList> CacheManager::GetApplicationsInstalled(
-    bool force_refresh) {
+    const bool force_refresh) {
   if (!is_initialized_) {
     spdlog::error("Cache manager is not initialized");
     return std::nullopt;
@@ -174,7 +174,7 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsInstalled(
 
 std::optional<flutter::EncodableList> CacheManager::GetApplicationsRemote(
     const std::string& remote_id,
-    bool force_refresh) {
+    const bool force_refresh) {
   if (!is_initialized_) {
     spdlog::error("Cache manager is not initialized");
     return std::nullopt;
@@ -244,7 +244,7 @@ std::optional<flutter::EncodableList> CacheManager::GetApplicationsRemote(
 }
 
 std::optional<flutter::EncodableList> CacheManager::GetSystemInstallations(
-    bool force_refresh) {
+    const bool force_refresh) {
   if (!is_initialized_) {
     spdlog::error("Cache manager is not initialized");
     return std::nullopt;
@@ -355,7 +355,7 @@ std::optional<flutter::EncodableList> CacheManager::GetRemotes(
 }
 
 std::optional<Installation> CacheManager::GetUserInstallation(
-    bool force_refresh) {
+    const bool force_refresh) {
   if (!is_initialized_) {
     spdlog::error("Cache manager is not initialized");
     return std::nullopt;

@@ -247,14 +247,14 @@ class CacheManager {
     }
 
     Builder& WithAutoCleanup(
-        bool enable,
-        std::chrono::minutes interval = std::chrono::minutes(60)) {
+        const bool enable,
+        const std::chrono::minutes interval = std::chrono::minutes(60)) {
       config_.enable_auto_cleanup = enable;
       config_.cleanup_interval = interval;
       return *this;
     }
 
-    Builder& WithMetrics(bool enable = true) {
+    Builder& WithMetrics(const bool enable = true) {
       config_.enable_metrics = enable;
       return *this;
     }

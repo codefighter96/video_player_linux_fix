@@ -17,11 +17,11 @@
 #ifndef PLUGINS_FLATPAK_COMPONENT_H
 #define PLUGINS_FLATPAK_COMPONENT_H
 
-#include <libxml/tree.h>
 #include <map>
 #include <string>
 #include <unordered_set>
 #include <vector>
+
 #include "icon.h"
 #include "release.h"
 #include "screenshot.h"

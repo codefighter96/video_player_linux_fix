@@ -35,7 +35,8 @@ namespace flatpak_plugin {
 std::optional<std::string> FlatpakShim::getOptionalAttribute(
     const xmlNode* node,
     const char* attrName) {
-  if (xmlChar* xmlValue = xmlGetProp(node, BAD_CAST attrName)) {
+  if (xmlChar* xmlValue =
+          xmlGetProp(node, reinterpret_cast<const xmlChar*>(attrName))) {
     std::string value(reinterpret_cast<const char*>(xmlValue));
     xmlFree(xmlValue);
     return value;
@@ -45,7 +46,8 @@ std::optional<std::string> FlatpakShim::getOptionalAttribute(
 
 std::string FlatpakShim::getAttribute(const xmlNode* node,
                                       const char* attrName) {
-  if (xmlChar* xmlValue = xmlGetProp(node, BAD_CAST attrName)) {
+  if (xmlChar* xmlValue =
+          xmlGetProp(node, reinterpret_cast<const xmlChar*>(attrName))) {
     std::string value(reinterpret_cast<const char*>(xmlValue));
     xmlFree(xmlValue);
     return value;
@@ -943,7 +945,7 @@ ErrorOr<bool> FlatpakShim::ApplicationUninstall(const std::string& id) {
       }
       g_object_unref(app_ref);
       g_object_unref(installation);
-      return ErrorOr<bool>(static_cast<bool>(result));
+      return ErrorOr(static_cast<bool>(result));
     }
 
     if (error) {
@@ -1002,8 +1004,8 @@ ErrorOr<bool> FlatpakShim::ApplicationUninstall(const std::string& id) {
         }
 
         if (const auto ref_name = flatpak_ref_get_name(FLATPAK_REF(ref))) {
-          std::string ref_name_str(ref_name);
-          if (ref_name_str.find(id) != std::string::npos) {
+          if (std::string ref_name_str(ref_name);
+              ref_name_str.find(id) != std::string::npos) {
             found_app_name = ref_name_str;
             found_arch = flatpak_ref_get_arch(FLATPAK_REF(ref));
             found_branch = flatpak_ref_get_branch(FLATPAK_REF(ref));
@@ -1062,7 +1064,7 @@ ErrorOr<bool> FlatpakShim::ApplicationUninstall(const std::string& id) {
 
 ErrorOr<bool> FlatpakShim::ApplicationStart(
     const std::string& id,
-    const flutter::EncodableMap* configuration) {
+    const flutter::EncodableMap* /* configuration */) {
   if (id.empty()) {
     return ErrorOr<bool>(
         FlutterError("INVALID_APP_ID", "Application ID is required"));
@@ -1677,7 +1679,6 @@ std::optional<Application> FlatpakShim::create_component(
     const char* remote_name = flatpak_remote_ref_get_remote_name(app_ref);
     const char* eol = flatpak_remote_ref_get_eol(app_ref);
     const char* eol_rebase = flatpak_remote_ref_get_eol_rebase(app_ref);
-    const guint64 download_size = flatpak_remote_ref_get_download_size(app_ref);
     const guint64 installed_size =
         flatpak_remote_ref_get_installed_size(app_ref);
 

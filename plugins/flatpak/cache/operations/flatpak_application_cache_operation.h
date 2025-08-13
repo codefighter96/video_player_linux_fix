@@ -63,7 +63,7 @@ struct ApplicationCacheOperation : CacheOperationTemplate<Application> {
     if (serialized_data.empty()) {
       return std::nullopt;
     }
-    auto deserialization =
+    const auto deserialization =
         operation->DeserializeData(flutter::EncodableValue(serialized_data));
 
     if (!deserialization) {

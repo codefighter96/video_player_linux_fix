@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
 #include <chrono>
 #include <fstream>
-#include <memory>
 #include <utility>
+
+#include <gtest/gtest.h>
 
 #include <flutter/encodable_value.h>
 
@@ -17,14 +17,14 @@ class FlatpakPluginTest : public ::testing::Test {
 };
 
 TEST_F(FlatpakPluginTest, GetUserInstallationsTest) {
-  auto result = FlatpakShim::GetUserInstallation();
+  const auto result = FlatpakShim::GetUserInstallation();
 
   EXPECT_FALSE(result.value().id().empty());
   EXPECT_FALSE(result.value().display_name().empty());
 }
 
 TEST_F(FlatpakPluginTest, GetSystemInstallationsTest) {
-  auto result = FlatpakShim::GetSystemInstallations();
+  const auto result = FlatpakShim::GetSystemInstallations();
   auto& system_installations = result.value();
   for (auto& system_installation : system_installations) {
     EXPECT_TRUE(std::holds_alternative<flutter::CustomEncodableValue>(
@@ -60,8 +60,9 @@ TEST_F(FlatpakPluginTest, AddEmptyRemoteTest) {
 // Install a real application and uninstall it in another test to clean
 // environment.
 TEST_F(FlatpakPluginTest, ApplicationInstallTest) {
-  auto result = FlatpakShim::ApplicationInstall("org.gnome.Calculator");
-  if (!result.has_error()) {
+  if (const auto result =
+          FlatpakShim::ApplicationInstall("org.gnome.Calculator");
+      !result.has_error()) {
     EXPECT_EQ(result.value(), true);
   }
 }
@@ -97,9 +98,9 @@ TEST_F(FlatpakPluginTest, FindAppInRemoteSearchTest) {
   GError* error = nullptr;
   FlatpakInstallation* user_installation =
       flatpak_installation_new_user(nullptr, &error);
-  auto result =
+  auto [key, value] =
       FlatpakShim::find_app_in_remotes(user_installation, "com.spotify.Client");
   // assuming flathub remote is added
-  EXPECT_FALSE(result.second.empty());
-  EXPECT_EQ(result.first, "flathub");
+  EXPECT_FALSE(value.empty());
+  EXPECT_EQ(key, "flathub");
 }

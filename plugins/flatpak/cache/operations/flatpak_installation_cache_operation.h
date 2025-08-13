@@ -35,7 +35,7 @@ namespace flatpak_plugin {
  * and deserialize Installation data, determine expiry times, and validate
  * cached data.
  */
-struct InstallationCacheOperation : CacheOperationTemplate<Installation> {
+struct InstallationCacheOperation final : CacheOperationTemplate<Installation> {
   CacheManager* manager;
   std::unique_ptr<EncodableListCacheOperation> operation;
 
@@ -52,7 +52,7 @@ struct InstallationCacheOperation : CacheOperationTemplate<Installation> {
       return "";
     }
     // Serialize to List then Serialize the list
-    flutter::EncodableList list = data.ToEncodableList();
+    const flutter::EncodableList list = data.ToEncodableList();
     return operation->SerializeData(list);
   }
 
@@ -62,12 +62,12 @@ struct InstallationCacheOperation : CacheOperationTemplate<Installation> {
       return std::nullopt;
     }
 
-    auto deserialization = operation->DeserializeData(serialized_data);
+    const auto deserialization = operation->DeserializeData(serialized_data);
 
     if (!deserialization) {
       return std::nullopt;
     }
-    flutter::EncodableList list = *deserialization;
+    const flutter::EncodableList list = *deserialization;
     if (list.empty()) {
       return Installation("", "", "", false, false, 0, flutter::EncodableList{},
                           flutter::EncodableList{}, flutter::EncodableList{});

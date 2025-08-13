@@ -24,7 +24,7 @@
 
 class Image {
  public:
-  explicit Image(xmlNode* node);
+  explicit Image(const xmlNode* node);
 
   void printImageDetails() const;
 
@@ -34,12 +34,12 @@ class Image {
   std::optional<int> height_;
   std::optional<std::string> url_;
 
-  void parseXmlNode(xmlNode* node);
+  void parseXmlNode(const xmlNode* node);
 };
 
 class Video {
  public:
-  explicit Video(xmlNode* node);
+  explicit Video(const xmlNode* node);
 
   void printVideoDetails() const;
 
@@ -50,7 +50,7 @@ class Video {
   std::optional<int> height_;
   std::optional<std::string> url_;
 
-  void parseXmlNode(xmlNode* node);
+  void parseXmlNode(const xmlNode* node);
 };
 
 class Screenshot {

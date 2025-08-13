@@ -37,7 +37,7 @@
  * Integrates with existing CurlClient to provide network operations
  * with proper error handling and retry logic.
  */
-class CurlNetworkFetcher : public INetworkFetcher {
+class CurlNetworkFetcher final : public INetworkFetcher {
  public:
   /**
    * @brief Constructs a CurlNetworkFetcher with specified timeout and retry

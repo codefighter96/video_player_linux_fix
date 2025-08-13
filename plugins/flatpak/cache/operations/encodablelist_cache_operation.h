@@ -42,7 +42,7 @@ struct EncodableListCacheOperation
     try {
       const auto& codec = FlatpakApi::GetCodec();
       flutter::EncodableList data_copy{data};
-      const flutter::EncodableValue encodable_data{std::move(data_copy)};
+      const flutter::EncodableValue encodable_data(std::move(data_copy));
       const auto encoded = codec.EncodeMessage(encodable_data);
       if (!encoded) {
         spdlog::error("Failed to encode encodable list");

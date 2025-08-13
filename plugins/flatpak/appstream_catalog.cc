@@ -20,7 +20,6 @@
 #include <fstream>
 
 #include <libxml/parser.h>
-#include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 #include <zlib.h>
 
@@ -44,7 +43,8 @@ void AppstreamCatalog::parseXmlFile(const std::string& filePath) {
   const xmlNode* root = xmlDocGetRootElement(document);
   for (const xmlNode* node = root->children; node; node = node->next) {
     if (node->type == XML_ELEMENT_NODE &&
-        xmlStrEqual(node->name, BAD_CAST "component")) {
+        xmlStrEqual(node->name,
+                    reinterpret_cast<const xmlChar*>("component"))) {
       Component component(node, language_);
       components_.push_back(component);
 

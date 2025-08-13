@@ -18,16 +18,16 @@
 #ifndef PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 #define PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 
-#include <spdlog/spdlog.h>
-#include <sqlite3.h>
-#include <zconf.h>
 #include <atomic>
 #include <chrono>
 #include <map>
 #include <mutex>
 #include <optional>
 
+#include <sqlite3.h>
+
 #include "flatpak/cache/interfaces/cache_storage.h"
+#include "plugins/common/common.h"
 
 /**
  * @brief Implements a cache storage backend using SQLite as the underlying
@@ -37,12 +37,13 @@
  * SQLite. It supports optional data compression, thread-safe operations, and
  * cache size management.
  */
-class SQLiteCacheStorage : public ICacheStorage {
+class SQLiteCacheStorage final : public ICacheStorage {
  public:
   explicit SQLiteCacheStorage(std::string db_path,
                               bool enable_compression = false);
 
   ~SQLiteCacheStorage() override;
+
   bool Initialize() override;
 
   bool Store(const std::string& key,

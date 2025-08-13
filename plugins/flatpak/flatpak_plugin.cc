@@ -23,7 +23,6 @@
 #include <zlib.h>
 #include <asio/post.hpp>
 
-#include "appstream_catalog.h"
 #include "messages.g.h"
 #include "plugins/common/common.h"
 
@@ -83,8 +82,8 @@ ErrorOr<flutter::EncodableList> FlatpakPlugin::GetRemotesByInstallationId(
 
 // Get the default flatpak arch
 ErrorOr<std::string> FlatpakPlugin::GetDefaultArch() {
-  std::string default_arch = flatpak_get_default_arch();
-  return ErrorOr<std::string>(default_arch);
+  const std::string default_arch = flatpak_get_default_arch();
+  return ErrorOr(std::move(default_arch));
 }
 
 // Get all arches supported by flatpak
@@ -95,7 +94,7 @@ ErrorOr<flutter::EncodableList> FlatpakPlugin::GetSupportedArches() {
       result.emplace_back(static_cast<const char*>(*arch));
     }
   }
-  return ErrorOr<flutter::EncodableList>(result);
+  return ErrorOr(std::move(result));
 }
 
 // Get configuration of user installation.

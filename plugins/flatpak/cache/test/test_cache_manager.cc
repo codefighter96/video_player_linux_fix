@@ -340,7 +340,7 @@ class TestNetworkFetcher : public INetworkFetcher {
   }
 
   std::optional<flutter::EncodableList> FetchRemotes(
-      const std::string& installation_id) override {
+      const std::string& /* installation_id */) override {
     if (simulate_network_failure_) {
       return std::nullopt;
     }

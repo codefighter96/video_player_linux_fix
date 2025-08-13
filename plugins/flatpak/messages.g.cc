@@ -25,7 +25,6 @@
 #include <flutter/standard_message_codec.h>
 
 #include <map>
-#include <optional>
 #include <string>
 #include <utility>
 
@@ -688,7 +687,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<std::string> output = api->GetVersion();
@@ -715,7 +714,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<std::string> output = api->GetDefaultArch();
@@ -742,7 +741,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<EncodableList> output = api->GetSupportedArches();
@@ -769,7 +768,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<EncodableList> output = api->GetSystemInstallations();
@@ -796,7 +795,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
         &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<Installation> output = api->GetUserInstallation();
@@ -893,7 +892,7 @@ void FlatpakApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                   &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler(
-          [api](const EncodableValue& message,
+          [api](const EncodableValue& /* message */,
                 const flutter::MessageReply<EncodableValue>& reply) {
             try {
               ErrorOr<EncodableList> output = api->GetApplicationsInstalled();

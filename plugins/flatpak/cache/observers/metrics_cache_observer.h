@@ -18,15 +18,11 @@
 #ifndef PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 #define PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H
 
-#include <spdlog/spdlog.h>
-
 #include "flatpak/cache/cache_config.h"
 #include "flatpak/cache/interfaces/cache_observer.h"
+#include "plugins/common/common.h"
 
-class MetricsCacheObserver : public ICacheObserver {
- private:
-  flatpak_plugin::CacheMetrics* metrics_;
-
+class MetricsCacheObserver final : public ICacheObserver {
  public:
   explicit MetricsCacheObserver(flatpak_plugin::CacheMetrics* metrics);
 
@@ -41,6 +37,9 @@ class MetricsCacheObserver : public ICacheObserver {
   void OnNetworkError(const std::string& url, long error_code) override;
 
   void OnCacheCleanup(size_t entries_cleaned) override;
+
+ private:
+  flatpak_plugin::CacheMetrics* metrics_;
 };
 
 #endif  // PLUGINS_FLATPAK_CACHE_METRICS_CACHE_OBSERVER_H

@@ -21,10 +21,7 @@
 
 #include "flatpak/cache/interfaces/cache_observer.h"
 
-class DefaultCacheObserver : public ICacheObserver {
- private:
-  std::string component_name_;
-
+class DefaultCacheObserver final : public ICacheObserver {
  public:
   explicit DefaultCacheObserver(
       const std::string& component_name = "CacheManager");
@@ -40,6 +37,9 @@ class DefaultCacheObserver : public ICacheObserver {
   void OnNetworkError(const std::string& url, long error_code) override;
 
   void OnCacheCleanup(size_t entries_cleaned) override;
+
+ private:
+  std::string component_name_;
 };
 
 #endif  // PLUGINS_FLATPAK_CACHE_DEFAULT_CACHE_OBSERVER_H

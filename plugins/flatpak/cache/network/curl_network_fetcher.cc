@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-#include <spdlog/spdlog.h>
 #include <chrono>
 #include <exception>
 #include <memory>
@@ -23,6 +22,7 @@
 #include <thread>
 
 #include "curl_network_fetcher.h"
+#include "plugins/common/common.h"
 
 CurlNetworkFetcher::CurlNetworkFetcher(std::chrono::seconds /* timeout */,
                                        const int max_retries)
@@ -156,7 +156,7 @@ std::optional<flutter::EncodableList> CurlNetworkFetcher::FetchRemotes(
     const std::string& installation_id) {
   try {
     // Get installation
-    auto installation_result =
+    const auto installation_result =
         flatpak_plugin::FlatpakShim::get_remotes_by_installation_id(
             installation_id);
     if (installation_result.has_error()) {

@@ -125,7 +125,7 @@ class CacheOperationTemplate {
     }
 
     try {
-      auto serialized = storage->Retrieve(key);
+      const auto serialized = storage->Retrieve(key);
       if (!serialized.has_value()) {
         return std::nullopt;
       }

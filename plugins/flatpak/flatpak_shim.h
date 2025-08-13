@@ -153,7 +153,7 @@ struct FlatpakShim {
   static ErrorOr<flutter::EncodableList> GetApplicationsInstalled();
 
   /**
-   * \brief Retrives the list of applications in a remote.
+   * \brief Retrieves the list of applications in a remote.
    * \param id ID of the remote.
    * \return EncodableList of all applications in that remote.
    */
@@ -162,7 +162,7 @@ struct FlatpakShim {
 
   /**
    * \brief Adding remote for flatpak.
-   * \param configuration Configruations of the remote wanted to add, name and
+   * \param configuration Configurations of the remote wanted to add, name and
    * URL is a must. \return An ErrorOr object containing the EncodableList or an
    * error.
    */
