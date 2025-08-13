@@ -82,7 +82,7 @@ ErrorOr<flutter::EncodableList> FlatpakPlugin::GetRemotesByInstallationId(
 
 // Get the default flatpak arch
 ErrorOr<std::string> FlatpakPlugin::GetDefaultArch() {
-  const std::string default_arch = flatpak_get_default_arch();
+  std::string default_arch = flatpak_get_default_arch();
   return ErrorOr(std::move(default_arch));
 }
 
