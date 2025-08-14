@@ -558,8 +558,6 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   //   std::chrono::duration<double, std::milli>(cpuUpdateDuration).count()
   // );
 
-  // cast time to int32_t, since EncodableValue does not support uint32_t
-  int32_t s_lastTime = m_LastTime;  // NOLINT
   // TODO(kerberjg): send kUpdateFrame event, async with wait
 
   // Render the scene, unless the renderer wants to skip the frame.
