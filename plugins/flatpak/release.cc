@@ -19,8 +19,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "flatpak_shim.h"
-#include "plugins/common/common.h"
+#include "plugins/flatpak/flatpak_shim.h"
 
 using flatpak_plugin::FlatpakShim;
 

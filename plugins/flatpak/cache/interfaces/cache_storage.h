@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +19,6 @@
 #define PLUGINS_FLATPAK_CACHE_CACHE_STORAGE_H
 
 #include <chrono>
-#include <cstddef>
 #include <optional>
 #include <string>
 
@@ -26,7 +26,7 @@
  * @brief Cache Storage Strategy interface
  *
  * Defines the contract for different cache storage implementations.
- * Currently supports SQLite, but can be extended for Redis, file-based, etc.
+ * Currently, supports SQLite, but can be extended for Redis, file-based, etc.
  */
 class ICacheStorage {
  public:
@@ -45,7 +45,7 @@ class ICacheStorage {
 
   /**
    * @brief Retrieves a value from the cache storage using the specified key.
-   * @param key The key string used to lookup the cached value
+   * @param key The key string used to look up the cached value
    * @return std::optional<std::string> The cached value if found, std::nullopt
    * otherwise
    */
@@ -64,7 +64,7 @@ class ICacheStorage {
    * @param key The cache key to invalidate. If empty string (default),
    *            all cache entries will be invalidated.
    */
-  virtual void Invalidate(const std::string& key = "") = 0;
+  virtual void Invalidate(const std::string& key) = 0;
 
   /**
    * @brief Initializes the cache storage system.

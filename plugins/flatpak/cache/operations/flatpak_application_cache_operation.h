@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +19,75 @@
 #define PLUGINS_FLATPAK_CACHE_APPLICATION_CACHE_OPERATION_H
 
 #include <chrono>
+
 #include "cache_operation_template.h"
+#include "encodablelist_cache_operation.h"
+#include "flatpak/cache/cache_manager.h"
+#include "flatpak/messages.g.h"
+#include "spdlog/spdlog.h"
+
+namespace flatpak_plugin {
 
 /**
- * @brief Cache operation class for managing Flatpak application data with
- * time-to-live functionality.
+ * @brief Cache operation class for managing Flatpak application data.
  *
  * This class extends CacheOperationTemplate to provide specialized caching
  * operations for Flatpak applications. It handles serialization/deserialization
  * of Flutter EncodableList data and implements time-based cache expiration.
- * @tparam flutter::EncodableList The data type being cached (Flatpak
+ * @tparam Application The data type being cached (Flatpak
  * application data)
  */
-class FlatpakApplicationCacheOperation
-    : public CacheOperationTemplate<flutter::EncodableList> {
- private:
-  std::chrono::seconds ttl_;
+struct ApplicationCacheOperation : CacheOperationTemplate<Application> {
+  CacheManager* manager;
+  std::unique_ptr<EncodableListCacheOperation> operation;
+
+  explicit ApplicationCacheOperation(CacheManager* manager)
+      : manager(manager),
+        operation(std::make_unique<EncodableListCacheOperation>(manager)) {}
 
  protected:
-  bool ValidateKey(const std::string& key) override;
+  bool ValidateKey(const std::string& key) override { return !key.empty(); }
 
-  std::string SerializeData(const flutter::EncodableList& data) override;
+  std::string SerializeData(const Application& data) override {
+    if (!operation) {
+      spdlog::error("EncodableListCacheOperation is not initialized");
+      return "";
+    }
+    // Serialize to List then Serialize the list
+    flutter::EncodableList list = data.ToEncodableList();
+    return operation->SerializeData(flutter::EncodableValue(list));
+  }
 
-  std::optional<flutter::EncodableList> DeserializeData() override;
+  std::optional<Application> DeserializeData(
+      const std::string& serialized_data) override {
+    if (serialized_data.empty()) {
+      return std::nullopt;
+    }
+    const auto deserialization =
+        operation->DeserializeData(flutter::EncodableValue(serialized_data));
 
-  std::chrono::system_clock::time_point GetExpiryTime() override;
+    if (!deserialization) {
+      return std::nullopt;
+    }
+    flutter::EncodableList list = *deserialization;
+    if (list.empty()) {
+      return Application("", "", "", "", "", "", 0, "", false, "",
+                         flutter::EncodableMap{}, "", "", "",
+                         flutter::EncodableList{}, "", "");
+    }
 
-  bool ValidateData(const flutter::EncodableList& data) override;
+    return Application::FromEncodableList(list);
+  }
 
- public:
-  explicit FlatpakApplicationCacheOperation(
-      std::chrono::seconds ttl = std::chrono::hours(2));
+  std::chrono::system_clock::time_point GetExpiryTime() override {
+    return std::chrono::system_clock::now() + manager->config_.default_ttl;
+  }
+
+  bool ValidateData(const Application& data) override {
+    return !data.id().empty() && !data.name().empty();
+  }
 };
+
+}  // namespace flatpak_plugin
 
 #endif  // PLUGINS_FLATPAK_CACHE_APPLICATION_CACHE_OPERATION_H

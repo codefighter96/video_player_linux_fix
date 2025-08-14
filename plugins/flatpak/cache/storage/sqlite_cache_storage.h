@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +18,16 @@
 #ifndef PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 #define PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H
 
-#include <spdlog/spdlog.h>
-#include <sqlite3.h>
-#include <zconf.h>
-#include <zlib.h>
 #include <atomic>
 #include <chrono>
-#include <cstddef>
-#include <cstdint>
 #include <map>
 #include <mutex>
 #include <optional>
-#include "../interfaces/cache_storage.h"
+
+#include <sqlite3.h>
+
+#include "flatpak/cache/interfaces/cache_storage.h"
+#include "plugins/common/common.h"
 
 /**
  * @brief Implements a cache storage backend using SQLite as the underlying
@@ -38,27 +37,13 @@
  * SQLite. It supports optional data compression, thread-safe operations, and
  * cache size management.
  */
-class SQLiteCacheStorage : public ICacheStorage {
- private:
-  sqlite3* db_;
-  std::string db_path_;
-  mutable std::mutex db_mutex_;
-  std::atomic<size_t> cache_size{0};
-  bool enable_compression_;
-
-  bool CreateTables();
-
-  std::string CompressData(const std::string& data);
-
-  std::string DecompressData(const std::string& data);
-
-  void UpdateCacheSize();
-
+class SQLiteCacheStorage final : public ICacheStorage {
  public:
   explicit SQLiteCacheStorage(std::string db_path,
                               bool enable_compression = false);
 
-  ~SQLiteCacheStorage();
+  ~SQLiteCacheStorage() override;
+
   bool Initialize() override;
 
   bool Store(const std::string& key,
@@ -69,7 +54,7 @@ class SQLiteCacheStorage : public ICacheStorage {
 
   bool IsExpired(const std::string& key) override;
 
-  void Invalidate(const std::string& key = "") override;
+  void Invalidate(const std::string& key) override;
 
   size_t GetCacheSize() override;
 
@@ -80,6 +65,21 @@ class SQLiteCacheStorage : public ICacheStorage {
    * @return A map of statistic names to their values.
    */
   std::map<std::string, int64_t> GetStatistics() const;
+
+ private:
+  sqlite3* db_;
+  std::string db_path_;
+  mutable std::mutex db_mutex_;
+  std::atomic<size_t> cache_size{0};
+  bool enable_compression_;
+
+  bool CreateTables() const;
+
+  std::string CompressData(const std::string& data) const;
+
+  std::string DecompressData(const std::string& data) const;
+
+  void UpdateCacheSize();
 };
 
 #endif  // PLUGINS_FLATPAK_CACHE_SQLITE_CACHE_STORAGE_H

@@ -1,14 +1,12 @@
-set(TESTCASE_NAME "flatpak_plugin_test")
+set(TESTCASE_NAME "flatpak_plugin_test_cache_manager")
 
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 include(FindThreads)
-
 add_executable(${TESTCASE_NAME}
-        test_flatpak.cc
+        test_cache_manager.cc
 )
 
 target_compile_options(gtest PRIVATE -Wno-error=sign-conversion)
-
 target_link_libraries(${TESTCASE_NAME} PRIVATE
         plugin_common
         plugin_flatpak_cache

@@ -1,5 +1,6 @@
 /*
- * Copyright 2020-2024 Toyota Connected North America
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,8 +87,10 @@ struct CacheMetrics {
   CacheMetrics& operator=(const CacheMetrics&) = delete;
 
   [[nodiscard]] double GetHitRatio() const {
-    auto total = hits.load() + misses.load();
-    return total > 0 ? (static_cast<double>(hits.load()) * 100.0) / total : 0.0;
+    const auto total = hits.load() + misses.load();
+    return total > 0 ? (static_cast<double>(hits.load()) * 100.0) /
+                           static_cast<double>(total)
+                     : 0.0;
   }
 
   [[nodiscard]] std::chrono::seconds GetUptime() const {
@@ -95,6 +98,8 @@ struct CacheMetrics {
         std::chrono::system_clock::now() - start_time);
   }
 };
+
+enum class MetricType { HIT, MISS, NETWORK_CALL, NETWORK_ERROR };
 
 }  // namespace flatpak_plugin
 #endif  // PLUGINS_FLATPAK_CACHE_CACHE_CONFIG_H

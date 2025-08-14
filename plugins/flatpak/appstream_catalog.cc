@@ -18,12 +18,12 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 
 #include <libxml/parser.h>
-#include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 #include <zlib.h>
+
+#include "plugins/common/common.h"
 
 AppstreamCatalog::AppstreamCatalog(const std::string& filePath,
                                    std::string language)
@@ -36,14 +36,15 @@ AppstreamCatalog::~AppstreamCatalog() = default;
 void AppstreamCatalog::parseXmlFile(const std::string& filePath) {
   xmlDoc* document = xmlReadFile(filePath.c_str(), nullptr, 0);
   if (document == nullptr) {
-    std::cerr << "Failed to parse " << filePath << std::endl;
+    spdlog::error("Failed to parse {}", filePath);
     return;
   }
 
   const xmlNode* root = xmlDocGetRootElement(document);
   for (const xmlNode* node = root->children; node; node = node->next) {
     if (node->type == XML_ELEMENT_NODE &&
-        xmlStrEqual(node->name, BAD_CAST "component")) {
+        xmlStrEqual(node->name,
+                    reinterpret_cast<const xmlChar*>("component"))) {
       Component component(node, language_);
       components_.push_back(component);
 
@@ -68,13 +69,13 @@ void AppstreamCatalog::decompressGzFile(const std::string& gzPath,
                                         const std::string& xmlPath) {
   const auto gz = gzopen(gzPath.c_str(), "rb");
   if (!gz) {
-    std::cerr << "Failed to open " << gzPath << " for reading" << std::endl;
+    spdlog::error("Failed to open {} for reading", gzPath);
     return;
   }
 
   std::ofstream outFile(xmlPath, std::ios::binary);
   if (!outFile) {
-    std::cerr << "Failed to open " << xmlPath << " for writing" << std::endl;
+    spdlog::error("Failed to open {} for writing", xmlPath);
     gzclose(gz);
     return;
   }

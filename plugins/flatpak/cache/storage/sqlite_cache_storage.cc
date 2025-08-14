@@ -1,7 +1,27 @@
+/*
+ * Copyright 2023-2025 Toyota Connected North America
+ * Copyright 2025 Ahmed Wafdy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <zlib.h>
+#include <cstddef>
+
 #include "sqlite_cache_storage.h"
 
 SQLiteCacheStorage::SQLiteCacheStorage(std::string db_path,
-                                       bool enable_compression)
+                                       const bool enable_compression)
     : db_(nullptr),
       db_path_(std::move(db_path)),
       enable_compression_(enable_compression) {}
@@ -13,7 +33,7 @@ SQLiteCacheStorage::~SQLiteCacheStorage() {
 }
 
 bool SQLiteCacheStorage::Initialize() {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
   int rc = sqlite3_open(db_path_.c_str(), &db_);
   if (rc != SQLITE_OK) {
@@ -52,30 +72,32 @@ bool SQLiteCacheStorage::Initialize() {
   return true;
 }
 
-bool SQLiteCacheStorage::Store(const std::string& key,
-                               const std::string& data,
-                               std::chrono::system_clock::time_point expiry) {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+bool SQLiteCacheStorage::Store(
+    const std::string& key,
+    const std::string& data,
+    const std::chrono::system_clock::time_point expiry) {
+  std::lock_guard lock(db_mutex_);
 
   std::string processed_data = data;
   bool is_compressed = false;
 
   if (enable_compression_) {
-    std::string compressed_data = CompressData(data);
-    if (compressed_data.size() < data.size()) {
+    if (const std::string compressed_data = CompressData(data);
+        compressed_data.size() < data.size()) {
       processed_data = compressed_data;
       is_compressed = true;
     }
   }
 
-  auto expiry_time = std::chrono::duration_cast<std::chrono::seconds>(
-                         expiry.time_since_epoch())
-                         .count();
-  auto created_time = std::chrono::duration_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now().time_since_epoch())
-                          .count();
+  const auto expiry_time = std::chrono::duration_cast<std::chrono::seconds>(
+                               expiry.time_since_epoch())
+                               .count();
+  const auto created_time =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
 
-  const char* insert_sql = R"(
+  const auto insert_sql = R"(
         INSERT OR REPLACE INTO cache_entries 
         (key, data, expiry_time, created_time, data_size, is_compressed) 
         VALUES (?, ?, ?, ?, ?, ?);
@@ -91,11 +113,11 @@ bool SQLiteCacheStorage::Store(const std::string& key,
   }
 
   sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 2, processed_data.c_str(), processed_data.size(),
-                    SQLITE_STATIC);
+  sqlite3_bind_blob(stmt, 2, processed_data.c_str(),
+                    static_cast<int>(processed_data.size()), SQLITE_STATIC);
   sqlite3_bind_int64(stmt, 3, expiry_time);
   sqlite3_bind_int64(stmt, 4, created_time);
-  sqlite3_bind_int64(stmt, 5, data.size());
+  sqlite3_bind_int64(stmt, 5, static_cast<sqlite3_int64>(data.size()));
   sqlite3_bind_int(stmt, 6, is_compressed ? 1 : 0);
 
   rc = sqlite3_step(stmt);
@@ -113,9 +135,9 @@ bool SQLiteCacheStorage::Store(const std::string& key,
 
 std::optional<std::string> SQLiteCacheStorage::Retrieve(
     const std::string& key) {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
-  const char* select_sql = R"(
+  const auto select_sql = R"(
         SELECT data, expiry_time, is_compressed 
         FROM cache_entries 
         WHERE key = ?;
@@ -135,22 +157,23 @@ std::optional<std::string> SQLiteCacheStorage::Retrieve(
 
   rc = sqlite3_step(stmt);
   if (rc == SQLITE_ROW) {
-    auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count();
+    const auto current_time =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
 
-    int64_t expiry_time = sqlite3_column_int64(stmt, 1);
-
-    if (current_time < expiry_time) {
+    if (const int64_t expiry_time = sqlite3_column_int64(stmt, 1);
+        current_time < expiry_time) {
       const void* data = sqlite3_column_blob(stmt, 0);
-      int data_size = sqlite3_column_bytes(stmt, 0);
-      bool is_compressed = sqlite3_column_int(stmt, 2) != 0;
+      const int data_size = sqlite3_column_bytes(stmt, 0);
+      const bool is_compressed = sqlite3_column_int(stmt, 2) != 0;
 
-      std::string raw_data(static_cast<const char*>(data), data_size);
+      std::string raw_data(static_cast<const char*>(data),
+                           static_cast<size_t>(data_size));
 
       if (is_compressed) {
-        std::string decompressed = DecompressData(raw_data);
-        if (!decompressed.empty()) {
+        if (std::string decompressed = DecompressData(raw_data);
+            !decompressed.empty()) {
           result = decompressed;
         } else {
           spdlog::error(
@@ -171,9 +194,9 @@ std::optional<std::string> SQLiteCacheStorage::Retrieve(
 }
 
 bool SQLiteCacheStorage::IsExpired(const std::string& key) {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
-  const char* select_sql =
+  const auto select_sql =
       "SELECT expiry_time FROM cache_entries WHERE key = ?;";
   sqlite3_stmt* stmt;
 
@@ -190,11 +213,12 @@ bool SQLiteCacheStorage::IsExpired(const std::string& key) {
 
   rc = sqlite3_step(stmt);
   if (rc == SQLITE_ROW) {
-    auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count();
+    const auto current_time =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
 
-    int64_t expiry_time = sqlite3_column_int64(stmt, 0);
+    const int64_t expiry_time = sqlite3_column_int64(stmt, 0);
     expired = current_time >= expiry_time;
   } else if (rc != SQLITE_DONE) {
     spdlog::error("[SQLiteCacheStorage] Failed to execute select : {} ({})",
@@ -206,7 +230,7 @@ bool SQLiteCacheStorage::IsExpired(const std::string& key) {
 }
 
 void SQLiteCacheStorage::Invalidate(const std::string& key) {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
   const char* delete_sql;
   sqlite3_stmt* stmt;
@@ -238,13 +262,14 @@ size_t SQLiteCacheStorage::GetCacheSize() {
 }
 
 size_t SQLiteCacheStorage::CleanupExpired() {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
-  auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now().time_since_epoch())
-                          .count();
+  const auto current_time =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
 
-  const char* delete_sql = "DELETE FROM cache_entries WHERE expiry_time <= ?;";
+  const auto delete_sql = "DELETE FROM cache_entries WHERE expiry_time <= ?;";
   sqlite3_stmt* stmt;
 
   int rc = sqlite3_prepare_v2(db_, delete_sql, -1, &stmt, nullptr);
@@ -260,7 +285,7 @@ size_t SQLiteCacheStorage::CleanupExpired() {
   size_t deleted_count = 0;
 
   if (rc == SQLITE_DONE) {
-    deleted_count = sqlite3_changes(db_);
+    deleted_count = static_cast<size_t>(sqlite3_changes(db_));
   } else {
     spdlog::error("[SQLiteCacheStorage] Failed to execute delete : {} ({})",
                   sqlite3_errmsg(db_), rc);
@@ -276,11 +301,11 @@ size_t SQLiteCacheStorage::CleanupExpired() {
 }
 
 std::map<std::string, int64_t> SQLiteCacheStorage::GetStatistics() const {
-  std::lock_guard<std::mutex> lock(db_mutex_);
+  std::lock_guard lock(db_mutex_);
 
   std::map<std::string, int64_t> stats;
 
-  const char* stats_sql = R"(
+  const auto stats_sql = R"(
         SELECT 
             COUNT(*) as entry_count,
             SUM(data_size) as total_size,
@@ -311,11 +336,12 @@ std::map<std::string, int64_t> SQLiteCacheStorage::GetStatistics() const {
 
   sqlite3_finalize(stmt);
 
-  auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now().time_since_epoch())
-                          .count();
+  const auto current_time =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
 
-  const char* expired_sql =
+  const auto expired_sql =
       "SELECT COUNT(*) FROM cache_entries WHERE expiry_time <= ?;";
   rc = sqlite3_prepare_v2(db_, expired_sql, -1, &stmt, nullptr);
   if (rc == SQLITE_OK) {
@@ -330,8 +356,8 @@ std::map<std::string, int64_t> SQLiteCacheStorage::GetStatistics() const {
   return stats;
 }
 
-bool SQLiteCacheStorage::CreateTables() {
-  const char* create_table_sql = R"(
+bool SQLiteCacheStorage::CreateTables() const {
+  const auto create_table_sql = R"(
         CREATE TABLE IF NOT EXISTS cache_entries (
             key TEXT PRIMARY KEY,
             data BLOB NOT NULL,
@@ -346,9 +372,10 @@ bool SQLiteCacheStorage::CreateTables() {
     )";
 
   char* error_msg = nullptr;
-  int rc = sqlite3_exec(db_, create_table_sql, nullptr, nullptr, &error_msg);
 
-  if (rc != SQLITE_OK) {
+  if (const int rc =
+          sqlite3_exec(db_, create_table_sql, nullptr, nullptr, &error_msg);
+      rc != SQLITE_OK) {
     spdlog::error("[SQLiteCacheStorage] SQL Error: {}", error_msg);
     sqlite3_free(error_msg);
     return false;
@@ -356,7 +383,7 @@ bool SQLiteCacheStorage::CreateTables() {
   return true;
 }
 
-std::string SQLiteCacheStorage::CompressData(const std::string& data) {
+std::string SQLiteCacheStorage::CompressData(const std::string& data) const {
   if (!enable_compression_ || data.empty()) {
     return data;
   }
@@ -378,38 +405,35 @@ std::string SQLiteCacheStorage::CompressData(const std::string& data) {
   return compressed_data;
 }
 
-std::string SQLiteCacheStorage::DecompressData(
-    const std::string& compressed_data) {
-  if (!enable_compression_ || compressed_data.empty()) {
-    return compressed_data;
+std::string SQLiteCacheStorage::DecompressData(const std::string& data) const {
+  if (!enable_compression_ || data.empty()) {
+    return data;
   }
 
   // Try different buffer sizes for decompression
-  std::vector<uLongf> buffer_sizes = {compressed_data.size() * 4,
-                                      compressed_data.size() * 10,
-                                      compressed_data.size() * 50, 1024 * 1024};
+  const std::vector<uLongf> buffer_sizes = {data.size() * 4, data.size() * 10,
+                                            data.size() * 50, 1024 * 1024};
 
-  for (uLongf buffer_size : buffer_sizes) {
+  for (const uLongf buffer_size : buffer_sizes) {
     std::string decompressed_data(buffer_size, '\0');
     uLongf decompressed_size = buffer_size;
 
     int result = uncompress(
         reinterpret_cast<Bytef*>(&decompressed_data[0]), &decompressed_size,
-        reinterpret_cast<const Bytef*>(compressed_data.c_str()),
-        compressed_data.size());
+        reinterpret_cast<const Bytef*>(data.c_str()), data.size());
 
     if (result == Z_OK) {
       decompressed_data.resize(decompressed_size);
       return decompressed_data;
-    } else if (result == Z_BUF_ERROR) {
+    }
+    if (result == Z_BUF_ERROR) {
       // Buffer too small
       continue;
-    } else {
-      // stop trying
-      spdlog::error("[SQLiteCacheStorage] Decompression failed with error: {}",
-                    result);
-      break;
     }
+    // stop trying
+    spdlog::error("[SQLiteCacheStorage] Decompression failed with error: {}",
+                  result);
+    break;
   }
 
   spdlog::error("[SQLiteCacheStorage] All decompression attempts failed");
@@ -417,7 +441,7 @@ std::string SQLiteCacheStorage::DecompressData(
 }
 
 void SQLiteCacheStorage::UpdateCacheSize() {
-  const char* size_sql =
+  const auto size_sql =
       "SELECT COALESCE(SUM(data_size), 0) FROM cache_entries;";
 
   sqlite3_stmt* stmt;

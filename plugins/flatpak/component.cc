@@ -21,8 +21,8 @@
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 
-#include "flatpak_shim.h"
 #include "plugins/common/common.h"
+#include "plugins/flatpak/flatpak_shim.h"
 
 using flatpak_plugin::FlatpakShim;
 
@@ -147,8 +147,10 @@ void Component::parseKeywords(const xmlNode* node) {
 
   for (xmlNodePtr current = node->children; current; current = current->next) {
     if (current->type == XML_ELEMENT_NODE &&
-        xmlStrcmp(current->name, BAD_CAST "keyword") == 0) {
-      xmlChar* langAttr = xmlGetProp(current, BAD_CAST "xml:lang");
+        xmlStrcmp(current->name, reinterpret_cast<const xmlChar*>("keyword")) ==
+            0) {
+      xmlChar* langAttr =
+          xmlGetProp(current, reinterpret_cast<const xmlChar*>("xml:lang"));
       if (language_.empty() && langAttr == nullptr) {
         if (xmlChar* keywordContent = xmlNodeGetContent(current)) {
           keywords_->insert(reinterpret_cast<const char*>(keywordContent));
@@ -157,7 +159,8 @@ void Component::parseKeywords(const xmlNode* node) {
           spdlog::warn("Empty <keyword> element found");
         }
       } else if (langAttr &&
-                 xmlStrcmp(langAttr, BAD_CAST language_.c_str()) == 0) {
+                 xmlStrcmp(langAttr, reinterpret_cast<const xmlChar*>(
+                                         language_.c_str())) == 0) {
         if (xmlChar* keywordContent = xmlNodeGetContent(current)) {
           keywords_->insert(reinterpret_cast<const char*>(keywordContent));
           xmlFree(keywordContent);
@@ -199,7 +202,9 @@ void Component::parseContentRating(const xmlNode* node) {
     contentRating_ = std::map<std::string, ContentRatingValue>{};
   }
 
-  if (xmlChar* type = xmlGetProp(node, BAD_CAST "type"); type != nullptr) {
+  if (xmlChar* type =
+          xmlGetProp(node, reinterpret_cast<const xmlChar*>("type"));
+      type != nullptr) {
     contentRatingType_ = reinterpret_cast<const char*>(type);
     xmlFree(type);
   }

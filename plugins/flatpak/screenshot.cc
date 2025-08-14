@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 Toyota Connected North America
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include "screenshot.h"
 
 #include <libxml/xmlstring.h>
@@ -23,20 +7,38 @@
 
 using flatpak_plugin::FlatpakShim;
 
-Image::Image(xmlNode* node) {
+Image::Image(const xmlNode* node) {
   parseXmlNode(node);
 }
 
-void Image::parseXmlNode(xmlNode* node) {
+void Image::parseXmlNode(const xmlNode* node) {
   type_ = FlatpakShim::getAttribute(node, "type");
   if (const auto widthAttr = FlatpakShim::getOptionalAttribute(node, "width")) {
-    width_ = std::stoi(*widthAttr);
+    try {
+      width_ = std::stoi(*widthAttr);
+    } catch (const std::invalid_argument& e) {
+      spdlog::error("Invalid width attribute: {} - {}", *widthAttr, e.what());
+    } catch (const std::out_of_range& e) {
+      spdlog::error("Width attribute out of range: {} - {}", *widthAttr,
+                    e.what());
+    }
   }
   if (const auto heightAttr =
           FlatpakShim::getOptionalAttribute(node, "height")) {
-    height_ = std::stoi(*heightAttr);
+    try {
+      height_ = std::stoi(*heightAttr);
+    } catch (const std::invalid_argument& e) {
+      spdlog::error("Invalid height attribute: {} - {}", *heightAttr, e.what());
+    } catch (const std::out_of_range& e) {
+      spdlog::error("Height attribute out of range: {} - {}", *heightAttr,
+                    e.what());
+    }
   }
-  url_ = std::string(reinterpret_cast<const char*>(xmlNodeGetContent(node)));
+  if (const xmlChar* content = xmlNodeGetContent(node)) {
+    url_ = std::string(reinterpret_cast<const char*>(content));
+  } else {
+    spdlog::error("Failed to retrieve content for node.");
+  }
 }
 
 void Image::printImageDetails() const {
@@ -51,21 +53,39 @@ void Image::printImageDetails() const {
     spdlog::info("\t\tURL: {}", url_.value());
 }
 
-Video::Video(xmlNode* node) {
+Video::Video(const xmlNode* node) {
   parseXmlNode(node);
 }
 
-void Video::parseXmlNode(xmlNode* node) {
+void Video::parseXmlNode(const xmlNode* node) {
   container_ = FlatpakShim::getAttribute(node, "container");
   codec_ = FlatpakShim::getAttribute(node, "codec");
   if (const auto widthAttr = FlatpakShim::getOptionalAttribute(node, "width")) {
-    width_ = std::stoi(*widthAttr);
+    try {
+      width_ = std::stoi(*widthAttr);
+    } catch (const std::invalid_argument& e) {
+      spdlog::error("Invalid width attribute: {} - {}", *widthAttr, e.what());
+    } catch (const std::out_of_range& e) {
+      spdlog::error("Width attribute out of range: {} - {}", *widthAttr,
+                    e.what());
+    }
   }
   if (const auto heightAttr =
           FlatpakShim::getOptionalAttribute(node, "height")) {
-    height_ = std::stoi(*heightAttr);
+    try {
+      height_ = std::stoi(*heightAttr);
+    } catch (const std::invalid_argument& e) {
+      spdlog::error("Invalid height attribute: {} - {}", *heightAttr, e.what());
+    } catch (const std::out_of_range& e) {
+      spdlog::error("Height attribute out of range: {} - {}", *heightAttr,
+                    e.what());
+    }
   }
-  url_ = std::string(reinterpret_cast<const char*>(xmlNodeGetContent(node)));
+  if (const xmlChar* content = xmlNodeGetContent(node)) {
+    url_ = std::string(reinterpret_cast<const char*>(content));
+  } else {
+    spdlog::error("Failed to retrieve content for node.");
+  }
 }
 
 void Video::printVideoDetails() const {
@@ -89,14 +109,21 @@ Screenshot::Screenshot(const xmlNode* node) {
 void Screenshot::parseXmlNode(const xmlNode* node) {
   std::vector<Image> images;
   for (xmlNode* current = node->children; current; current = current->next) {
-    if (xmlStrEqual(current->name, BAD_CAST "screenshot")) {
+    if (xmlStrEqual(current->name,
+                    reinterpret_cast<const xmlChar*>("screenshot"))) {
       type_ = FlatpakShim::getAttribute(current, "type");
-    } else if (xmlStrEqual(current->name, BAD_CAST "caption")) {
-      captions_.emplace_back(
-          reinterpret_cast<const char*>(xmlNodeGetContent(current)));
-    } else if (xmlStrEqual(current->name, BAD_CAST "image")) {
+    } else if (xmlStrEqual(current->name,
+                           reinterpret_cast<const xmlChar*>("caption"))) {
+      if (const xmlChar* content = xmlNodeGetContent(current)) {
+        captions_.emplace_back(reinterpret_cast<const char*>(content));
+      } else {
+        spdlog::error("Failed to retrieve caption content.");
+      }
+    } else if (xmlStrEqual(current->name,
+                           reinterpret_cast<const xmlChar*>("image"))) {
       images.emplace_back(current);
-    } else if (xmlStrEqual(current->name, BAD_CAST "video")) {
+    } else if (xmlStrEqual(current->name,
+                           reinterpret_cast<const xmlChar*>("video"))) {
       video_ = Video(current);
     }
   }
