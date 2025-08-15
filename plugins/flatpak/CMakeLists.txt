@@ -30,7 +30,9 @@ add_library(plugin_flatpak STATIC
         screenshot.cc
 )
 target_include_directories(plugin_flatpak PRIVATE include)
-
+target_compile_options(plugin_flatpak PRIVATE
+        -Wno-deprecated-declarations
+)
 target_link_libraries(plugin_flatpak PUBLIC
         PkgConfig::FLATPAK_DEPS
         plugin_common_curl
