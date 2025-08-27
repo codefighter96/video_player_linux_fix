@@ -196,9 +196,10 @@ void Component::parseScreenshots(xmlNode* node) {
   }
   for (xmlNode* current = node->children; current; current = current->next) {
     if (current->type == XML_ELEMENT_NODE &&
-        xmlStrEqual(current->name, reinterpret_cast<const xmlChar*>("screenshot"))) {
+        xmlStrEqual(current->name,
+                    reinterpret_cast<const xmlChar*>("screenshot"))) {
       screenshots_->emplace_back(current);
-        }
+    }
   }
 }
 

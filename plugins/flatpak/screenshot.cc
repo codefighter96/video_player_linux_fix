@@ -156,10 +156,12 @@ void Screenshot::parseXmlNode(const xmlNode* node) {
       continue;
     }
     if (xmlStrEqual(current->name,
-                           reinterpret_cast<const xmlChar*>("caption"))) {
+                    reinterpret_cast<const xmlChar*>("caption"))) {
       if (const xmlChar* content = xmlNodeGetContent(current)) {
-        std::string rawCaption = std::string(reinterpret_cast<const char*>(content));
-        captions_.emplace_back(plugin_common::StringTools::trimSpaces(rawCaption));
+        std::string rawCaption =
+            std::string(reinterpret_cast<const char*>(content));
+        captions_.emplace_back(
+            plugin_common::StringTools::trimSpaces(rawCaption));
         xmlFree(const_cast<xmlChar*>(content));
       } else {
         spdlog::error("Failed to retrieve caption content.");

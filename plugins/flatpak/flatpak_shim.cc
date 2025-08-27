@@ -20,11 +20,11 @@
 
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
-#include <zlib.h>
 #include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <zlib.h>
 
 #include <fstream>
 
@@ -1741,53 +1741,79 @@ std::string FlatpakShim::create_metadata(const Component& component) {
   document.SetObject();
   rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-  document.AddMember("id",rapidjson::Value(component.getId().c_str(),allocator),allocator);
-  document.AddMember("pkgname",rapidjson::Value(component.getPkgName().c_str(),allocator),allocator);
+  document.AddMember(
+      "id", rapidjson::Value(component.getId().c_str(), allocator), allocator);
+  document.AddMember(
+      "pkgname", rapidjson::Value(component.getPkgName().c_str(), allocator),
+      allocator);
   if (component.getVersion().has_value()) {
-    document.AddMember("version",rapidjson::Value(component.getVersion().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "version",
+        rapidjson::Value(component.getVersion().value().c_str(), allocator),
+        allocator);
   }
   if (component.getArchitecture().has_value()) {
-    document.AddMember("architecture",rapidjson::Value(component.getArchitecture().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "architecture",
+        rapidjson::Value(component.getArchitecture().value().c_str(),
+                         allocator),
+        allocator);
   }
   if (component.getBundle().has_value()) {
-    document.AddMember("bundle",rapidjson::Value(component.getBundle().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "bundle",
+        rapidjson::Value(component.getBundle().value().c_str(), allocator),
+        allocator);
   }
   if (component.getSourcePkgname().has_value()) {
-    document.AddMember("sourcepkgname",rapidjson::Value(component.getSourcePkgname().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "sourcepkgname",
+        rapidjson::Value(component.getSourcePkgname().value().c_str(),
+                         allocator),
+        allocator);
   }
   if (component.getUrl().has_value()) {
-    document.AddMember("url",rapidjson::Value(component.getUrl().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "url", rapidjson::Value(component.getUrl().value().c_str(), allocator),
+        allocator);
   }
   if (component.getMediaBaseurl().has_value()) {
-    document.AddMember("mediabaseurl",rapidjson::Value(component.getMediaBaseurl().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "mediabaseurl",
+        rapidjson::Value(component.getMediaBaseurl().value().c_str(),
+                         allocator),
+        allocator);
   }
   if (component.getCategories().has_value()) {
     rapidjson::Value categoriesArray(rapidjson::kArrayType);
     for (const auto& c : component.getCategories().value()) {
-      categoriesArray.PushBack(rapidjson::Value(c.c_str(),allocator),allocator);
+      categoriesArray.PushBack(rapidjson::Value(c.c_str(), allocator),
+                               allocator);
     }
-    document.AddMember("categories",categoriesArray,allocator);
+    document.AddMember("categories", categoriesArray, allocator);
   }
   if (component.getKeywords().has_value()) {
     rapidjson::Value keywordsArray(rapidjson::kArrayType);
     for (const auto& k : component.getKeywords().value()) {
-      keywordsArray.PushBack(rapidjson::Value(k.c_str(),allocator),allocator);
+      keywordsArray.PushBack(rapidjson::Value(k.c_str(), allocator), allocator);
     }
-    document.AddMember("keywords",keywordsArray,allocator);
+    document.AddMember("keywords", keywordsArray, allocator);
   }
   if (component.getLanguages().has_value()) {
     rapidjson::Value languagesArray(rapidjson::kArrayType);
     for (const auto& l : component.getLanguages().value()) {
-      languagesArray.PushBack(rapidjson::Value(l.c_str(),allocator),allocator);
+      languagesArray.PushBack(rapidjson::Value(l.c_str(), allocator),
+                              allocator);
     }
-    document.AddMember("languages",languagesArray,allocator);
+    document.AddMember("languages", languagesArray, allocator);
   }
   if (component.getDeveloper().has_value()) {
     rapidjson::Value developerArray(rapidjson::kArrayType);
     for (const auto& d : component.getDeveloper().value()) {
-      developerArray.PushBack(rapidjson::Value(d.c_str(),allocator),allocator);
+      developerArray.PushBack(rapidjson::Value(d.c_str(), allocator),
+                              allocator);
     }
-    document.AddMember("developer",developerArray,allocator);
+    document.AddMember("developer", developerArray, allocator);
   }
 
   rapidjson::StringBuffer buffer;
@@ -1803,7 +1829,10 @@ std::string FlatpakShim::create_appdata(const Component& component) {
 
   // description
   if (component.getDescription().has_value()) {
-    document.AddMember("description",rapidjson::Value(component.getDescription().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "description",
+        rapidjson::Value(component.getDescription().value().c_str(), allocator),
+        allocator);
   }
 
   // screenshots
@@ -1812,15 +1841,17 @@ std::string FlatpakShim::create_appdata(const Component& component) {
     for (const auto& s : component.getScreenshots().value()) {
       rapidjson::Value screenshot(rapidjson::kObjectType);
       if (s.getType().has_value()) {
-        screenshot.AddMember("type",rapidjson::Value(s.getType().value().c_str(),allocator),allocator);
+        screenshot.AddMember(
+            "type", rapidjson::Value(s.getType().value().c_str(), allocator),
+            allocator);
       }
 
       if (!s.getCaptions().empty()) {
         rapidjson::Value caption(rapidjson::kArrayType);
         for (const auto& c : s.getCaptions()) {
-          caption.PushBack(rapidjson::Value(c.c_str(),allocator),allocator);
+          caption.PushBack(rapidjson::Value(c.c_str(), allocator), allocator);
         }
-        screenshot.AddMember("captions",caption,allocator);
+        screenshot.AddMember("captions", caption, allocator);
       }
 
       if (s.getImages().has_value()) {
@@ -1828,44 +1859,79 @@ std::string FlatpakShim::create_appdata(const Component& component) {
         for (const auto& i : s.getImages().value()) {
           rapidjson::Value image(rapidjson::kObjectType);
           if (i.getType().has_value()) {
-            image.AddMember("type",rapidjson::Value(i.getType().value().c_str(),allocator),allocator);
+            image.AddMember(
+                "type",
+                rapidjson::Value(i.getType().value().c_str(), allocator),
+                allocator);
           }
           if (i.getUrl().has_value()) {
-            image.AddMember("url",rapidjson::Value(i.getUrl().value().c_str(),allocator),allocator);
+            image.AddMember(
+                "url", rapidjson::Value(i.getUrl().value().c_str(), allocator),
+                allocator);
           }
           if (i.getWidth().has_value()) {
-            image.AddMember("width",rapidjson::Value(std::to_string(i.getWidth().value()).c_str(),allocator),allocator);
+            image.AddMember(
+                "width",
+                rapidjson::Value(std::to_string(i.getWidth().value()).c_str(),
+                                 allocator),
+                allocator);
           }
           if (i.getHeight().has_value()) {
-            image.AddMember("height",rapidjson::Value(std::to_string(i.getHeight().value()).c_str(),allocator),allocator);
+            image.AddMember(
+                "height",
+                rapidjson::Value(std::to_string(i.getHeight().value()).c_str(),
+                                 allocator),
+                allocator);
           }
-          imagesArray.PushBack(image,allocator);
+          imagesArray.PushBack(image, allocator);
         }
-        screenshot.AddMember("images",imagesArray,allocator);
+        screenshot.AddMember("images", imagesArray, allocator);
       }
 
       if (s.getVideo().has_value()) {
         rapidjson::Value video(rapidjson::kObjectType);
         if (s.getVideo().value().getUrl().has_value()) {
-          video.AddMember("url",rapidjson::Value(s.getVideo().value().getUrl().value().c_str(),allocator),allocator);
+          video.AddMember(
+              "url",
+              rapidjson::Value(s.getVideo().value().getUrl().value().c_str(),
+                               allocator),
+              allocator);
         }
         if (s.getVideo().value().getWidth().has_value()) {
-          video.AddMember("width",rapidjson::Value(std::to_string(s.getVideo().value().getWidth().value()),allocator),allocator);
+          video.AddMember(
+              "width",
+              rapidjson::Value(
+                  std::to_string(s.getVideo().value().getWidth().value()),
+                  allocator),
+              allocator);
         }
         if (s.getVideo().value().getHeight().has_value()) {
-          video.AddMember("height",rapidjson::Value(std::to_string(s.getVideo().value().getHeight().value()),allocator),allocator);
+          video.AddMember(
+              "height",
+              rapidjson::Value(
+                  std::to_string(s.getVideo().value().getHeight().value()),
+                  allocator),
+              allocator);
         }
         if (s.getVideo().value().getCodec().has_value()) {
-          video.AddMember("codec",rapidjson::Value(s.getVideo().value().getCodec().value(),allocator),allocator);
+          video.AddMember(
+              "codec",
+              rapidjson::Value(s.getVideo().value().getCodec().value(),
+                               allocator),
+              allocator);
         }
         if (s.getVideo().value().getContainer().has_value()) {
-          video.AddMember("container",rapidjson::Value(s.getVideo().value().getContainer().value(),allocator),allocator);
+          video.AddMember(
+              "container",
+              rapidjson::Value(s.getVideo().value().getContainer().value(),
+                               allocator),
+              allocator);
         }
-        screenshot.AddMember("video",video,allocator);
+        screenshot.AddMember("video", video, allocator);
       }
-      screenshotsArray.PushBack(screenshot,allocator);
+      screenshotsArray.PushBack(screenshot, allocator);
     }
-    document.AddMember("screenshots",screenshotsArray,allocator);
+    document.AddMember("screenshots", screenshotsArray, allocator);
   }
 
   // icons
@@ -1874,59 +1940,88 @@ std::string FlatpakShim::create_appdata(const Component& component) {
     for (const auto& i : component.getIcons().value()) {
       rapidjson::Value icon(rapidjson::kObjectType);
       if (i.getType().has_value()) {
-        icon.AddMember("type",rapidjson::Value(i.getType().value().c_str(),allocator),allocator);
+        icon.AddMember("type",
+                       rapidjson::Value(i.getType().value().c_str(), allocator),
+                       allocator);
       }
       if (i.getPath().has_value()) {
-        icon.AddMember("path",rapidjson::Value(i.getPath().value().c_str(),allocator),allocator);
+        icon.AddMember("path",
+                       rapidjson::Value(i.getPath().value().c_str(), allocator),
+                       allocator);
       }
       if (i.getScale().has_value()) {
-        icon.AddMember("scale",rapidjson::Value(std::to_string(i.getScale().value()),allocator),allocator);
+        icon.AddMember(
+            "scale",
+            rapidjson::Value(std::to_string(i.getScale().value()), allocator),
+            allocator);
       }
       if (i.getWidth().has_value()) {
-        icon.AddMember("width",rapidjson::Value(std::to_string(i.getWidth().value()),allocator),allocator);
+        icon.AddMember(
+            "width",
+            rapidjson::Value(std::to_string(i.getWidth().value()), allocator),
+            allocator);
       }
       if (i.getHeight().has_value()) {
-        icon.AddMember("height",rapidjson::Value(std::to_string(i.getHeight().value()),allocator),allocator);
+        icon.AddMember(
+            "height",
+            rapidjson::Value(std::to_string(i.getHeight().value()), allocator),
+            allocator);
       }
-      iconsArray.PushBack(icon,allocator);
+      iconsArray.PushBack(icon, allocator);
     }
-    document.AddMember("icons",iconsArray,allocator);
+    document.AddMember("icons", iconsArray, allocator);
   }
-    // releases
-    if (component.getReleases().has_value()) {
-      rapidjson::Value releasesArray(rapidjson::kArrayType);
-      for (const auto& r : component.getReleases().value()) {
-        rapidjson::Value release(rapidjson::kObjectType);
-        release.AddMember("version",rapidjson::Value(r.getVersion().c_str(),allocator),allocator);
-        release.AddMember("timestamp",rapidjson::Value(r.getTimestamp().c_str(),allocator),allocator);
-        if (r.getDescription().has_value()) {
-          release.AddMember("description",rapidjson::Value(r.getDescription().value().c_str(),allocator),allocator);
-        }
-        if (r.getSize().has_value()) {
-          release.AddMember("size",rapidjson::Value(r.getSize().value(),allocator),allocator);
-        }
-        releasesArray.PushBack(release,allocator);
+  // releases
+  if (component.getReleases().has_value()) {
+    rapidjson::Value releasesArray(rapidjson::kArrayType);
+    for (const auto& r : component.getReleases().value()) {
+      rapidjson::Value release(rapidjson::kObjectType);
+      release.AddMember("version",
+                        rapidjson::Value(r.getVersion().c_str(), allocator),
+                        allocator);
+      release.AddMember("timestamp",
+                        rapidjson::Value(r.getTimestamp().c_str(), allocator),
+                        allocator);
+      if (r.getDescription().has_value()) {
+        release.AddMember(
+            "description",
+            rapidjson::Value(r.getDescription().value().c_str(), allocator),
+            allocator);
       }
-      document.AddMember("releases",releasesArray,allocator);
+      if (r.getSize().has_value()) {
+        release.AddMember("size",
+                          rapidjson::Value(r.getSize().value(), allocator),
+                          allocator);
+      }
+      releasesArray.PushBack(release, allocator);
     }
+    document.AddMember("releases", releasesArray, allocator);
+  }
 
-    // agreements
-    if (component.getAgreement().has_value()) {
-      document.AddMember("agreement",rapidjson::Value(component.getAgreement().value().c_str(),allocator),allocator);
-    }
+  // agreements
+  if (component.getAgreement().has_value()) {
+    document.AddMember(
+        "agreement",
+        rapidjson::Value(component.getAgreement().value().c_str(), allocator),
+        allocator);
+  }
 
   // projectgroup
   if (component.getProjectGroup().has_value()) {
-    document.AddMember("projectgroup",rapidjson::Value(component.getProjectGroup().value().c_str(),allocator),allocator);
+    document.AddMember(
+        "projectgroup",
+        rapidjson::Value(component.getProjectGroup().value().c_str(),
+                         allocator),
+        allocator);
   }
 
   // suggests
   if (component.getSuggests().has_value()) {
     rapidjson::Value suggestsArray(rapidjson::kArrayType);
     for (const auto& s : component.getSuggests().value()) {
-      suggestsArray.PushBack(rapidjson::Value(s.c_str(),allocator),allocator);
+      suggestsArray.PushBack(rapidjson::Value(s.c_str(), allocator), allocator);
     }
-    document.AddMember("suggests",suggestsArray,allocator);
+    document.AddMember("suggests", suggestsArray, allocator);
   }
   rapidjson::StringBuffer buffer;
   rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);

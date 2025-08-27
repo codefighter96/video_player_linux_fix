@@ -6,8 +6,8 @@
 
 #include <flutter/encodable_value.h>
 
-#include "flatpak/flatpak_shim.h"
 #include "flatpak/component.h"
+#include "flatpak/flatpak_shim.h"
 
 using namespace flatpak_plugin;
 
@@ -18,25 +18,21 @@ class FlatpakPluginTest : public ::testing::Test {
 };
 
 class ComponentTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        xmlInitParser();
-    }
+ protected:
+  void SetUp() override { xmlInitParser(); }
 
-    void TearDown() override {
-        xmlCleanupParser();
-    }
+  void TearDown() override { xmlCleanupParser(); }
 
-    static xmlDocPtr createXmlDoc(const std::string& xmlContent) {
-        return xmlParseMemory(xmlContent.c_str(), xmlContent.length());
-    }
+  static xmlDocPtr createXmlDoc(const std::string& xmlContent) {
+    return xmlParseMemory(xmlContent.c_str(), xmlContent.length());
+  }
 
-    static xmlNodePtr getRootElement(xmlDocPtr doc) {
-        return xmlDocGetRootElement(doc);
-    }
+  static xmlNodePtr getRootElement(xmlDocPtr doc) {
+    return xmlDocGetRootElement(doc);
+  }
 
-    static std::string componentXml() {
-        return R"(
+  static std::string componentXml() {
+    return R"(
 <component type="desktop">
     <id>app.authpass.AuthPass</id>
     <name>AuthPass</name>
@@ -105,75 +101,80 @@ protected:
     </languages>
 </component>
         )";
-    }
+  }
 };
 
 TEST_F(ComponentTest, Component_CompleteParsingTest) {
-    std::string xmlContent = componentXml();
-    xmlDocPtr doc = createXmlDoc(xmlContent);
-    ASSERT_NE(doc, nullptr);
+  std::string xmlContent = componentXml();
+  xmlDocPtr doc = createXmlDoc(xmlContent);
+  ASSERT_NE(doc, nullptr);
 
-    xmlNodePtr root = getRootElement(doc);
-    ASSERT_NE(root, nullptr);
+  xmlNodePtr root = getRootElement(doc);
+  ASSERT_NE(root, nullptr);
 
-    Component component(root, "en");
+  Component component(root, "en");
 
-    EXPECT_EQ(component.getId(), "app.authpass.AuthPass");
-    EXPECT_EQ(component.getName(), "AuthPass");
-    EXPECT_EQ(component.getSummary(), "Password Manager: Keep your passwords safe across all platforms and devices");
+  EXPECT_EQ(component.getId(), "app.authpass.AuthPass");
+  EXPECT_EQ(component.getName(), "AuthPass");
+  EXPECT_EQ(component.getSummary(),
+            "Password Manager: Keep your passwords safe across all platforms "
+            "and devices");
 
-    EXPECT_TRUE(component.getProjectLicense().has_value());
-    EXPECT_EQ(component.getProjectLicense().value(), "GPL-3.0-or-later");
+  EXPECT_TRUE(component.getProjectLicense().has_value());
+  EXPECT_EQ(component.getProjectLicense().value(), "GPL-3.0-or-later");
 
-    EXPECT_TRUE(component.getDescription().has_value());
-    EXPECT_TRUE(component.getDescription().value().find("Easily and securely keep track") != std::string::npos);
+  EXPECT_TRUE(component.getDescription().has_value());
+  EXPECT_TRUE(component.getDescription().value().find(
+                  "Easily and securely keep track") != std::string::npos);
 
-    // categories
-    EXPECT_TRUE(component.getCategories().has_value());
-    const auto& categories = component.getCategories().value();
-    EXPECT_EQ(categories.size(), 2);
-    EXPECT_TRUE(categories.find("Security") != categories.end());
-    EXPECT_TRUE(categories.find("Utility") != categories.end());
+  // categories
+  EXPECT_TRUE(component.getCategories().has_value());
+  const auto& categories = component.getCategories().value();
+  EXPECT_EQ(categories.size(), 2);
+  EXPECT_TRUE(categories.find("Security") != categories.end());
+  EXPECT_TRUE(categories.find("Utility") != categories.end());
 
-    // keywords
-    EXPECT_TRUE(component.getKeywords().has_value());
-    const auto& keywords = component.getKeywords().value();
-    EXPECT_EQ(keywords.size(), 3);
-    EXPECT_TRUE(keywords.find("password") != keywords.end());
-    EXPECT_TRUE(keywords.find("security") != keywords.end());
-    EXPECT_TRUE(keywords.find("keepass") != keywords.end());
+  // keywords
+  EXPECT_TRUE(component.getKeywords().has_value());
+  const auto& keywords = component.getKeywords().value();
+  EXPECT_EQ(keywords.size(), 3);
+  EXPECT_TRUE(keywords.find("password") != keywords.end());
+  EXPECT_TRUE(keywords.find("security") != keywords.end());
+  EXPECT_TRUE(keywords.find("keepass") != keywords.end());
 
-    // languages
-    EXPECT_TRUE(component.getLanguages().has_value());
-    const auto& languages = component.getLanguages().value();
-    EXPECT_EQ(languages.size(), 3);
-    EXPECT_TRUE(languages.find("en") != languages.end());
-    EXPECT_TRUE(languages.find("de") != languages.end());
-    EXPECT_TRUE(languages.find("fr") != languages.end());
+  // languages
+  EXPECT_TRUE(component.getLanguages().has_value());
+  const auto& languages = component.getLanguages().value();
+  EXPECT_EQ(languages.size(), 3);
+  EXPECT_TRUE(languages.find("en") != languages.end());
+  EXPECT_TRUE(languages.find("de") != languages.end());
+  EXPECT_TRUE(languages.find("fr") != languages.end());
 
-    // screenshots
-    EXPECT_TRUE(component.getScreenshots().has_value());
-    const auto& screenshots = component.getScreenshots().value();
-    EXPECT_EQ(screenshots.size(), 1);
-    EXPECT_TRUE(screenshots[0].getType().has_value());
-    EXPECT_EQ(screenshots[0].getType().value(), "default");
+  // screenshots
+  EXPECT_TRUE(component.getScreenshots().has_value());
+  const auto& screenshots = component.getScreenshots().value();
+  EXPECT_EQ(screenshots.size(), 1);
+  EXPECT_TRUE(screenshots[0].getType().has_value());
+  EXPECT_EQ(screenshots[0].getType().value(), "default");
 
-    // icons
-    EXPECT_TRUE(component.getIcons().has_value());
-    const auto& icons = component.getIcons().value();
-    EXPECT_EQ(icons.size(), 2);
+  // icons
+  EXPECT_TRUE(component.getIcons().has_value());
+  const auto& icons = component.getIcons().value();
+  EXPECT_EQ(icons.size(), 2);
 
-    // launchable
-    EXPECT_TRUE(component.getLaunchable().has_value());
-    const auto& launchable = component.getLaunchable().value();
-    EXPECT_EQ(launchable.size(), 1);
-    EXPECT_TRUE(launchable.find("app.authpass.AuthPass.desktop") != launchable.end());
+  // launchable
+  EXPECT_TRUE(component.getLaunchable().has_value());
+  const auto& launchable = component.getLaunchable().value();
+  EXPECT_EQ(launchable.size(), 1);
+  EXPECT_TRUE(launchable.find("app.authpass.AuthPass.desktop") !=
+              launchable.end());
 
-    // bundle
-    EXPECT_TRUE(component.getBundle().has_value());
-    EXPECT_EQ(component.getBundle().value(), "app/app.authpass.AuthPass/x86_64/stable");
+  // bundle
+  EXPECT_TRUE(component.getBundle().has_value());
+  EXPECT_EQ(component.getBundle().value(),
+            "app/app.authpass.AuthPass/x86_64/stable");
 
-    xmlFreeDoc(doc);
+  xmlFreeDoc(doc);
 }
 
 TEST_F(FlatpakPluginTest, GetUserInstallationsTest) {

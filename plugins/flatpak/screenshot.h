@@ -85,7 +85,7 @@ class Screenshot {
 
   void printScreenshotDetails() const;
 
-private:
+ private:
   std::optional<std::string> type_;
   std::vector<std::string> captions_;
   std::optional<std::vector<Image>> images_;
