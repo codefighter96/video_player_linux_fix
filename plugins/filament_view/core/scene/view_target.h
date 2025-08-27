@@ -160,6 +160,7 @@ class ViewTarget {
     } native_window_{};
 
     ::filament::SwapChain* fswapChain_{};
+    std::mutex frameLock_;
     ::filament::View* fview_{};
 
     // todo to be moved?

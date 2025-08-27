@@ -562,15 +562,18 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
   // Render the scene, unless the renderer wants to skip the frame.
   const auto gpuDrawStart = std::chrono::steady_clock::now();
+  // spdlog::debug("=== BEGIN FRAME ===");
   if (renderer->beginFrame(fswapChain_, time)) {
-
+    // Frame is being rendered
     // TODO(kerberjg): send kPreRenderFrame event, async with wait
-
-    filamentSystem->getFilamentRenderer()->render(fview_);
-
-    filamentSystem->getFilamentRenderer()->endFrame();
-
+    // spdlog::debug("=== RENDER FRAME ===");
+    renderer->render(fview_);
+    // spdlog::debug("=== END FRAME ===");
+    renderer->endFrame();
     // TODO(kerberjg): send kPostRenderFrame event, async with wait
+  } else {
+    // beginFrame failed, the renderer couldn't render this frame
+    // spdlog::error("[{}] BEGINFRAME FAILED!", __FUNCTION__);
   }
 
   const auto gpuDrawDuration = std::chrono::steady_clock::now() - gpuDrawStart;
@@ -601,26 +604,43 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time) {
-  post(*ECSManager::GetInstance()->getStrand(), [data, callback, time] {
-    const auto obj = static_cast<ViewTarget*>(data);
+  // lock surface
+  const auto obj = static_cast<ViewTarget*>(data);
+  std::lock_guard<std::mutex> lock(obj->frameLock_);
+
+  // Post and await promise
+  const auto promise = std::make_shared<std::promise<void>>();
+  const auto future = promise->get_future();
+
+  post(*ECSManager::GetInstance()->getStrand(), [data, obj, callback, time, promise] {
+    // spdlog::debug("=== (wl) callback start ===");
     obj->callback_ = nullptr;
 
+    // std::lock_guard<std::mutex> lock(obj->frameLock_);
     if (callback) {
       wl_callback_destroy(callback);
     }
 
-    obj->DrawFrame(time);
-
+    // spdlog::debug("=== (wl) surface frame ===");
     obj->callback_ = wl_surface_frame(obj->surface_);
     wl_callback_add_listener(obj->callback_, &ViewTarget::frame_listener, data);
+
+    obj->DrawFrame(time);
 
     // Z-Order
     // These do not need <seem> to need to be called every frame.
     // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
-    wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
+    // spdlog::debug("=== (wl) subsurface position ===");
+    // wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
+    // spdlog::debug("=== (wl) surface commit ===");
     wl_surface_commit(obj->surface_);
+
+    // spdlog::debug("=== (wl) callback end ===");
+    promise->set_value();
   });
+
+  future.wait();
 }
 
 ////////////////////////////////////////////////////////////////////////////
