@@ -24,7 +24,8 @@ class ComponentTest : public ::testing::Test {
   void TearDown() override { xmlCleanupParser(); }
 
   static xmlDocPtr createXmlDoc(const std::string& xmlContent) {
-    return xmlParseMemory(xmlContent.c_str(), xmlContent.length());
+    return xmlParseMemory(xmlContent.c_str(),
+                          static_cast<int>(xmlContent.length()));
   }
 
   static xmlNodePtr getRootElement(xmlDocPtr doc) {
