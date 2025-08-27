@@ -36,9 +36,28 @@ void Image::parseXmlNode(const xmlNode* node) {
   }
   if (const xmlChar* content = xmlNodeGetContent(node)) {
     url_ = std::string(reinterpret_cast<const char*>(content));
+    std::string rawUrl = std::string(reinterpret_cast<const char*>(content));
+    url_ = plugin_common::StringTools::trimSpaces(rawUrl);
+    xmlFree(const_cast<xmlChar*>(content));
   } else {
     spdlog::error("Failed to retrieve content for node.");
   }
+}
+
+const std::optional<std::string>& Image::getType() const {
+  return type_;
+}
+
+const std::optional<int>& Image::getWidth() const {
+  return width_;
+}
+
+const std::optional<int>& Image::getHeight() const {
+  return height_;
+}
+
+const std::optional<std::string>& Image::getUrl() const {
+  return url_;
 }
 
 void Image::printImageDetails() const {
@@ -82,10 +101,32 @@ void Video::parseXmlNode(const xmlNode* node) {
     }
   }
   if (const xmlChar* content = xmlNodeGetContent(node)) {
-    url_ = std::string(reinterpret_cast<const char*>(content));
+    std::string rawUrl = std::string(reinterpret_cast<const char*>(content));
+    url_ = plugin_common::StringTools::trimSpaces(rawUrl);
+    xmlFree(const_cast<xmlChar*>(content));
   } else {
     spdlog::error("Failed to retrieve content for node.");
   }
+}
+
+const std::optional<std::string>& Video::getContainer() const {
+  return container_;
+}
+
+const std::optional<std::string>& Video::getCodec() const {
+  return codec_;
+}
+
+const std::optional<int>& Video::getWidth() const {
+  return width_;
+}
+
+const std::optional<int>& Video::getHeight() const {
+  return height_;
+}
+
+const std::optional<std::string>& Video::getUrl() const {
+  return url_;
 }
 
 void Video::printVideoDetails() const {
@@ -108,14 +149,18 @@ Screenshot::Screenshot(const xmlNode* node) {
 
 void Screenshot::parseXmlNode(const xmlNode* node) {
   std::vector<Image> images;
+  type_ = FlatpakShim::getAttribute(node, "type");
   for (xmlNode* current = node->children; current; current = current->next) {
+    // skip appstream whitespace
+    if (current->type != XML_ELEMENT_NODE) {
+      continue;
+    }
     if (xmlStrEqual(current->name,
-                    reinterpret_cast<const xmlChar*>("screenshot"))) {
-      type_ = FlatpakShim::getAttribute(current, "type");
-    } else if (xmlStrEqual(current->name,
                            reinterpret_cast<const xmlChar*>("caption"))) {
       if (const xmlChar* content = xmlNodeGetContent(current)) {
-        captions_.emplace_back(reinterpret_cast<const char*>(content));
+        std::string rawCaption = std::string(reinterpret_cast<const char*>(content));
+        captions_.emplace_back(plugin_common::StringTools::trimSpaces(rawCaption));
+        xmlFree(const_cast<xmlChar*>(content));
       } else {
         spdlog::error("Failed to retrieve caption content.");
       }
@@ -131,6 +176,22 @@ void Screenshot::parseXmlNode(const xmlNode* node) {
   if (!images.empty()) {
     images_ = std::move(images);
   }
+}
+
+const std::optional<std::string>& Screenshot::getType() const {
+  return type_;
+}
+
+const std::vector<std::string>& Screenshot::getCaptions() const {
+  return captions_;
+}
+
+const std::optional<std::vector<Image>>& Screenshot::getImages() const {
+  return images_;
+}
+
+const std::optional<Video>& Screenshot::getVideo() const {
+  return video_;
 }
 
 void Screenshot::printScreenshotDetails() const {

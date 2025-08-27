@@ -64,6 +64,22 @@ inline std::string& ltrim(std::string& s, const char* t) {
 inline std::string& trim(std::string& s, const char* t) {
   return ltrim(rtrim(s, t), t);
 };
+
+/**
+ * @brief trim whitespaces from both ends of string (right then left)
+ * @return std::string
+ * @retval String that has whitespaces trimmed.
+ * @relation
+ * flutter
+ */
+inline std::string trimSpaces(const std::string& str) {
+  size_t first = str.find_first_not_of(" \t\n\r");
+  if (first == std::string::npos) {
+    return "";
+  }
+  const size_t last = str.find_last_not_of(" \t\n\r");
+  return str.substr(first, last - first + 1);
+};
 }  // namespace plugin_common::StringTools
 
 #endif  // PLUGINS_COMMON_STRING_STRING_TOOLS_H_

@@ -21,6 +21,10 @@
 #include <libxml/tree.h>
 #include <libxml/xmlstring.h>
 #include <zlib.h>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 
 #include <fstream>
 
@@ -1688,6 +1692,8 @@ std::optional<Application> FlatpakShim::create_component(
     std::string license;
     std::string content_rating_type;
     flutter::EncodableMap content_rating;
+    std::string metadata;
+    std::string appdata;
 
     // fill Application data fields from catalog
     if (app_catalog.has_value()) {
@@ -1712,6 +1718,8 @@ std::optional<Application> FlatpakShim::create_component(
                 flutter::EncodableValue(Component::RatingValueToString(val));
           }
         }
+        metadata = create_metadata(component);
+        appdata = create_appdata(component);
       }
     }
     flutter::EncodableList subpaths;
@@ -1720,12 +1728,211 @@ std::optional<Application> FlatpakShim::create_component(
         remote_name ? std::string(remote_name) : "", license,
         static_cast<int64_t>(installed_size), "", false, content_rating_type,
         content_rating, "", eol ? std::string(eol) : "",
-        eol_rebase ? std::string(eol_rebase) : "", subpaths, "", "");
+        eol_rebase ? std::string(eol_rebase) : "", subpaths, metadata, appdata);
   } catch (const std::exception& e) {
     spdlog::error("[FlatpakPlugin] Component creation failed for : {}",
                   e.what());
     return std::nullopt;
   }
+}
+
+std::string FlatpakShim::create_metadata(const Component& component) {
+  rapidjson::Document document;
+  document.SetObject();
+  rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+  document.AddMember("id",rapidjson::Value(component.getId().c_str(),allocator),allocator);
+  document.AddMember("pkgname",rapidjson::Value(component.getPkgName().c_str(),allocator),allocator);
+  if (component.getVersion().has_value()) {
+    document.AddMember("version",rapidjson::Value(component.getVersion().value().c_str(),allocator),allocator);
+  }
+  if (component.getArchitecture().has_value()) {
+    document.AddMember("architecture",rapidjson::Value(component.getArchitecture().value().c_str(),allocator),allocator);
+  }
+  if (component.getBundle().has_value()) {
+    document.AddMember("bundle",rapidjson::Value(component.getBundle().value().c_str(),allocator),allocator);
+  }
+  if (component.getSourcePkgname().has_value()) {
+    document.AddMember("sourcepkgname",rapidjson::Value(component.getSourcePkgname().value().c_str(),allocator),allocator);
+  }
+  if (component.getUrl().has_value()) {
+    document.AddMember("url",rapidjson::Value(component.getUrl().value().c_str(),allocator),allocator);
+  }
+  if (component.getMediaBaseurl().has_value()) {
+    document.AddMember("mediabaseurl",rapidjson::Value(component.getMediaBaseurl().value().c_str(),allocator),allocator);
+  }
+  if (component.getCategories().has_value()) {
+    rapidjson::Value categoriesArray(rapidjson::kArrayType);
+    for (const auto& c : component.getCategories().value()) {
+      categoriesArray.PushBack(rapidjson::Value(c.c_str(),allocator),allocator);
+    }
+    document.AddMember("categories",categoriesArray,allocator);
+  }
+  if (component.getKeywords().has_value()) {
+    rapidjson::Value keywordsArray(rapidjson::kArrayType);
+    for (const auto& k : component.getKeywords().value()) {
+      keywordsArray.PushBack(rapidjson::Value(k.c_str(),allocator),allocator);
+    }
+    document.AddMember("keywords",keywordsArray,allocator);
+  }
+  if (component.getLanguages().has_value()) {
+    rapidjson::Value languagesArray(rapidjson::kArrayType);
+    for (const auto& l : component.getLanguages().value()) {
+      languagesArray.PushBack(rapidjson::Value(l.c_str(),allocator),allocator);
+    }
+    document.AddMember("languages",languagesArray,allocator);
+  }
+  if (component.getDeveloper().has_value()) {
+    rapidjson::Value developerArray(rapidjson::kArrayType);
+    for (const auto& d : component.getDeveloper().value()) {
+      developerArray.PushBack(rapidjson::Value(d.c_str(),allocator),allocator);
+    }
+    document.AddMember("developer",developerArray,allocator);
+  }
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  document.Accept(writer);
+  return buffer.GetString();
+}
+
+std::string FlatpakShim::create_appdata(const Component& component) {
+  rapidjson::Document document;
+  document.SetObject();
+  rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+  // description
+  if (component.getDescription().has_value()) {
+    document.AddMember("description",rapidjson::Value(component.getDescription().value().c_str(),allocator),allocator);
+  }
+
+  // screenshots
+  if (component.getScreenshots().has_value()) {
+    rapidjson::Value screenshotsArray(rapidjson::kArrayType);
+    for (const auto& s : component.getScreenshots().value()) {
+      rapidjson::Value screenshot(rapidjson::kObjectType);
+      if (s.getType().has_value()) {
+        screenshot.AddMember("type",rapidjson::Value(s.getType().value().c_str(),allocator),allocator);
+      }
+
+      if (!s.getCaptions().empty()) {
+        rapidjson::Value caption(rapidjson::kArrayType);
+        for (const auto& c : s.getCaptions()) {
+          caption.PushBack(rapidjson::Value(c.c_str(),allocator),allocator);
+        }
+        screenshot.AddMember("captions",caption,allocator);
+      }
+
+      if (s.getImages().has_value()) {
+        rapidjson::Value imagesArray(rapidjson::kArrayType);
+        for (const auto& i : s.getImages().value()) {
+          rapidjson::Value image(rapidjson::kObjectType);
+          if (i.getType().has_value()) {
+            image.AddMember("type",rapidjson::Value(i.getType().value().c_str(),allocator),allocator);
+          }
+          if (i.getUrl().has_value()) {
+            image.AddMember("url",rapidjson::Value(i.getUrl().value().c_str(),allocator),allocator);
+          }
+          if (i.getWidth().has_value()) {
+            image.AddMember("width",rapidjson::Value(std::to_string(i.getWidth().value()).c_str(),allocator),allocator);
+          }
+          if (i.getHeight().has_value()) {
+            image.AddMember("height",rapidjson::Value(std::to_string(i.getHeight().value()).c_str(),allocator),allocator);
+          }
+          imagesArray.PushBack(image,allocator);
+        }
+        screenshot.AddMember("images",imagesArray,allocator);
+      }
+
+      if (s.getVideo().has_value()) {
+        rapidjson::Value video(rapidjson::kObjectType);
+        if (s.getVideo().value().getUrl().has_value()) {
+          video.AddMember("url",rapidjson::Value(s.getVideo().value().getUrl().value().c_str(),allocator),allocator);
+        }
+        if (s.getVideo().value().getWidth().has_value()) {
+          video.AddMember("width",rapidjson::Value(std::to_string(s.getVideo().value().getWidth().value()),allocator),allocator);
+        }
+        if (s.getVideo().value().getHeight().has_value()) {
+          video.AddMember("height",rapidjson::Value(std::to_string(s.getVideo().value().getHeight().value()),allocator),allocator);
+        }
+        if (s.getVideo().value().getCodec().has_value()) {
+          video.AddMember("codec",rapidjson::Value(s.getVideo().value().getCodec().value(),allocator),allocator);
+        }
+        if (s.getVideo().value().getContainer().has_value()) {
+          video.AddMember("container",rapidjson::Value(s.getVideo().value().getContainer().value(),allocator),allocator);
+        }
+        screenshot.AddMember("video",video,allocator);
+      }
+      screenshotsArray.PushBack(screenshot,allocator);
+    }
+    document.AddMember("screenshots",screenshotsArray,allocator);
+  }
+
+  // icons
+  if (component.getIcons().has_value()) {
+    rapidjson::Value iconsArray(rapidjson::kArrayType);
+    for (const auto& i : component.getIcons().value()) {
+      rapidjson::Value icon(rapidjson::kObjectType);
+      if (i.getType().has_value()) {
+        icon.AddMember("type",rapidjson::Value(i.getType().value().c_str(),allocator),allocator);
+      }
+      if (i.getPath().has_value()) {
+        icon.AddMember("path",rapidjson::Value(i.getPath().value().c_str(),allocator),allocator);
+      }
+      if (i.getScale().has_value()) {
+        icon.AddMember("scale",rapidjson::Value(std::to_string(i.getScale().value()),allocator),allocator);
+      }
+      if (i.getWidth().has_value()) {
+        icon.AddMember("width",rapidjson::Value(std::to_string(i.getWidth().value()),allocator),allocator);
+      }
+      if (i.getHeight().has_value()) {
+        icon.AddMember("height",rapidjson::Value(std::to_string(i.getHeight().value()),allocator),allocator);
+      }
+      iconsArray.PushBack(icon,allocator);
+    }
+    document.AddMember("icons",iconsArray,allocator);
+  }
+    // releases
+    if (component.getReleases().has_value()) {
+      rapidjson::Value releasesArray(rapidjson::kArrayType);
+      for (const auto& r : component.getReleases().value()) {
+        rapidjson::Value release(rapidjson::kObjectType);
+        release.AddMember("version",rapidjson::Value(r.getVersion().c_str(),allocator),allocator);
+        release.AddMember("timestamp",rapidjson::Value(r.getTimestamp().c_str(),allocator),allocator);
+        if (r.getDescription().has_value()) {
+          release.AddMember("description",rapidjson::Value(r.getDescription().value().c_str(),allocator),allocator);
+        }
+        if (r.getSize().has_value()) {
+          release.AddMember("size",rapidjson::Value(r.getSize().value(),allocator),allocator);
+        }
+        releasesArray.PushBack(release,allocator);
+      }
+      document.AddMember("releases",releasesArray,allocator);
+    }
+
+    // agreements
+    if (component.getAgreement().has_value()) {
+      document.AddMember("agreement",rapidjson::Value(component.getAgreement().value().c_str(),allocator),allocator);
+    }
+
+  // projectgroup
+  if (component.getProjectGroup().has_value()) {
+    document.AddMember("projectgroup",rapidjson::Value(component.getProjectGroup().value().c_str(),allocator),allocator);
+  }
+
+  // suggests
+  if (component.getSuggests().has_value()) {
+    rapidjson::Value suggestsArray(rapidjson::kArrayType);
+    for (const auto& s : component.getSuggests().value()) {
+      suggestsArray.PushBack(rapidjson::Value(s.c_str(),allocator),allocator);
+    }
+    document.AddMember("suggests",suggestsArray,allocator);
+  }
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  document.Accept(writer);
+
+  return buffer.GetString();
 }
 
 }  // namespace flatpak_plugin

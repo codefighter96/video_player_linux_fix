@@ -80,7 +80,14 @@ Component::Component(const xmlNode* node, std::string language)
         if (!languages_) {
           languages_ = std::unordered_set<std::string>{};
         }
-        languages_->insert(content);
+
+        // languages in XML have whitespaces
+        auto rawLangs = std::string(content);
+        std::stringstream ss(rawLangs);
+        std::string token;
+        while (ss >> token) {
+          languages_->insert(token);
+        }
       } else if (nodeName == "suggests") {
         if (!suggests_) {
           suggests_ = std::unordered_set<std::string>{};
@@ -187,7 +194,12 @@ void Component::parseScreenshots(xmlNode* node) {
   if (!screenshots_) {
     screenshots_ = std::vector<Screenshot>{};
   }
-  screenshots_->emplace_back(node);
+  for (xmlNode* current = node->children; current; current = current->next) {
+    if (current->type == XML_ELEMENT_NODE &&
+        xmlStrEqual(current->name, reinterpret_cast<const xmlChar*>("screenshot"))) {
+      screenshots_->emplace_back(current);
+        }
+  }
 }
 
 void Component::parseReleases(xmlNode* node) {
