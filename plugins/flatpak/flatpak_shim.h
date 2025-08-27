@@ -28,6 +28,7 @@
 #include "appstream_catalog.h"
 #include "component.h"
 #include "messages.g.h"
+#include "screenshot.h"
 
 namespace flatpak_plugin {
 
@@ -300,6 +301,10 @@ struct FlatpakShim {
   static std::optional<Application> create_component(
       FlatpakRemoteRef* app_ref,
       const std::optional<AppstreamCatalog>& app_catalog);
+
+  static std::string create_metadata(const Component& component);
+
+  static std::string create_appdata(const Component& component);
 };
 
 }  // namespace flatpak_plugin

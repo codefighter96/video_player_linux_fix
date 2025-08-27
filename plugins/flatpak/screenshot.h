@@ -26,6 +26,14 @@ class Image {
  public:
   explicit Image(const xmlNode* node);
 
+  [[nodiscard]] const std::optional<std::string>& getType() const;
+
+  [[nodiscard]] const std::optional<int>& getWidth() const;
+
+  [[nodiscard]] const std::optional<int>& getHeight() const;
+
+  [[nodiscard]] const std::optional<std::string>& getUrl() const;
+
   void printImageDetails() const;
 
  private:
@@ -40,6 +48,16 @@ class Image {
 class Video {
  public:
   explicit Video(const xmlNode* node);
+
+  [[nodiscard]] const std::optional<std::string>& getContainer() const;
+
+  [[nodiscard]] const std::optional<std::string>& getCodec() const;
+
+  [[nodiscard]] const std::optional<int>& getWidth() const;
+
+  [[nodiscard]] const std::optional<int>& getHeight() const;
+
+  [[nodiscard]] const std::optional<std::string>& getUrl() const;
 
   void printVideoDetails() const;
 
@@ -56,6 +74,14 @@ class Video {
 class Screenshot {
  public:
   explicit Screenshot(const xmlNode* node);
+
+  [[nodiscard]] const std::optional<std::string>& getType() const;
+
+  [[nodiscard]] const std::vector<std::string>& getCaptions() const;
+
+  [[nodiscard]] const std::optional<std::vector<Image>>& getImages() const;
+
+  [[nodiscard]] const std::optional<Video>& getVideo() const;
 
   void printScreenshotDetails() const;
 
