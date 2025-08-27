@@ -634,7 +634,7 @@ void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time)
     // wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
     // spdlog::debug("=== (wl) surface commit ===");
-    wl_surface_commit(obj->surface_);
+    // NOTE: DO NOT CALL wl_surface_commit, it already happens elsewhere
 
     // spdlog::debug("=== (wl) callback end ===");
     promise->set_value();
