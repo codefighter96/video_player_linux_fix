@@ -532,7 +532,24 @@ void ViewTarget::DrawFrame(const uint32_t time) {
   if (deltaTime == 0.0) {
     deltaTime += 1.0;
   }
-  float fps = 1.0f / static_cast<float>(deltaTime);  // calculate FPS
+
+  float fps;
+  if (_last_fps_reset_time == 0) {
+    _last_fps_reset_time = time;
+    // calculate from delta time and round to int
+    _prev_fps_counter = static_cast<int>(1.0f / deltaTime);
+  }
+
+  _fps_counter++;
+
+  // Second overflown, reset counter
+  if (time - _last_fps_reset_time >= 1000) {
+    _last_fps_reset_time = time;
+    _prev_fps_counter = _fps_counter;
+    _fps_counter = 0;
+  }
+
+  fps = static_cast<float>(_prev_fps_counter);
 
   // spdlog::debug("[{}] deltaTime: {:.2f}ms", __FUNCTION__, deltaTime * 1000.0f);
 
@@ -562,15 +579,18 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
   // Render the scene, unless the renderer wants to skip the frame.
   const auto gpuDrawStart = std::chrono::steady_clock::now();
+  // spdlog::debug("=== BEGIN FRAME ===");
   if (renderer->beginFrame(fswapChain_, time)) {
-
+    // Frame is being rendered
     // TODO(kerberjg): send kPreRenderFrame event, async with wait
-
-    filamentSystem->getFilamentRenderer()->render(fview_);
-
-    filamentSystem->getFilamentRenderer()->endFrame();
-
+    // spdlog::debug("=== RENDER FRAME ===");
+    renderer->render(fview_);
+    // spdlog::debug("=== END FRAME ===");
+    renderer->endFrame();
     // TODO(kerberjg): send kPostRenderFrame event, async with wait
+  } else {
+    // beginFrame failed, the renderer couldn't render this frame
+    // spdlog::error("[{}] BEGINFRAME FAILED!", __FUNCTION__);
   }
 
   const auto gpuDrawDuration = std::chrono::steady_clock::now() - gpuDrawStart;
@@ -601,26 +621,45 @@ void ViewTarget::DrawFrame(const uint32_t time) {
 
 ////////////////////////////////////////////////////////////////////////////
 void ViewTarget::OnFrame(void* data, wl_callback* callback, const uint32_t time) {
-  post(*ECSManager::GetInstance()->getStrand(), [data, callback, time] {
-    const auto obj = static_cast<ViewTarget*>(data);
+  // lock surface
+  const auto obj = static_cast<ViewTarget*>(data);
+  std::lock_guard<std::mutex> lock(obj->frameLock_);
+
+  // Post and await promise
+  const auto promise = std::make_shared<std::promise<void>>();
+  const auto future = promise->get_future();
+
+  // TODO: there's a 0.05ms lag when posting the task - SHOULDN'T HAPPEN!
+  // NOTE: let's use separate strands for work and rendering?
+  post(*ECSManager::GetInstance()->getStrand(), [data, obj, callback, time, promise] {
+    // spdlog::debug("=== (wl) callback start ===");
     obj->callback_ = nullptr;
 
+    // std::lock_guard<std::mutex> lock(obj->frameLock_);
     if (callback) {
       wl_callback_destroy(callback);
     }
 
-    obj->DrawFrame(time);
-
+    // spdlog::debug("=== (wl) surface frame ===");
     obj->callback_ = wl_surface_frame(obj->surface_);
     wl_callback_add_listener(obj->callback_, &ViewTarget::frame_listener, data);
+
+    obj->DrawFrame(time);
 
     // Z-Order
     // These do not need <seem> to need to be called every frame.
     // wl_subsurface_place_below(obj->subsurface_, obj->parent_surface_);
-    wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
+    // spdlog::debug("=== (wl) subsurface position ===");
+    // wl_subsurface_set_position(obj->subsurface_, obj->left_, obj->top_);
 
-    wl_surface_commit(obj->surface_);
+    // spdlog::debug("=== (wl) surface commit ===");
+    // NOTE: DO NOT CALL wl_surface_commit, it already happens elsewhere
+
+    // spdlog::debug("=== (wl) callback end ===");
+    promise->set_value();
   });
+
+  future.wait();
 }
 
 ////////////////////////////////////////////////////////////////////////////
