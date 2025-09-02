@@ -31,9 +31,10 @@ target_compile_features(${PLUGIN_NAME} PRIVATE cxx_std_17)
 
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GST IMPORTED_TARGET REQUIRED gstreamer-1.0>=1.4 gstreamer-video-1.0 libavformat libavutil)
+# find_package(OpenGL REQUIRED)  # Using EGL/GLES instead
+pkg_check_modules(GST IMPORTED_TARGET REQUIRED gstreamer-1.0>=1.4 gstreamer-video-1.0 )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 target_include_directories(${PLUGIN_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(${PLUGIN_NAME} PUBLIC platform_homescreen flutter PkgConfig::GST plugin_common_glib)
+target_link_libraries(${PLUGIN_NAME} PUBLIC platform_homescreen flutter PkgConfig::GST plugin_common_glib EGL GLESv2)

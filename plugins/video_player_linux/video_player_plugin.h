@@ -27,6 +27,7 @@
 namespace video_player_linux {
 
 #define GSTREAMER_DEBUG 1
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
 class VideoPlayerPlugin final : public flutter::Plugin, public VideoPlayerApi {
  public:
@@ -77,11 +78,17 @@ class VideoPlayerPlugin final : public flutter::Plugin, public VideoPlayerApi {
    * @relation
    * flutter
    */
-  static bool get_video_info(const char* url,
-                             int& width,
-                             int& height,
-                             gint64& duration,
-                             AVCodecID& codec_id);
+//   static bool get_video_info(const char* url,
+//                              int& width,
+//                              int& height,
+//                              gint64& duration,
+//                              AVCodecID& codec_id);
+
+  static bool get_video_info_ffprobe_no_json(const char* url,
+        int& width,
+        int& height,
+        gint64& duration_ns,
+        std::string& codec_name);
 
   /**
    * @brief Return GStreamer plugin for codec ID
@@ -91,7 +98,7 @@ class VideoPlayerPlugin final : public flutter::Plugin, public VideoPlayerApi {
    * @relation
    * flutter
    */
-  static const char* map_ffmpeg_plugin(AVCodecID codec_id);
+  //static const char* map_ffmpeg_plugin(AVCodecID codec_id);
 };
 
 }  // namespace video_player_linux

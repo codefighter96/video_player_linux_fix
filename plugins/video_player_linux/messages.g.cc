@@ -43,8 +43,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     const auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
-        "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi."
-        "initialize",
+        "dev.flutter.pigeon.video_player_linux.LinuxVideoPlayerApi.initialize",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
